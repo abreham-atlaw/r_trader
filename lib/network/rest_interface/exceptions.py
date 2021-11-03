@@ -1,0 +1,4 @@
+
+
+class InvalidNetworkMethod(Exception):
+	pass
