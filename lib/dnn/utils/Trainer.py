@@ -63,6 +63,7 @@ class KerasTrainer(ABC):
 			X_train, X_test, y_train, y_test = self._split_data(X, y)
 		else:
 			X_trian, y_train = X, y
+		del X, y
 		model: keras.Model = self._create_model()
 		self._compile_model(model)
 		print("[+]Model Summary")
