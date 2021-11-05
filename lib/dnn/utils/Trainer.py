@@ -59,6 +59,7 @@ class KerasTrainer(ABC):
 		print("[+]Starting Training...")
 		raw_data = self._load_data(self._data_path)
 		X, y = self._prepare_data(raw_data)
+		del raw_data
 		if self._test:
 			X_train, X_test, y_train, y_test = self._split_data(X, y)
 		else:
