@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+import gc
+
 from lib.dnn.utils import KerasTrainer
 
 
@@ -31,13 +33,14 @@ class Optimizer(ABC):
 		train_history, test_loss = trainer.start()
 		if len(test_loss) > 1:
 			test_loss = test_loss[0]
+		del trainer
+
+		gc.collect()
 
 		return np.average([
 			np.min(train_history.history["loss"]),
 			test_loss
 		])
-
-		return return_value
 
 	def _optimize_params(self, params: List[str], default_values: Dict) -> Tuple[Dict, float]:
 		print(f"[+]Optimizing Params: {params} with Default Values: {default_values}")

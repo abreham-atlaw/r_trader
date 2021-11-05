@@ -7,6 +7,8 @@ from tensorflow.python import keras
 
 from sklearn.model_selection import train_test_split
 
+import gc
+
 
 class KerasTrainer(ABC):
 
@@ -82,5 +84,8 @@ class KerasTrainer(ABC):
 			test_history = model.evaluate(X_test, y_test)
 
 		self._save_model(model, self._export_path)
+		del model
+
+		gc.collect()
 
 		return history, test_history
