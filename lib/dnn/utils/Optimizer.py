@@ -29,10 +29,15 @@ class Optimizer(ABC):
 		print(f"[+]Getting Loss for :{values}")
 		trainer = self._create_trainer(values)
 		train_history, test_loss = trainer.start()
+		if len(test_loss) > 1:
+			test_loss = test_loss[0]
+
 		return np.average([
 			np.min(train_history.history["loss"]),
 			test_loss
 		])
+
+		return return_value
 
 	def _optimize_params(self, params: List[str], default_values: Dict) -> Tuple[Dict, float]:
 		print(f"[+]Optimizing Params: {params} with Default Values: {default_values}")
@@ -49,6 +54,7 @@ class Optimizer(ABC):
 				loss = self.__get_value_loss(new_values)
 			else:
 				candidate_values, loss = self._optimize_params(params[1:], new_values)
+			print(min_loss, loss)
 			if min_loss is None or loss < min_loss:
 				if is_last_param:
 					optimal_params = new_values
