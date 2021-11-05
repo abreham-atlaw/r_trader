@@ -75,6 +75,7 @@ class KerasTrainer(ABC):
 			batch_size=self._batch_size,
 			**self._fit_params
 		)
+		del X_train, y_train
 		test_history = None
 		if self._test:
 			test_history = model.evaluate(X_test, y_test)
