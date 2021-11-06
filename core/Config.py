@@ -46,3 +46,9 @@ DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
 LOGGING = True
+
+
+OPTIMIZER_PG_CONFIG = {
+	"dsn": "postgres://ontiwpwwgbtgwp:8702c0dec88af3c49473d464bf44e8ad17419facfce764c8684ed540839fb8cb@ec2-34-194-100-156.compute-1.amazonaws.com:5432/dcs4e3sfc908fi",
+	"sslmode": "require"
+}

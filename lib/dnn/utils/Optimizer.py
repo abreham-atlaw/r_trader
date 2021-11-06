@@ -27,7 +27,7 @@ class Optimizer(ABC):
 	def __get_params(self) -> List[str]:
 		return list(self.__param_values.keys())
 
-	def __get_value_loss(self, values: Dict) -> float:
+	def _get_value_loss(self, values: Dict) -> float:
 		print(f"[+]Getting Loss for :{values}")
 		trainer = self._create_trainer(values)
 		train_history, test_loss = trainer.start()
@@ -54,7 +54,7 @@ class Optimizer(ABC):
 			new_values = default_values.copy()
 			new_values[params[0]] = value
 			if is_last_param:
-				loss = self.__get_value_loss(new_values)
+				loss = self._get_value_loss(new_values)
 			else:
 				candidate_values, loss = self._optimize_params(params[1:], new_values)
 			print(min_loss, loss)
@@ -70,3 +70,5 @@ class Optimizer(ABC):
 	def optimize(self):
 		print("[+]Starting Optimization...")
 		return self._optimize_params(self.__get_params(), {})
+
+
