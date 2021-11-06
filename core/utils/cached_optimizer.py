@@ -14,6 +14,7 @@ class CachedOptimizer(Optimizer):
 	def _get_value_loss(self, values: Dict):
 		cached = self.__cacher.get_value(values)
 		if cached is not None:
+			print(f"[+]Returning Cached Value for {values}: {cached}")
 			return cached
 		value = super()._get_value_loss(values)
 		self.__cacher.cache(values, value)
