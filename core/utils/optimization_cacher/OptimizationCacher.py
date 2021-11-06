@@ -27,5 +27,5 @@ class OptimizationCacher:
 		return config.get_value()
 
 	def cache(self, config_dict: Dict, value: float):
-		config = self.__construct_config(config_dict, float)
+		config = self.__construct_config(config_dict, value)
 		config.save(commit=True)
