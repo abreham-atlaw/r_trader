@@ -15,4 +15,7 @@ class CachedOptimizer(Optimizer):
 		cached = self.__cacher.get_value(values)
 		if cached is not None:
 			return cached
-		return super()._get_value_loss(values)
+		value = super()._get_value_loss(values)
+		self.__cacher.cache(values, value)
+		return value
+
