@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from keras.layers import Layer, Concatenate, Reshape, Activation
+from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
 
 
 class Delta(Layer):
@@ -38,18 +38,17 @@ class MovingAverage(Layer):
 		self.average_gap = average_gap
 		super(MovingAverage, self).__init__(**kwargs)
 
-	def call(self, inputs, **kwargs):
-
-		output = tf.Variable(
-			tf.zeros(
-				(inputs.shape[0], inputs.shape[1]-self.average_gap+1)
+	@tf.function
+	def calc_moving_average(self, inputs):
+		output = []
+		for i in range(inputs.shape[1]-self.average_gap+1):
+			output.append(
+				tf.reduce_mean(inputs[:, i: self.average_gap+i], axis=1)
 			)
-		)
+		return tf.stack(output, axis=1)
 
-		for i in range(output.shape[1]):
-			output[:, i].assign(tf.reduce_mean(inputs[:, i:self.average_gap+i], axis=1))
-
-		return output
+	def call(self, inputs, **kwargs):
+		return self.calc_moving_average(inputs)
 
 	def get_config(self):
 		return {
