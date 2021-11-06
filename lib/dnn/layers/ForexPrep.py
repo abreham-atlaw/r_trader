@@ -9,7 +9,7 @@ class Delta(Layer):
 		super(Delta, self).__init__(**kwargs)
 
 	def call(self, inputs: tf.Tensor, **kwargs):
-		return inputs[:, 1:, :] - inputs[:, :-1, :]
+		return inputs[:, 1:] - inputs[:, :-1]
 
 
 class Percentage(Layer):
@@ -39,7 +39,17 @@ class MovingAverage(Layer):
 		super(MovingAverage, self).__init__(**kwargs)
 
 	def call(self, inputs, **kwargs):
-		return tf.reshape(tf.reduce_mean(tf.linalg.diag_part(tf.repeat(inputs, self.average_gap, axis=2), k=(-(inputs.shape[1]-self.average_gap), 0)), axis=2), (-1, inputs.shape[1]-self.average_gap+1, 1))
+
+		output = tf.Variable(
+			tf.zeros(
+				(inputs.shape[0], inputs.shape[1]-self.average_gap+1)
+			)
+		)
+
+		for i in range(output.shape[1]):
+			output[:, i].assign(tf.reduce_mean(inputs[:, i:self.average_gap+i], axis=1))
+
+		return output
 
 	def get_config(self):
 		return {
