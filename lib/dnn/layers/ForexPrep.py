@@ -5,8 +5,8 @@ from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
 
 class Delta(Layer):
 
-	def __init__(self, **kwargs):
-		super(Delta, self).__init__(**kwargs)
+	def __init__(self, name="delta", **kwargs):
+		super(Delta, self).__init__(name=name, **kwargs)
 
 	def call(self, inputs: tf.Tensor, **kwargs):
 		return inputs[:, 1:] - inputs[:, :-1]
@@ -34,9 +34,9 @@ class Norm(Layer):
 
 class MovingAverage(Layer):
 
-	def __init__(self, average_gap, **kwargs):
+	def __init__(self, average_gap, name="moving_average", **kwargs):
 		self.average_gap = average_gap
-		super(MovingAverage, self).__init__(**kwargs)
+		super(MovingAverage, self).__init__(name=name, **kwargs)
 
 	@tf.function
 	def calc_moving_average(self, inputs):
