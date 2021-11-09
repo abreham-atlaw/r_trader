@@ -20,7 +20,7 @@ class Utils:
 class Config:
 
 	TABLE_NAME = "config"
-	COLUMNS = ["id", "seq_len", "loss", "optimizer", "hidden_activation", "delta", "average_window", "value"]
+	COLUMNS = ["id", "seq_len", "loss", "optimizer", "hidden_activation", "delta", "percentage", "average_window", "value"]
 
 	id: Union[int, None]
 	seq_len: int
@@ -28,6 +28,7 @@ class Config:
 	optimizer: str
 	hidden_activation: str
 	delta: bool
+	percentage: bool
 	average_window: float
 	value: Union[float, None] = None
 	hidden_layers: List = None
@@ -45,8 +46,8 @@ class Config:
 			raise Exception("Hidden Layers not set.")
 		cursor = connection.cursor()
 		cursor.execute(
-			f"INSERT INTO {Config.TABLE_NAME}({', '.join(self.COLUMNS[1:])}) values(%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-			(self.seq_len, self.loss, self.optimizer, self.hidden_activation, self.delta, self.average_window, self.value)
+			f"INSERT INTO {Config.TABLE_NAME}({', '.join(self.COLUMNS[1:])}) values(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+			(self.seq_len, self.loss, self.optimizer, self.hidden_activation, self.delta, self.percentage, self.average_window, self.value)
 		)
 		self.id = cursor.fetchone()
 		for layer in self.hidden_layers:
@@ -64,11 +65,12 @@ class Config:
 				f"SELECT {', '.join(Config.COLUMNS)} FROM {Config.TABLE_NAME} WHERE "
 				f"average_window = %s AND "
 				f"delta = %s AND "
+				f"percentage = %s AND "
 				f"hidden_activation = %s AND "
 				f"loss = %s AND "
 				f"optimizer = %s AND "
 				f"seq_len = %s",
-				(self.average_window, self.delta, self.hidden_activation, self.loss, self.optimizer, self.seq_len)
+				(self.average_window, self.delta, self.percentage, self.hidden_activation, self.loss, self.optimizer, self.seq_len)
 			)
 			response = read_cursor.fetchall()
 			configs = Utils.deserialize(response, Config)
