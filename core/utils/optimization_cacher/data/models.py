@@ -1,3 +1,4 @@
+import datetime
 from typing import *
 
 from core.utils.optimization_cacher import connection, read_cursor
@@ -41,13 +42,27 @@ class Config:
 	def set_hidden_layers(self, layers: List[int]):
 		self.hidden_layers = HiddenLayer.from_plain(layers, self.id)
 
+	def __update(self):
+		cursor = connection.cursor()
+		cursor.execute(
+			f"UPDATE {Config.TABLE_NAME} SET value = %s WHERE id = %s",
+			(self.get_value(), self.get_id())
+		)
+
 	def save(self, commit=False):
 		if self.hidden_layers is None:
 			raise Exception("Hidden Layers not set.")
+		if self.get_id() is not None:
+			self.__update()
+			return
 		cursor = connection.cursor()
 		cursor.execute(
-			f"INSERT INTO {Config.TABLE_NAME}({', '.join(self.COLUMNS[1:])}) values(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
-			(self.seq_len, self.loss, self.optimizer, self.hidden_activation, self.delta, self.percentage, self.average_window, self.value)
+			f"INSERT INTO {Config.TABLE_NAME}({', '.join(self.COLUMNS[1:])}) "
+			f"values(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+			(
+				self.seq_len, self.loss, self.optimizer, self.hidden_activation,
+				self.delta, self.percentage, self.average_window, self.value
+			)
 		)
 		self.id = cursor.fetchone()
 		for layer in self.hidden_layers:
@@ -57,8 +72,32 @@ class Config:
 		if commit:
 			connection.commit()
 
+	def delete(self, commit=False):
+		if self.get_id() is None:
+			raise Exception("Can't delete a Config that doesn't exist.")
+		cursor = connection.cursor()
+		cursor.execute(
+			f"DELETE FROM {Config.TABLE_NAME} WHERE id = %s",
+			(self.get_id(),)
+		)
+		if commit:
+			connection.commit()
+
 	def get_value(self) -> Union[float, None]:
 		if self.value is None:
+			config_id = self.get_id()
+			if config_id is None:
+				return None
+			read_cursor.execute(
+				f"SELECT value FROM {Config.TABLE_NAME} WHERE id = %s",
+				(config_id,)
+			)
+			self.value = read_cursor.fetchone()[0]
+
+		return self.value
+
+	def get_id(self):
+		if self.id is None:
 			if self.hidden_layers is None:
 				raise Exception("Hidden Layers not set.")
 			read_cursor.execute(
@@ -70,14 +109,18 @@ class Config:
 				f"loss = %s AND "
 				f"optimizer = %s AND "
 				f"seq_len = %s",
-				(self.average_window, self.delta, self.percentage, self.hidden_activation, self.loss, self.optimizer, self.seq_len)
+				(
+					self.average_window, self.delta, self.percentage, self.hidden_activation,
+					self.loss, self.optimizer,self.seq_len
+				)
 			)
 			response = read_cursor.fetchall()
 			configs = Utils.deserialize(response, Config)
 			for config in configs:
 				if config.get_hidden_layers() == self.get_hidden_layers():
-					self.value = config.value
-		return self.value
+					self.id = config.id
+					break
+		return self.id
 
 
 @dataclass
@@ -123,3 +166,48 @@ class HiddenLayer:
 			HiddenLayer(None, unit, i, config_id)
 			for i, unit in enumerate(layers)
 		]
+
+
+@dataclass
+class Progress:
+
+	TABLE_NAME = "progress"
+	COLUMNS = ["id", "config_id", "user_id", "start_datetime", "done"]
+
+	id: Union[int, None]
+	config_id: int
+	user: str
+	start_datetime: datetime.datetime
+	done: bool = False
+
+	def save(self, commit=False):
+		cursor = connection.cursor()
+		cursor.execute(
+			f"INSERT INTO {Progress.TABLE_NAME}({','.join(Progress.COLUMNS[1:])}) "
+			f"values (%s, %s, %s, %s) RETURNING id",
+			(self.config_id, self.user, self.start_datetime, self.done)
+		)
+		self.id = cursor.fetchone()
+		if commit:
+			connection.commit()
+
+	def set_done(self, commit=False):
+		cursor = connection.cursor()
+		cursor.execute(
+			f"UPDATE {Progress.TABLE_NAME} SET done = true WHERE id = %s",
+			(self.id,)
+		)
+		self.done = True
+		if commit:
+			connection.commit()
+
+	@staticmethod
+	def get_by_config_id(config_id: int):
+		read_cursor.execute(
+			f"SELECT {', '.join(Progress.COLUMNS)} FROM {Progress.TABLE_NAME} "
+			f"WHERE config_id = %s",
+			(config_id,)
+		)
+
+		response = read_cursor.fetchone()
+		return Utils.deserialize(response, Progress)
