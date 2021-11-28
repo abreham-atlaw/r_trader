@@ -55,11 +55,10 @@ class Optimizer(ABC):
 			new_values[params[0]] = value
 			if is_last_param:
 				loss = self._get_value_loss(new_values)
-				if loss is None:
-					continue
 			else:
 				candidate_values, loss = self._optimize_params(params[1:], new_values)
-			print(min_loss, loss)
+			if loss is None:
+				continue
 			if min_loss is None or loss < min_loss:
 				if is_last_param:
 					optimal_params = new_values
