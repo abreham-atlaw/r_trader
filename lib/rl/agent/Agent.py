@@ -66,7 +66,7 @@ class Agent(ABC):
 			self.__actions = []
 			self.__cache = np.array([[[None, None]]])
 
-	def __init__(self, explore_exploit_tradeoff: float=0.3, discount: float=0.7, depth: int=None, episodic: bool = True, logging: bool=True, session_caching: bool=True):
+	def __init__(self, explore_exploit_tradeoff: float = 0.3, discount: float = 0.7, depth: int = None, episodic: bool = True, session_caching: bool = True):
 		self._explore_exploit_tradeoff = explore_exploit_tradeoff
 		self._discount_factor = discount
 		self._is_episodic = episodic

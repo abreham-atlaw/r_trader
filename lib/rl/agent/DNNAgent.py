@@ -52,6 +52,9 @@ class DNNAgent(Agent, ABC):
 
 	@Logger.logged_method
 	def _get_expected_transition_probability(self, initial_state, action, final_state) -> float:
+		if action is None:
+			return 1
+
 		prediction = self._get_transition_model()(
 			self._state_action_to_model_input(initial_state, action, final_state).reshape((1, -1))
 		)

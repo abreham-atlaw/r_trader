@@ -1,9 +1,11 @@
 from typing import *
 
+import tensorflow as tf
 import numpy as np
 
 import copy
 
+from core import Config
 from lib.rl.agent import DNNAgent
 from .trade_transition_model import TransitionModel
 from core.environment.trade_state import TradeState
@@ -14,7 +16,7 @@ from core.environment.trade_environment import TradeEnvironment
 class TraderAgent(DNNAgent):
 
 	def __init__(self, *args, trade_size_gap=5, state_change_delta=0.01, **kwargs):
-		super().__init__(*args, episodic=False, depth=100, **kwargs)
+		super().__init__(*args, episodic=False, depth=Config.AGENT_DEPTH, **kwargs)
 		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta = state_change_delta
 		self.environment: TradeEnvironment
@@ -31,7 +33,7 @@ class TraderAgent(DNNAgent):
 			output: np.ndarray,
 			final_state: TradeState
 	) -> float:
-		predicted_value: float = output.reshape((-1,))[0]
+		predicted_value: float = float(tf.reshape(output, (-1,))[0])
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] == initial_state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
@@ -77,22 +79,27 @@ class TraderAgent(DNNAgent):
 		mid_state = self.__simulate_action(state, action)
 
 		states = []
-		for (base_currency, quote_currency) in state.get_market_state().get_tradable_pairs():
-			original_value = state.get_market_state().get_state_of(base_currency, quote_currency)[0]
 
-			for j in [-1, 1]:
-				new_state = copy.deepcopy(mid_state)
-				new_state.get_market_state().update_state_of(
-					base_currency,
-					quote_currency,
-					np.array([original_value * (1 + j*self.__state_change_delta)])
-				)
-				new_state.get_market_state().update_state_of(
-					quote_currency,
-					base_currency,
-					1/new_state.get_market_state().get_state_of(base_currency, quote_currency)
-				)
+		if action is None:
+			for (base_currency, quote_currency) in state.get_market_state().get_tradable_pairs():
+				states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency)
+		else:
+			states += self.__simulate_instrument_change(mid_state, action.base_currency, action.quote_currency)
 
-				states.append(new_state)
+		return states
+
+	def __simulate_instrument_change(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
+		states = []
+
+		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
+
+		for j in [-1, 1]:
+			new_state = copy.deepcopy(state)
+			new_state.get_market_state().update_state_of(
+				base_currency,
+				quote_currency,
+				np.array(original_value * (1 + j*self.__state_change_delta))
+			)
+			states.append(new_state)
 
 		return states

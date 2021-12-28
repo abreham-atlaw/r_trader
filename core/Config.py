@@ -24,16 +24,28 @@ CURRENCIES = [
 
 DEFAULT_PG_CONFIG = {
 	"host": "localhost",
-	"database": "rtraderdb",
+	"database": "rtrader_db",
 	"user": "rtrader_admin",
 	"password": "4U7z7KJM"  # TODO
 }
 
 REMOTE_TRADER_URL = "http://localhost:8080/"
 
-TABLE_NAME = "currencies_history"
+"""
+HISTORICAL_TABLE_NAME = "currencies_history"
+CURRENCIES_TABLE_NAME = "currencies"
+TRADEABLE_PAIRS_TABLE_NAME = "tradeable_pairs"
+DISTINCT_DATETIMES_TABLE_NAME = "distinct_datetimes"
+"""
+
+HISTORICAL_TABLE_NAME = "test_currencies_history"
+CURRENCIES_TABLE_NAME = "test_currencies"
+TRADEABLE_PAIRS_TABLE_NAME = "test_tradeable_pairs"
+DISTINCT_DATETIMES_TABLE_NAME = "test_distinct_datetimes"
+
 
 MARKET_STATE_MEMORY = 64
+AGENT_DEPTH = 5
 
 NETWORK_TRIES = 5
 POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"

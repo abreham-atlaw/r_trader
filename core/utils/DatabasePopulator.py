@@ -10,6 +10,14 @@ from core import Config
 
 FILES_DIR = os.path.abspath("../../Data/Minutes")
 
+# TEMP: REMOVE IT
+VALID_CURRENCIES = [
+	"AUD",
+	"GBP",
+	"CAD",
+	"USD",
+]
+
 
 class Populator:
 
@@ -40,7 +48,6 @@ class Populator:
 		response = cursor.fetchall()
 		return len(response) > 0
 
-
 	def __populate_database(self, data: pd.DataFrame):
 		cursor = self.__connection.cursor()
 		for i, row in data.iterrows():
@@ -61,8 +68,18 @@ class Populator:
 
 
 if __name__ == "__main__":
-	files_path = [os.path.join(FILES_DIR, file) for file in os.listdir(FILES_DIR)]
-	populator = Populator(files_path, Config.DEFAULT_PG_CONFIG, Config.TABLE_NAME)
+	# files_path = [os.path.join(FILES_DIR, file) for file in os.listdir(FILES_DIR)]
+	files_path = [
+		os.path.join(
+			FILES_DIR,
+			f"{base_currency}-{quote_currency}.csv"
+		)
+		for i, base_currency in enumerate(VALID_CURRENCIES)
+		for quote_currency in VALID_CURRENCIES[i+1:]
+		if base_currency != quote_currency
+	]
+
+	populator = Populator(files_path, Config.DEFAULT_PG_CONFIG, Config.HISTORICAL_TABLE_NAME)
 	populator.start()
 
 

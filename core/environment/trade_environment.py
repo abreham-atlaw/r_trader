@@ -9,7 +9,7 @@ from lib.rl.environment import Environment
 
 class TradeEnvironment(Environment, ABC):
 
-	def __init__(self, time_penalty=-1, trade_size_gap=5, market_state_memory=64):
+	def __init__(self, time_penalty=-1, trade_size_gap=10, market_state_memory=64):
 		super(TradeEnvironment, self).__init__()
 		self._state: TradeState = None
 		self.__time_penalty = time_penalty
@@ -64,13 +64,13 @@ class TradeEnvironment(Environment, ABC):
 		return True
 
 	@Logger.logged_method
-	def get_valid_actions(self, state=None) -> List:
+	def get_valid_actions(self, state=None) -> List[Union[TraderAction, None]]:
 		if state is None:
 			state = self.get_state()
 		pairs = state.get_market_state().get_tradable_pairs()
 		amounts = [
 			(i + 1) * self.__trade_size_gap
-			for i in range(int(state.get_agent_state().get_balance() // self.__trade_size_gap))
+			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
 		]
 
 		actions = [
@@ -90,7 +90,7 @@ class TradeEnvironment(Environment, ABC):
 			for trade in state.get_agent_state().get_open_trades()
 		]
 
-		actions.append(None)
+		# actions.append(None)
 
 		return actions
 
