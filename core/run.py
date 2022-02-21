@@ -2,7 +2,7 @@ import sys
 
 
 def start_agent(environment):
-	agent = TraderAgent()
+	agent = TraderMonteCarloAgent()
 	agent.set_environment(environment)
 	agent.loop()
 
@@ -37,6 +37,6 @@ if __name__ == "__main__":
 		raise Exception(f"Invalid Argument {mode}")
 
 	setup()
-	from core.agent.trader_agent import TraderAgent
+	from core.agent.trader_agent import TraderMonteCarloAgent
 	from core.environment import TradeEnvironment, TrainingEnvironment, LiveEnvironment
 	RUN_FUNCTIONS[mode]()

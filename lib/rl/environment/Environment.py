@@ -1,6 +1,8 @@
 from typing import *
 from abc import ABC, abstractmethod
 
+from lib.utils.logger import Logger
+
 
 class Environment(ABC):
 
@@ -39,8 +41,9 @@ class Environment(ABC):
 	def is_episode_over(self, state=None) -> bool:
 		pass
 
+	@Logger.logged_method
 	def do(self, action) -> float:
-		print("Doing action", action)
+		print("Doing Action:", action)
 		if action not in self.get_valid_actions():
 			raise ActionNotValidException()
 		self.perform_action(action)

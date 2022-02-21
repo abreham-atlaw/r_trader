@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 
 
@@ -134,6 +135,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self.__backpropagate(action_node.parent, action_node_value)
 
+	@Logger.logged_method
 	def __monte_carlo_tree_search(self, state) -> object:
 		root_node = MonteCarloAgent.Node(None, state, None)
 		self.__expand(root_node)
@@ -145,6 +147,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__expand(leaf_node)
 			final_node = self.__simulate(leaf_node, self._depth)
 			self.__backpropagate(final_node, 0)
+
+		Logger.info(f"Simulations Done: {sum([child.visits for child in root_node.get_children()])}")
 
 		return max(root_node.get_children(), key=lambda node: node.get_total_value()/node.get_visits()).action
 

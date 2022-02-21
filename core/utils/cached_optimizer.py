@@ -1,11 +1,12 @@
 from typing import *
+from abc import ABC
 
-from lib.dnn.utils import Optimizer
+from lib.dnn.utils import Optimizer, SampledOptimizer
 
 from .optimization_cacher.OptimizationCacher import OptimizationCacher
 
 
-class CachedOptimizer(Optimizer):
+class CachedOptimizer(SampledOptimizer, ABC):
 
 	def __init__(self, user: str, *args, **kwargs):
 		super().__init__(*args, **kwargs)
