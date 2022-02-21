@@ -40,8 +40,9 @@ class Environment(ABC):
 		pass
 
 	def do(self, action) -> float:
+		print("Doing action", action)
 		if action not in self.get_valid_actions():
-			raise ActionNotValidExcpetion()
+			raise ActionNotValidException()
 		self.perform_action(action)
 		self.update_ui()
 		return self.get_reward()
@@ -56,5 +57,5 @@ class Environment(ABC):
 		self._initialize()
 
 
-class ActionNotValidExcpetion(Exception):
+class ActionNotValidException(Exception):
 	pass

@@ -6,14 +6,14 @@ from tensorflow import keras
 
 import os
 
-from lib.rl.agent import Agent
+from .mba import ModelBasedAgent
 from lib.utils.logger import Logger
 
 
 TRANSITION_MODEL_FILE_NAME = "transition_model.h5"
 
 
-class DNNAgent(Agent, ABC):
+class DNNTransitionAgent(ModelBasedAgent, ABC):
 
 	def __init__(self, *args, batch_update=True, update_batch_size=100, fit_params=None, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -42,6 +42,7 @@ class DNNAgent(Agent, ABC):
 	def _get_train_output(self, initial_state, action, final_state) -> np.ndarray:
 		pass
 
+	@Logger.logged_method
 	def _get_transition_model(self) -> keras.Model:
 		if self.__transition_model is None:
 			raise Exception("Transition Model not Set")
@@ -105,6 +106,6 @@ class DNNAgent(Agent, ABC):
 
 	@staticmethod
 	def load_configs(location):
-		configs = Agent.load_configs(location)
+		configs = ModelBasedAgent.load_configs(location)
 		configs["model"] = keras.models.load_model(os.path.join(location, TRANSITION_MODEL_FILE_NAME))
 		return configs

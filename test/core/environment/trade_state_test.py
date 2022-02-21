@@ -98,7 +98,7 @@ class AgentStateTest(unittest.TestCase):
 		market_state = mock.Mock()
 		agent_state = AgentState(100, market_state)
 
-		market_state.get_state_of.return_value = [1, 2, 3, 4]
+		market_state.get_state_of.get_return = [1, 2, 3, 4]
 		agent_state.open_trade(
 			TraderAction("USD", "CAD", TraderAction.Action.SELL, margin_used=30, units=1000)
 		)

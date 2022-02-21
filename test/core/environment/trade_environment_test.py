@@ -26,8 +26,8 @@ class TradeEnvironmentTest(unittest.TestCase):
 		self.mock_market_state: mock.Mock() = mock.Mock()
 		self.mock_agent_state: mock.Mock() = mock.Mock()
 		self.mock_state = mock.Mock()
-		self.mock_state.get_market_state.return_value = self.mock_market_state
-		self.mock_state.get_agent_state.return_value = self.mock_agent_state
+		self.mock_state.get_market_state.get_return = self.mock_market_state
+		self.mock_state.get_agent_state.get_return = self.mock_agent_state
 
 		self.environment = TradeEnvironmentTest.TestTradeEnvironment(self.mock_state)
 		self.environment.start()
@@ -50,8 +50,8 @@ class TradeEnvironmentTest(unittest.TestCase):
 			("AUD", "USD"),
 			("GBP", "CAD")
 		]
-		self.mock_market_state.get_tradable_pairs.return_value = tp
-		self.mock_agent_state.get_balance.return_value = 100
+		self.mock_market_state.get_tradable_pairs.get_return = tp
+		self.mock_agent_state.get_balance.get_return = 100
 
 		open_trades = []
 		for i in range(3):
@@ -59,7 +59,7 @@ class TradeEnvironmentTest(unittest.TestCase):
 			trade.get_trade.base_currency, trade.get_trade.quote_currency = tp[i]
 			open_trades.append(trade)
 
-		self.mock_agent_state.get_open_trades.return_value = open_trades
+		self.mock_agent_state.get_open_trades.get_return = open_trades
 
 		self.assertEqual(
 			len(self.environment.get_valid_actions()),

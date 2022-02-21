@@ -64,6 +64,14 @@ class LiveEnvironment(TradeEnvironment):
 
 	def __get_market_state(self, memory_size) -> MarketState:
 		tradeable_pairs = self.__trader.get_instruments()
+		tradeable_pairs = [
+			("AUD", "USD"),
+			("EUR", "GBP"),
+	#		("EUR", "USD"),
+	#		("GBP", "USD"),
+			("EUR", "AUD"),
+			("GBP", "AUD")
+		]
 
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
@@ -124,5 +132,7 @@ class LiveEnvironment(TradeEnvironment):
 		)
 
 	@Logger.logged_method
-	def _refresh_state(self, state: TradeState) -> TradeState:
+	def _refresh_state(self, state: TradeState = None) -> TradeState:
+		if state is None:
+			state = self.get_state()
 		return self._initiate_state()

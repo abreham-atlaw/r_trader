@@ -2,12 +2,14 @@ from typing import *
 
 from tensorflow import keras
 
+from core import Config
+
 
 class TransitionModel(keras.Model):
 
 	def __init__(self):
 		super(TransitionModel, self).__init__()
-		self.input_layer = keras.layers.InputLayer(input_shape=64)
+		self.input_layer = keras.layers.InputLayer(input_shape=Config.MARKET_STATE_MEMORY)
 		self.hidden_layers = [
 			keras.layers.Dense(128),
 			keras.layers.Dense(1024),

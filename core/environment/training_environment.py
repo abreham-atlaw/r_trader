@@ -2,14 +2,13 @@ from typing import *
 
 import numpy as np
 
-import psycopg2 as pg
-
 import datetime
+from copy import deepcopy
 
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
-from core import Config
+from core import Config, pg_connection
 from .trade_environment import TradeEnvironment
 
 
@@ -32,7 +31,6 @@ class TrainingEnvironment(TradeEnvironment):
 		self.__currencies_table_name = currencies_table_name
 		self.__tradeable_pairs_table_name = tradeable_pairs_table_name
 		self.__distinct_datetime_table_name = datetimes_table_name
-		self.__pg_connection = pg.connect(**self.__pg_config)
 		self.datetime_format = datetime_format
 		self.last_datetime = None
 
@@ -45,7 +43,7 @@ class TrainingEnvironment(TradeEnvironment):
 	def __prepare_timestep_state_layer(self, currencies: List[str], datetime_: datetime.datetime) -> np.ndarray:
 		state_layer = np.zeros((len(currencies), len(currencies)))
 
-		cursor = self.__pg_connection.cursor()
+		cursor = pg_connection.cursor()
 
 		cursor.execute(
 			f"SELECT base_currency, quote_currency, close FROM {self.__historical_table_name} WHERE datetime=%s",
@@ -76,7 +74,7 @@ class TrainingEnvironment(TradeEnvironment):
 
 	def __initiate_market_state(self, memory_size) -> MarketState:
 
-		cursor = self.__pg_connection.cursor()
+		cursor = pg_connection.cursor()
 
 		cursor.execute(f"SELECT currency FROM {self.__currencies_table_name}")
 		currencies = [currency[0] for currency in cursor.fetchall()]
@@ -104,19 +102,24 @@ class TrainingEnvironment(TradeEnvironment):
 		return market_state
 
 	@Logger.logged_method
-	def _refresh_state(self):
-		cursor = self.__pg_connection.cursor()
+	def _refresh_state(self, state=None) -> TradeState:
+		if state is None:
+			state = self.get_state()
+		state = deepcopy(state)
+		cursor = pg_connection.cursor()
 		cursor.execute(
 			f"SELECT DISTINCT datetime FROM {self.__distinct_datetime_table_name} "
-			f"WHERE datetime > {self.last_datetime.strftime(self.datetime_format)} ORDER BY datetime ASC LIMIT 1;"
+			f"WHERE datetime > %s ORDER BY datetime ASC LIMIT 1;",
+			(self.last_datetime.strftime(self.datetime_format), )
 		)
 		(next_datetime_,) = cursor.fetchone()
-		self._state.market_state.update_state_layer(
+		state.get_market_state().update_state_layer(
 			self.__prepare_timestep_state_layer(
 				self._state.market_state.get_currencies(),
 				next_datetime_
 			)
 		)
+		return state
 
 	def get_valid_actions(self, state=None) -> List[Union[TraderAction, None]]:
 		actions = super().get_valid_actions(state)

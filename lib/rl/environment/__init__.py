@@ -1,2 +1,2 @@
 from .Environment import Environment
-from .Environment import ActionNotValidExcpetion
+from .Environment import ActionNotValidException

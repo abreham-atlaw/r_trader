@@ -15,9 +15,10 @@ from copy import deepcopy
 from random import shuffle, randint, choice
 
 
-from lib.rl.agent import DNNAgent
+from lib.rl.agent import DNNTransitionAgent, MarkovAgent
 from lib.rl.environment import Environment
 from lib.utils.logger import Logger
+
 
 class DNNAgentTest(unittest.TestCase):
 
@@ -225,7 +226,7 @@ class DNNAgentTest(unittest.TestCase):
 			self.deck.reset()
 			self._initialize()
 
-	class BlackJackAgent(DNNAgent):
+	class BlackJackAgent(MarkovAgent, DNNTransitionAgent):
 
 		class BlackJackTransitionModel(keras.Model):
 
@@ -285,7 +286,7 @@ class DNNAgentTest(unittest.TestCase):
 
 			model.compile(
 				optimizer='adam',
-				loss= CategoricalCrossentropy()
+				loss=CategoricalCrossentropy()
 			)
 
 			return model
@@ -298,7 +299,7 @@ class DNNAgentTest(unittest.TestCase):
 			def gen_cards(values):
 				return [
 					DNNAgentTest.BlackJackEnvironment.Card(
-						suit = choice([
+						suit=choice([
 							DNNAgentTest.BlackJackEnvironment.Card.Suit.SPADES,
 							DNNAgentTest.BlackJackEnvironment.Card.Suit.HEARTS,
 							DNNAgentTest.BlackJackEnvironment.Card.Suit.DIAMONDS,

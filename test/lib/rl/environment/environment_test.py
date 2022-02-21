@@ -5,7 +5,7 @@ import unittest
 import os
 from copy import deepcopy
 
-from lib.rl.environment import Environment, ActionNotValidExcpetion
+from lib.rl.environment import Environment, ActionNotValidException
 
 
 class EnvironmentTest(unittest.TestCase):
@@ -105,7 +105,7 @@ class EnvironmentTest(unittest.TestCase):
 		
 		try:
 			self.environment.do((0,2))
-		except ActionNotValidExcpetion:
+		except ActionNotValidException:
 			error = True
 		
 		self.assertTrue(error)

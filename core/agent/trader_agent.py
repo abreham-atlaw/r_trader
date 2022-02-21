@@ -1,21 +1,23 @@
 from typing import *
+from abc import ABC
 
 import tensorflow as tf
 import numpy as np
 
+from datetime import datetime
 import copy
 
 from core import Config
-from lib.rl.agent import DNNAgent
-from .trade_transition_model import TransitionModel
+from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
 from core.environment.trade_state import TradeState
-from .trader_action import TraderAction
 from core.environment.trade_environment import TradeEnvironment
+from .trader_action import TraderAction
+from .trade_transition_model import TransitionModel
 
 
-class TraderAgent(DNNAgent):
+class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
-	def __init__(self, *args, trade_size_gap=5, state_change_delta=0.01, **kwargs):
+	def __init__(self, *args, trade_size_gap=Config.AGENT_TRADE_SIZE_GAP, state_change_delta=Config.AGENT_STATE_CHANGE_DELTA, **kwargs):
 		super().__init__(*args, episodic=False, depth=Config.AGENT_DEPTH, **kwargs)
 		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta = state_change_delta
@@ -60,27 +62,12 @@ class TraderAgent(DNNAgent):
 	def _get_expected_instant_reward(self, state) -> float:
 		return self._get_environment().get_reward(state)
 
-	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:
-		new_state = copy.deepcopy(state)
-		if action is None:
-			return new_state
-
-		if action.action == TraderAction.Action.CLOSE:
-			new_state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
-			return new_state
-
-		new_state.get_agent_state().open_trade(
-			action,
-			state.get_market_state().get_state_of(action.base_currency, action.quote_currency)[0]
-		)
-		return new_state
-
 	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
 		mid_state = self.__simulate_action(state, action)
 
 		states = []
 
-		if action is None:
+		if action is None or action.action == TraderAction.Action.CLOSE:
 			for (base_currency, quote_currency) in state.get_market_state().get_tradable_pairs():
 				states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency)
 		else:
@@ -103,3 +90,42 @@ class TraderAgent(DNNAgent):
 			states.append(new_state)
 
 		return states
+
+	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:  # TODO: SETUP CACHER
+		new_state = copy.deepcopy(state)
+		if action is None:
+			return new_state
+
+		if action.action == TraderAction.Action.CLOSE:
+			new_state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
+			return new_state
+
+		new_state.get_agent_state().open_trade(
+			action,
+			state.get_market_state().get_state_of(action.base_currency, action.quote_currency)[0]
+		)
+
+		return new_state
+
+
+class TraderMarkovAgent(MarkovAgent, TraderDNNTransitionAgent):
+	
+	def __init__(self, *args, **kwargs):
+		super(TraderMarkovAgent, self).__init__(*args, **kwargs)
+
+
+class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
+
+	def __init__(self, step_time=Config.AGENT_STEP_TIME, *args, **kwargs):
+		super(TraderMonteCarloAgent, self).__init__(*args, **kwargs)
+		self.__step_time = step_time
+
+	def _init_resources(self) -> object:
+		start_time = datetime.now()
+		return start_time
+
+	def _has_resource(self, start_time) -> bool:
+		return (datetime.now() - start_time).seconds < self.__step_time
+
+	def _get_state_node_instant_value(self, state_node: 'MonteCarloAgent.Node') -> float:
+		return self._get_environment().get_reward(state_node.state) - self._get_environment().get_reward(state_node.parent.parent.state)

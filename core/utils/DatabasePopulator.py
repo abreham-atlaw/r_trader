@@ -68,7 +68,7 @@ class Populator:
 
 
 if __name__ == "__main__":
-	# files_path = [os.path.join(FILES_DIR, file) for file in os.listdir(FILES_DIR)]
+	#files_path = [os.path.join(FILES_DIR, file) for file in os.listdir(FILES_DIR)]
 	files_path = [
 		os.path.join(
 			FILES_DIR,

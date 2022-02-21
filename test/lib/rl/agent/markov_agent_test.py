@@ -3,10 +3,11 @@ from typing import *
 import unittest
 
 import os
+import sys
 from copy import deepcopy
 
 from lib.rl.environment import Environment
-from lib.rl.agent import Agent
+from lib.rl.agent import MarkovAgent
 
 
 class AgentCacheTest(unittest.TestCase):
@@ -19,7 +20,7 @@ class AgentCacheTest(unittest.TestCase):
 	]
 
 	def setUp(self) -> None:
-		self.cacher = Agent.Cacher()
+		self.cacher = MarkovAgent.Cacher()
 
 	def test_valid_cache(self):
 
@@ -123,7 +124,7 @@ class AgentTest(unittest.TestCase):
 			self.state = [list(range(self.disks_num, 0, -1))] + [[] for i in range(self.towers_num - 1)]
 			super()._initialize()
 
-	class HanoiTowerAgent(Agent):
+	class HanoiTowerAgent(MarkovAgent):
 
 		def _get_expected_transition_probability(self, initial_state: List[List[int]], action: Tuple[int, int],
 												final_state: List[List[int]]) -> float:
@@ -141,11 +142,16 @@ class AgentTest(unittest.TestCase):
 			state[action[1]].append(state[action[0]].pop())
 			return [state]
 
+	def setUp(self):
+		sys.setrecursionlimit(
+			sys.getrecursionlimit() * 3
+		)
+
 	def test_hanoi_agent_in_mocked_environment(self):
-		agent = AgentTest.HanoiTowerAgent(depth=100, discount=1, explore_exploit_tradeoff=1, logging=False)
-		enviroment = AgentTest.HanoiTowerEnvironment(6, 2)
-		enviroment.start()
-		agent.set_environment(enviroment)
+		agent = AgentTest.HanoiTowerAgent(depth=10, discount=1, explore_exploit_tradeoff=1)
+		environment = AgentTest.HanoiTowerEnvironment(3, 2)
+		environment.start()
+		agent.set_environment(environment)
 		agent.perform_episode()
 
 

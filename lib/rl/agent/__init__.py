@@ -1,2 +1,5 @@
-from .Agent import Agent
-from .DNNAgent import DNNAgent
+from .agent import Agent
+from .dta import DNNTransitionAgent
+from .mba import ModelBasedAgent
+from .markov_agent import MarkovAgent
+from .mca import MonteCarloAgent

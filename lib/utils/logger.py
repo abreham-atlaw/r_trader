@@ -1,8 +1,9 @@
 from typing import *
 
 from datetime import datetime
+import os
 
-from core.Config import LOGGING
+from core.Config import LOGGING, LOGGING_PID, LOGGING_CONSOLE, LOGGING_FILE_PATH
 
 
 class Logger:
@@ -26,7 +27,16 @@ class Logger:
 			color = Logger.Colors.ENDC
 		if prefix is None:
 			prefix = ""
-		print(color, f"[{datetime.now()}]", prefix, *args, Logger.Colors.ENDC, **kwargs)
+		prefix = f"[{datetime.now()}] {prefix}"
+		if LOGGING_PID:
+			prefix = f"PID:{os.getpid()} {prefix}"
+		if not LOGGING_CONSOLE:
+			kwargs["file"] = open(LOGGING_FILE_PATH, "a")
+		print(color, prefix, *args, Logger.Colors.ENDC, **kwargs)
+		if not LOGGING_CONSOLE:
+			kwargs["file"].close()
+
+
 
 	@staticmethod
 	def log_function(func, args, kwargs, prefix=None):

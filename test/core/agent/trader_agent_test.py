@@ -8,13 +8,13 @@ import numpy as np
 from copy import deepcopy
 
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
-from core.agent.trader_agent import TraderAgent
+from core.agent.trader_agent import TraderMonteCarloAgent
 
 
 class TraderAgentTest(unittest.TestCase):
 
 	def setUp(self):
-		self.agent = TraderAgent()
+		self.agent = TraderMonteCarloAgent(explore_exploit_tradeoff=1)
 		self.environment = mock.Mock()
 		self.agent.set_environment(self.environment)
 
@@ -32,12 +32,12 @@ class TraderAgentTest(unittest.TestCase):
 		market_state.update_state_of("AUD", "EUR", np.arange(1, 5))
 		market_state.update_state_of("USD", "AUD", np.arange(7, 12))
 		initial_state = mock.Mock()
-		initial_state.get_market_state.return_value = market_state
+		initial_state.get_market_state.get_return = market_state
 
 		final_market_state = deepcopy(market_state)
 		final_market_state.update_state_of("AUD", "EUR", np.array([0.5]))
 		final_state = mock.Mock()
-		final_state.get_market_state.return_value = final_market_state
+		final_state.get_market_state.get_return = final_market_state
 
 		output = 0.7
 
@@ -63,12 +63,12 @@ class TraderAgentTest(unittest.TestCase):
 		market_state.update_state_of("AUD", "EUR", np.arange(1, 5))
 		market_state.update_state_of("USD", "AUD", np.arange(7, 12))
 		initial_state = mock.Mock()
-		initial_state.get_market_state.return_value = market_state
+		initial_state.get_market_state.get_return = market_state
 
 		final_market_state = deepcopy(market_state)
 		final_market_state.update_state_of("AUD", "EUR", np.array([0.5]))
 		final_state = mock.Mock()
-		final_state.get_market_state.return_value = final_market_state
+		final_state.get_market_state.get_return = final_market_state
 
 		result = self.agent._get_train_output(
 			initial_state,
@@ -132,4 +132,7 @@ class TraderAgentTest(unittest.TestCase):
 		self.agent.perform_timestep()
 
 	def test_loop(self):
+		environment = LiveEnvironment()
+		environment.start()
+		self.agent.set_environment(environment)
 		self.agent.loop()

@@ -59,7 +59,7 @@ class OptimizerTest(unittest.TestCase):
 			print(f"Value: {value}\n\n")
 			train_history = mock.Mock()
 			train_history.history = {"loss": [value/(i*10000) for i in range(1, 6)]}
-			self.mock_trainer.start.return_value = train_history, value/10000
+			self.mock_trainer.start.get_return = train_history, value / 10000
 			return self.mock_trainer
 
 	def test_optimize(self):

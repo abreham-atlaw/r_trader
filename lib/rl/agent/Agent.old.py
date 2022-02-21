@@ -7,6 +7,7 @@ import random
 import os
 import json
 
+from lib.concurrency import Pool
 from lib.rl.environment import Environment
 from lib.utils.logger import Logger
 
@@ -116,10 +117,29 @@ class Agent(ABC):
 	def _policy(self, state, depth):  # Override this function for non-value based policy
 		return self._get_optimal_action(state, depth)
 
+	def _on_concurrency_start(self):
+		pass
+
+	def _on_concurrency_end(self):
+		pass
+
+	def _get_state_action_value_async(self, state, action, depth):
+		self._on_concurrency_start()
+		return_value = self._get_state_action_value(state, action, depth)
+		self._on_concurrency_end()
+		return return_value
+
 	@Logger.logged_method
 	def _get_optimal_action(self, state, depth):
 		valid_actions = self._get_available_actions(state)
-		expectations = [self._get_state_action_value(state, action, depth) for action in valid_actions]
+
+		if Pool.is_main_process():
+			pool = Pool()
+			pool.map(self._get_state_action_value_async, [(state, action, depth) for action in valid_actions])
+			expectations = pool.get_return()
+		else:
+			expectations = [self._get_state_action_value(state, action, depth) for action in valid_actions]
+
 		optimal_action = valid_actions[expectations.index(max(expectations))]
 		return optimal_action
 

@@ -56,7 +56,7 @@ class KerasTrainerTest(unittest.TestCase):
 			batch_size=KerasTrainerTest.BATCH_SIZE,
 			fit_params=KerasTrainerTest.FIT_PARAMS
 			)
-		data = read_csv_mock.return_value = mock.Mock()
+		data = read_csv_mock.get_return = mock.Mock()
 		trainer._prepare_data = mock.Mock()
 		prepared_data = trainer._prepare_data.return_value = mock.Mock(), mock.Mock()
 		trainer._split_data = mock.Mock()

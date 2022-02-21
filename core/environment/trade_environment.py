@@ -21,7 +21,7 @@ class TradeEnvironment(Environment, ABC):
 		pass
 
 	@abstractmethod
-	def _refresh_state(self, state: TradeState) -> TradeState:
+	def _refresh_state(self, state: TradeState = None) -> TradeState:
 		pass
 
 	def _initialize(self):
@@ -52,7 +52,7 @@ class TradeEnvironment(Environment, ABC):
 			return
 		self._open_trade(action)
 
-		self._state = self._refresh_state(self._state)
+		self._state = self._refresh_state()
 
 	def render(self):
 		pass

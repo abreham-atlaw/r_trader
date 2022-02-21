@@ -1,10 +1,7 @@
 import sys
 
-from core.agent.trader_agent import TraderAgent
-from core.environment import TradeEnvironment, TrainingEnvironment, LiveEnvironment
 
-
-def start_agent(environment: TradeEnvironment):
+def start_agent(environment):
 	agent = TraderAgent()
 	agent.set_environment(environment)
 	agent.loop()
@@ -22,6 +19,12 @@ def run_train():
 	start_agent(environment)
 
 
+def setup():
+	import Config
+	sys.setrecursionlimit(Config.RECURSION_DEPTH)
+	sys.path.append(Config.BASE_DIR)
+
+
 RUN_FUNCTIONS = {
 	"live": run_live,
 	"train": run_train
@@ -33,6 +36,7 @@ if __name__ == "__main__":
 	if mode not in RUN_FUNCTIONS.keys():
 		raise Exception(f"Invalid Argument {mode}")
 
+	setup()
+	from core.agent.trader_agent import TraderAgent
+	from core.environment import TradeEnvironment, TrainingEnvironment, LiveEnvironment
 	RUN_FUNCTIONS[mode]()
-
-
