@@ -44,9 +44,9 @@ class SampledOptimizer(ABC):
 		optimal_params = None
 		for values in param_values:
 			loss = self._get_value_loss(values)
-			if min_loss is None or loss < min_loss:
-				min_loss = loss
-				optimal_params = values
+			# if min_loss is None or loss < min_loss:
+			# 	min_loss = loss
+			# 	optimal_params = values
 
 		return optimal_params, min_loss
 
