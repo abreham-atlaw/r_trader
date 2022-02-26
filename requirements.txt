@@ -17,6 +17,7 @@ decorator==5.0.9
 defusedxml==0.7.1
 Deprecated==1.2.13
 dill==0.3.4
+dropbox==11.27.0
 entrypoints==0.3
 flatbuffers==1.12
 fonttools==4.28.2
@@ -68,6 +69,7 @@ pathos==0.2.8
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==8.4.0
+ply==3.11
 polygon-api-client==0.1.11
 pox==0.3.0
 ppft==1.6.6.4
@@ -98,6 +100,7 @@ Send2Trash==1.8.0
 setuptools-scm==6.3.2
 six==1.15.0
 sklearn==0.0
+stone==3.3.1
 tensorboard==2.6.0
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.0
