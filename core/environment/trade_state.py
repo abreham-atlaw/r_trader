@@ -27,7 +27,7 @@ class MarketState:
 			raise Exception("Insufficient information given on State.")
 
 		if state is None:
-			self.__state = np.zeros((len(currencies), len(currencies), memory_len))
+			self.__state = np.zeros((len(currencies), len(currencies), memory_len)).astype('float32')
 		else:
 			self.__state = state
 

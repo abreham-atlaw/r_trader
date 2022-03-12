@@ -9,22 +9,35 @@ import copy
 
 from core import Config
 from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
+from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState
 from core.environment.trade_environment import TradeEnvironment
 from .trader_action import TraderAction
-from .trade_transition_model import TransitionModel
+from .trade_transition_model import TransitionModel, RemoteTransitionModel
 
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
-	def __init__(self, *args, trade_size_gap=Config.AGENT_TRADE_SIZE_GAP, state_change_delta=Config.AGENT_STATE_CHANGE_DELTA, **kwargs):
-		super().__init__(*args, episodic=False, depth=Config.AGENT_DEPTH, **kwargs)
+	def __init__(self, *args, trade_size_gap=Config.AGENT_TRADE_SIZE_GAP, state_change_delta=Config.AGENT_STATE_CHANGE_DELTA,  **kwargs):
+		super().__init__(*args, episodic=False, depth=Config.AGENT_DEPTH, explore_exploit_tradeoff=Config.AGENT_EXPLOIT_EXPLORE_TRADEOFF, **kwargs)
 		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta = state_change_delta
 		self.environment: TradeEnvironment
-		self.set_transition_model(
-			TransitionModel()
-		)
+		if Config.REMOTE_MODEL:
+			Logger.info("Using Remote Model")
+			self.set_transition_model(
+				RemoteTransitionModel(Config.REMOTE_TRANSITION_MODEL_ADDRESS)
+			)
+		elif Config.NEW_MODEL:
+			Logger.info("Creating new Model")
+			self.set_transition_model(
+				TransitionModel()
+			)
+		else:
+			Logger.info("Loading Model")
+			self.set_transition_model(
+				TransitionModel.load_model(Config.MODEL_PATH)
+			)
 
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		return state.get_market_state().get_state_of(action.base_currency, action.quote_currency)
@@ -116,8 +129,8 @@ class TraderMarkovAgent(MarkovAgent, TraderDNNTransitionAgent):
 
 class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 
-	def __init__(self, step_time=Config.AGENT_STEP_TIME, *args, **kwargs):
-		super(TraderMonteCarloAgent, self).__init__(*args, **kwargs)
+	def __init__(self, step_time=Config.AGENT_STEP_TIME, discount=Config.AGENT_DISCOUNT_FACTOR, *args, **kwargs):
+		super(TraderMonteCarloAgent, self).__init__(*args, discount=discount, **kwargs)
 		self.__step_time = step_time
 
 	def _init_resources(self) -> object:

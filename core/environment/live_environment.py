@@ -28,7 +28,7 @@ class LiveEnvironment(TradeEnvironment):
 			return Trader.TraderAction.BUY
 		if action == TraderAction.Action.SELL:
 			return Trader.TraderAction.SELL
-	
+
 	def __from_oanda_action(self, action):
 		if action == Trader.TraderAction.BUY:
 			return TraderAction.Action.BUY
@@ -55,7 +55,7 @@ class LiveEnvironment(TradeEnvironment):
 				)
 			)
 		return AgentState(balance, market_state, open_trades=open_trades, margin_rate=self.__trader.get_margin_rate())
-	
+
 	def __get_currencies(self, pairs: List[Tuple[str, str]]) -> List[str]:
 		currencies = []
 		for pair in pairs:
@@ -67,15 +67,15 @@ class LiveEnvironment(TradeEnvironment):
 		tradeable_pairs = [
 			("AUD", "USD"),
 			("EUR", "GBP"),
-	#		("EUR", "USD"),
-	#		("GBP", "USD"),
+			# ("EUR", "USD"),
+			# ("GBP", "USD"),
 			("EUR", "AUD"),
 			("GBP", "AUD")
 		]
 
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
-			tradable_pairs=tradeable_pairs, 
+			tradable_pairs=tradeable_pairs,
 			memory_len=memory_size
 		)
 

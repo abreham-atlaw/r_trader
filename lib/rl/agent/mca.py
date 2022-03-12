@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+import gc
+
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 
@@ -147,6 +149,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__expand(leaf_node)
 			final_node = self.__simulate(leaf_node, self._depth)
 			self.__backpropagate(final_node, 0)
+			gc.collect()
 
 		Logger.info(f"Simulations Done: {sum([child.visits for child in root_node.get_children()])}")
 
