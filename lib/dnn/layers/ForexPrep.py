@@ -29,7 +29,9 @@ class Norm(Layer):
 		super(Norm, self).__init__(**kwargs)
 
 	def call(self, inputs, **kwargs):
-		return inputs/tf.reshape(tf.reduce_max([tf.reduce_max(inputs, axis=1), tf.abs(tf.reduce_min(inputs, axis=1))], axis=0), (-1, 1, 1))
+		min_ = tf.reduce_min(inputs, axis=1)
+		return (inputs - tf.reshape(min_, (-1, 1))) / tf.reshape(tf.reduce_max(inputs, axis=1) - min_, (-1, 1))
+		# return (inputs - tf.reduce_min(inputs, axis=1))/tf.reshape(tf.reduce_max([tf.reduce_max(inputs, axis=1), tf.abs(tf.reduce_min(inputs, axis=1))], axis=0), (-1, 1, 1))
 
 
 class MovingAverage(Layer):
