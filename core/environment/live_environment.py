@@ -69,10 +69,10 @@ class LiveEnvironment(TradeEnvironment):
 			("EUR", "GBP"),
 			("EUR", "AUD"),
 			("GBP", "AUD"),
-			("USD", "JPY"),
-			("EUR", "USD"),
-			("GBP", "USD"),
-			("EUR", "JPY"),
+			# ("USD", "JPY"),
+			# ("EUR", "USD"),
+			# ("GBP", "USD"),
+			# ("EUR", "JPY"),
 		]
 
 		market_state = MarketState(
