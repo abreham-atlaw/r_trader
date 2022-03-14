@@ -64,14 +64,14 @@ class LiveEnvironment(TradeEnvironment):
 
 	def __get_market_state(self, memory_size) -> MarketState:
 		tradeable_pairs = self.__trader.get_instruments()
-		tradeable_pairs = [
-			("AUD", "USD"),
-			("EUR", "GBP"),
-			# ("EUR", "USD"),
-			# ("GBP", "USD"),
-			("EUR", "AUD"),
-			("GBP", "AUD")
-		]
+		# tradeable_pairs = [
+		# 	("AUD", "USD"),
+		# 	("EUR", "GBP"),
+		# 	# ("EUR", "USD"),
+		# 	# ("GBP", "USD"),
+		# 	("EUR", "AUD"),
+		# 	("GBP", "AUD")
+		# ]
 
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
