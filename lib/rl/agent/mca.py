@@ -43,6 +43,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			if self.visits == 0:
 				return np.inf
 
+			if self.get_visits() == 0:
+				return 0
+
 			return (self.total_value/self.get_visits()) + np.sqrt(np.log(self.parent.get_visits())/self.get_visits())
 
 	def __init__(self, *args, **kwargs):
