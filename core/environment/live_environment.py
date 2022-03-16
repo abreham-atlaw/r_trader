@@ -63,17 +63,18 @@ class LiveEnvironment(TradeEnvironment):
 		return list(set(currencies))
 
 	def __get_market_state(self, memory_size) -> MarketState:
-		tradeable_pairs = self.__trader.get_instruments()
-		tradeable_pairs = [
-			("AUD", "USD"),
-			("EUR", "GBP"),
-			("EUR", "AUD"),
-			("GBP", "AUD"),
-			# ("USD", "JPY"),
-			# ("EUR", "USD"),
-			# ("GBP", "USD"),
-			# ("EUR", "JPY"),
-		]
+		tradeable_pairs = np.random.choice(self.__trader.get_instruments(), size=5, replace=False)
+#		tradeable_pairs = [
+#			("AUD", "USD"),
+#			("EUR", "GBP"),
+#			("EUR", "AUD"),
+#			("GBP", "AUD"),
+#			("USD", "JPY")
+#			# ("USD", "JPY"),
+#			# ("EUR", "USD"),
+#			# ("GBP", "USD"),
+#			# ("EUR", "JPY"),
+#		]
 
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
