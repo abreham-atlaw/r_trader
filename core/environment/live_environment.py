@@ -69,7 +69,7 @@ class LiveEnvironment(TradeEnvironment):
 		tradeable_pairs = [
 			("AUD", "USD"),
 			("EUR", "USD"),
-			("USD", "NZD"),
+			("NZD", "USD"),
 			("USD", "CAD"),
 			("USD", "JPY")
 		]
