@@ -68,9 +68,9 @@ class LiveEnvironment(TradeEnvironment):
 #		print(f"Tradeable Pairs: {tradeable_pairs}")
 		tradeable_pairs = [
 			("AUD", "USD"),
-			("EUR", "GBP"),
-			("EUR", "AUD"),
-			("GBP", "AUD"),
+			("EUR", "USD"),
+			("USD", "NZD"),
+			("USD", "CAD"),
 			("USD", "JPY")
 		]
 
