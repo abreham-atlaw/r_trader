@@ -1,6 +1,8 @@
 from typing import *
 from abc import abstractmethod, ABC
 
+import numpy as np
+
 from lib.utils.logger import Logger
 from .trade_state import TradeState
 from core.agent.trader_action import TraderAction
@@ -68,6 +70,7 @@ class TradeEnvironment(Environment, ABC):
 		if state is None:
 			state = self.get_state()
 		pairs = state.get_market_state().get_tradable_pairs()
+		pairs = [pairs[i] for i in np.random.choice(len(pairs), 5, False)]
 		amounts = [
 			(i + 1) * self.__trade_size_gap
 			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
