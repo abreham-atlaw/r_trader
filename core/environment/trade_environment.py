@@ -70,7 +70,7 @@ class TradeEnvironment(Environment, ABC):
 		if state is None:
 			state = self.get_state()
 		pairs = state.get_market_state().get_tradable_pairs()
-		pairs = [pairs[i] for i in np.random.choice(len(pairs), 5, False)]
+		pairs = [pairs[i] for i in np.random.choice(len(pairs), 4, False)]
 		amounts = [
 			(i + 1) * self.__trade_size_gap
 			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
