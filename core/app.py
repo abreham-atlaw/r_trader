@@ -17,7 +17,7 @@ class RTraderApplication:
 
 	def __download_model(self, url:str, path: str):
 		print(f"[+]Downloading Model from {url} to {path}...")
-		#os.system(f"wget '{url}' -O {path}")
+		os.system(f"wget '{url}' -O {path}")
 
 	def setup(self):
 		print(f"[+]Setting up Application")
