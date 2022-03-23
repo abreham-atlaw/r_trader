@@ -5,12 +5,10 @@ import numpy as np
 from tensorflow import keras
 
 import os
-from datetime import datetime
 
 from .mba import ModelBasedAgent
 from lib.utils.logger import Logger
 
-from temp import statics
 
 TRANSITION_MODEL_FILE_NAME = "transition_model.h5"
 
@@ -59,21 +57,14 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		if action is None:
 			return 1
 
-		start_time = datetime.now()
 		prediction_input = self._state_action_to_model_input(initial_state, action, final_state).reshape((1, -1))
-		statics.durations["state_action_to_model_input"] += (datetime.now() - start_time).total_seconds()
 
-		start_time = datetime.now()
 		prediction = self.__cache.get(prediction_input.tobytes())
 		if prediction is None:
 			prediction = self._get_transition_model()(
 				prediction_input
 			)
 			self.__cache[prediction_input.tobytes()] = prediction
-		else:
-			statics.iterations["cached_prediction"] += 1
-		statics.durations["prediction"] += (datetime.now() - start_time).total_seconds()
-		statics.iterations["prediction"] += 1
 
 		return self._prediction_to_transition_probability(initial_state, prediction, final_state)
 
