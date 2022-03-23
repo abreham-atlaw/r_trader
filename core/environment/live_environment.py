@@ -66,12 +66,12 @@ class LiveEnvironment(TradeEnvironment):
 		tradeable_pairs = self.__trader.get_instruments()
 #		tradeable_pairs = [tradeable_pairs[i] for i in np.random.choice(len(tradeable_pairs), 5, False)]
 #		print(f"Tradeable Pairs: {tradeable_pairs}")
-		tradeable_pairs = [
-			("AUD", "USD"),
-			("EUR", "USD"),
-			("USD", "CAD"),
-			("USD", "JPY")
-		]
+		# tradeable_pairs = [
+		# 	("AUD", "USD"),
+		# 	("EUR", "USD"),
+		# 	("USD", "CAD"),
+		# 	("USD", "JPY")
+		# ]
 
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
