@@ -50,7 +50,6 @@ class RTraderApplication:
 		self.run(mode)
 
 	def run(self, mode):
-		self.setup()
 		self.RUN_FUNCTIONS[mode]()
 
 
