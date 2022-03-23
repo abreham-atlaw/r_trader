@@ -1,3 +1,4 @@
+import copy
 from typing import *
 
 import numpy as np
@@ -69,6 +70,13 @@ class MarketState:
 	def get_tradable_pairs(self) -> List[Tuple[str, str]]:
 		return self.__tradable_pairs
 
+	def __deepcopy__(self, memo=None):
+		return MarketState(
+			currencies=self.__currencies.copy(),
+			tradable_pairs=self.__tradable_pairs.copy(),
+			state=self.__state.copy()
+		)
+
 
 class AgentState:
 	
@@ -80,6 +88,13 @@ class AgentState:
 			self.__current_value = current_value
 			if current_value is None:
 				self.__current_value = enter_value
+
+		def __deepcopy__(self, memo=None):
+			return AgentState.OpenTrade(
+				trade=self.__trade.__deepcopy__(),
+				enter_value=self.__enter_value,
+				current_value=self.__current_value
+			)
 
 		def update_current_value(self, value):
 			self.__current_value = value
@@ -187,6 +202,24 @@ class AgentState:
 			)
 		self.__open_trades = [trade for trade in self.__open_trades if trade not in open_trades]
 
+	def __deepcopy__(self, memo=None):
+		if memo is None:
+			memo = {}
+
+		market_state = memo.get('market_state')
+		if market_state is None:
+			market_state = copy.deepcopy(self.__market_state)
+
+		open_trades = [trade.__deepcopy__() for trade in self.__open_trades]
+
+		return AgentState(
+			self.__balance,
+			market_state,
+			margin_rate=self.__margin_rate,
+			currency=self.__currency,
+			open_trades=open_trades
+		)
+
 
 class TradeState:
 
@@ -199,6 +232,12 @@ class TradeState:
 
 	def get_agent_state(self) -> AgentState:
 		return self.agent_state
+
+	def __deepcopy__(self, memo=None):
+		market_state = self.market_state.__deepcopy__()
+		agent_state = self.agent_state.__deepcopy__(memo={'market_state': market_state})
+
+		return TradeState(market_state, agent_state)
 
 
 class CurrencyNotFoundException(Exception):

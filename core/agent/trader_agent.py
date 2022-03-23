@@ -94,7 +94,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
 
 		for j in [-1, 1]:
-			new_state = copy.deepcopy(state)
+			new_state = state.__deepcopy__()
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,

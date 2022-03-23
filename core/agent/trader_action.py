@@ -1,5 +1,3 @@
-from typing import *
-
 from dataclasses import dataclass
 
 
@@ -27,3 +25,12 @@ class TraderAction:
 				self.margin_used == other.margin_used or
 				self.units == other.units
 			)
+
+	def __deepcopy__(self, memo=None):
+		return TraderAction(
+			base_currency=self.base_currency,
+			quote_currency=self.quote_currency,
+			action=self.action,
+			margin_used=self.margin_used,
+			units=self.units
+		)

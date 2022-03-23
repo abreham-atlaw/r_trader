@@ -1,4 +1,3 @@
-from typing import *
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -13,13 +12,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	class Node:
 
-		def __init__(self, parent, state, action):
+		def __init__(self, parent, state, action, weight: float = 1.0, instant_value=0):
 			self.children = []
 			self.visits = 0
 			self.total_value = 0
+			self.instant_value = instant_value
 			self.parent: MonteCarloAgent.Node = parent
 			self.state = state
 			self.action = action
+			self.weight = weight
 
 		def increment_visits(self):
 			self.visits += 1
@@ -29,6 +30,18 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		def add_child(self, child):
 			self.children.append(child)
+
+		def detach_state(self):
+			self.state = None
+
+		def detach_action(self):
+			self.action = None
+
+		def is_visited(self) -> bool:
+			return self.get_visits() != 0
+
+		def has_children(self):
+			return len(self.get_children()) != 0
 
 		def get_children(self):
 			return self.children
@@ -46,7 +59,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			if self.get_visits() == 0:
 				return 0
 
-			return (self.total_value/self.get_visits()) + np.sqrt(np.log(self.parent.get_visits())/self.get_visits())
+			return (self.total_value / self.get_visits()) + np.sqrt(
+				np.log(self.parent.get_visits()) / self.get_visits()
+			)
 
 	def __init__(self, *args, **kwargs):
 		super(MonteCarloAgent, self).__init__(*args, **kwargs)
@@ -69,24 +84,32 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			return state_nodes[0]
 
 		probabilities = np.array([
-			self._get_expected_transition_probability(action_node.parent.state, action_node.action, state_node.state)
+			state_node.weight
 			for state_node in state_nodes
 		])
 		probabilities /= probabilities.sum()
 
-		return np.random.choice(
+		choice = np.random.choice(
 			state_nodes,
 			1,
 			p=probabilities
 		)[0]
 
-	def _get_state_node_instant_value(self, state_node: 'MonteCarloAgent.Node') -> float:
-		return self._get_environment().get_reward(state_node.state)
+		return choice
+
+	def __clean_node(self, node):
+		node.detach_state()
+		node.detach_action()
 
 	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
-		promising_action_node: MonteCarloAgent.Node = max(parent_state_node.get_children(), key=lambda node: node.calc_uct())
+
+		promising_action_node: MonteCarloAgent.Node = max(
+														parent_state_node.get_children(),
+														key=lambda node: node.calc_uct()
+													)
 
 		chosen_state_node: MonteCarloAgent.Node = self.__get_random_state_node(promising_action_node)
+
 		if len(chosen_state_node.get_children()) == 0:
 			return chosen_state_node
 
@@ -99,42 +122,39 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		for action in self._get_available_actions(state_node.state):
 			action_node = MonteCarloAgent.Node(state_node, state_node.state, action)
 			for possible_state in self._get_possible_states(state_node.state, action):
-				possible_state_node = MonteCarloAgent.Node(action_node, possible_state, None)
+				weight = self._get_expected_transition_probability(state_node.state, action, possible_state)
+				value = self._get_environment().get_reward(possible_state)
+				possible_state_node = MonteCarloAgent.Node(action_node, possible_state, None, weight=weight, instant_value=value)
 				action_node.add_child(possible_state_node)
 			state_node.add_child(action_node)
+			self.__clean_node(action_node)
 
-	def __simulate(self, state_node: 'MonteCarloAgent.Node', depth) -> 'MonteCarloAgent.Node':
+		self.__clean_node(state_node)
 
-		if depth == 0 or self._is_episode_over(state_node.state):
+	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
+
+		if not state_node.has_children():
 			return state_node
-
-		if len(state_node.get_children()) == 0:
-			self.__expand(state_node)
 
 		action_node: MonteCarloAgent.Node = np.random.choice(state_node.get_children(), 1)[0]
 
-		return self.__simulate(
-			self.__get_random_state_node(action_node),
-			depth-1
-		)
+		return self.__get_random_state_node(action_node)
 
-	def __backpropagate(self, state_node: 'MonteCarloAgent.Node', previous_node_value):
+	def __backpropagate(self, state_node: 'MonteCarloAgent.Node', previous_node_value) -> None:
 
 		if state_node.parent is None:
 			state_node.increment_visits()
 			return
 
-		state_node_value = self._get_state_node_instant_value(state_node)
+		state_node_value = 0
+		if not state_node.is_visited():
+			state_node_value = state_node.instant_value
 		state_node_value += self._discount_factor * previous_node_value
 		state_node.add_value(state_node_value)
 		state_node.increment_visits()
 
 		action_node = state_node.parent
-		action_node_value = state_node_value * self._get_expected_transition_probability(
-			action_node.state,
-			action_node.action,
-			state_node.state
-		)
+		action_node_value = state_node_value * state_node.weight
 		action_node.add_value(action_node_value)
 		action_node.increment_visits()
 
@@ -150,13 +170,14 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		while self._has_resource(resources):
 			leaf_node = self.__select(root_node)
 			self.__expand(leaf_node)
-			final_node = self.__simulate(leaf_node, self._depth)
+			final_node = self.__simulate(leaf_node)
 			self.__backpropagate(final_node, 0)
-			gc.collect()
+			# gc.collect()
+		#   #TODO: THIS TAKES TO MUCH TIME
 
 		Logger.info(f"Simulations Done: {sum([child.visits for child in root_node.get_children()])}")
 
-		return max(root_node.get_children(), key=lambda node: node.get_total_value()/node.get_visits()).action
+		return max(root_node.get_children(), key=lambda node: node.get_total_value() / node.get_visits()).action
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		pass

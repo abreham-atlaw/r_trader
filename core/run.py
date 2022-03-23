@@ -38,5 +38,9 @@ if __name__ == "__main__":
 
 	setup()
 	from core.agent.trader_agent import TraderMonteCarloAgent
-	from core.environment import TradeEnvironment, TrainingEnvironment, LiveEnvironment
+	from core.environment import LiveEnvironment
+	try:
+		from core.environment import TrainingEnvironment
+	except ImportError:
+		print("Couldn't Import TrainingEnvironment")
 	RUN_FUNCTIONS[mode]()

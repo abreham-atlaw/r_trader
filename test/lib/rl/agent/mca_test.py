@@ -21,8 +21,8 @@ class MonteCarloAgentTest(unittest.TestCase):
 	class TicTacToeEnvironment(Environment):
 
 		class Reward:
-			WIN = 5
-			LOSS = -5
+			WIN = 10
+			LOSS = -10
 			DRAW = 0
 			TIME = -1
 
@@ -54,7 +54,7 @@ class MonteCarloAgentTest(unittest.TestCase):
 			else:
 				reward = MonteCarloAgentTest.TicTacToeEnvironment.Reward.LOSS
 
-			# reward += MonteCarloAgentTest.TicTacToeEnvironment.Reward.TIME
+			reward += MonteCarloAgentTest.TicTacToeEnvironment.Reward.TIME
 
 			return reward
 
@@ -133,7 +133,7 @@ class MonteCarloAgentTest(unittest.TestCase):
 			return start_time
 
 		def _has_resource(self, start_time) -> bool:
-			return (datetime.now() - start_time).seconds < self.__step_time
+			return (datetime.now() - start_time).total_seconds() < self.__step_time
 
 		def _state_action_to_model_input(self, state, action, final_state) -> np.ndarray:
 			mid_state: np.ndarray = deepcopy(state)
