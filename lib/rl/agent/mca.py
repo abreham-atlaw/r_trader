@@ -97,9 +97,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return choice
 
-	def __clean_node(self, node):
+	def __clean_node(self, node, clean_action=False):
 		node.detach_state()
-		node.detach_action()
+		if clean_action:
+			node.detach_action()
 
 	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
