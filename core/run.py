@@ -43,11 +43,14 @@ class RTraderApplication:
 		environment.start()
 		self.__start_agent(environment)
 
-	def run(self, args):
+	def run_args(self, args):
 		mode = args[1]
 		if mode not in self.RUN_FUNCTIONS.keys():
 			raise Exception(f"Invalid Argument {mode}")
 
+		self.run(mode)
+
+	def run(self, mode):
 		self.__setup()
 		self.RUN_FUNCTIONS[mode]()
 
