@@ -1,8 +1,6 @@
 import os
 import sys
 
-import Config
-
 
 class RTraderApplication:
 
@@ -16,7 +14,8 @@ class RTraderApplication:
 		print(f"[+]Downloading Model from {url} to {path}...")
 		os.system(f"wget '{url}' -O {path}")
 
-	def __setup(self):
+	def setup(self):
+		import Config
 		sys.setrecursionlimit(Config.RECURSION_DEPTH)
 		sys.path.append(Config.BASE_DIR)
 		if Config.MODEL_DOWNLOAD:
@@ -51,11 +50,11 @@ class RTraderApplication:
 		self.run(mode)
 
 	def run(self, mode):
-		self.__setup()
+		self.setup()
 		self.RUN_FUNCTIONS[mode]()
 
 
 if __name__ == "__main__":
 
 	app = RTraderApplication()
-	app.run(sys.argv)
+	app.run_args(sys.argv)
