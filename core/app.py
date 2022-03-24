@@ -21,9 +21,10 @@ class RTraderApplication:
 
 	def setup(self):
 		print(f"[+]Setting up Application")
-		sys.path.append(".")
+		path = os.path.abspath(os.path.dirname(__file__))
+		sys.path.append(path)
 		import Config
-		sys.path.remove(".")
+		sys.path.remove(path)
 		sys.setrecursionlimit(Config.RECURSION_DEPTH)
 		sys.path.append(Config.BASE_DIR)
 		if Config.MODEL_DOWNLOAD:
