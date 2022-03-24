@@ -92,5 +92,5 @@ REMOTE_MODEL = False
 
 NEW_MODEL = False
 MODEL_PATH = os.path.join(BASE_DIR, "temp/FinalModel.h5")
-MODEL_DOWNLOAD_URL = "https://www.dropbox.com/s/4gc7fvm6nceu4og/model.h5?dl=0&raw=0"
+MODEL_DOWNLOAD_URL = "https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0"
 MODEL_DOWNLOAD = True
