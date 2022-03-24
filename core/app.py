@@ -22,7 +22,7 @@ class RTraderApplication:
 	def setup(self):
 		print(f"[+]Setting up Application")
 		sys.path.append(".")
-		from . import Config
+		import Config
 		sys.path.remove(".")
 		sys.setrecursionlimit(Config.RECURSION_DEPTH)
 		sys.path.append(Config.BASE_DIR)

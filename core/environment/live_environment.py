@@ -1,3 +1,4 @@
+import random
 from typing import *
 
 import numpy as np
@@ -64,6 +65,7 @@ class LiveEnvironment(TradeEnvironment):
 
 	def __get_market_state(self, memory_size) -> MarketState:
 		tradeable_pairs = self.__trader.get_instruments()
+		tradeable_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(tradeable_pairs, k=Config.AGENT_MAX_INSTRUMENTS)
 #		tradeable_pairs = [tradeable_pairs[i] for i in np.random.choice(len(tradeable_pairs), 5, False)]
 #		print(f"Tradeable Pairs: {tradeable_pairs}")
 		# tradeable_pairs = [

@@ -1,5 +1,6 @@
 from pytz import timezone
 import os
+import random
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -62,6 +63,8 @@ AGENT_STATE_CHANGE_DELTA = 0.02
 AGENT_DISCOUNT_FACTOR = 0.9
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_STEP_TIME = 1*60
+AGENT_MAX_INSTRUMENTS = 5
+AGENT_RANDOM_SEED = random.randint(0, 1000)
 CURRENCIES = [
 	"AUD",
 	"CAD",
