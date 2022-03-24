@@ -74,7 +74,7 @@ class LiveEnvironment(TradeEnvironment):
 		# 	("USD", "CAD"),
 		# 	("USD", "JPY")
 		# ]
-
+		print(f"Tradeable Pairs", tradeable_pairs)
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
 			tradable_pairs=tradeable_pairs,
