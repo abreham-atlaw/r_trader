@@ -3,10 +3,12 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 import gc
+import psutil
 
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 
+from temp import statics
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
 
@@ -63,8 +65,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 				np.log(self.parent.get_visits()) / self.get_visits()
 			)
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, min_free_memory_percent=10, **kwargs):
 		super(MonteCarloAgent, self).__init__(*args, **kwargs)
+		self.__min_free_memory = min_free_memory_percent
 
 	@abstractmethod
 	def _init_resources(self) -> object:
@@ -101,6 +104,11 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		node.detach_state()
 		if clean_action:
 			node.detach_action()
+
+	def __manage_resources(self):
+		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
+			print("[+]Releasing MEMORY")
+			gc.collect()
 
 	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -173,8 +181,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__expand(leaf_node)
 			final_node = self.__simulate(leaf_node)
 			self.__backpropagate(final_node, 0)
-			# gc.collect()
-		#   #TODO: THIS TAKES TO MUCH TIME
+			self.__manage_resources()
+
+			statics.iterations["main_loop"] += 1
 
 		Logger.info(f"Simulations Done: {sum([child.visits for child in root_node.get_children()])}")
 
