@@ -8,7 +8,6 @@ import psutil
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 
-from temp import statics
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
 
@@ -183,7 +182,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__backpropagate(final_node, 0)
 			self.__manage_resources()
 
-			statics.iterations["main_loop"] += 1
 
 		Logger.info(f"Simulations Done: {sum([child.visits for child in root_node.get_children()])}")
 
