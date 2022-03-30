@@ -42,8 +42,11 @@ class MarketState:
 			]
 
 	def __get_currencies_position(self, base_currency, quote_currency):
-		if base_currency not in self.__currencies or quote_currency not in self.__currencies:
-			raise CurrencyNotFoundException()
+		if base_currency not in self.__currencies:
+			raise CurrencyNotFoundException(base_currency)
+		if quote_currency not in self.__currencies:
+			raise CurrencyNotFoundException(quote_currency)
+
 		return self.__currencies.index(base_currency), self.__currencies.index(quote_currency)
 
 	def get_state_of(self, base_currency, quote_currency) -> np.ndarray:
@@ -241,7 +244,12 @@ class TradeState:
 
 
 class CurrencyNotFoundException(Exception):
-	pass
+
+	def __init__(self, currency):
+		self.currency = currency
+
+	def __str__(self):
+		return "Currency not found: " + self.currency
 
 
 class InsufficientFundsException(Exception):
