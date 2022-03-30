@@ -54,6 +54,12 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		return state.get_market_state().get_state_of(action.base_currency, action.quote_currency)
 
+	def __get_state_change_delta(self) -> float:
+		if isinstance(self.__state_change_delta, float):
+			return self.__state_change_delta
+		return np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
+
+
 	def _prediction_to_transition_probability(
 			self,
 			initial_state: TradeState,
@@ -110,7 +116,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				np.array(original_value * (1 + j*self.__state_change_delta))
+				np.array(original_value * (1 + j*self.__get_state_change_delta()))
 			)
 			states.append(new_state)
 
