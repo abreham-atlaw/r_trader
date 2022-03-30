@@ -183,7 +183,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
 
-		Logger.info(f"Simulations Done: Iterations: {stats.iterations['main_loop']}, Depth: {stats.get_max_depth(root_node)}")
+		Logger.info(f"Simulations Done: Iterations: {stats.iterations['main_loop']}, Depth: {stats.get_max_depth(root_node)}, Nodes: {len(stats.get_nodes(root_node))}")
 
 		return max(root_node.get_children(), key=lambda node: node.get_total_value() / node.get_visits()).action
 
