@@ -7,7 +7,6 @@ from tensorflow import keras
 import os
 
 from .mba import ModelBasedAgent
-from lib.utils.logger import Logger
 
 
 TRANSITION_MODEL_FILE_NAME = "transition_model.h5"
@@ -43,7 +42,6 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def _get_train_output(self, initial_state, action, final_state) -> np.ndarray:
 		pass
 
-	@Logger.logged_method
 	def _get_transition_model(self) -> keras.Model:
 		if self.__transition_model is None:
 			raise Exception("Transition Model not Set")
@@ -52,7 +50,6 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def set_transition_model(self, model: keras.Model):
 		self.__transition_model = model
 
-	@Logger.logged_method
 	def _get_expected_transition_probability(self, initial_state, action, final_state) -> float:
 		if action is None:
 			return 1
@@ -72,7 +69,6 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		self._get_transition_model().summary()
 		self._get_transition_model().fit(X, y, **fit_params)
 
-	@Logger.logged_method
 	def _update_model(self, batch=None):
 		if batch is None:
 			batch = self._update_batch
@@ -82,7 +78,6 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			self.__fit_params
 		)
 
-	@Logger.logged_method
 	def _update_transition_probability(self, initial_state, action, final_state):
 		new_batch = [self._state_action_to_model_input(initial_state, action, final_state)], [
 			self._get_train_output(initial_state, action, final_state)]

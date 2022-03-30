@@ -18,8 +18,20 @@ from .trade_transition_model import TransitionModel, RemoteTransitionModel
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
-	def __init__(self, *args, trade_size_gap=Config.AGENT_TRADE_SIZE_GAP, state_change_delta=Config.AGENT_STATE_CHANGE_DELTA,  **kwargs):
-		super().__init__(*args, episodic=False, depth=Config.AGENT_DEPTH, explore_exploit_tradeoff=Config.AGENT_EXPLOIT_EXPLORE_TRADEOFF, **kwargs)
+	def __init__(
+			self,
+			*args,
+			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
+			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA,
+			**kwargs
+	):
+		super().__init__(
+			*args,
+			episodic=False,
+			depth=Config.AGENT_DEPTH,
+			explore_exploit_tradeoff=Config.AGENT_EXPLOIT_EXPLORE_TRADEOFF,
+			**kwargs
+		)
 		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta = state_change_delta
 		self.environment: TradeEnvironment
@@ -129,8 +141,19 @@ class TraderMarkovAgent(MarkovAgent, TraderDNNTransitionAgent):
 
 class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 
-	def __init__(self, step_time=Config.AGENT_STEP_TIME, discount=Config.AGENT_DISCOUNT_FACTOR, *args, **kwargs):
-		super(TraderMonteCarloAgent, self).__init__(*args, discount=discount, **kwargs)
+	def __init__(
+			self,
+			step_time=Config.AGENT_STEP_TIME,
+			discount=Config.AGENT_DISCOUNT_FACTOR,
+			min_free_memory_percent=Config.MIN_FREE_MEMORY,
+			*args, **kwargs
+	):
+		super(TraderMonteCarloAgent, self).__init__(
+			*args,
+			discount=discount,
+			min_free_memory_percent=min_free_memory_percent,
+			**kwargs
+		)
 		self.__step_time = step_time
 
 	def _init_resources(self) -> object:

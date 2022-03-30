@@ -43,7 +43,6 @@ class Environment(ABC):
 
 	@Logger.logged_method
 	def do(self, action) -> float:
-		print("Doing Action:", action)
 		if action not in self.get_valid_actions():
 			raise ActionNotValidException()
 		self.perform_action(action)

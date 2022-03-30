@@ -6,7 +6,6 @@ import pandas as pd
 
 from datetime import datetime
 
-from lib.utils.logger import Logger
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from core import Config
@@ -108,7 +107,6 @@ class LiveEnvironment(TradeEnvironment):
 		df = self.__candlesticks_to_dataframe(candle_sticks)
 		return df["c"].to_numpy()
 
-	@Logger.logged_method
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
 		self.__trader.trade(
@@ -117,12 +115,10 @@ class LiveEnvironment(TradeEnvironment):
 			action.margin_used
 		)
 
-	@Logger.logged_method
 	def _close_trades(self, base_currency, quote_currency):
 		super()._close_trades(base_currency, quote_currency)
 		self.__trader.close_trades((base_currency, quote_currency))
 
-	@Logger.logged_method
 	def _initiate_state(self) -> TradeState:
 		market_state = self.__get_market_state(Config.MARKET_STATE_MEMORY)
 		agent_state = self.__get_agent_state(market_state)
@@ -132,7 +128,6 @@ class LiveEnvironment(TradeEnvironment):
 			market_state=market_state
 		)
 
-	@Logger.logged_method
 	def _refresh_state(self, state: TradeState = None) -> TradeState:
 		if state is None:
 			state = self.get_state()

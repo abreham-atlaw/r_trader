@@ -8,7 +8,6 @@ def network_call(func):
 
 	def wrapper(*args, **kwargs):
 		tries = Config.NETWORK_TRIES
-		Logger.info(f"Executing {func.__name__} with {tries} tries.")
 		while tries is None or tries > 0:
 			try:
 				return func(*args, **kwargs)

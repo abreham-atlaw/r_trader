@@ -1,7 +1,6 @@
 from typing import *
 from abc import abstractmethod, ABC
 
-from lib.utils.logger import Logger
 from .trade_state import TradeState
 from core.agent.trader_action import TraderAction
 from lib.rl.environment import Environment
@@ -28,23 +27,19 @@ class TradeEnvironment(Environment, ABC):
 		super()._initialize()
 		self._state = self._initiate_state()
 
-	@Logger.logged_method
 	def _close_trades(self, base_currency, quote_currency):
 		self.get_state().get_agent_state().close_trades(base_currency, quote_currency)
 
-	@Logger.logged_method
 	def _open_trade(self, action: TraderAction):
 		self.get_state().get_agent_state().open_trade(
 			action
 		)
 
-	@Logger.logged_method
 	def get_reward(self, state: TradeState or None = None):
 		if state is None:
 			state = self.get_state()
 		return state.get_agent_state().get_balance() + self.__time_penalty
 
-	@Logger.logged_method
 	def perform_action(self, action: TraderAction):
 
 		if action.action == TraderAction.Action.CLOSE:
@@ -63,7 +58,6 @@ class TradeEnvironment(Environment, ABC):
 	def check_is_running(self) -> bool:
 		return True
 
-	@Logger.logged_method
 	def get_valid_actions(self, state=None) -> List[Union[TraderAction, None]]:
 		if state is None:
 			state = self.get_state()

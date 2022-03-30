@@ -9,7 +9,6 @@ import random
 
 
 from lib.rl.environment import Environment
-from lib.utils.logger import Logger
 
 
 CONFIGS_FILE_NAME = "configs.txt"
@@ -30,11 +29,9 @@ class Agent(ABC):
 	def set_environment(self, environment: Environment):
 		self.__environment = environment
 
-	@Logger.logged_method
 	def _get_available_actions(self, state) -> List[object]:
 		return self._get_environment().get_valid_actions(state)
 
-	@Logger.logged_method
 	def _is_episode_over(self, state) -> bool:
 		if self._is_episodic:
 			return self._get_environment().is_episode_over(state)
@@ -48,7 +45,6 @@ class Agent(ABC):
 	def _update_state_action_value(self, initial_state, action, final_state, value):
 		pass
 
-	@Logger.logged_method
 	def _get_optimal_action(self, state, **kwargs):
 		valid_actions = self._get_available_actions(state)
 
@@ -57,20 +53,16 @@ class Agent(ABC):
 		optimal_action = valid_actions[values.index(max(values))]
 		return optimal_action
 
-	@Logger.logged_method
 	def _policy(self, state, **kwargs):
 		return self._get_optimal_action(state, **kwargs)
 
-	@Logger.logged_method
 	def _exploit(self, state):
 		return self._policy(state)
 
-	@Logger.logged_method
 	def _explore(self, state):
 		actions = self._get_available_actions(state)
 		return random.choice(actions)
 
-	@Logger.logged_method
 	def _get_action(self, state):
 		method = np.random.choice(
 			[self._exploit, self._explore],
@@ -79,17 +71,15 @@ class Agent(ABC):
 		)[0]
 		return method(state)
 
-	@Logger.logged_method
-	def perform_timestamp(self):
+	def perform_timestep(self):
 		state = self._get_environment().get_state()
 		action = self._get_action(state)
 		value = self._get_environment().do(action)
 		self._update_state_action_value(state, action, self._get_environment().get_state(), value)
 
-	@Logger.logged_method
 	def perform_episode(self):
 		while not self._get_environment().is_episode_over():
-			self.perform_timestamp()
+			self.perform_timestep()
 
 	def loop(self):
 		if self._is_episodic:
@@ -98,7 +88,7 @@ class Agent(ABC):
 				self._get_environment().reset()
 		else:
 			while True:
-				self.perform_timestamp()
+				self.perform_timestep()
 
 	def get_configs(self) -> Dict:
 		return {

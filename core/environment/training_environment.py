@@ -5,7 +5,6 @@ import numpy as np
 import datetime
 from copy import deepcopy
 
-from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
 from core import Config, pg_connection
@@ -34,7 +33,6 @@ class TrainingEnvironment(TradeEnvironment):
 		self.datetime_format = datetime_format
 		self.last_datetime = None
 
-	@Logger.logged_method
 	def _initiate_state(self) -> TradeState:
 		market_state = self.__initiate_market_state(Config.MARKET_STATE_MEMORY)
 		agent_state = AgentState(self.__initial_balance, market_state)
@@ -101,7 +99,6 @@ class TrainingEnvironment(TradeEnvironment):
 
 		return market_state
 
-	@Logger.logged_method
 	def _refresh_state(self, state=None) -> TradeState:
 		if state is None:
 			state = self.get_state()

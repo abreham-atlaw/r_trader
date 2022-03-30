@@ -3,7 +3,6 @@ from typing import *
 from datetime import datetime
 
 from .data.models import Config, Progress
-from lib.utils.logger import Logger
 
 
 class OptimizationCacher:
@@ -26,12 +25,10 @@ class OptimizationCacher:
 		config.set_hidden_layers(config_dict.get("hidden_layers"))
 		return config
 
-	@Logger.logged_method
 	def get_value(self, config_dict: Dict) -> Union[float, None]:
 		config = self.__construct_config(config_dict)
 		return config.get_value()
 
-	@Logger.logged_method
 	def cache(self, config_dict: Dict, value: float):
 		config = self.__construct_config(config_dict, value)
 		config.save(commit=True)
@@ -39,7 +36,6 @@ class OptimizationCacher:
 		if progress is not None:
 			progress.set_done(commit=True)
 
-	@Logger.logged_method
 	def is_locked(self, config_dict: Dict) -> bool:
 		config = self.__construct_config(config_dict)
 		config_id = config.get_id()
@@ -51,7 +47,6 @@ class OptimizationCacher:
 			return False
 		return not progress.done
 
-	@Logger.logged_method
 	def lock(self, config_dict: Dict, user: str):
 		config = self.__construct_config(config_dict)
 		config.save()

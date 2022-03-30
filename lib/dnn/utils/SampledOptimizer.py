@@ -5,7 +5,6 @@ import numpy as np
 
 import gc
 
-from lib.utils.logger import Logger
 from lib.dnn.utils import KerasTrainer
 
 
@@ -22,7 +21,6 @@ class SampledOptimizer(ABC):
 	def _create_trainer(self, params) -> KerasTrainer:
 		pass
 
-	@Logger.logged_method
 	def _get_value_loss(self, values: Dict) -> float:
 		trainer = self._create_trainer(values)
 		train_history, test_loss = trainer.start()
@@ -37,7 +35,6 @@ class SampledOptimizer(ABC):
 			test_loss
 		])
 
-	@Logger.logged_method
 	def _optimize_params(self, param_values: List[Dict]) -> Tuple[Dict, float]:
 
 		min_loss = None

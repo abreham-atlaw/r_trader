@@ -106,7 +106,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	def __manage_resources(self):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
-			print("[+]Releasing MEMORY")
+			Logger.info("Releasing memory")
 			gc.collect()
 
 	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
@@ -168,7 +168,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self.__backpropagate(action_node.parent, action_node_value)
 
-	@Logger.logged_method
 	def __monte_carlo_tree_search(self, state) -> object:
 		root_node = MonteCarloAgent.Node(None, state, None)
 		self.__expand(root_node)
