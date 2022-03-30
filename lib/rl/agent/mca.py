@@ -106,7 +106,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	def __manage_resources(self):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
-			Logger.info("Releasing memory")
 			gc.collect()
 
 	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
