@@ -7,7 +7,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 REMOTE_TRADER_URL = "http://localhost:8080/"
 NETWORK_TRIES = 10
 
-LOGGING = False
+LOGGING = True
 LOGGING_PID = True
 LOGGING_CONSOLE = True
 LOGGING_FILE_PATH = os.path.abspath("output.log")
