@@ -191,7 +191,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		Logger.info(f"Simulations Done: Iterations: {stats.iterations['main_loop']}, Depth: {stats.get_max_depth(root_node)}, Nodes: {len(stats.get_nodes(root_node))}")
 
-		return max(root_node.get_children(), key=lambda node: node.get_total_value() / node.get_visits()).action
+		return max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		pass
