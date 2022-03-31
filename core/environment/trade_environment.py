@@ -1,6 +1,7 @@
 from typing import *
 from abc import abstractmethod, ABC
 
+from core import Config
 from .trade_state import TradeState
 from core.agent.trader_action import TraderAction
 from lib.rl.environment import Environment
@@ -8,7 +9,7 @@ from lib.rl.environment import Environment
 
 class TradeEnvironment(Environment, ABC):
 
-	def __init__(self, time_penalty=-1, trade_size_gap=10, market_state_memory=64):
+	def __init__(self, time_penalty=Config.TIME_PENALTY, trade_size_gap=10, market_state_memory=64):
 		super(TradeEnvironment, self).__init__()
 		self._state: Union[TradeState, None] = None
 		self.__time_penalty = time_penalty
@@ -38,7 +39,8 @@ class TradeEnvironment(Environment, ABC):
 	def get_reward(self, state: TradeState or None = None):
 		if state is None:
 			state = self.get_state()
-		return state.get_agent_state().get_balance() + self.__time_penalty
+
+		return state.get_recent_balance_change() + self.__time_penalty
 
 	def perform_action(self, action: TraderAction):
 

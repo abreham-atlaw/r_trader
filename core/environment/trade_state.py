@@ -226,9 +226,10 @@ class AgentState:
 
 class TradeState:
 
-	def __init__(self, market_state: MarketState = None, agent_state: AgentState = None):
+	def __init__(self, market_state: MarketState = None, agent_state: AgentState = None, recent_balance: float = None):
 		self.market_state = market_state
 		self.agent_state = agent_state
+		self.recent_balance = recent_balance
 
 	def get_market_state(self) -> MarketState:
 		return self.market_state
@@ -236,11 +237,19 @@ class TradeState:
 	def get_agent_state(self) -> AgentState:
 		return self.agent_state
 
+	def get_recent_balance(self) -> float:
+		return self.recent_balance
+
+	def get_recent_balance_change(self) -> float:
+		if self.get_recent_balance() is None:
+			return 0
+		return self.get_agent_state().get_balance() - self.get_recent_balance()
+
 	def __deepcopy__(self, memo=None):
 		market_state = self.market_state.__deepcopy__()
 		agent_state = self.agent_state.__deepcopy__(memo={'market_state': market_state})
 
-		return TradeState(market_state, agent_state)
+		return TradeState(market_state, agent_state, self.get_recent_balance())
 
 
 class CurrencyNotFoundException(Exception):

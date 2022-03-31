@@ -124,6 +124,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:  # TODO: SETUP CACHER
 		new_state = copy.deepcopy(state)
+		new_state.recent_balance = state.get_agent_state().get_balance()
 		if action is None:
 			return new_state
 

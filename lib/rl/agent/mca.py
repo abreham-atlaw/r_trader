@@ -9,6 +9,7 @@ from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 from temp import stats
 
+
 class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	class Node:
@@ -131,7 +132,13 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			for possible_state in self._get_possible_states(state_node.state, action):
 				weight = self._get_expected_transition_probability(state_node.state, action, possible_state)
 				value = self._get_environment().get_reward(possible_state)
-				possible_state_node = MonteCarloAgent.Node(action_node, possible_state, None, weight=weight, instant_value=value)
+				possible_state_node = MonteCarloAgent.Node(
+					action_node,
+					possible_state,
+					None,
+					weight=weight,
+					instant_value=value
+				)
 				action_node.add_child(possible_state_node)
 			state_node.add_child(action_node)
 			self.__clean_node(action_node)
