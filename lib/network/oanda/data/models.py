@@ -48,8 +48,9 @@ class Trade:
 	def get_units(self) -> int:
 		return abs(self.initialUnits)
 
-	def get_initial_price(self) -> float:
+	def get_current_price(self) -> float:
 		return self.price - (self.unrealizedPL/self.initialUnits)
+		#return self.price
 
 
 @attr.define

@@ -14,7 +14,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	class Node:
 
-		def __init__(self, parent, state, action, weight: float = 1.0, instant_value=0):
+		def __init__(self, parent, state, action, weight: float = 1.0, instant_value: float = 0.0):
 			self.children = []
 			self.visits = 0
 			self.total_value = 0
@@ -189,9 +189,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
 
-		Logger.info(f"Simulations Done: Iterations: {stats.iterations['main_loop']}, Depth: {stats.get_max_depth(root_node)}, Nodes: {len(stats.get_nodes(root_node))}")
+		Logger.info(
+			f"Simulations Done: Iterations: {stats.iterations['main_loop']}, "
+			f"Depth: {stats.get_max_depth(root_node)}, "
+			f"Nodes: {len(stats.get_nodes(root_node))}"
+		)
+		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 
-		return max(root_node.get_children(), key=lambda node: node.get_total_value()).action
+		Logger.info(f"Best Action {optimal_action}")
+		return optimal_action
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		pass
