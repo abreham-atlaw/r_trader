@@ -89,7 +89,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		probabilities = np.array([
 			state_node.weight
 			for state_node in state_nodes
-		])
+		]).astype('float64')
 		probabilities /= probabilities.sum()
 
 		choice = np.random.choice(

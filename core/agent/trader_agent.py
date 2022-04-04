@@ -52,7 +52,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			)
 
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
-		return state.get_market_state().get_state_of(action.base_currency, action.quote_currency)
+		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
+
+			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] != state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+
+				return state.get_market_state().get_state_of(base_currency, quote_currency)
+
+		raise ValueError("Initial State and Final state are the same.")
 
 	def __get_state_change_delta(self) -> float:
 		if isinstance(self.__state_change_delta, float):
@@ -125,6 +131,9 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:  # TODO: SETUP CACHER
 		new_state = copy.deepcopy(state)
 		new_state.recent_balance = state.get_agent_state().get_balance()
+		if action is None:
+			return new_state
+
 		if action is None:
 			return new_state
 

@@ -49,10 +49,14 @@ class TradeEnvironment(Environment, ABC):
 
 	def perform_action(self, action: TraderAction):
 
-		if action.action == TraderAction.Action.CLOSE:
+		if action is None:
+			pass
+
+		elif action.action == TraderAction.Action.CLOSE:
 			self._close_trades(action.base_currency, action.quote_currency)
-			return
-		self._open_trade(action)
+
+		else:
+			self._open_trade(action)
 
 		self._state = self._refresh_state()
 
@@ -92,7 +96,7 @@ class TradeEnvironment(Environment, ABC):
 			for trade in state.get_agent_state().get_open_trades()
 		]
 
-		# TODO: actions.append(None)
+		actions.append(None)
 		return actions
 
 	def get_state(self) -> TradeState:
