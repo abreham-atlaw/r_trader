@@ -8,6 +8,7 @@ from datetime import datetime
 
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
+from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
@@ -50,8 +51,8 @@ class LiveEnvironment(TradeEnvironment):
 						margin_used=trade.marginUsed,
 						units=trade.get_units()
 					),
-					trade.get_initial_price(),
-					current_value=trade.price
+					trade.price,
+					current_value=trade.get_current_price()
 				)
 			)
 		return AgentState(balance, market_state, open_trades=open_trades, margin_rate=self.__trader.get_margin_rate())
@@ -62,17 +63,17 @@ class LiveEnvironment(TradeEnvironment):
 			currencies += pair
 		return list(set(currencies))
 
+	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
+		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
+		if Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs):
+			Logger.info("Generating new seed")
+			Config.AGENT_RANDOM_SEED = random.randint(0, 1000)
+			return self.__select_pairs(pairs)
+		return selected_pairs
+
 	def __get_market_state(self, memory_size) -> MarketState:
-		tradeable_pairs = self.__trader.get_instruments()
-		tradeable_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(tradeable_pairs, k=Config.AGENT_MAX_INSTRUMENTS)
-#		tradeable_pairs = [tradeable_pairs[i] for i in np.random.choice(len(tradeable_pairs), 5, False)]
-#		print(f"Tradeable Pairs: {tradeable_pairs}")
-		# tradeable_pairs = [
-		# 	("AUD", "USD"),
-		# 	("EUR", "USD"),
-		# 	("USD", "CAD"),
-		# 	("USD", "JPY")
-		# ]
+		tradeable_pairs = self.__select_pairs(self.__trader.get_instruments())
+
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
 			tradable_pairs=tradeable_pairs,

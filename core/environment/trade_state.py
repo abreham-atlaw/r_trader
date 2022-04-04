@@ -7,7 +7,7 @@ import math
 
 from lib.utils.logger import Logger
 from core.agent.trader_action import TraderAction
-from core.Config import CURRENCIES
+from core import Config
 
 
 class MarketState:
@@ -22,7 +22,7 @@ class MarketState:
 
 		self.__currencies = currencies
 		if currencies is None:
-			self.__currencies = CURRENCIES
+			self.__currencies = Config.CURRENCIES
 
 		if state is None and memory_len is None:
 			raise Exception("Insufficient information given on State.")
@@ -122,11 +122,22 @@ class AgentState:
 		def get_current_value(self) -> float:
 			return self.__current_value
 
-	def __init__(self, balance, market_state: MarketState, margin_rate=1, currency="USD", open_trades=None):
+	def __init__(
+			self,
+			balance,
+			market_state: MarketState,
+			margin_rate=1,
+			currency=Config.AGENT_CURRENCY,
+			open_trades=None,
+			core_pricing=Config.AGENT_CORE_PRICING,
+			commission_cost=Config.AGENT_COMMISSION_COST
+	):
 		self.__balance = balance
 		self.__market_state = market_state
 		self.__currency = currency
 		self.__margin_rate = margin_rate
+		self.__core_pricing = core_pricing
+		self.__commission_cost = commission_cost
 		self.__open_trades: List[AgentState.OpenTrade] = open_trades
 		if open_trades is None:
 			self.__open_trades: List[AgentState.OpenTrade] = []
@@ -155,7 +166,9 @@ class AgentState:
 			return self.__balance
 		self.__update_open_trades()
 		return self.__balance + sum([
-			trade.get_unrealized_profit(conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0])
+			trade.get_unrealized_profit(
+				conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]
+			)
 			for trade in self.__open_trades
 		])
 
@@ -189,6 +202,9 @@ class AgentState:
 			action.units = self.__units_for(action.margin_used, action.base_currency, action.quote_currency)
 		if action.margin_used > self.get_margin_available():
 			raise InsufficientFundsException
+
+		if self.__core_pricing:
+			self.__balance -= self.__commission_cost
 		self.__open_trades.append(
 			AgentState.OpenTrade(action, current_value)
 		)
@@ -201,7 +217,12 @@ class AgentState:
 		open_trades = self.get_open_trades(base_currency, quote_currency)
 		if modify_balance:
 			self.update_balance(
-				sum([trade.get_unrealized_profit(conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]) for trade in open_trades])
+				sum([
+					trade.get_unrealized_profit(
+						conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]
+					)
+					for trade in open_trades
+				])
 			)
 		self.__open_trades = [trade for trade in self.__open_trades if trade not in open_trades]
 

@@ -9,7 +9,12 @@ from lib.rl.environment import Environment
 
 class TradeEnvironment(Environment, ABC):
 
-	def __init__(self, time_penalty=Config.TIME_PENALTY, trade_size_gap=10, market_state_memory=64):
+	def __init__(
+			self,
+			time_penalty=Config.TIME_PENALTY,
+			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
+			market_state_memory=Config.MARKET_STATE_MEMORY
+	):
 		super(TradeEnvironment, self).__init__()
 		self._state: Union[TradeState, None] = None
 		self.__time_penalty = time_penalty
