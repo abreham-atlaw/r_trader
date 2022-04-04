@@ -130,7 +130,8 @@ class AgentState:
 			currency=Config.AGENT_CURRENCY,
 			open_trades=None,
 			core_pricing=Config.AGENT_CORE_PRICING,
-			commission_cost=Config.AGENT_COMMISSION_COST
+			commission_cost=Config.AGENT_COMMISSION_COST,
+			spread_cost=Config.AGENT_SPREAD_COST
 	):
 		self.__balance = balance
 		self.__market_state = market_state
@@ -138,6 +139,7 @@ class AgentState:
 		self.__margin_rate = margin_rate
 		self.__core_pricing = core_pricing
 		self.__commission_cost = commission_cost
+		self.__spread_cost = spread_cost
 		self.__open_trades: List[AgentState.OpenTrade] = open_trades
 		if open_trades is None:
 			self.__open_trades: List[AgentState.OpenTrade] = []
@@ -202,6 +204,8 @@ class AgentState:
 			action.units = self.__units_for(action.margin_used, action.base_currency, action.quote_currency)
 		if action.margin_used > self.get_margin_available():
 			raise InsufficientFundsException
+
+		self.__balance -= self.__spread_cost
 
 		if self.__core_pricing:
 			self.__balance -= self.__commission_cost
