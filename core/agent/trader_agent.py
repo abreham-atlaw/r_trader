@@ -13,7 +13,7 @@ from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState
 from core.environment.trade_environment import TradeEnvironment
 from .trader_action import TraderAction
-from .trade_transition_model import TransitionModel, RemoteTransitionModel
+from .trade_transition_model import TransitionModel
 
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
@@ -22,7 +22,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			self,
 			*args,
 			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
-			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA,
+			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
+			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			**kwargs
 	):
 		super().__init__(
@@ -33,23 +34,17 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			**kwargs
 		)
 		self.__trade_size_gap = trade_size_gap
+		self.__state_change_delta_model_mode = state_change_delta_model_mode
 		self.__state_change_delta = state_change_delta
 		self.environment: TradeEnvironment
-		if Config.REMOTE_MODEL:
-			Logger.info("Using Remote Model")
-			self.set_transition_model(
-				RemoteTransitionModel(Config.REMOTE_TRANSITION_MODEL_ADDRESS)
-			)
-		elif Config.NEW_MODEL:
-			Logger.info("Creating new Model")
-			self.set_transition_model(
-				TransitionModel()
-			)
-		else:
-			Logger.info("Loading Model")
-			self.set_transition_model(
-				TransitionModel.load_model(Config.MODEL_PATH)
-			)
+		Logger.info("Loading Core Model")
+		self.set_transition_model(
+			TransitionModel.load_model(Config.CORE_MODEL_CONFIG.path)
+		)
+		self.__delta_model = None
+		if state_change_delta_model_mode:
+			Logger.info("Loading Delta Model")
+			self.__delta_model = TransitionModel.load_model(Config.DELTA_MODEL_CONFIG.path)
 
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
@@ -60,11 +55,21 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		raise ValueError("Initial State and Final state are the same.")
 
-	def __get_state_change_delta(self) -> float:
+	def __get_state_change_delta(self, sequence, direction) -> float:
+		if direction == -1:
+			direction = 0
+
+		if self.__state_change_delta_model_mode:
+			return self.__delta_model.predict(
+				np.append(
+					sequence,
+					direction
+				).reshape((1, -1))
+			).flatten()[0]
+
 		if isinstance(self.__state_change_delta, float):
 			return self.__state_change_delta
 		return np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
-
 
 	def _prediction_to_transition_probability(
 			self,
@@ -122,7 +127,9 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				np.array(original_value * (1 + j*self.__get_state_change_delta()))
+				# np.array(original_value * (1 + j*self.__get_state_change_delta(original_value, j)))
+				np.array(original_value[0] * (1 + j*self.__get_state_change_delta(original_value, j))).reshape(1)
+				# TODO: YOU ARE HERE: TEST THE DELTA MODEL APPROACH. BUT FIRST OF ALL CHECK IF THE FIX ABOVE IS VALID.
 			)
 			states.append(new_state)
 
@@ -131,8 +138,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:  # TODO: SETUP CACHER
 		new_state = copy.deepcopy(state)
 		new_state.recent_balance = state.get_agent_state().get_balance()
-		if action is None:
-			return new_state
 
 		if action is None:
 			return new_state

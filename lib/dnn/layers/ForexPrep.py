@@ -25,13 +25,36 @@ class Percentage(Layer):
 
 class Norm(Layer):
 
-	def __init__(self, **kwargs):
+	def __init__(self,  **kwargs):
 		super(Norm, self).__init__(**kwargs)
 
 	def call(self, inputs, **kwargs):
 		min_ = tf.reduce_min(inputs, axis=1)
 		return (inputs - tf.reshape(min_, (-1, 1))) / tf.reshape(tf.reduce_max(inputs, axis=1) - min_, (-1, 1))
 		# return (inputs - tf.reduce_min(inputs, axis=1))/tf.reshape(tf.reduce_max([tf.reduce_max(inputs, axis=1), tf.abs(tf.reduce_min(inputs, axis=1))], axis=0), (-1, 1, 1))
+
+
+class UnNorm(Layer):
+
+	def __init__(self, min_increment=True,  **kwargs):
+		super(UnNorm, self).__init__(**kwargs)
+		if min_increment:
+			self.min_increment = 1
+		else:
+			self.min_increment = 0
+
+	def get_config(self):
+		config = super(UnNorm, self).get_config()
+		config["min_increment"] = (self.min_increment == 1)
+		return config
+
+	def call(self, inputs, *args, **kwargs):
+		raw = inputs[:, :-1]
+		norm = inputs[:, -1]
+		min_ = tf.reduce_min(raw, axis=1)
+		max_ = tf.reduce_max(raw, axis=1)
+
+		return (norm * (max_ - min_)) + (min_*self.min_increment)
 
 
 class MovingAverage(Layer):

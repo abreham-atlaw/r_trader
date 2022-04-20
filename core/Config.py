@@ -1,6 +1,17 @@
 from pytz import timezone
 import os
 import random
+from dataclasses import dataclass
+
+
+@dataclass
+class ModelConfig:
+
+	id: str
+	download: bool
+	url: str
+	path: str
+
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -8,7 +19,7 @@ REMOTE_TRADER_URL = "http://localhost:8080/"
 NETWORK_TRIES = 10
 
 LOGGING = True
-LOGGING_PID = True
+LOGGING_PID = False
 LOGGING_CONSOLE = True
 LOGGING_FILE_PATH = os.path.abspath("output.log")
 
@@ -60,17 +71,18 @@ TIMEZONE = timezone("Africa/Addis_Ababa")
 MARKET_STATE_MEMORY = 73
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 40
-AGENT_DEPTH = 30
-AGENT_STATE_CHANGE_DELTA = (0.00001, 0.000001)
-AGENT_DISCOUNT_FACTOR = 0.9
+AGENT_DEPTH = 30    # TODO: DEPRECATED
+AGENT_STATE_CHANGE_DELTA_MODEL_MODE = True
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = (0.00001, 0.0001)
+AGENT_DISCOUNT_FACTOR = 0.7
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_STEP_TIME = 1*60
 AGENT_MAX_INSTRUMENTS = 5
 AGENT_RANDOM_SEED = random.randint(0, 1000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = True
-AGENT_COMMISSION_COST = 0.05
-AGENT_SPREAD_COST = 0.05
+AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
+AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 CURRENCIES = [
 	"AUD",
 	"CAD",
@@ -93,10 +105,21 @@ CURRENCIES = [
 	"ZAR"
 ]
 
-REMOTE_TRANSITION_MODEL_ADDRESS = "http://localhost:8080"
-REMOTE_MODEL = False
+CORE_MODEL_CONFIG = ModelConfig(
+	id="core",
+	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
+	path=os.path.join(BASE_DIR, "res/model3_wrapped.h5"),
+	download=False
+)
 
-NEW_MODEL = False
-MODEL_PATH = os.path.join(BASE_DIR, "res/model3_wrapped.h5")
-MODEL_DOWNLOAD_URL = "https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0"
-MODEL_DOWNLOAD = False
+DELTA_MODEL_CONFIG = ModelConfig(
+	id="delta",
+	url="https://www.dropbox.com/s/axr09n3xbbaqvpb/model.h5?dl=0",
+	download=False,
+	path=os.path.join(BASE_DIR, "res/modelRegression_wrapped.h5")
+)
+
+PREDICTION_MODELS = [
+	CORE_MODEL_CONFIG,
+	DELTA_MODEL_CONFIG
+]

@@ -33,8 +33,11 @@ class RTraderApplication:
 			self.config = self.__import_config() 
 		sys.setrecursionlimit(self.config.RECURSION_DEPTH)
 		sys.path.append(self.config.BASE_DIR)
-		if self.config.MODEL_DOWNLOAD:
-			self.__download_model(self.config.MODEL_DOWNLOAD_URL, self.config.MODEL_PATH)
+
+		for model_config in self.config.PREDICTION_MODELS:
+			if model_config.download:
+				self.__download_model(model_config.url, model_config.path)
+
 		self.is_setup = True
 
 	def __start_agent(self, environment):

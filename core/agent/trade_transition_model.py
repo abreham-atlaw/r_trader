@@ -3,7 +3,7 @@ from typing import *
 from tensorflow import keras
 import numpy as np
 
-from lib.dnn.layers import Delta, Percentage, MovingAverage, Norm
+from lib.dnn.layers import Delta, Percentage, MovingAverage, Norm, UnNorm
 from core import Config
 
 
@@ -28,7 +28,19 @@ class TransitionModel(keras.Model):
 
 	@staticmethod
 	def load_model(path: str) -> keras.Model:
-		return keras.models.load_model(path, custom_objects={layer.__name__: layer for layer in [Delta, MovingAverage, Percentage, Norm]})
+		return keras.models.load_model(
+			path,
+			custom_objects={
+				layer.__name__: layer
+				for layer in [
+					Delta,
+					MovingAverage,
+					Percentage,
+					Norm,
+					UnNorm
+				]
+			}
+		)
 
 
 class RemoteTransitionModel:
