@@ -10,7 +10,7 @@ import copy
 from core import Config
 from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
 from lib.utils.logger import Logger
-from core.environment.trade_state import TradeState
+from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from .trader_action import TraderAction
 from .trade_transition_model import TransitionModel
@@ -68,8 +68,11 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			).flatten()[0]
 
 		if isinstance(self.__state_change_delta, float):
-			return self.__state_change_delta
-		return np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
+			percentage = self.__state_change_delta
+		else:
+			percentage = np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
+
+		return sequence[0]*percentage
 
 	def _prediction_to_transition_probability(
 			self,
@@ -104,16 +107,41 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _get_expected_instant_reward(self, state) -> float:
 		return self._get_environment().get_reward(state)
 
+	def __get_involved_instruments(self, open_trades: List[AgentState.OpenTrade]) -> List[Tuple[str, str]]:
+		return list(set(
+			[
+				(open_trade.get_trade().base_currency, open_trade.get_trade().quote_currency)
+				for open_trade in open_trades
+			]
+		))
+
+
 	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
 		mid_state = self.__simulate_action(state, action)
 
 		states = []
 
-		if action is None or action.action == TraderAction.Action.CLOSE:
-			for (base_currency, quote_currency) in state.get_market_state().get_tradable_pairs():
-				states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency)
+		if action is None and len(state.get_agent_state().get_open_trades()) != 0:
+			states += self.__simulate_instruments_change(
+				mid_state,
+				self.__get_involved_instruments(state.get_agent_state().get_open_trades())
+			)
+
+		elif action is None or action.action == TraderAction.Action.CLOSE:
+			states += self.__simulate_instruments_change(
+				mid_state,
+				state.get_market_state().get_tradable_pairs()
+			)
+
 		else:
 			states += self.__simulate_instrument_change(mid_state, action.base_currency, action.quote_currency)
+
+		return states
+
+	def __simulate_instruments_change(self, mid_state, instruments: List[Tuple[str, str]]) -> List[TradeState]:
+		states = []
+		for base_currency, quote_currency in instruments:
+			states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency)
 
 		return states
 
@@ -128,8 +156,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				base_currency,
 				quote_currency,
 				# np.array(original_value * (1 + j*self.__get_state_change_delta(original_value, j)))
-				np.array(original_value[0] * (1 + j*self.__get_state_change_delta(original_value, j))).reshape(1)
-				# TODO: YOU ARE HERE: TEST THE DELTA MODEL APPROACH. BUT FIRST OF ALL CHECK IF THE FIX ABOVE IS VALID.
+				original_value[0] + np.array(j*self.__get_state_change_delta(original_value, j)).reshape(1)
+				# TODO: YOU ARE HERE: CORRECT THE ABOVE LINE. self.__get_state_change_delta return the actu
 			)
 			states.append(new_state)
 
