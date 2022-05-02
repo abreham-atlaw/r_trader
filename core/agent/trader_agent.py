@@ -115,13 +115,12 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			]
 		))
 
-
 	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
 		mid_state = self.__simulate_action(state, action)
 
 		states = []
 
-		if action is None and len(state.get_agent_state().get_open_trades()) != 0:
+		if len(state.get_agent_state().get_open_trades()) != 0:
 			states += self.__simulate_instruments_change(
 				mid_state,
 				self.__get_involved_instruments(state.get_agent_state().get_open_trades())
@@ -157,7 +156,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				quote_currency,
 				# np.array(original_value * (1 + j*self.__get_state_change_delta(original_value, j)))
 				original_value[0] + np.array(j*self.__get_state_change_delta(original_value, j)).reshape(1)
-				# TODO: YOU ARE HERE: CORRECT THE ABOVE LINE. self.__get_state_change_delta return the actu
 			)
 			states.append(new_state)
 
