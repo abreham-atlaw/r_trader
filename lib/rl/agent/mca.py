@@ -1,3 +1,4 @@
+import datetime
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -14,7 +15,11 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	class Node:
 
-		def __init__(self, parent, state, action, weight: float = 1.0, instant_value: float = 0.0):
+		class NodeType:
+			STATE = 0
+			ACTION = 1
+
+		def __init__(self, parent, state, action, node_type, weight: float = 1.0, instant_value: float = 0.0):
 			self.children = []
 			self.visits = 0
 			self.total_value = 0
@@ -23,6 +28,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.state = state
 			self.action = action
 			self.weight = weight
+			self.node_type = node_type
 
 		def increment_visits(self):
 			self.visits += 1
@@ -61,7 +67,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			if self.get_visits() == 0:
 				return 0
 
-			return (self.total_value / self.get_visits()) + np.sqrt(
+			return (self.get_total_value() / self.get_visits()) + np.sqrt(
 				np.log(self.parent.get_visits()) / self.get_visits()
 			)
 
@@ -128,7 +134,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			return
 
 		for action in self._get_available_actions(state_node.state):
-			action_node = MonteCarloAgent.Node(state_node, state_node.state, action)
+			action_node = MonteCarloAgent.Node(state_node, state_node.state, action, MonteCarloAgent.Node.NodeType.ACTION)
 			for possible_state in self._get_possible_states(state_node.state, action):
 				weight = self._get_expected_transition_probability(state_node.state, action, possible_state)
 				value = self._get_environment().get_reward(possible_state)
@@ -136,6 +142,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 					action_node,
 					possible_state,
 					None,
+					MonteCarloAgent.Node.NodeType.STATE,
 					weight=weight,
 					instant_value=value
 				)
@@ -154,28 +161,42 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return self.__get_random_state_node(action_node)
 
-	def __backpropagate(self, state_node: 'MonteCarloAgent.Node', previous_node_value) -> None:
+	# def __backpropagate(self, state_node: 'MonteCarloAgent.Node', previous_node_value) -> None:
+	#
+	# 	if state_node.parent is None:
+	# 		state_node.increment_visits()
+	# 		return
+	#
+	# 	state_node_value = 0
+	# 	if not state_node.is_visited():
+	# 		state_node_value = state_node.instant_value
+	# 	state_node_value += self._discount_factor * previous_node_value
+	# 	state_node.add_value(state_node_value)
+	# 	state_node.increment_visits()
+	#
+	# 	action_node = state_node.parent
+	# 	action_node_value = state_node_value * state_node.weight
+	# 	action_node.add_value(action_node_value)
+	# 	action_node.increment_visits()
+	#
+	# 	self.__backpropagate(action_node.parent, action_node_value)
 
-		if state_node.parent is None:
-			state_node.increment_visits()
+	def __backpropagate(self, node: 'MonteCarloAgent.Node', reward=None) -> None:
+		node.increment_visits()
+		if node.parent is None:
 			return
 
-		state_node_value = 0
-		if not state_node.is_visited():
-			state_node_value = state_node.instant_value
-		state_node_value += self._discount_factor * previous_node_value
-		state_node.add_value(state_node_value)
-		state_node.increment_visits()
+		if reward is None:
+			reward = node.instant_value
+		node.add_value(self._discount_factor * reward)
 
-		action_node = state_node.parent
-		action_node_value = state_node_value * state_node.weight
-		action_node.add_value(action_node_value)
-		action_node.increment_visits()
+		if node.node_type == MonteCarloAgent.Node.NodeType.ACTION:
+			reward = reward * self._discount_factor
 
-		self.__backpropagate(action_node.parent, action_node_value)
+		self.__backpropagate(node.parent, reward)
 
 	def __monte_carlo_tree_search(self, state) -> object:
-		root_node = MonteCarloAgent.Node(None, state, None)
+		root_node = MonteCarloAgent.Node(None, state, None, MonteCarloAgent.Node.NodeType.STATE)
 		self.__expand(root_node)
 
 		resources = self._init_resources()
@@ -185,7 +206,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			leaf_node = self.__select(root_node)
 			self.__expand(leaf_node)
 			final_node = self.__simulate(leaf_node)
-			self.__backpropagate(final_node, 0)
+			self.__backpropagate(final_node)
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
 
@@ -195,7 +216,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			f"Nodes: {len(stats.get_nodes(root_node))}"
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
-
 		Logger.info(f"Best Action {optimal_action}")
 		return optimal_action
 
