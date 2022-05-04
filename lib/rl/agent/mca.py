@@ -1,4 +1,3 @@
-import datetime
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -8,6 +7,7 @@ import psutil
 
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
+from lib.utils.math import sigmoid
 from temp import stats
 
 
@@ -36,6 +36,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		def add_value(self, value):
 			self.total_value += value
 
+		def set_total_value(self, value):
+			self.total_value = value
+
 		def add_child(self, child):
 			self.children.append(child)
 
@@ -60,20 +63,18 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		def get_total_value(self):
 			return self.total_value
 
-		def calc_uct(self):
-			if self.visits == 0:
-				return np.inf
-
-			if self.get_visits() == 0:
-				return 0
-
-			return (self.get_total_value() / self.get_visits()) + np.sqrt(
-				np.log(self.parent.get_visits()) / self.get_visits()
-			)
-
-	def __init__(self, *args, min_free_memory_percent=10, **kwargs):
+	def __init__(self, *args, min_free_memory_percent=10, logical=False, uct_exploration_weight=1, **kwargs):
 		super(MonteCarloAgent, self).__init__(*args, **kwargs)
 		self.__min_free_memory = min_free_memory_percent
+		self.__logical = logical
+		self.__uct_exploration_weight = uct_exploration_weight
+		self.__set_mode(logical)
+
+	def __set_mode(self, logical: bool):
+		if logical:
+			self.__backpropagate, self.__uct = self.__logical_backpropagate, self.__logical_uct
+		else:
+			self.__backpropagate, self.__uct = self.__legacy_backpropagate, self.__legacy_uct
 
 	@abstractmethod
 	def _init_resources(self) -> object:
@@ -115,12 +116,24 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
 			gc.collect()
 
+	def __legacy_uct(self, node: 'MonteCarloAgent.Node') -> float:
+		if not node.is_visited():
+			return np.inf
+
+		return (node.get_total_value()/node.get_visits()) + np.sqrt(np.log(node.parent.get_visits())/node.get_visits())
+
+	def __logical_uct(self, node: 'MonteCarloAgent.Node') -> float:
+		if not node.is_visited():
+			return np.inf
+
+		return sigmoid(node.get_total_value()) + np.sqrt(np.log(node.parent.get_visits())/node.get_visits()) * self.__uct_exploration_weight
+
 	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
 		promising_action_node: MonteCarloAgent.Node = max(
-														parent_state_node.get_children(),
-														key=lambda node: node.calc_uct()
-													)
+													parent_state_node.get_children(),
+													key=lambda node: self.__uct(node)
+												)
 
 		chosen_state_node: MonteCarloAgent.Node = self.__get_random_state_node(promising_action_node)
 
@@ -161,27 +174,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return self.__get_random_state_node(action_node)
 
-	# def __backpropagate(self, state_node: 'MonteCarloAgent.Node', previous_node_value) -> None:
-	#
-	# 	if state_node.parent is None:
-	# 		state_node.increment_visits()
-	# 		return
-	#
-	# 	state_node_value = 0
-	# 	if not state_node.is_visited():
-	# 		state_node_value = state_node.instant_value
-	# 	state_node_value += self._discount_factor * previous_node_value
-	# 	state_node.add_value(state_node_value)
-	# 	state_node.increment_visits()
-	#
-	# 	action_node = state_node.parent
-	# 	action_node_value = state_node_value * state_node.weight
-	# 	action_node.add_value(action_node_value)
-	# 	action_node.increment_visits()
-	#
-	# 	self.__backpropagate(action_node.parent, action_node_value)
-
-	def __backpropagate(self, node: 'MonteCarloAgent.Node', reward=None) -> None:
+	def __legacy_backpropagate(self, node: 'MonteCarloAgent.Node', reward=None) -> None:
 		node.increment_visits()
 		if node.parent is None:
 			return
@@ -193,7 +186,22 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if node.node_type == MonteCarloAgent.Node.NodeType.ACTION:
 			reward = reward * self._discount_factor
 
-		self.__backpropagate(node.parent, reward)
+		self.__legacy_backpropagate(node.parent, reward)
+
+	def __logical_backpropagate(self, node: 'MonteCarloAgent.Node') -> None:
+		node.increment_visits()
+		if node.parent is None:
+			return
+
+		if node.node_type == MonteCarloAgent.Node.NodeType.STATE:
+			node.set_total_value(node.instant_value)
+			if node.has_children():
+				node.add_value(self._discount_factor * max([action_node.get_total_value() for action_node in node.get_children()]))
+
+		else:
+			node.set_total_value(np.sum([state_node.get_total_value()*state_node.weight for state_node in node.get_children()]))
+
+		self.__logical_backpropagate(node.parent)
 
 	def __monte_carlo_tree_search(self, state) -> object:
 		root_node = MonteCarloAgent.Node(None, state, None, MonteCarloAgent.Node.NodeType.STATE)
