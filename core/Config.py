@@ -76,6 +76,8 @@ AGENT_STATE_CHANGE_DELTA_MODEL_MODE = True
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = (0.00001, 0.0001)
 AGENT_DISCOUNT_FACTOR = 0.7
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
+AGENT_UCT_EXPLORE_WEIGHT = 0.1
+AGENT_LOGICAL_MCA = True
 AGENT_STEP_TIME = 1*60
 AGENT_MAX_INSTRUMENTS = 5
 AGENT_RANDOM_SEED = random.randint(0, 1000)
@@ -108,15 +110,15 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "res/model3_wrapped.h5"),
+	path=os.path.join(BASE_DIR, "res/core_model_wrapped.h5"),
 	download=False
 )
 
 DELTA_MODEL_CONFIG = ModelConfig(
 	id="delta",
 	url="https://www.dropbox.com/s/axr09n3xbbaqvpb/model.h5?dl=0",
-	download=False,
-	path=os.path.join(BASE_DIR, "res/modelRegression_wrapped.h5")
+	path=os.path.join(BASE_DIR, "res/delta_model_wrapped.h5"),
+	download=False
 )
 
 PREDICTION_MODELS = [
