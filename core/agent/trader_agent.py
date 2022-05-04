@@ -190,15 +190,20 @@ class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 
 	def __init__(
 			self,
+			*args,
 			step_time=Config.AGENT_STEP_TIME,
 			discount=Config.AGENT_DISCOUNT_FACTOR,
 			min_free_memory_percent=Config.MIN_FREE_MEMORY,
-			*args, **kwargs
+			logical=Config.AGENT_LOGICAL_MCA,
+			uct_exploration_weight=Config.AGENT_UCT_EXPLORE_WEIGHT,
+			**kwargs
 	):
 		super(TraderMonteCarloAgent, self).__init__(
 			*args,
 			discount=discount,
 			min_free_memory_percent=min_free_memory_percent,
+			logical=logical,
+			uct_exploration_weight=uct_exploration_weight,
 			**kwargs
 		)
 		self.__step_time = step_time
