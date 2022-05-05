@@ -41,6 +41,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.set_transition_model(
 			TransitionModel.load_model(Config.CORE_MODEL_CONFIG.path)
 		)
+		self.__state_change_delta_cache = {}
 		self.__delta_model = None
 		if state_change_delta_model_mode:
 			Logger.info("Loading Delta Model")
@@ -55,24 +56,33 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		raise ValueError("Initial State and Final state are the same.")
 
-	def __get_state_change_delta(self, sequence, direction) -> float:
+	def __get_state_change_delta(self, sequence: np.ndarray, direction) -> float:
 		if direction == -1:
 			direction = 0
 
+		cached = self.__state_change_delta_cache.get(sequence.tobytes())
+		if cached is not None:
+			return cached
+
 		if self.__state_change_delta_model_mode:
-			return self.__delta_model.predict(
+			return_value = self.__delta_model.predict(
 				np.append(
 					sequence,
 					direction
 				).reshape((1, -1))
-			).flatten()[0]
+			).flatten()[0] * 10
 
-		if isinstance(self.__state_change_delta, float):
-			percentage = self.__state_change_delta
 		else:
-			percentage = np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
+			if isinstance(self.__state_change_delta, float):
+				percentage = self.__state_change_delta
+			else:
+				percentage = np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
 
-		return sequence[0]*percentage
+			return_value = sequence[0] * percentage
+
+		self.__state_change_delta_cache[sequence.tobytes()] = return_value
+
+		return return_value
 
 	def _prediction_to_transition_probability(
 			self,
