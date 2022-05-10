@@ -35,9 +35,12 @@ class FloatEmbedding(Layer):
 
 class WeightedRepeatEmbedding(Layer):
 
-	def __init__(self, units, **kwargs):
-		self.units = units
+	def __init__(self, units, add_bias=True, **kwargs):
 		super(WeightedRepeatEmbedding, self).__init__(**kwargs)
+		self.units = units
+		self.bias_weight = 0
+		if add_bias:
+			self.bias_weight = 1
 
 	def get_config(self):
 		return {
@@ -58,7 +61,7 @@ class WeightedRepeatEmbedding(Layer):
 			initializer="random_normal",
 			trainable=True,
 			name="embedding_bias"
-		)
+		) * self.bias_weight
 
 	def call(self, inputs, *args, **kwargs):
 		return tf.matmul(self.w, tf.expand_dims(inputs, 1)) + self.b
