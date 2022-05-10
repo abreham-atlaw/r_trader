@@ -61,7 +61,7 @@ class WeightedRepeatEmbedding(Layer):
 		)
 
 	def call(self, inputs, *args, **kwargs):
-		return tf.matmul(self.w, tf.reshape(inputs, (-1, 1, inputs.shape[-1]))) + self.b
+		return tf.matmul(self.w, tf.expand_dims(inputs, 1)) + self.b
 
 
 class PositionalEncoding(Layer):
