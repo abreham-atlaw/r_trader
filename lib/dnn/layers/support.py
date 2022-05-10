@@ -33,6 +33,37 @@ class FloatEmbedding(Layer):
 		return tf.matmul(inputs, self.w) + self.b
 
 
+class WeightedRepeatEmbedding(Layer):
+
+	def __init__(self, units, **kwargs):
+		self.units = units
+		super(WeightedRepeatEmbedding, self).__init__(**kwargs)
+
+	def get_config(self):
+		return {
+			'units': self.units
+		}
+
+	def build(self, input_shape):
+		if len(input_shape) != 2:
+			raise Exception(f"Expected rank 2 but got input_shape={input_shape}")
+		self.w = self.add_weight(
+			shape=(self.units, 1),
+			initializer="random_normal",
+			trainable=True,
+			name="embedding_weights"
+		)
+		self.b = self.add_weight(
+			shape=(self.units, 1),
+			initializer="random_normal",
+			trainable=True,
+			name="embedding_bias"
+		)
+
+	def call(self, inputs, *args, **kwargs):
+		return tf.matmul(self.w, tf.reshape(inputs, (-1, 1, inputs.shape[-1]))) + self.b
+
+
 class PositionalEncoding(Layer):
 
 	def __init__(self, **kwargs):
