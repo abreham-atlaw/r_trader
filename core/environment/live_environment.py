@@ -64,6 +64,19 @@ class LiveEnvironment(TradeEnvironment):
 		return list(set(currencies))
 
 	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
+		pairs = [
+					('GBP', 'NZD'),
+					('EUR', 'JPY'),
+					('SGD', 'JPY'),
+					('USD', 'DKK'),
+					('NZD', 'JPY'),
+					('USD', 'THB'),
+					('EUR', 'USD'),
+					('EUR', 'HKD'),
+					('USD', 'HUF'),
+					('GBP', 'JPY')
+		]
+
 		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
 		if Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs):
 			Logger.info("Generating new seed")
