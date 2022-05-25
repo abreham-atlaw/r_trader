@@ -5,10 +5,10 @@ import datetime
 
 from lib.utils.logger import Logger
 from core import Config
-from .data.models import AccountSummary, Trade, Order, CloseTradeResponse,  CreateOrderResponse, CandleStick
+from .data.models import AccountSummary, Trade, Order, CloseTradeResponse,  CreateOrderResponse, CandleStick, SpreadPrice
 from . import OandaNetworkClient
 from .requests import AccountSummaryRequest, GetOpenTradesRequest, GetInstrumentsRequest, CreateOrderRequest, \
-	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest
+	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest, GetSpreadPriceRequest
 from .exceptions import InstrumentNotFoundException, InvalidActionException, InsufficientMarginException
 
 
@@ -107,6 +107,13 @@ class Trader:
 				to=to,
 				granularity=granularity,
 				count=count
+			)
+		)
+
+	def get_spread_price(self, instrument: Tuple[str, str]) -> SpreadPrice:
+		return self.__client.execute(
+			GetSpreadPriceRequest(
+				instrument
 			)
 		)
 

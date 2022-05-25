@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 from lib.network.rest_interface import Request
-from .data.models import AccountSummary, Trade, Order, CreateOrderResponse, CloseTradeResponse, Price, CandleStick
+from .data.models import AccountSummary, Trade, Order, CreateOrderResponse, CloseTradeResponse, Price, CandleStick, SpreadPrice
 
 
 class AccountSummaryRequest(Request):
@@ -108,3 +108,19 @@ class GetCandleSticksRequest(Request):
 
 	def _filter_response(self, response):
 		return response["candles"]
+
+
+class GetSpreadPriceRequest(Request):
+
+	def __init__(self, instrument: Tuple[str, str]):
+		from . import Trader
+		super().__init__(
+			"accounts/{{account_id}}/pricing",
+			get_params={
+				"instruments": Trader.format_instrument(instrument)
+			},
+			output_class=SpreadPrice
+		)
+
+	def _filter_response(self, response):
+		return response['prices'][0]

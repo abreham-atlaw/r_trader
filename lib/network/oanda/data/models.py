@@ -130,3 +130,19 @@ class CandleStick:
 
 	def get_low(self) -> float:
 		return self.mid.get("l")
+
+
+@attr.define
+class SpreadPrice:
+
+	closeoutBid: float = attr.ib()
+	closeoutAsk: float = attr.ib()
+
+	def get_buy(self) -> float:
+		return self.closeoutAsk
+
+	def get_sell(self) -> float:
+		return self.closeoutBid
+
+	def get_spread_cost(self) -> float:
+		return (self.get_buy() - self.get_sell())/2

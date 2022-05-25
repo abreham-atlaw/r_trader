@@ -78,20 +78,29 @@ class LiveEnvironment(TradeEnvironment):
 		# ]
 
 		pairs = [
-					('USD', 'HKD'),
-					('SGD', 'CHF'),
-					('EUR', 'DKK'),
-					('AUD', 'CAD'),
-					('CAD', 'SGD'),
-					('USD', 'SGD'),
-					('AUD', 'CHF'),
-					('AUD', 'SGD'),
-					('AUD', 'USD'),
-					('CAD', 'CHF')
+			('USD', 'HKD'),
+			('SGD', 'CHF'),
+			('EUR', 'DKK'),
+			('AUD', 'CAD'),
+			('CAD', 'SGD'),
+			('USD', 'SGD'),
+			('AUD', 'CHF'),
+			('AUD', 'SGD'),
+			('AUD', 'USD'),
+			('CAD', 'CHF')
 		]
 
 		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
-		if Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs):
+		if Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
+			False in [
+				(Config.AGENT_CURRENCY, currency) in selected_pairs or (currency, Config.AGENT_CURRENCY) in selected_pairs
+				for currency in self.__get_currencies(selected_pairs)
+				if currency != Config.AGENT_CURRENCY
+			] or \
+			False in [
+				selected_pairs.count(instrument) == 1
+				for instrument in selected_pairs
+			]:
 			Logger.info("Generating new seed")
 			Config.AGENT_RANDOM_SEED = random.randint(0, 1000)
 			return self.__select_pairs(pairs)
@@ -111,6 +120,11 @@ class LiveEnvironment(TradeEnvironment):
 				base_currency,
 				quote_currency,
 				self.__prepare_tradable_pairs(base_currency, quote_currency, memory_size)
+			)
+			market_state.update_spread_state_of(
+				base_currency,
+				quote_currency,
+				self.__trader.get_spread_price((base_currency, quote_currency)).get_spread_cost()
 			)
 
 		return market_state

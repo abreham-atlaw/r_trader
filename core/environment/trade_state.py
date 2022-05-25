@@ -16,6 +16,7 @@ class MarketState:
 			self,
 			currencies=None,
 			state=None,
+			spread_state=None,
 			memory_len=None,
 			tradable_pairs=None
 	):
@@ -41,6 +42,10 @@ class MarketState:
 				if base_currency != quote_currency
 			]
 
+		self.__spread_state = spread_state
+		if spread_state is None:
+			self.__spread_state = np.zeros((len(currencies), len(currencies))).astype('float32')
+
 	def __get_currencies_position(self, base_currency, quote_currency):
 		if base_currency not in self.__currencies:
 			raise CurrencyNotFoundException(base_currency)
@@ -52,6 +57,10 @@ class MarketState:
 	def get_state_of(self, base_currency, quote_currency) -> np.ndarray:
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
 		return self.__state[bci, qci]
+
+	def get_spread_state_of(self, base_currency, quote_currency) -> float:
+		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
+		return self.__spread_state[bci, qci]
 
 	def update_state_of(self, base_currency, quote_currency, values: np.ndarray):
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
@@ -67,11 +76,22 @@ class MarketState:
 		self.__state[:, :, 1:] = self.__state[:, :, :-1]
 		self.__state[:, :, 0] = state_layer
 
+	def update_spread_state_of(self, base_currency, quote_currency, value: float):
+		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
+		self.__spread_state[bci, qci] = value
+		self.__spread_state[qci, bci] = self.convert(value, to=base_currency, from_=quote_currency)
+
+	def set_spread_state(self, spread_state: np.ndarray):
+		self.__spread_state = spread_state
+
 	def get_currencies(self) -> List[str]:
 		return self.__currencies
 
 	def get_tradable_pairs(self) -> List[Tuple[str, str]]:
 		return self.__tradable_pairs
+
+	def convert(self, value, from_, to):
+		return value * self.get_state_of(from_, to)[0]
 
 	def __deepcopy__(self, memo=None):
 		return MarketState(
@@ -79,6 +99,14 @@ class MarketState:
 			tradable_pairs=self.__tradable_pairs.copy(),
 			state=self.__state.copy()
 		)
+
+	def __eq__(self, other):
+		if not isinstance(other, MarketState):
+			return False
+		return \
+			(self.__currencies == other._MarketState__currencies) and \
+			(self.__tradable_pairs == other._MarketState__tradable_pairs) and \
+			(np.all(self.__state == other._MarketState__state))
 
 
 class AgentState:
@@ -92,23 +120,16 @@ class AgentState:
 			if current_value is None:
 				self.__current_value = enter_value
 
-		def __deepcopy__(self, memo=None):
-			return AgentState.OpenTrade(
-				trade=self.__trade.__deepcopy__(),
-				enter_value=self.__enter_value,
-				current_value=self.__current_value
-			)
-
 		def update_current_value(self, value):
 			self.__current_value = value
 
-		def get_unrealized_profit(self, conversion_factor=1) -> float:  # RETURNS PROFIT IN TERMS OF QUOTE CURRENCY
+		def get_unrealized_profit(self) -> float:  # RETURNS PROFIT IN TERMS OF QUOTE CURRENCY
 			profit = (self.__current_value - self.__enter_value) * self.__trade.units
 
 			if self.__trade.action == TraderAction.Action.SELL:
 				profit *= -1
 
-			return profit*conversion_factor
+			return profit
 
 		def get_return(self) -> float:
 			return self.__trade.margin_used + self.get_unrealized_profit()
@@ -122,6 +143,13 @@ class AgentState:
 		def get_current_value(self) -> float:
 			return self.__current_value
 
+		def __deepcopy__(self, memo=None):
+			return AgentState.OpenTrade(
+				trade=self.__trade.__deepcopy__(),
+				enter_value=self.__enter_value,
+				current_value=self.__current_value
+			)
+
 	def __init__(
 			self,
 			balance,
@@ -131,7 +159,6 @@ class AgentState:
 			open_trades=None,
 			core_pricing=Config.AGENT_CORE_PRICING,
 			commission_cost=Config.AGENT_COMMISSION_COST,
-			spread_cost=Config.AGENT_SPREAD_COST
 	):
 		self.__balance = balance
 		self.__market_state = market_state
@@ -139,7 +166,6 @@ class AgentState:
 		self.__margin_rate = margin_rate
 		self.__core_pricing = core_pricing
 		self.__commission_cost = commission_cost
-		self.__spread_cost = spread_cost
 		self.__open_trades: List[AgentState.OpenTrade] = open_trades
 		if open_trades is None:
 			self.__open_trades: List[AgentState.OpenTrade] = []
@@ -168,9 +194,13 @@ class AgentState:
 			return self.__balance
 		self.__update_open_trades()
 		return self.__balance + sum([
-			trade.get_unrealized_profit(
-				conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]
+			self.__to_agent_currency(
+				value=trade.get_unrealized_profit(),
+				from_currency=trade.get_trade().quote_currency
 			)
+			# trade.get_unrealized_profit(
+			# 	conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]
+			# )
 			for trade in self.__open_trades
 		])
 
@@ -205,13 +235,20 @@ class AgentState:
 		if action.margin_used > self.get_margin_available():
 			raise InsufficientFundsException
 
-		self.__balance -= self.__spread_cost
+		self.__balance -= action.units * self.__to_agent_currency(
+			value=self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency),
+			from_currency=action.quote_currency
+		)
 
 		if self.__core_pricing:
 			self.__balance -= self.__commission_cost
 		self.__open_trades.append(
 			AgentState.OpenTrade(action, current_value)
 		)
+
+	def __to_agent_currency(self, value, from_currency) -> float:
+		return self.__market_state.convert(value, to=self.__currency, from_=from_currency)
+		return value * self.__market_state.get_state_of(from_currency, self.__currency)[0]
 
 	def add_open_trade(self, trade: OpenTrade):
 		self.__open_trades.append(trade)
@@ -222,9 +259,13 @@ class AgentState:
 		if modify_balance:
 			self.update_balance(
 				sum([
-					trade.get_unrealized_profit(
-						conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]
+					self.__to_agent_currency(
+						value=trade.get_unrealized_profit(),
+						from_currency=trade.get_trade().quote_currency
 					)
+					# trade.get_unrealized_profit(
+					# 	conversion_factor=self.__market_state.get_state_of(trade.get_trade().quote_currency, self.__currency)[0]
+					# )
 					for trade in open_trades
 				])
 			)
@@ -275,6 +316,10 @@ class TradeState:
 		agent_state = self.agent_state.__deepcopy__(memo={'market_state': market_state})
 
 		return TradeState(market_state, agent_state, self.get_recent_balance())
+
+	def __eq__(self, other):
+		if not isinstance(other, TraderAction):
+			return False
 
 
 class CurrencyNotFoundException(Exception):
