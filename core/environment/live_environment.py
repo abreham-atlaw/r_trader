@@ -78,16 +78,16 @@ class LiveEnvironment(TradeEnvironment):
 		# ]
 
 		pairs = [
-					('EUR', 'DKK'),
-					('USD', 'HKD'),
-					('SGD', 'CHF'),
-					('CAD', 'SGD'),
-					('AUD', 'NZD'),
-					('NZD', 'CAD'),
-					('NZD', 'CHF'),
-					('CAD', 'CHF'),
-					('USD', 'SGD'),
-					('NZD', 'USD')
+					('CHF', 'JPY'),
+					('SGD', 'JPY'),
+					('USD', 'JPY'),
+					('AUD', 'JPY'),
+					('NZD', 'JPY'),
+					('CAD', 'JPY'),
+					('EUR', 'JPY'),
+					('GBP', 'JPY'),
+					('EUR', 'HUF'),
+					('USD', 'HUF')
 		]
 
 		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
