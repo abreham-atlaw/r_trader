@@ -70,7 +70,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 					sequence,
 					direction
 				).reshape((1, -1))
-			).flatten()[0]
+			).flatten()[0] * 1.8
 
 		else:
 			if isinstance(self.__state_change_delta, float):
