@@ -39,6 +39,21 @@ class RTraderApplication:
 				self.__download_model(model_config.url, model_config.path)
 
 		self.is_setup = True
+		self.__setup_db()
+
+	def __setup_db(self):
+		from lib.db.db import initialize_connection
+
+		try:
+			initialize_connection(
+				db_name=self.config.DEFAULT_PG_CONFIG["database"],
+				db_password=self.config.DEFAULT_PG_CONFIG["password"],
+				db_host=self.config.DEFAULT_PG_CONFIG["host"],
+				db_port=self.config.DEFAULT_PG_CONFIG["port"],
+				db_user=self.config.DEFAULT_PG_CONFIG["user"]
+			)
+		except Exception as ex:
+			print("Error initializing DB connection %s" % (ex,))
 
 	def __start_agent(self, environment):
 		from core.agent.trader_agent import TraderMonteCarloAgent

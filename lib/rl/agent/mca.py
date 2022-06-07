@@ -1,3 +1,5 @@
+import datetime
+import pickle
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -8,6 +10,7 @@ import psutil
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 from lib.utils.math import sigmoid
+from lib.db.models import Model
 from temp import stats
 
 
@@ -34,7 +37,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.visits += 1
 
 		def add_value(self, value):
-			self.total_value += value
+			self.set_total_value(self.get_total_value()+value)
 
 		def set_total_value(self, value):
 			self.total_value = value
@@ -62,6 +65,122 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		def get_total_value(self):
 			return self.total_value
+
+	class DistributedGraphNode(Node, Model):
+
+		class StateWrapper(Model):
+
+			__columns__ = (
+				"id",
+				"binary_value",
+			)
+			__tablename__ = "state"
+			__pk__ = "id"
+
+			def __init__(
+					self,
+					id=None,
+					value=None,
+					binary_value=None
+			):
+				self.id = id
+				if binary_value is None and value is not None:
+					self.set_state(value)
+				else:
+					self.value = value
+					self.binary_value = binary_value
+
+			def get_state(self):
+				if self.value is None:
+					self.value = pickle.loads(self.binary_value)
+				return self.value
+
+			def set_state(self, value):
+				self.value = value
+				self.binary_value = pickle.dumps(value)
+
+		__columns__ = (
+			"id",
+			"visits",
+			"total_value",
+			"instant_value",
+			"parent",
+			"state_id",
+			"action",
+			"weight",
+			"node_type"
+		)
+		__tablename__ = "graph_node"
+		__pk__ = "id"
+
+		def __init__(
+				self,
+				id_=None,
+				visits=None,
+				total_value=None,
+				instant_value=None,
+				parent=None,
+				state=None,
+				state_id=None,
+				action=None,
+				weight=1,
+				node_type=None
+		):
+			super(MonteCarloAgent.DistributedGraphNode, self).__init__(
+				parent=parent,
+				instant_value=instant_value,
+				state=None,
+				action=action,
+				weight=weight,
+				node_type=node_type
+			)
+			self.id = id_
+
+			if visits is not None:
+				self.visits = visits
+
+			if total_value is not None:
+				self.total_value = total_value
+
+			if state is not None:
+				self.set_state(state)
+			self.state_id = state_id
+
+			self.children = None
+
+			if self.id is None:
+				self.save()
+
+		def __set(self, **kwargs):
+			for key, value in kwargs.items():
+				self.__dict__[key] = value
+			self.save()
+
+		def set_total_value(self, value):
+			self.__set(total_value=value)
+
+		def set_parent(self, parent):
+			self.__set(parent=parent)
+
+		def add_child(self, child):
+			child.set_parent(self)
+
+		def get_children(self):
+			if self.children is None:
+				self.children = MonteCarloAgent.DistributedGraphNode.get_with_condition(
+					condition="parent = %s",
+					args=(self.id,),
+					single=False
+				)
+			return self.children
+
+		def set_state(self, state):
+			wrapped_state = MonteCarloAgent.DistributedGraphNode.StateWrapper(value=state)
+			wrapped_state.save()
+			self.state_id = wrapped_state.id
+
+		def get_state(self):
+			return MonteCarloAgent.DistributedGraphNode.StateWrapper.get_with_pk(self.state_id).get_state()
 
 	def __init__(self, *args, min_free_memory_percent=10, logical=False, uct_exploration_weight=1, **kwargs):
 		super(MonteCarloAgent, self).__init__(*args, **kwargs)
@@ -211,10 +330,22 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		stats.iterations["main_loop"] = 0
 		while self._has_resource(resources):
+			start_time = datetime.datetime.now()
 			leaf_node = self.__select(root_node)
+			stats.durations["select"] += (datetime.datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.datetime.now()
 			self.__expand(leaf_node)
+			stats.durations["expand"] += (datetime.datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.datetime.now()
 			final_node = self.__simulate(leaf_node)
+			stats.durations["simulate"] += (datetime.datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.datetime.now()
 			self.__backpropagate(final_node)
+			stats.durations["backpropagate"] += (datetime.datetime.now() - start_time).total_seconds()
+
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
 
@@ -232,3 +363,4 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	def _get_optimal_action(self, state, **kwargs):
 		return self.__monte_carlo_tree_search(state)
+
