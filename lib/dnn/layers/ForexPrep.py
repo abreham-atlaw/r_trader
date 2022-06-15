@@ -81,6 +81,42 @@ class MovingAverage(Layer):
 		}
 
 
+class MovingStandardDeviation(Layer):
+
+	def __init__(self, window_size, name="moving_standard_deviation", **kwargs):
+		self.window_size = window_size
+		super(MovingStandardDeviation, self).__init__(name=name, **kwargs)
+
+	def sd(self, inputs):
+		return tf.sqrt(
+			tf.reduce_sum(
+				tf.pow(
+					inputs - tf.reshape(tf.reduce_mean(inputs, axis=1), (-1, 1)),
+					2
+				)/inputs.shape[1],
+				axis=1
+			)
+		)
+
+	@tf.function
+	def calc_moving_sd(self, inputs):
+		output = []
+		print(inputs.shape)
+		for i in range(inputs.shape[1] - self.window_size+1):
+			output.append(
+				self.sd(inputs[:, i: self.window_size+i])
+			)
+		return tf.stack(output, axis=1)
+
+	def call(self, inputs, *args, **kwargs):
+		return self.calc_moving_sd(inputs)
+
+	def get_config(self):
+		return {
+			"window_size": self.window_size
+		}
+
+
 class ForexPrep(Layer):
 
 	def __init__(self, average_gap=7, **kwargs):
