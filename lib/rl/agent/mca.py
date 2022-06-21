@@ -114,6 +114,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	def __manage_resources(self):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
+			Logger.info("Realising Memory. Calling gc.collect")
 			gc.collect()
 
 	def __legacy_uct(self, node: 'MonteCarloAgent.Node') -> float:
