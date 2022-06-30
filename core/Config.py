@@ -68,7 +68,7 @@ TIMEZONE = timezone("Africa/Addis_Ababa")
 
 
 # AGENT CONFIGS
-MARKET_STATE_MEMORY = 73
+MARKET_STATE_MEMORY = 68
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 40
 AGENT_DEPTH = 30    # TODO: DEPRECATED
@@ -114,10 +114,17 @@ CORE_MODEL_CONFIG = ModelConfig(
 	download=False
 )
 
+# DELTA_MODEL_CONFIG = ModelConfig(
+# 	id="delta",
+# 	url="https://www.dropbox.com/s/axr09n3xbbaqvpb/model.h5?dl=0",
+# 	path=os.path.join(BASE_DIR, "res/delta_model_wrapped.h5"),
+# 	download=False
+# )
+
 DELTA_MODEL_CONFIG = ModelConfig(
 	id="delta",
-	url="https://www.dropbox.com/s/axr09n3xbbaqvpb/model.h5?dl=0",
-	path=os.path.join(BASE_DIR, "res/delta_model_wrapped.h5"),
+	url="https://www.dropbox.com/s/io0fbl7m44e6k8a/delta-bb_wrapped.h5?dl=0",
+	path=os.path.join(BASE_DIR, "res/delta-bb_wrapped.h5"),
 	download=False
 )
 
