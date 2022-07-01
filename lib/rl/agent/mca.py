@@ -1,13 +1,16 @@
+from typing import *
 from abc import ABC, abstractmethod
 
 import numpy as np
 
 import gc
 import psutil
+import uuid
 
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 from lib.utils.math import sigmoid
+from lib.utils.staterepository import StateRepository, DictStateRepository, PickleStateRepository
 from temp import stats
 
 
@@ -19,16 +22,18 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			STATE = 0
 			ACTION = 1
 
-		def __init__(self, parent, state, action, node_type, weight: float = 1.0, instant_value: float = 0.0):
+		def __init__(self, parent, action, node_type, weight: float = 1.0, instant_value: float = 0.0, id=None):
 			self.children = []
 			self.visits = 0
 			self.total_value = 0
 			self.instant_value = instant_value
 			self.parent: MonteCarloAgent.Node = parent
-			self.state = state
 			self.action = action
 			self.weight = weight
 			self.node_type = node_type
+			self.id = id
+			if id is None:
+				self.id = self.__generate_id()
 
 		def increment_visits(self):
 			self.visits += 1
@@ -42,9 +47,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		def add_child(self, child):
 			self.children.append(child)
 
-		def detach_state(self):
-			self.state = None
-
 		def detach_action(self):
 			self.action = None
 
@@ -54,7 +56,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		def has_children(self):
 			return len(self.get_children()) != 0
 
-		def get_children(self):
+		def get_children(self) -> List['MonteCarloAgent.Node']:
 			return self.children
 
 		def get_visits(self):
@@ -63,12 +65,28 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		def get_total_value(self):
 			return self.total_value
 
-	def __init__(self, *args, min_free_memory_percent=10, logical=False, uct_exploration_weight=1, **kwargs):
+		def __generate_id(self):
+			return uuid.uuid4().hex
+
+		def find_node_by_id(self, id) -> Union['MonteCarloAgent.Node', None]:
+			if self.id == id:
+				return self
+			for child in self.get_children():
+				result = child.find_node_by_id(id)
+				if result is not None:
+					return result
+			return None
+
+	def __init__(self, *args, min_free_memory_percent=10, logical=False, uct_exploration_weight=1, state_repository: StateRepository =None, **kwargs):
 		super(MonteCarloAgent, self).__init__(*args, **kwargs)
 		self.__min_free_memory = min_free_memory_percent
 		self.__logical = logical
 		self.__uct_exploration_weight = uct_exploration_weight
 		self.__set_mode(logical)
+
+		self._state_repository = state_repository
+		if state_repository is None:
+			self._state_repository = PickleStateRepository()
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -107,11 +125,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return choice
 
-	def __clean_node(self, node, clean_action=False):
-		node.detach_state()
-		if clean_action:
-			node.detach_action()
-
 	def __manage_resources(self):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
 			Logger.info("Realising Memory. Calling gc.collect")
@@ -129,7 +142,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return sigmoid(node.get_total_value()) + np.sqrt(np.log(node.parent.get_visits())/node.get_visits()) * self.__uct_exploration_weight
 
-	def __select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
+	def _select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
 		promising_action_node: MonteCarloAgent.Node = max(
 													parent_state_node.get_children(),
@@ -141,30 +154,27 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if len(chosen_state_node.get_children()) == 0:
 			return chosen_state_node
 
-		return self.__select(chosen_state_node)
+		return self._select(chosen_state_node)
 
 	def __expand(self, state_node: 'MonteCarloAgent.Node'):
-		if self._get_environment().is_episode_over(state_node.state):
+		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
 			return
 
-		for action in self._get_available_actions(state_node.state):
-			action_node = MonteCarloAgent.Node(state_node, state_node.state, action, MonteCarloAgent.Node.NodeType.ACTION)
-			for possible_state in self._get_possible_states(state_node.state, action):
-				weight = self._get_expected_transition_probability(state_node.state, action, possible_state)
+		for action in self._get_available_actions(self._state_repository.retrieve(state_node.id)):
+			action_node = MonteCarloAgent.Node(state_node, action, MonteCarloAgent.Node.NodeType.ACTION)
+			for possible_state in self._get_possible_states(self._state_repository.retrieve(state_node.id), action):
+				weight = self._get_expected_transition_probability(self._state_repository.retrieve(state_node.id), action, possible_state)
 				value = self._get_environment().get_reward(possible_state)
 				possible_state_node = MonteCarloAgent.Node(
 					action_node,
-					possible_state,
 					None,
 					MonteCarloAgent.Node.NodeType.STATE,
 					weight=weight,
 					instant_value=value
 				)
+				self._state_repository.store(possible_state_node.id, possible_state)
 				action_node.add_child(possible_state_node)
 			state_node.add_child(action_node)
-			self.__clean_node(action_node)
-
-		self.__clean_node(state_node)
 
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -205,14 +215,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__logical_backpropagate(node.parent)
 
 	def __monte_carlo_tree_search(self, state) -> object:
-		root_node = MonteCarloAgent.Node(None, state, None, MonteCarloAgent.Node.NodeType.STATE)
+		root_node = MonteCarloAgent.Node(None, None, MonteCarloAgent.Node.NodeType.STATE)
+		self._state_repository.store(root_node.id, state)
 		self.__expand(root_node)
 
 		resources = self._init_resources()
 
 		stats.iterations["main_loop"] = 0
 		while self._has_resource(resources):
-			leaf_node = self.__select(root_node)
+			leaf_node = self._select(root_node)
 			self.__expand(leaf_node)
 			final_node = self.__simulate(leaf_node)
 			self.__backpropagate(final_node)
