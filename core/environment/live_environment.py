@@ -64,32 +64,7 @@ class LiveEnvironment(TradeEnvironment):
 		return list(set(currencies))
 
 	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
-		# # pairs = [
-		# # 			('GBP', 'NZD'),
-		# # 			('EUR', 'JPY'),
-		# # 			('SGD', 'JPY'),
-		# # 			('USD', 'DKK'),
-		# # 			('NZD', 'JPY'),
-		# # 			('USD', 'THB'),
-		# # 			('EUR', 'USD'),
-		# # 			('EUR', 'HKD'),
-		# # 			('USD', 'HUF'),
-		# # 			('GBP', 'JPY')
-		# # ]
-		#
-		# pairs = [
-		# 	('USD', 'HKD'),
-		# 	('SGD', 'CHF'),
-		# 	('EUR', 'DKK'),
-		# 	('AUD', 'CAD'),
-		# 	('CAD', 'SGD'),
-		# 	('USD', 'SGD'),
-		# 	('AUD', 'CHF'),
-		# 	('AUD', 'SGD'),
-		# 	('AUD', 'USD'),
-		# 	('CAD', 'CHF')
-		# ]
-		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
+		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).sample(pairs, Config.AGENT_MAX_INSTRUMENTS)
 		if Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
 			False in [
 				(Config.AGENT_CURRENCY, currency) in selected_pairs or (currency, Config.AGENT_CURRENCY) in selected_pairs
