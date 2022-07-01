@@ -77,7 +77,16 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 					return result
 			return None
 
-	def __init__(self, *args, min_free_memory_percent=10, logical=False, uct_exploration_weight=1, state_repository: StateRepository =None, **kwargs):
+	def __init__(
+			self,
+			*args,
+			min_free_memory_percent=10,
+			logical=False,
+			uct_exploration_weight=1,
+			state_repository: StateRepository = None,
+			**kwargs
+	):
+
 		super(MonteCarloAgent, self).__init__(*args, **kwargs)
 		self.__min_free_memory = min_free_memory_percent
 		self.__logical = logical
@@ -237,6 +246,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 		Logger.info(f"Best Action {optimal_action}")
+		self._state_repository.clear()
 		return optimal_action
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
