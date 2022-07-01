@@ -62,7 +62,8 @@ class FileSystemStateRepository(StateRepository, ABC):
 		self.__create_container()
 
 	def __create_container(self):
-		os.mkdir(self.__container)
+		if not os.path.isdir(self.__container):
+			os.mkdir(self.__container)
 
 	@abstractmethod
 	def _store_in(self, state: object, path: str):
