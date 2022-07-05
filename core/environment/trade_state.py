@@ -97,7 +97,8 @@ class MarketState:
 		return MarketState(
 			currencies=self.__currencies.copy(),
 			tradable_pairs=self.__tradable_pairs.copy(),
-			state=self.__state.copy()
+			state=self.__state.copy(),
+			spread_state=self.__spread_state.copy()
 		)
 
 	def __eq__(self, other):
@@ -106,7 +107,8 @@ class MarketState:
 		return \
 			(self.__currencies == other._MarketState__currencies) and \
 			(self.__tradable_pairs == other._MarketState__tradable_pairs) and \
-			(np.all(self.__state == other._MarketState__state))
+			(np.all(self.__state == other._MarketState__state)) and \
+			(np.all(self.__spread_state == other._MarketState__spread_state))
 
 
 class AgentState:
@@ -149,6 +151,12 @@ class AgentState:
 				enter_value=self.__enter_value,
 				current_value=self.__current_value
 			)
+
+		def __eq__(self, other):
+			return isinstance(other, AgentState.OpenTrade) and \
+					self.get_current_value() == other.get_current_value() and \
+					self.get_enter_value() == other.get_enter_value() and \
+					self.get_trade() == other.get_trade()
 
 	def __init__(
 			self,
