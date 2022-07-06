@@ -64,7 +64,7 @@ class LiveEnvironment(TradeEnvironment):
 		return list(set(currencies))
 
 	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
-		selected_pairs = None
+		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
 		while selected_pairs is None or \
 			Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
 			False in [
@@ -77,7 +77,8 @@ class LiveEnvironment(TradeEnvironment):
 				for instrument in selected_pairs
 			]:
 			Config.AGENT_RANDOM_SEED = random.randint(0, 1000)
-			selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).sample(pairs, Config.AGENT_MAX_INSTRUMENTS)
+			selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
+		print(Config.AGENT_RANDOM_SEED)
 		return selected_pairs
 
 	def __get_market_state(self, memory_size) -> MarketState:
