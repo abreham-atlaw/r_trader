@@ -66,6 +66,7 @@ class LiveEnvironment(TradeEnvironment):
 	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
 		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).sample(pairs, Config.AGENT_MAX_INSTRUMENTS)
 		Logger.info(selected_pairs)
+		Logger.info(selected_pairs)
 		if Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
 			False in [
 				(Config.AGENT_CURRENCY, currency) in selected_pairs or (currency, Config.AGENT_CURRENCY) in selected_pairs
