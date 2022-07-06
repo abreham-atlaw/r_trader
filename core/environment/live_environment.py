@@ -75,14 +75,14 @@ class LiveEnvironment(TradeEnvironment):
 				selected_pairs.count(instrument) == 1
 				for instrument in selected_pairs
 			]:
-			Logger.info("Generating new seed")
 			Config.AGENT_RANDOM_SEED = random.randint(0, 1000)
 			return self.__select_pairs(pairs)
 		return selected_pairs
 
 	def __get_market_state(self, memory_size) -> MarketState:
+		Logger.info("Selecting Instruments")
 		tradeable_pairs = self.__select_pairs(self.__trader.get_instruments())
-
+		Logger.info("Selected Instruments")
 		market_state = MarketState(
 			currencies=self.__get_currencies(tradeable_pairs),
 			tradable_pairs=tradeable_pairs,
