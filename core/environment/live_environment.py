@@ -76,12 +76,12 @@ class LiveEnvironment(TradeEnvironment):
 				selected_pairs.count(instrument) == 1
 				for instrument in selected_pairs
 			]:
-			Config.AGENT_RANDOM_SEED = random.randint(0, 1000)
+			Config.AGENT_RANDOM_SEED = random.randint(0, 1000000)
 			selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
 		print(Config.AGENT_RANDOM_SEED)
 		return selected_pairs
 
-	def __get_market_state(self, memory_size) -> MarketState:
+	def __get_market_state(self, memory_size, granularity) -> MarketState:
 		Logger.info("Selecting Instruments")
 		tradeable_pairs = self.__select_pairs(self.__trader.get_instruments())
 		Logger.info("Selected Instruments")
@@ -95,7 +95,7 @@ class LiveEnvironment(TradeEnvironment):
 			market_state.update_state_of(
 				base_currency,
 				quote_currency,
-				self.__prepare_tradable_pairs(base_currency, quote_currency, memory_size)
+				self.__prepare_tradable_pairs(base_currency, quote_currency, memory_size, granularity)
 			)
 			market_state.update_spread_state_of(
 				base_currency,
@@ -114,12 +114,12 @@ class LiveEnvironment(TradeEnvironment):
 
 		return pd.DataFrame(df_list)
 
-	def __prepare_tradable_pairs(self, base_currency, quote_currency, size) -> np.ndarray:
+	def __prepare_tradable_pairs(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		candle_sticks = self.__trader.get_candlestick(
 			(base_currency, quote_currency),
 			count=size,
 			to=datetime.now(),
-			granularity="M1"
+			granularity=granularity
 		)
 		df = self.__candlesticks_to_dataframe(candle_sticks)
 		return df["c"].to_numpy()
@@ -137,7 +137,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__trader.close_trades((base_currency, quote_currency))
 
 	def _initiate_state(self) -> TradeState:
-		market_state = self.__get_market_state(Config.MARKET_STATE_MEMORY)
+		market_state = self.__get_market_state(Config.MARKET_STATE_MEMORY, Config.MARKET_STATE_GRANULARITY)
 		agent_state = self.__get_agent_state(market_state)
 
 		return TradeState(
