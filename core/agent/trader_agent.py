@@ -24,6 +24,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
 			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			update_agent=Config.UPDATE_AGENT,
 			**kwargs
 	):
 		super().__init__(
@@ -31,6 +32,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			episodic=False,
 			depth=Config.AGENT_DEPTH,
 			explore_exploit_tradeoff=Config.AGENT_EXPLOIT_EXPLORE_TRADEOFF,
+			update_agent=update_agent,
 			**kwargs
 		)
 		self.__trade_size_gap = trade_size_gap
@@ -50,11 +52,12 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
-			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] != state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+			# if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] != state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+			if np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
 
 				return state.get_market_state().get_state_of(base_currency, quote_currency)
 
-		raise ValueError("Initial State and Final state are the same.")
+		raise ValueError("Initial State and Final state are the same.") # TODO: FIND ANOTHER WAY TO HANDLE THIS.
 
 	def __get_state_change_delta(self, sequence: np.ndarray, direction) -> float:
 		if direction == -1:

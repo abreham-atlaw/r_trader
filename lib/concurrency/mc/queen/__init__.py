@@ -1,0 +1,1 @@
+from .mcq import MonteCarloQueen

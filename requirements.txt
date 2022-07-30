@@ -1,8 +1,12 @@
 absl-py==0.13.0
+aiohttp==3.8.1
+aiosignal==1.2.0
 argon2-cffi==20.1.0
 astunparse==1.6.3
+async-timeout==4.0.2
 attrs==21.2.0
 backcall==0.2.0
+bidict==0.22.0
 bleach==4.0.0
 cachetools==4.2.2
 cattrs==1.8.0
@@ -10,6 +14,7 @@ certifi==2021.5.30
 cffi==1.14.6
 charset-normalizer==2.0.4
 clang==5.0
+click==8.1.3
 cycler==0.11.0
 Cython==0.29.26
 debugpy==1.4.1
@@ -19,8 +24,11 @@ Deprecated==1.2.13
 dill==0.3.4
 dropbox==11.27.0
 entrypoints==0.3
+Flask==2.1.2
+Flask-SocketIO==5.2.0
 flatbuffers==1.12
 fonttools==4.28.2
+frozenlist==1.3.0
 gast==0.4.0
 google-auth==1.35.0
 google-auth-oauthlib==0.4.5
@@ -28,10 +36,12 @@ google-pasta==0.2.0
 grpcio==1.34.1
 h5py==3.1.0
 idna==3.2
+importlib-metadata==4.12.0
 ipykernel==6.2.0
 ipython==7.26.0
 ipython-genutils==0.2.0
 ipywidgets==7.6.3
+itsdangerous==2.1.2
 jedi==0.18.0
 Jinja2==3.0.1
 joblib==1.0.1
@@ -52,11 +62,13 @@ MarkupSafe==2.0.1
 matplotlib==3.5.0
 matplotlib-inline==0.1.2
 mistune==0.8.4
+multidict==6.0.2
 multiprocess==0.70.12.2
 nbclient==0.5.4
 nbconvert==6.1.0
 nbformat==5.1.3
 nest-asyncio==1.5.1
+networkx==2.8.4
 notebook==6.4.3
 numpy==1.19.5
 oauthlib==3.1.1
@@ -87,6 +99,8 @@ Pygments==2.10.0
 pyparsing==2.4.7
 pyrsistent==0.18.0
 python-dateutil==2.8.2
+python-engineio==4.3.2
+python-socketio==5.6.0
 pytz==2021.1
 pyzmq==22.2.1
 qtconsole==5.1.1
@@ -124,3 +138,5 @@ websockets==9.1
 Werkzeug==2.0.1
 widgetsnbextension==3.5.1
 wrapt==1.12.1
+yarl==1.7.2
+zipp==3.8.0

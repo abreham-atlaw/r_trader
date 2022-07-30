@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
 
@@ -81,6 +82,31 @@ class MovingAverage(Layer):
 		}
 
 
+class ExponentialMovingAverage(Layer):
+
+	def __init__(self, smoothing_factor):
+		super(ExponentialMovingAverage, self).__init__()
+		self.__smoothing_factor = smoothing_factor
+
+	@tf.function
+	def __calc_ema(self, inputs):
+		output = []
+		output.append(inputs[:, 0])
+
+		for i in range(1, inputs.shape[1]):
+			output.append(self.__smoothing_factor * (inputs[:, i] - output[-1]) + output[-1])
+
+		return tf.stack(output, axis=1)
+
+	def call(self, inputs, *args, **kwargs):
+		return self.__calc_ema(inputs)
+
+	def get_config(self):
+		return {
+			"smoothing_factor": self.__smoothing_factor
+		}
+
+
 class MovingStandardDeviation(Layer):
 
 	def __init__(self, window_size, name="moving_standard_deviation", **kwargs):
@@ -101,7 +127,6 @@ class MovingStandardDeviation(Layer):
 	@tf.function
 	def calc_moving_sd(self, inputs):
 		output = []
-		print(inputs.shape)
 		for i in range(inputs.shape[1] - self.window_size+1):
 			output.append(
 				self.sd(inputs[:, i: self.window_size+i])

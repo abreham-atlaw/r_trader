@@ -19,12 +19,12 @@ REMOTE_TRADER_URL = "http://localhost:8080/"
 NETWORK_TRIES = 10
 
 LOGGING = True
-LOGGING_PID = False
+LOGGING_PID = True
 LOGGING_CONSOLE = True
 LOGGING_FILE_PATH = os.path.abspath("output.log")
 
 MC_SERVER_PORT = 8000
-MC_SERVER_URL = "http://localhost:%s" % (MC_SERVER_PORT,)
+MC_SERVER_URL = "http://127.0.0.1:%s" % (MC_SERVER_PORT,)
 
 MIN_FREE_MEMORY = 10
 MAX_PROCESSES = 6
@@ -69,30 +69,29 @@ OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
-
 # AGENT CONFIGS
 UPDATE_AGENT = False
 MARKET_STATE_MEMORY = 73
-MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_GRANULARITY = "M1"
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_DEPTH = 30    # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = True
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = (0.00001, 0.0001)
-AGENT_DISCOUNT_FACTOR = 0.7
+AGENT_DISCOUNT_FACTOR = 1
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_UCT_EXPLORE_WEIGHT = 0.1
 AGENT_LOGICAL_MCA = True
 AGENT_STEP_TIME = 1*60
-AGENT_MAX_INSTRUMENTS = 5
+AGENT_MAX_INSTRUMENTS = 2
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = True
 AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 
-MC_WORKER_STEP_TIME = 30
-MC_WORKERS = 3
+MC_WORKER_STEP_TIME = 0.02*60
+MC_WORKERS = 6
 CURRENCIES = [
 	"AUD",
 	"CAD",
@@ -118,14 +117,14 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "res/5m/m10/core_model_wrapped.h5"),
+	path=os.path.join(BASE_DIR, "res/m10/combined_trained/core_model_d.h5"),
 	download=False
 )
 
 DELTA_MODEL_CONFIG = ModelConfig(
 	id="delta",
 	url="https://www.dropbox.com/s/io0fbl7m44e6k8a/delta-bb_wrapped.h5?dl=0",
-	path=os.path.join(BASE_DIR, "res/5m/m10/delta_model_wrapped.h5"),
+	path=os.path.join(BASE_DIR, "res/m10/combined_trained/delta_model_d.h5"),
 	download=False
 )
 

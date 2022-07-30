@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 
 
 class RTraderApplication:
@@ -7,11 +8,19 @@ class RTraderApplication:
 	class Mode:
 		LIVE = 'live'
 		TRAIN = 'train'
+		MC_SERVER = "mc-server"
+		MC_QUEEN = "mc-queen"
+		MC_WORKER = "mc-worker"
+		MC_WORKER_POOL = "mc-worker-pool"
 
 	def __init__(self, config=None):
 		self.RUN_FUNCTIONS = {
 			RTraderApplication.Mode.LIVE: self.__run_live,
-			RTraderApplication.Mode.TRAIN: self.__run_train
+			RTraderApplication.Mode.TRAIN: self.__run_train,
+			RTraderApplication.Mode.MC_SERVER: self.__run_mc_server,
+			RTraderApplication.Mode.MC_QUEEN: self.__run_mc_queen,
+			RTraderApplication.Mode.MC_WORKER: self.__run_mc_worker,
+			RTraderApplication.Mode.MC_WORKER_POOL: self.__run_mc_worker_pool
 		}
 		self.config = config
 		self.is_setup = False
@@ -27,10 +36,20 @@ class RTraderApplication:
 		sys.path.remove(path)
 		return Config
 
+	def __init_db(self):
+		from lib.db import initialize_connection
+		initialize_connection(
+			db_host=self.config.DEFAULT_PG_CONFIG.get("host"),
+			db_port=self.config.DEFAULT_PG_CONFIG.get("port"),
+			db_user=self.config.DEFAULT_PG_CONFIG.get("user"),
+			db_password=self.config.DEFAULT_PG_CONFIG.get("password"),
+			db_name=self.config.DEFAULT_PG_CONFIG.get("database"),
+		)
+
 	def setup(self):
 		print(f"[+]Setting up Application")
 		if self.config is None:
-			self.config = self.__import_config() 
+			self.config = self.__import_config()
 		sys.setrecursionlimit(self.config.RECURSION_DEPTH)
 		sys.path.append(self.config.BASE_DIR)
 
@@ -39,6 +58,11 @@ class RTraderApplication:
 				self.__download_model(model_config.url, model_config.path)
 
 		self.is_setup = True
+
+		try:
+			self.__init_db()
+		except Exception as ex:
+			print(f"Couldn't Initialize DB.\n %s" % (ex,))
 
 	def __start_agent(self, environment):
 		from core.agent.trader_agent import TraderMonteCarloAgent
@@ -60,6 +84,47 @@ class RTraderApplication:
 		environment = TrainingEnvironment()
 		environment.start()
 		self.__start_agent(environment)
+
+	def __setup_mc_agent(self, agent):
+		from core.environment import LiveEnvironment
+		print("Setting up Environment")
+		environment = LiveEnvironment()
+		environment.start()
+		agent.set_environment(environment)
+		print("Environment Set Up")
+
+	def __run_mc_server(self):
+		print("Running MC-Server")
+		from core.agent.concurrency.mc.server import TraderMonteCarloServer, TraderMonteCarloServerSimulator
+
+		agent = TraderMonteCarloServerSimulator()
+		self.__setup_mc_agent(agent)
+
+		server = TraderMonteCarloServer(agent)
+		server.start()
+
+	def __run_mc_worker(self):
+		print("Running MC-Worker")
+		from core.agent.concurrency.mc.worker import TraderMonteCarloWorkerAgent
+
+		worker = TraderMonteCarloWorkerAgent()
+		self.__setup_mc_agent(worker)
+		worker.start()
+
+	def __run_mc_worker_pool(self):
+		print("Running MC-Worker-Pool")
+		from core.agent.concurrency.mc.worker import TraderMonteCarloWorkerPool
+
+		pool = TraderMonteCarloWorkerPool(prepare_agent=self.__setup_mc_agent)
+		pool.start()
+
+	def __run_mc_queen(self):
+		print("Running MC-Queen")
+		from core.agent.concurrency.mc.queen import TraderMonteCarloQueen
+
+		queen = TraderMonteCarloQueen()
+		self.__setup_mc_agent(queen)
+		queen.loop()
 
 	def run_args(self, args):
 		mode = args[1]

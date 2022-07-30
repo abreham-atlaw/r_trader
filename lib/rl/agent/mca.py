@@ -46,6 +46,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		def add_child(self, child):
 			self.children.append(child)
+			child.parent = self
 
 		def detach_action(self):
 			self.action = None
@@ -220,7 +221,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 				node.add_value(self._discount_factor * max([action_node.get_total_value() for action_node in node.get_children()]))
 
 		else:
-			node.set_total_value(np.sum([state_node.get_total_value()*state_node.weight for state_node in node.get_children()]))
+			total_weight = np.sum([state_node.weight for state_node in node.get_children()])
+			if node.action is not None and total_weight > 1:
+				print("Total Weight: %s" % (total_weight,))
+			node.set_total_value(
+				np.sum([
+					state_node.get_total_value()*state_node.weight/total_weight
+					for state_node in node.get_children()
+				])
+			)
 
 		if node.parent is None:
 			return

@@ -22,10 +22,9 @@ class TrainingEnvironment(TradeEnvironment):
 
 		super(TrainingEnvironment, self).__init__()
 		self.__initial_balance = initial_balance
+		self.__pg_config = pg_config
 		if pg_config is None:
 			self.__pg_config = Config.DEFAULT_PG_CONFIG
-		else:
-			self.__pg_config = pg_config
 		self.__historical_table_name = historical_table_name
 		self.__currencies_table_name = currencies_table_name
 		self.__tradeable_pairs_table_name = tradeable_pairs_table_name

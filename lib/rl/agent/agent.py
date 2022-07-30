@@ -16,10 +16,11 @@ CONFIGS_FILE_NAME = "configs.txt"
 
 class Agent(ABC):
 
-	def __init__(self, episodic = False, explore_exploit_tradeoff: float = 0.3):
+	def __init__(self, episodic = False, explore_exploit_tradeoff: float = 0.3, update_agent=True):
 		self.__environment: Union[Environment, None] = None
 		self._is_episodic = episodic
 		self._explore_exploit_tradeoff = explore_exploit_tradeoff
+		self._update_agent = update_agent
 
 	def _get_environment(self) -> Environment:
 		if self.__environment is None:
@@ -75,7 +76,8 @@ class Agent(ABC):
 		state = self._get_environment().get_state()
 		action = self._get_action(state)
 		value = self._get_environment().do(action)
-		self._update_state_action_value(state, action, self._get_environment().get_state(), value)
+		if self._update_agent:
+			self._update_state_action_value(state, action, self._get_environment().get_state(), value)
 
 	def perform_episode(self):
 		while not self._get_environment().is_episode_over():
