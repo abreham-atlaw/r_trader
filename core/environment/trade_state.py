@@ -29,7 +29,7 @@ class MarketState:
 			raise Exception("Insufficient information given on State.")
 
 		if state is None:
-			self.__state = np.zeros((len(currencies), len(currencies), memory_len)).astype('float32')
+			self.__state = self.__init_state(len(currencies), memory_len)
 		else:
 			self.__state = state
 
@@ -45,6 +45,12 @@ class MarketState:
 		self.__spread_state = spread_state
 		if spread_state is None:
 			self.__spread_state = np.zeros((len(currencies), len(currencies))).astype('float32')
+
+	def __init_state(self, num_currencies, memory_len) -> np.ndarray:
+		state = np.zeros((num_currencies, num_currencies, memory_len)).astype('float32')
+		for i in range(num_currencies):
+			state[i, i] = 1
+		return state
 
 	def __get_currencies_position(self, base_currency, quote_currency):
 		if base_currency not in self.__currencies:
@@ -75,6 +81,9 @@ class MarketState:
 
 		self.__state[:, :, 1:] = self.__state[:, :, :-1]
 		self.__state[:, :, 0] = state_layer
+
+		for i in range(len(self.__currencies)):
+			self.__state[i, i, 0] = 1
 
 	def update_spread_state_of(self, base_currency, quote_currency, value: float):
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
