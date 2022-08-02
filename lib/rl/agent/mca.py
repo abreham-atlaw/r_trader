@@ -96,7 +96,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__logical = logical
 		self.__uct_exploration_weight = uct_exploration_weight
 		self.__set_mode(logical)
-
 		self._state_repository = state_repository
 		if state_repository is None:
 			self._state_repository = SectionalDictStateRepository(2, 15)
@@ -154,6 +153,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			return np.inf
 
 		return sigmoid(node.get_total_value()) + np.sqrt(np.log(node.parent.get_visits())/node.get_visits()) * self.__uct_exploration_weight
+
+	def __check_stm(self, node) -> 'MonteCarloAgent.Node':
+		if self.__short_term_memory is None:
+			return node
+
+		memory: Optional[MonteCarloAgent.Node] = self.__short_term_memory.recall(node)
+		if memory is None:
+			return node
+		return memory
 
 	def _select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -222,8 +230,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		else:
 			total_weight = np.sum([state_node.weight for state_node in node.get_children()])
-			if node.action is not None and total_weight > 1:
-				print("Total Weight: %s" % (total_weight,))
 			node.set_total_value(
 				np.sum([
 					state_node.get_total_value()*state_node.weight/total_weight
