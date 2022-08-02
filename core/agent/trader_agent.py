@@ -53,7 +53,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			# if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] != state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
-			if np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
+			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
 
 				return state.get_market_state().get_state_of(base_currency, quote_currency)
 
