@@ -6,6 +6,7 @@ import numpy as np
 
 from datetime import datetime
 import copy
+from dataclasses import dataclass
 
 from core import Config
 from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
@@ -14,6 +15,7 @@ from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from .trader_action import TraderAction
 from .trade_transition_model import TransitionModel
+from .stm import TraderNodeShortTermMemory
 
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
@@ -52,7 +54,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
-			# if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] != state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
 
 				return state.get_market_state().get_state_of(base_currency, quote_currency)
@@ -63,16 +64,16 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if direction == -1:
 			direction = 0
 
-		cached = self.__state_change_delta_cache.get(sequence.tobytes())
+		model_input = np.append(sequence, direction).reshape((1, -1))
+		cache_key = model_input.tobytes()
+
+		cached = self.__state_change_delta_cache.get(cache_key)
 		if cached is not None:
 			return cached
 
 		if self.__state_change_delta_model_mode:
 			return_value = self.__delta_model.predict(
-				np.append(
-					sequence,
-					direction
-				).reshape((1, -1))
+				model_input
 			).flatten()[0]
 
 		else:
@@ -83,7 +84,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 			return_value = sequence[0] * percentage
 
-		self.__state_change_delta_cache[sequence.tobytes()] = return_value
+		self.__state_change_delta_cache[cache_key] = return_value
 
 		return return_value
 
@@ -209,6 +210,12 @@ class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 			min_free_memory_percent=Config.MIN_FREE_MEMORY,
 			logical=Config.AGENT_LOGICAL_MCA,
 			uct_exploration_weight=Config.AGENT_UCT_EXPLORE_WEIGHT,
+			use_stm=Config.AGENT_STM,
+			stm_size=Config.AGENT_STM_SIZE,
+			stm_threshold=Config.AGENT_STM_THRESHOLD,
+			stm_balance_tolerance=Config.AGENT_STM_BALANCE_TOLERANCE,
+			stm_average_window=Config.AGENT_STM_AVERAGE_WINDOW_SIZE,
+			stm_attention_mode=Config.AGENT_STM_ATTENTION_MODE,
 			**kwargs
 	):
 		super(TraderMonteCarloAgent, self).__init__(
@@ -217,6 +224,14 @@ class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 			min_free_memory_percent=min_free_memory_percent,
 			logical=logical,
 			uct_exploration_weight=uct_exploration_weight,
+			use_stm=use_stm,
+			short_term_memory=TraderNodeShortTermMemory(
+				stm_size,
+				stm_threshold,
+				stm_average_window,
+				balance_tolerance=stm_balance_tolerance,
+				attention_mode=stm_attention_mode
+			),
 			**kwargs
 		)
 		self.__step_time = step_time
