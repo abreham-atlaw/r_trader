@@ -6,11 +6,13 @@ import numpy as np
 import gc
 import psutil
 import uuid
+from dataclasses import dataclass
 
 from lib.utils.logger import Logger
 from .mba import ModelBasedAgent
 from lib.utils.math import sigmoid
 from lib.utils.staterepository import StateRepository, SectionalDictStateRepository
+from lib.utils.stm import ShortTermMemory, CueMemoryMatcher, ExactCueMemoryMatcher
 from temp import stats
 
 
@@ -22,7 +24,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			STATE = 0
 			ACTION = 1
 
-		def __init__(self, parent, action, node_type, weight: float = 1.0, instant_value: float = 0.0, id=None):
+		def __init__(self, parent, action, node_type, depth: int = 0, weight: float = 1.0, instant_value: float = 0.0, id=None):
 			self.children = []
 			self.visits = 0
 			self.total_value = 0
@@ -31,6 +33,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.action = action
 			self.weight = weight
 			self.node_type = node_type
+			self.depth = depth
 			self.id = id
 			if id is None:
 				self.id = self.__generate_id()
@@ -81,6 +84,46 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		def __eq__(self, other):
 			return isinstance(other, MonteCarloAgent.Node) and self.id == other.id
 
+	@dataclass
+	class NodeMemory:
+		node: 'MonteCarloAgent.Node'
+
+	class NodeShortTermMemory(ShortTermMemory):
+
+		def _import_memory(self, memory: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.NodeMemory':
+			return MonteCarloAgent.NodeMemory(memory)
+
+		def _export_memory(self, memory: 'MonteCarloAgent.NodeMemory') -> object:
+			return memory.node
+
+		def set_matcher(self, matcher: 'MonteCarloAgent.NodeMemoryMatcher'):
+			self._matcher = matcher
+
+		def get_matcher(self) -> 'MonteCarloAgent.NodeMemoryMatcher':
+			return self._matcher
+
+	class NodeMemoryMatcher(CueMemoryMatcher):
+
+		def __init__(self, state_matcher: Optional[CueMemoryMatcher] = None, repository: Optional[StateRepository] = None):
+			self.__repository = repository
+			self.__state_matcher: CueMemoryMatcher = state_matcher
+			if self.__state_matcher is None:
+				self.__state_matcher = ExactCueMemoryMatcher()
+
+		def set_repository(self, repository: StateRepository):
+			self.__repository = repository
+
+		def get_repository(self) -> StateRepository:
+			if self.__repository is None:
+				raise Exception("Repository Not set yet")
+			return self.__repository
+
+		def is_match(self, cue: 'MonteCarloAgent.Node', memory: 'MonteCarloAgent.NodeMemory') -> bool:
+			return self.__state_matcher.is_match(
+				self.get_repository().retrieve(cue.id),
+				self.get_repository().retrieve(memory.node.id)
+			)
+
 	def __init__(
 			self,
 			*args,
@@ -88,6 +131,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			logical=False,
 			uct_exploration_weight=1,
 			state_repository: StateRepository = None,
+			use_stm: bool = True,
+			short_term_memory: 'MonteCarloAgent.NodeShortTermMemory' = None,
 			**kwargs
 	):
 
@@ -96,9 +141,17 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__logical = logical
 		self.__uct_exploration_weight = uct_exploration_weight
 		self.__set_mode(logical)
+		self.__use_stm: bool = use_stm
+		self.__short_term_memory = short_term_memory
+		if short_term_memory is None and use_stm:
+			self.__short_term_memory = MonteCarloAgent.NodeShortTermMemory(
+				size=10,  # TODO: GET SIZE FROM FIRST INSTANCE OF RUNNING
+				matcher=MonteCarloAgent.NodeMemoryMatcher()
+			)
 		self._state_repository = state_repository
 		if state_repository is None:
 			self._state_repository = SectionalDictStateRepository(2, 15)
+		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -154,14 +207,72 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return sigmoid(node.get_total_value()) + np.sqrt(np.log(node.parent.get_visits())/node.get_visits()) * self.__uct_exploration_weight
 
-	def __check_stm(self, node) -> 'MonteCarloAgent.Node':
+	def __check_stm(self, node: 'MonteCarloAgent.Node') -> Optional['MonteCarloAgent.Node']:
 		if self.__short_term_memory is None:
-			return node
+			return None
 
 		memory: Optional[MonteCarloAgent.Node] = self.__short_term_memory.recall(node)
 		if memory is None:
-			return node
+			return None
 		return memory
+
+	def __move_node(self, source: 'MonteCarloAgent.Node', destination: 'MonteCarloAgent.Node'):
+		destination.children = source.children
+		destination.visits = source.visits
+		destination.total_value = source.total_value
+		destination.weight = source.weight
+		for child in source.children:
+			child.parent = destination
+
+	def __expand_from_stm(self, node: 'MonteCarloAgent.Node') -> bool:
+
+		memorized = self.__check_stm(node)
+		if memorized is None or not memorized.has_children():
+			return False
+		self.__move_node(memorized, node)
+
+		return True
+
+	def __store_to_stm(self, root: 'MonteCarloAgent.Node'):
+
+		state_nodes = []
+		for action_node in root.get_children():
+			state_nodes.extend(action_node.get_children())
+
+		for node in sorted(state_nodes, key=lambda n: n.weight, reverse=True)[:self.__short_term_memory.size]:
+			self.__short_term_memory.memorize(node)
+
+	def __get_children_states(self, state_node: 'MonteCarloAgent.Node') -> Dict[str, object]:
+		if not state_node.has_children():
+			return {state_node.id: self._state_repository.retrieve(state_node.id)}
+		states = {}
+		for action_node in state_node.get_children():
+			for child in action_node.get_children():
+				states.update(self.__get_children_states(child))
+
+		return states
+
+	def __backup_states(self) -> Dict[str, object]:
+		states = {}
+		for memory in self.__short_term_memory:
+			states[memory.id] = self._state_repository.retrieve(memory.id)
+			states.update(self.__get_children_states(memory))
+
+		return states
+
+	def __restore_backups(self, backup: Dict[str, object]):
+		for key, state in backup.items():
+			self._state_repository.store(key, state)
+
+	def __backup_and_clear_repository(self):
+		backup = self.__backup_states()
+		self._state_repository.clear()
+		self.__restore_backups(backup)
+
+	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
+		if self.__use_stm:
+			self.__store_to_stm(root)
+			# self.__backup_and_clear_repository()
 
 	def _select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -177,8 +288,13 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return self._select(chosen_state_node)
 
-	def _expand(self, state_node: 'MonteCarloAgent.Node'):
+	def _expand(self, state_node: 'MonteCarloAgent.Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
+			return
+
+		if self.__use_stm and stm and self.__expand_from_stm(state_node):
+			Logger.info("Recalled from STM")
+			Logger.info(f"Recall Depth: {stats.get_max_depth(state_node)}")
 			return
 
 		for action in self._get_available_actions(self._state_repository.retrieve(state_node.id)):
@@ -191,8 +307,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 					None,
 					MonteCarloAgent.Node.NodeType.STATE,
 					weight=weight,
-					instant_value=value
+					instant_value=value,
+					# depth=state_node.depth+1
 				)
+				# possible_state.set_depth(possible_state_node.depth)
 				self._state_repository.store(possible_state_node.id, possible_state)
 				action_node.add_child(possible_state_node)
 			state_node.add_child(action_node)
@@ -250,7 +368,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		stats.iterations["main_loop"] = 0
 		while self._has_resource(resources):
 			leaf_node = self._select(root_node)
-			self._expand(leaf_node)
+			self._expand(leaf_node, stm=False)
 			final_node = self.__simulate(leaf_node)
 			self._backpropagate(final_node)
 			self.__manage_resources()
@@ -269,7 +387,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 		Logger.info(f"Best Action {optimal_action}")
-		self._state_repository.clear()
+		self.__finalize_step(root_node)
+
 		return optimal_action
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:

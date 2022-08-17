@@ -15,6 +15,7 @@ from copy import deepcopy
 
 from lib.rl.agent import MonteCarloAgent, DNNTransitionAgent
 from lib.rl.environment import Environment
+from lib.utils.stm import ExactCueMemoryMatcher
 
 
 class MonteCarloAgentTest(unittest.TestCase):
@@ -112,8 +113,22 @@ class MonteCarloAgentTest(unittest.TestCase):
 
 	class TicTacToeAgent(MonteCarloAgent, DNNTransitionAgent):
 
+		class TicTacToeAgentNodeMemoryMatcher(ExactCueMemoryMatcher):
+
+			def is_match(self, cue: object, memory: object) -> bool:
+				return np.all(super().is_match(cue, memory))
+
 		def __init__(self, *args, step_time=120, **kwargs):
-			super(MonteCarloAgentTest.TicTacToeAgent, self).__init__(*args, **kwargs)
+			super(MonteCarloAgentTest.TicTacToeAgent, self).__init__(
+				*args,
+				short_term_memory=MonteCarloAgent.NodeShortTermMemory(
+					size=10,
+					matcher=MonteCarloAgent.NodeMemoryMatcher(
+						state_matcher=MonteCarloAgentTest.TicTacToeAgent.TicTacToeAgentNodeMemoryMatcher()
+					)
+				),
+				**kwargs
+			)
 			self.__step_time = step_time
 			self.set_transition_model(self.create_transition_model())
 
@@ -197,7 +212,7 @@ class MonteCarloAgentTest(unittest.TestCase):
 		self.environment = MonteCarloAgentTest.TicTacToeEnvironment()
 		self.environment.start()
 		self.agent = MonteCarloAgentTest.TicTacToeAgent(
-			step_time=10,
+			step_time=5,
 			episodic=True,
 			depth=10,
 			explore_exploit_tradeoff=1,
