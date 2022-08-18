@@ -64,6 +64,9 @@ class LiveEnvironment(TradeEnvironment):
 		return list(set(currencies))
 
 	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
+		if Config.AGENT_USE_STATIC_INSTRUMENTS:
+			return Config.AGENT_STATIC_INSTRUMENTS
+
 		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
 		while selected_pairs is None or \
 			Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
