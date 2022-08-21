@@ -168,8 +168,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				# np.array(original_value * (1 + j*self.__get_state_change_delta(original_value, j)))
-				original_value[0] + np.array(j*self.__get_state_change_delta(original_value, j)).reshape(1)
+				np.array(original_value[-1] + j*self.__get_state_change_delta(original_value, j)).reshape(1)
 			)
 			states.append(new_state)
 
