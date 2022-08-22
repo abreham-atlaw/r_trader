@@ -82,7 +82,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			else:
 				percentage = np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
 
-			return_value = sequence[0] * percentage
+			return_value = sequence[-1] * percentage
 
 		self.__state_change_delta_cache[cache_key] = return_value
 
@@ -97,10 +97,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		predicted_value: float = float(tf.reshape(output, (-1,))[0])
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
-			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] == initial_state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+			if final_state.get_market_state().get_current_price(base_currency, quote_currency) == initial_state.get_market_state().get_current_price(base_currency, quote_currency):
 				continue
 
-			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] > initial_state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+			if final_state.get_market_state().get_current_price(base_currency, quote_currency) > initial_state.get_market_state().get_current_price(base_currency, quote_currency):
 				return predicted_value
 
 			return 1-predicted_value
