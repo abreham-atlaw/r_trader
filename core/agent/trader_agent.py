@@ -97,7 +97,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		predicted_value: float = float(tf.reshape(output, (-1,))[0])
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
-			if final_state.get_market_state().get_current_price(base_currency, quote_currency) == initial_state.get_market_state().get_current_price(base_currency, quote_currency):
+			if np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == initial_state.get_market_state().get_state_of(base_currency, quote_currency)):
 				continue
 
 			if final_state.get_market_state().get_current_price(base_currency, quote_currency) > initial_state.get_market_state().get_current_price(base_currency, quote_currency):
@@ -108,10 +108,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _get_train_output(self, initial_state: TradeState, action, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
-			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] == initial_state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+			if final_state.get_market_state().get_current_price(base_currency, quote_currency) == initial_state.get_market_state().get_current_price(base_currency, quote_currency):
 				continue
 
-			if final_state.get_market_state().get_state_of(base_currency, quote_currency)[0] > initial_state.get_market_state().get_state_of(base_currency, quote_currency)[0]:
+			if final_state.get_market_state().get_current_price(base_currency, quote_currency) > initial_state.get_market_state().get_current_price(base_currency, quote_currency):
 				return np.array([1])
 
 			return np.array([0])
@@ -187,7 +187,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		new_state.get_agent_state().open_trade(
 			action,
-			state.get_market_state().get_state_of(action.base_currency, action.quote_currency)[0]
+			state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
 		)
 
 		return new_state
