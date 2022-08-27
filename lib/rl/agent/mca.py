@@ -308,9 +308,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 					MonteCarloAgent.Node.NodeType.STATE,
 					weight=weight,
 					instant_value=value,
-					# depth=state_node.depth+1
+					depth=state_node.depth+1
 				)
-				# possible_state.set_depth(possible_state_node.depth)
+				possible_state.set_depth(possible_state_node.depth)
 				self._state_repository.store(possible_state_node.id, possible_state)
 				action_node.add_child(possible_state_node)
 			state_node.add_child(action_node)

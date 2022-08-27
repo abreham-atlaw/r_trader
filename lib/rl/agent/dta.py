@@ -6,6 +6,7 @@ from tensorflow import keras
 
 import os
 
+from lib.rl.environment import ModelBasedState
 from .mba import ModelBasedAgent
 
 
@@ -31,15 +32,15 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		self.__cache = {}
 
 	@abstractmethod
-	def _state_action_to_model_input(self, state, action, final_state) -> np.ndarray:
+	def _state_action_to_model_input(self, state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
 		pass
 
 	@abstractmethod
-	def _prediction_to_transition_probability(self, initial_state, output: np.ndarray, final_state) -> float:
+	def _prediction_to_transition_probability(self, initial_state: ModelBasedState, output: np.ndarray, final_state: ModelBasedState) -> float:
 		pass
 
 	@abstractmethod
-	def _get_train_output(self, initial_state, action, final_state) -> np.ndarray:
+	def _get_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
 		pass
 
 	def _get_transition_model(self) -> keras.Model:
@@ -50,7 +51,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def set_transition_model(self, model: keras.Model):
 		self.__transition_model = model
 
-	def _get_expected_transition_probability(self, initial_state, action, final_state) -> float:
+	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> float:
 
 		prediction_input = self._state_action_to_model_input(initial_state, action, final_state).reshape((1, -1))
 
@@ -76,7 +77,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			self.__fit_params
 		)
 
-	def _update_transition_probability(self, initial_state, action, final_state):
+	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
 		new_batch = [self._state_action_to_model_input(initial_state, action, final_state)], [
 			self._get_train_output(initial_state, action, final_state)]
 

@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from lib.rl.environment import ModelBasedState
 from .agent import Agent
 
 
@@ -69,11 +70,11 @@ class ModelBasedAgent(Agent, ABC):
 			raise Exception("Non-Episodic Tasks can't have depth=None")
 
 	@abstractmethod
-	def _get_expected_transition_probability(self, initial_state, action, final_state) -> float:
+	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state) -> float:
 		pass
 
 	@abstractmethod
-	def _update_transition_probability(self, initial_state, action, final_state):
+	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state):
 		pass
 
 	@abstractmethod
@@ -81,10 +82,10 @@ class ModelBasedAgent(Agent, ABC):
 		pass
 
 	@abstractmethod
-	def _get_possible_states(self, state, action) -> List[object]:
+	def _get_possible_states(self, state: ModelBasedState, action) -> List[ModelBasedState]:
 		pass
 
-	def _update_state_action_value(self, initial_state, action, final_state, value):
+	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
 		self._update_transition_probability(initial_state, action, final_state)
 
 	

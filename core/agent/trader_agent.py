@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from core import Config
 from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
+from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
@@ -27,6 +28,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
 			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			update_agent=Config.UPDATE_AGENT,
+			depth_mode=Config.AGENT_DEPTH_MODE,
 			**kwargs
 	):
 		super().__init__(
@@ -40,6 +42,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
 		self.__state_change_delta = state_change_delta
+		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
 		Logger.info("Loading Core Model")
 		self.set_transition_model(
@@ -51,20 +54,32 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			Logger.info("Loading Delta Model")
 			self.__delta_model = TransitionModel.load_model(Config.DELTA_MODEL_CONFIG.path)
 
+	def __check_and_add_depth(self, input_: np.ndarray, depth: int) -> np.ndarray:
+		if self.__depth_mode:
+			input_ = np.append(input_, depth)
+		return input_
+
 	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
 
-				return state.get_market_state().get_state_of(base_currency, quote_currency)
+				return self.__check_and_add_depth(
+					state.get_market_state().get_state_of(base_currency, quote_currency),
+					state.get_depth()
+				)
 
 		raise ValueError("Initial State and Final state are the same.") # TODO: FIND ANOTHER WAY TO HANDLE THIS.
 
-	def __get_state_change_delta(self, sequence: np.ndarray, direction) -> float:
+	def __get_state_change_delta(self, sequence: np.ndarray, direction: int, depth: Optional[int] = None) -> float:
 		if direction == -1:
 			direction = 0
 
-		model_input = np.append(sequence, direction).reshape((1, -1))
+		model_input = np.append(sequence, direction)
+		if depth is not None:
+			model_input = self.__check_and_add_depth(model_input, depth)
+		model_input = model_input.reshape((1, -1))
+
 		cache_key = model_input.tobytes()
 
 		cached = self.__state_change_delta_cache.get(cache_key)
@@ -168,7 +183,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				np.array(original_value[-1] + j*self.__get_state_change_delta(original_value, j)).reshape(1)
+				np.array(original_value[-1] + j*self.__get_state_change_delta(original_value, j, state.get_depth())).reshape(1)
 			)
 			states.append(new_state)
 

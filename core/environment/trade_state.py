@@ -6,6 +6,7 @@ import numpy as np
 import math
 
 from lib.utils.logger import Logger
+from lib.rl.environment import ModelBasedState
 from core.agent.trader_action import TraderAction
 from core import Config
 
@@ -303,12 +304,13 @@ class AgentState:
 		)
 
 
-class TradeState:
+class TradeState(ModelBasedState):
 
 	def __init__(self, market_state: MarketState = None, agent_state: AgentState = None, recent_balance: float = None):
 		self.market_state = market_state
 		self.agent_state = agent_state
 		self.recent_balance = recent_balance
+		self.__depth = 0
 
 	def get_market_state(self) -> MarketState:
 		return self.market_state
@@ -323,6 +325,12 @@ class TradeState:
 		if self.get_recent_balance() is None:
 			return 0
 		return self.get_agent_state().get_balance() - self.get_recent_balance()
+
+	def set_depth(self, depth: int):
+		self.__depth = depth
+
+	def get_depth(self) -> int:
+		return self.__depth
 
 	def __deepcopy__(self, memo=None):
 		market_state = self.market_state.__deepcopy__()
