@@ -5,6 +5,7 @@ import random
 import math
 
 from .species import Species
+from .callbacks import Callback
 
 
 class GeneticAlgorithm(ABC):
@@ -66,21 +67,37 @@ class GeneticAlgorithm(ABC):
 
 		print("\n"*2, "-"*100)
 
-	def __perform_epochs(self, parent_generation: List[Species], epochs: int) -> List[Species]:
+	@staticmethod
+	def __perform_callback(callbacks: List[Callback], population: List[Species], start):
+		for callback in callbacks:
+			fn = callback.on_epoch_end
+			if start:
+				fn = callback.on_epoch_start
+			fn(population)
+
+	def __perform_epochs(self, parent_generation: List[Species], epochs: int, callbacks: List[Callback]) -> List[Species]:
 		print("Epochs Left: %s" % (epochs,))
+
+		self.__perform_callback(callbacks, parent_generation, True)
+
 		self._mutate_population(parent_generation)
 		new_generation = self._generate_generation(parent_generation)
 		new_generation_size = int(len(parent_generation) * self.__generation_growth_factor)
 		new_generation = self._filter_generation(new_generation, new_generation_size)
 		self._render(new_generation)
 
+		self.__perform_callback(callbacks, new_generation, False)
+
 		if epochs == 1:
 			return new_generation
 		return self.__perform_epochs(new_generation, epochs - 1)
 
-	def start(self, epochs: int) -> List[Tuple[Species, float]]:
+	def start(self, epochs: int, callbacks: Optional[List[Callback]]=None) -> List[Tuple[Species, float]]:
+
+		if callbacks is None:
+			callbacks = []
 
 		initial_generation = self._generate_initial_generation()
-		final_generation = self.__perform_epochs(initial_generation, epochs)
+		final_generation = self.__perform_epochs(initial_generation, epochs, callbacks)
 
 		return [(species, self._evaluate_species(species)) for species in final_generation]
