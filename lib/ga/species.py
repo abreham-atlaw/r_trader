@@ -11,7 +11,7 @@ class Species(ABC):
 		pass
 
 	@abstractmethod
-	def reproduce(self, spouse: 'Species', prefered_offsprings: int) -> List['Species']:
+	def reproduce(self, spouse: 'Species', preferred_offsprings: int) -> List['Species']:
 		pass
 
 	def choose_spouse(self, options: List['Species']) -> 'Species':
