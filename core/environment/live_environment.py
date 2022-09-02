@@ -63,11 +63,11 @@ class LiveEnvironment(TradeEnvironment):
 			currencies += pair
 		return list(set(currencies))
 
-	def __select_pairs(self, pairs) -> List[Tuple[str, str]]:
+	def __select_pairs(self, instruments) -> List[Tuple[str, str]]:
 		if Config.AGENT_USE_STATIC_INSTRUMENTS:
 			return Config.AGENT_STATIC_INSTRUMENTS
 
-		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
+		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(instruments, k=Config.AGENT_MAX_INSTRUMENTS)
 		while selected_pairs is None or \
 			Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
 			False in [
@@ -80,25 +80,23 @@ class LiveEnvironment(TradeEnvironment):
 				for instrument in selected_pairs
 			]:
 			Config.AGENT_RANDOM_SEED = random.randint(0, 1000000)
-			selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(pairs, k=Config.AGENT_MAX_INSTRUMENTS)
+			selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(instruments, k=Config.AGENT_MAX_INSTRUMENTS)
 		print(Config.AGENT_RANDOM_SEED)
 		return selected_pairs
 
 	def __get_market_state(self, memory_size, granularity) -> MarketState:
-		Logger.info("Selecting Instruments")
-		tradeable_pairs = self.__select_pairs(self.__trader.get_instruments())
-		Logger.info("Selected Instruments")
+		instruments = self.__select_pairs(self.__trader.get_instruments())
 		market_state = MarketState(
-			currencies=self.__get_currencies(tradeable_pairs),
-			tradable_pairs=tradeable_pairs,
+			currencies=self.__get_currencies(instruments),
+			tradable_pairs=instruments,
 			memory_len=memory_size
 		)
 
-		for base_currency, quote_currency in tradeable_pairs:
+		for base_currency, quote_currency in instruments:
 			market_state.update_state_of(
 				base_currency,
 				quote_currency,
-				self.__prepare_tradable_pairs(base_currency, quote_currency, memory_size, granularity)
+				self.__prepare_instrument(base_currency, quote_currency, memory_size, granularity)
 			)
 			market_state.update_spread_state_of(
 				base_currency,
@@ -117,7 +115,7 @@ class LiveEnvironment(TradeEnvironment):
 
 		return pd.DataFrame(df_list)
 
-	def __prepare_tradable_pairs(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		candle_sticks = self.__trader.get_candlestick(
 			(base_currency, quote_currency),
 			count=size,
@@ -152,3 +150,4 @@ class LiveEnvironment(TradeEnvironment):
 		if state is None:
 			state = self.get_state()
 		return self._initiate_state()
+
