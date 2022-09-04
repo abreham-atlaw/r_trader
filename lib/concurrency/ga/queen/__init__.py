@@ -1,0 +1,1 @@
+from .gaq import GAQueen
