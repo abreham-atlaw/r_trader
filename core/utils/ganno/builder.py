@@ -75,7 +75,7 @@ class ModelBuilder(ABC):
 
 		model = Model(inputs=input_layer, outputs=output_layer)
 
-		self._compile(model, config.optimizer(), config.loss)
+		self._compile(model, config.optimizer, config.loss)
 
 		if self.__summarize:
 			model.summary()

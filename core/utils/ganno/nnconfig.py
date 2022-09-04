@@ -4,6 +4,8 @@ import math
 import random
 from dataclasses import dataclass
 
+from tensorflow import keras
+
 from lib.ga import Species
 
 
@@ -25,7 +27,7 @@ class ModelConfig:
 	dense_activation: Callable
 	conv_activation: Callable
 	loss: Callable
-	optimizer: Type
+	optimizer: keras.optimizers.Optimizer
 
 	def validate(self) -> bool:
 
@@ -132,5 +134,4 @@ class NNConfig(Species):
 		return self.core_config.validate() and self.delta_config.validate()
 
 	def __str__(self):
-
 		return f"\nCore Config: {str(self.core_config)}\nDeltaConfig: {str(self.delta_config)}\n"

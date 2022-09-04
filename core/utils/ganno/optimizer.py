@@ -46,8 +46,8 @@ class NNInitialPopulationConfig:
 		keras.losses.mean_absolute_percentage_error
 	)
 	optimizers: List[Type] = (
-		keras.optimizers.Adam,
-		keras.optimizers.SGD
+		keras.optimizers.Adam(),
+		keras.optimizers.SGD()
 	)
 
 
