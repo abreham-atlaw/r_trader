@@ -31,7 +31,11 @@ class NetworkApiClient:
 	def _put(self, request: Request, headers=None):
 		return requests.put(self._get_complete_url(request.get_url()), data=request.get_post_data(), headers=headers)
 
-	def execute(self, request: Request, headers: Dict=None):
+	def execute(self, request: Request, headers: Optional[Dict] = None):
+		if headers is None:
+			headers = {
+				"Content-Type": "application/json"
+			}
 		response = None
 		headers.update(request.get_headers())
 		if request.get_method() == Request.Method.GET:
@@ -44,5 +48,7 @@ class NetworkApiClient:
 			raise InvalidNetworkMethod()
 
 		if 400 <= response.status_code < 600:
-			raise HTTPError(f"Status Code: {response.status_code} Message: {response.json()}")
+			raise HTTPError(f"Status Code: {response.status_code} Message: {response.text}")
+		if response.text == "":
+			return None
 		return request.deserialize_object(response.json())
