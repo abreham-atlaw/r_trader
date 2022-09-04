@@ -62,8 +62,14 @@ class GAServer:
 		)
 		return "", 200
 
-	def start(self):
+	def get_app(self):
+		return self.__app
+
+	def setup(self):
 		self.__map_urls()
+
+	def start(self):
+		self.setup()
 		self.__app.run(
 			host=self.__host,
 			port=self.__port
