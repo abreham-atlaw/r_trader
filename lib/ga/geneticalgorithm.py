@@ -75,7 +75,7 @@ class GeneticAlgorithm(ABC):
 				fn = callback.on_epoch_start
 			fn(population)
 
-	def __perform_epoch(self, parent_generation: List[Species], callbacks: List[Callback]) -> List[Species]:
+	def _perform_epoch(self, parent_generation: List[Species], callbacks: List[Callback]) -> List[Species]:
 
 		self.__perform_callback(callbacks, parent_generation, True)
 
@@ -89,7 +89,7 @@ class GeneticAlgorithm(ABC):
 
 		return new_generation
 
-	def start(self, epochs: int, callbacks: Optional[List[Callback]]=None) -> List[Tuple[Species, float]]:
+	def start(self, epochs: int, callbacks: Optional[List[Callback]]=None) -> List[Species]:
 
 		if callbacks is None:
 			callbacks = []
@@ -98,6 +98,6 @@ class GeneticAlgorithm(ABC):
 
 		for epoch in range(epochs):
 			print(f"Epoch: {epoch+1}/{epochs}")
-			generation = self.__perform_epoch(generation, callbacks)
+			generation = self._perform_epoch(generation, callbacks)
 		print("Done")
-		return [(species, self._evaluate_species(species)) for species in generation]
+		return generation
