@@ -23,12 +23,13 @@ class GAServer:
 		return [
 			("/queen", [
 				("evaluate", self.__handle_new_evaluate_request, ["POST"]),
-				("result", self.__handle_result_request, ["GET"])
+				("result", self.__handle_result_request, ["GET"]),
+				("reset", self.__handle_reset, ["GET"])
 			]),
 			("/worker", [
 				("evaluate", self.__handle_evaluate_request, ["GET"]),
 				("result", self.__handle_evaluate_response, ["POST"])
-			])
+			]),
 		]
 
 	def __map_urls(self):
@@ -45,6 +46,10 @@ class GAServer:
 		if result is not None:
 			return json.dumps(result)
 		return "", 404
+
+	def __handle_reset(self):
+		self.__repository.reset()
+		return "", 200
 
 	def __handle_evaluate_request(self):
 		result = self.__repository.get_request()

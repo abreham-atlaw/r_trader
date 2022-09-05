@@ -8,7 +8,7 @@ from requests.exceptions import HTTPError
 
 from lib.ga import GeneticAlgorithm, Species
 from lib.network.rest_interface import Serializer, NetworkApiClient
-from .requests import EvaluateRequest, GetResult
+from .requests import EvaluateRequest, GetResult, ResetRequest
 
 
 class GAQueen(GeneticAlgorithm, ABC):
@@ -61,6 +61,12 @@ class GAQueen(GeneticAlgorithm, ABC):
 		self.__create_requests(keys, population)
 		values = self.__collect_results(keys)
 		return sorted(population, key=lambda species: values[population.index(species)], reverse=True)[:target_size]
+
+	def _perform_epoch(self, *args, **kwargs) -> List[Species]:
+		self.__network_client.execute(
+			ResetRequest()
+		)
+		return super()._perform_epoch(*args, **kwargs)
 
 	def _evaluate_species(self, species: Species) -> float:
 		pass

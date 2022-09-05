@@ -1,5 +1,3 @@
-from typing import *
-
 import json
 
 from lib.network.rest_interface.requests import Request
@@ -28,4 +26,13 @@ class GetResult(Request):
 			},
 			method=Request.Method.GET,
 			output_class=float
+		)
+
+
+class ResetRequest(Request):
+
+	def __init__(self):
+		super().__init__(
+			url="reset",
+			method=Request.Method.GET,
 		)

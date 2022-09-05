@@ -20,6 +20,10 @@ class DataRepository:
 	def get_response(self, key: str) -> float:
 		pass
 
+	@abstractmethod
+	def reset(self):
+		pass
+
 
 class PlainDataRepository(DataRepository):
 
@@ -40,3 +44,7 @@ class PlainDataRepository(DataRepository):
 
 	def get_response(self, key: str) -> Optional[float]:
 		return self.__response_map.get(key)
+
+	def reset(self):
+		self.__request_queue = []
+		self.__response_map = {}
