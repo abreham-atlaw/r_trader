@@ -6,7 +6,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten
 from tensorflow.keras.activations import sigmoid
 
-from lib.dnn.layers import Delta, Norm, UnNorm
+from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, MultipleMovingAverages, TrendLine
 from .nnconfig import ModelConfig, ConvPoolLayer
 
 
@@ -51,12 +51,18 @@ class ModelBuilder(ABC):
 		if config.norm:
 			prep_layer = Norm()(prep_layer)
 
-		reshape = Reshape((prep_layer.shape[-1], 1))(prep_layer)
+		mas = MultipleMovingAverages(config.mas_windows)(prep_layer)
 
-		ff_conv = self._add_ff_conv_layers(reshape, config.ff_conv_pool_layers, config.conv_activation)
+		ff_conv = self._add_ff_conv_layers(mas, config.ff_conv_pool_layers, config.conv_activation)
+
+		stochastic_oscillator = StochasticOscillator(config.stochastic_oscillator_size)(input_sequence)
+
+		trend_line = TrendLine(config.trend_line_size)(input_sequence)
 
 		flatten = Concatenate(axis=1)((
 			Flatten()(ff_conv),
+			stochastic_oscillator,
+			trend_line,
 			extra_input
 		))
 

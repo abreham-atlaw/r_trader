@@ -89,7 +89,7 @@ class GeneticAlgorithm(ABC):
 
 		return new_generation
 
-	def start(self, epochs: int, callbacks: Optional[List[Callback]]=None) -> List[Species]:
+	def start(self, epochs: int, callbacks: Optional[List[Callback]] = None) -> List[Species]:
 
 		if callbacks is None:
 			callbacks = []
@@ -97,7 +97,7 @@ class GeneticAlgorithm(ABC):
 		generation = self._generate_initial_generation()
 
 		for epoch in range(epochs):
-			print(f"Epoch: {epoch+1}/{epochs}")
+			print(f"Epoch: {epoch+1}/{epochs}\t\tPopulation Size: {len(generation)}")
 			generation = self._perform_epoch(generation, callbacks)
 		print("Done")
 		return generation

@@ -24,6 +24,9 @@ class ModelConfig:
 	ff_conv_pool_layers: List[ConvPoolLayer]
 	delta: bool
 	norm: bool
+	stochastic_oscillator_size: int
+	trend_line_size: int
+	mas_windows: List[int]
 	dense_activation: Callable
 	conv_activation: Callable
 	loss: Callable
@@ -31,13 +34,16 @@ class ModelConfig:
 
 	def validate(self) -> bool:
 
-		conv_out_size = self.seq_len
+		conv_out_size = self.seq_len - (max(self.mas_windows) - 1)
 		for conv in self.ff_conv_pool_layers:
 			conv_out_size -= (conv.size - 1)
 			if conv.pool != 0:
 				conv_out_size = math.ceil(conv_out_size/conv.pool) - 1
 
 		if conv_out_size <= 0:
+			return False
+
+		if self.seq_len <= self.trend_line_size:
 			return False
 
 		return True
@@ -81,26 +87,28 @@ class NNConfig(Species):
 		)
 
 	@staticmethod
+	def __get_random_mean(x0, x1) -> float:
+		w = random.random()
+		return (x0*w) + ((1-w)*x1)
+
+	@staticmethod
 	def __generate_offspring_model_config(
 			self_config: ModelConfig,
 			spouse_config: ModelConfig,
 			seq_len: int
 	) -> ModelConfig:
 
-		choices = [
-			random.choice(choice)
-			for choice in [
-				(self_config.ff_dense_layers, spouse_config.ff_dense_layers),
-				(self_config.ff_conv_pool_layers, spouse_config.ff_conv_pool_layers),
-				(self_config.delta, spouse_config.delta),
-				(self_config.norm, spouse_config.norm),
-				(self_config.dense_activation, spouse_config.dense_activation),
-				(self_config.conv_activation, spouse_config.conv_activation),
-				(self_config.loss, spouse_config.loss),
-				(self_config.optimizer, spouse_config.optimizer)
-			]
-		]
-		return ModelConfig(seq_len, *choices)
+		genes = {}
+		for attribute, self_value in self_config.__dict__.items():
+			spouse_value = spouse_config.__dict__[attribute]
+			if isinstance(self_value, bool) or not isinstance(self_config, int):
+				genes[attribute] = random.choice((self_value, spouse_value))
+			else:
+				genes[attribute] = NNConfig.__get_random_mean(self_value, spouse_value)
+
+		genes["seq_len"] = seq_len
+
+		return ModelConfig(**genes)
 
 	def __generate_offspring(self, spouse: 'NNConfig') -> 'NNConfig':
 		seq_len = random.choice((spouse.core_config.seq_len, self.core_config.seq_len))

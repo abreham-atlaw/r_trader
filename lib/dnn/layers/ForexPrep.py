@@ -1,5 +1,6 @@
+from typing import *
+
 import tensorflow as tf
-import numpy as np
 
 from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
 
@@ -140,6 +141,67 @@ class MovingStandardDeviation(Layer):
 		return {
 			"window_size": self.window_size
 		}
+
+
+class WilliamsPercentageRange(Layer):
+
+	def __init__(self, size: int, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__size = size
+
+	def call(self, inputs, *args, **kwargs):
+		inputs = inputs[:, -self.__size:]
+		highest = tf.reduce_max(inputs, axis=1)
+		lowest = tf.reduce_min(inputs, axis=1)
+		return tf.expand_dims(
+			(inputs[:, 0] - highest)*100/(highest - lowest),
+			axis=1
+		)
+
+
+class StochasticOscillator(Layer):
+
+	def __init__(self, size: int, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__size = size
+
+	def call(self, inputs, *args, **kwargs):
+		inputs = inputs[:, -self.__size:]
+		highest = tf.reduce_max(inputs, axis=1)
+		lowest = tf.reduce_min(inputs, axis=1)
+		close = inputs[:, 0]
+		return tf.expand_dims(
+			(close - lowest)*100/(highest - lowest),
+			axis=1
+		)
+
+
+class TrendLine(Layer):
+
+	def __init__(self, size: int, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__size = size
+
+	def call(self, inputs, *args, **kwargs):
+		return tf.expand_dims(
+			(inputs[:, 0] - inputs[:, -self.__size])/self.__size,
+			axis=1
+		)
+
+
+class MultipleMovingAverages(Layer):
+
+	def __init__(self, sizes: List[int], *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__out_size_decrement = max(sizes) - 1
+		self.__mas = [MovingAverage(size) for size in sizes]
+
+	def call(self, inputs, *args, **kwargs):
+		out_size = inputs.shape[1] - self.__out_size_decrement
+		return tf.stack([
+			ma(inputs)[:, -out_size:]
+			for ma in self.__mas
+		], axis=2)
 
 
 class ForexPrep(Layer):
