@@ -10,9 +10,10 @@ from .callbacks import Callback
 
 class GeneticAlgorithm(ABC):
 
-	def __init__(self, generation_growth_factor=1, mutation_rate=0.3):
+	def __init__(self, generation_growth_factor=1, mutation_rate=0.3, preferred_offsprings=None):
 		self.__generation_growth_factor = generation_growth_factor
 		self.__mutation_rate = mutation_rate
+		self.__preferred_offsprings = preferred_offsprings
 
 	@abstractmethod
 	def _generate_initial_generation(self) -> List[Species]:
@@ -23,7 +24,9 @@ class GeneticAlgorithm(ABC):
 		pass
 
 	def _get_preferred_offsprings(self, population_size: int) -> int:
-		return math.ceil((self.__generation_growth_factor * 10))
+		if self.__preferred_offsprings is not None:
+			return self.__preferred_offsprings
+		return math.ceil((self.__generation_growth_factor * 5))
 
 	def _choose_primary_spouse(self, population: List[Species]) -> Species:
 		return random.choice(population)
@@ -56,7 +59,7 @@ class GeneticAlgorithm(ABC):
 		parents = self._match_spouses(parent_generation)
 		new_generation = []
 		for mother, father in parents:
-			new_generation.extend(mother.reproduce(father, self._get_preferred_offsprings(len(parent_generation)) ))
+			new_generation.extend(mother.reproduce(father, self._get_preferred_offsprings(len(parent_generation))))
 
 		return new_generation
 
