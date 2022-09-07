@@ -83,7 +83,7 @@ class GeneticAlgorithm(ABC):
 		self.__perform_callback(callbacks, parent_generation, True)
 
 		self._mutate_population(parent_generation)
-		new_generation = self._generate_generation(parent_generation)
+		new_generation = parent_generation + self._generate_generation(parent_generation)
 		new_generation_size = int(len(parent_generation) * self.__generation_growth_factor)
 		new_generation = self._filter_generation(new_generation, new_generation_size)
 		self._render(new_generation)
