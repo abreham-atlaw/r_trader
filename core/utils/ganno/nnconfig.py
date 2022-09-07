@@ -51,6 +51,11 @@ class ModelConfig:
 
 class NNConfig(Species):
 
+	CUSTOM_GENE_CLASSES = [
+		ModelConfig,
+		ConvPoolLayer
+	]
+
 	def __init__(self, core_config: ModelConfig, delta_config: ModelConfig):
 		self.core_config = core_config
 		self.delta_config = delta_config
@@ -87,9 +92,34 @@ class NNConfig(Species):
 		)
 
 	@staticmethod
-	def __get_random_mean(x0, x1) -> float:
+	def __get_random_mean(x0, x1) -> int:
 		w = random.random()
-		return (x0*w) + ((1-w)*x1)
+		return round((x0*w) + ((1-w)*x1))
+
+	@staticmethod
+	def __select_gene(self_value, spouse_value):
+
+		if isinstance(self_value, List):
+			swap_size = min(len(self_value), len(spouse_value))
+			new_value = [NNConfig.__select_gene(self_value[i], spouse_value[i]) for i in range(swap_size)]
+			length = NNConfig.__get_random_mean(len(self_value), len(spouse_value))
+			if length > len(new_value):
+				larger_genes = self_value
+				if len(spouse_value) > len(self_value):
+					larger_genes = spouse_value
+				new_value.extend(larger_genes[len(new_value): length])
+			return new_value
+
+		if isinstance(self_value, int) and not isinstance(self_value, bool):
+			return NNConfig.__get_random_mean(self_value, spouse_value)
+
+		if isinstance(self_value, tuple(NNConfig.CUSTOM_GENE_CLASSES)):
+			return self_value.__class__(**{
+				key: NNConfig.__select_gene(self_value.__dict__[key], spouse_value.__dict__[key])
+				for key in self_value.__dict__.keys()
+			})
+
+		return random.choice((self_value, spouse_value))
 
 	@staticmethod
 	def __generate_offspring_model_config(
@@ -98,17 +128,10 @@ class NNConfig(Species):
 			seq_len: int
 	) -> ModelConfig:
 
-		genes = {}
-		for attribute, self_value in self_config.__dict__.items():
-			spouse_value = spouse_config.__dict__[attribute]
-			if isinstance(self_value, bool) or not isinstance(self_config, int):
-				genes[attribute] = random.choice((self_value, spouse_value))
-			else:
-				genes[attribute] = NNConfig.__get_random_mean(self_value, spouse_value)
+		config: ModelConfig = NNConfig.__select_gene(self_config, spouse_config)
+		config.seq_len = seq_len
 
-		genes["seq_len"] = seq_len
-
-		return ModelConfig(**genes)
+		return config
 
 	def __generate_offspring(self, spouse: 'NNConfig') -> 'NNConfig':
 		seq_len = random.choice((spouse.core_config.seq_len, self.core_config.seq_len))
