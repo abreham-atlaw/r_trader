@@ -13,21 +13,40 @@ from .nnconfig import NNConfig, ConvPoolLayer, ModelConfig
 
 
 @dataclass
+class ListRangeConfig:
+	length_range: Tuple[int, int]
+	values_range: Tuple[int, int]
+
+
+@dataclass
 class NNInitialPopulationConfig:
 
 	size: int = 10
 
 	seq_len_range: Tuple[int, int] = (16, 256)
-	dnn_layer_depth_range: Tuple[int, int] = (3, 6)
-	dnn_layer_breadth_range: Tuple[int, int] = (16, 2048)
+	dnn_layer_range: ListRangeConfig = ListRangeConfig(
+		length_range=(3, 6),
+		values_range=(16, 2048)
+	)
+
 	conv_layer_depth_range: Tuple[int, int] = (2, 6)
 	conv_layer_features_range: Tuple[int, int] = (16, 256)
 	conv_layer_size_range: Tuple[int, int] = (2, 64)
 	conv_layer_pooling_range: Tuple[int, int] = (0, 16)
-	stochastic_oscillator_size_range: Tuple[int, int] = (5, 128)
-	trend_line_size_range: Tuple[int, int] = (5, 256)
-	mas_amounts_range: Tuple[int, int] = (1, 10)
-	mas_windows_range: Tuple[int, int] = (5, 64)
+
+	stochastic_oscillators_range: ListRangeConfig = ListRangeConfig(
+		length_range=(1, 16),
+		values_range=(5, 128)
+	)
+	trend_lines_range: ListRangeConfig = ListRangeConfig(
+		length_range=(1, 16),
+		values_range=(5, 256)
+	)
+	moving_averages_range: ListRangeConfig = ListRangeConfig(
+		length_range=(1, 10),
+		values_range=(5, 64)
+	)
+
 	dense_activations: List[Callable] = (
 		keras.activations.relu,
 		keras.activations.tanh,
@@ -79,8 +98,8 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 			self.__initial_population_config = NNInitialPopulationConfig()
 
 	@staticmethod
-	def __generate_random_dnn_layers(depth_range: Tuple[int, int], breadth_range: Tuple[int, int]) -> List[int]:
-		return [random.randint(*breadth_range) for _ in range(random.randint(*depth_range))]
+	def __generate_random_int_list(range_config: ListRangeConfig) -> List[int]:
+		return [random.randint(*range_config.values_range) for _ in range(random.randint(*range_config.length_range))]
 
 	@staticmethod
 	def __generate_random_cnn_layers(depth_range, features_range, size_range, pooling_range) -> List[ConvPoolLayer]:
@@ -93,29 +112,19 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 			for _ in range(random.randint(*depth_range))
 		]
 
-	@staticmethod
-	def __generate_random_mas(amounts_range: Tuple[int, int], windows_range: Tuple[int, int]) -> List[int]:
-		return [
-			random.randint(*windows_range)
-			for _ in range(random.randint(*amounts_range))
-		]
-
 	def __generate_random_model(self, seq_len, loss) -> ModelConfig:
 		return ModelConfig(
 			seq_len=seq_len,
-			ff_dense_layers=self.__generate_random_dnn_layers(
-				depth_range=self.__initial_population_config.dnn_layer_depth_range,
-				breadth_range=self.__initial_population_config.dnn_layer_breadth_range
-			),
+			ff_dense_layers=self.__generate_random_int_list(self.__initial_population_config.dnn_layer_range),
 			ff_conv_pool_layers=self.__generate_random_cnn_layers(
 				depth_range=self.__initial_population_config.conv_layer_depth_range,
 				size_range=self.__initial_population_config.conv_layer_size_range,
 				features_range=self.__initial_population_config.conv_layer_features_range,
 				pooling_range=self.__initial_population_config.conv_layer_pooling_range
 			),
-			stochastic_oscillator_size=random.randint(*self.__initial_population_config.stochastic_oscillator_size_range),
-			trend_line_size=random.randint(*self.__initial_population_config.trend_line_size_range),
-			mas_windows=self.__generate_random_mas(self.__initial_population_config.mas_amounts_range, self.__initial_population_config.mas_windows_range),
+			stochastic_oscillators=self.__generate_random_int_list(self.__initial_population_config.stochastic_oscillators_range),
+			trend_lines=self.__generate_random_int_list(self.__initial_population_config.trend_lines_range),
+			mas_windows=self.__generate_random_int_list(self.__initial_population_config.moving_averages_range),
 			delta=random.choice((True, False)),
 			norm=random.choice((True, False)),
 			dense_activation=random.choice(self.__initial_population_config.dense_activations),

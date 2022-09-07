@@ -1,6 +1,7 @@
 from typing import *
 from abc import ABC, abstractmethod
 
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten
@@ -16,6 +17,13 @@ class ModelBuilder(ABC):
 		self.__un_norm = un_norm
 		self.__output_activation = output_activation
 		self.__summarize = summarize
+
+	@staticmethod
+	def __concat_layers(inputs: Layer, layer_class: Type, args: List[Any], axis=1) -> Layer:
+		layers = [layer_class(*arg)(inputs) for arg in args]
+		return Concatenate(
+			axis=axis
+		)(layers)
 
 	@staticmethod
 	def _add_ff_dense_layers(layer: Layer, layers: List[int], activation: Callable) -> Layer:
@@ -55,14 +63,21 @@ class ModelBuilder(ABC):
 
 		ff_conv = self._add_ff_conv_layers(mas, config.ff_conv_pool_layers, config.conv_activation)
 
-		stochastic_oscillator = StochasticOscillator(config.stochastic_oscillator_size)(input_sequence)
-
-		trend_line = TrendLine(config.trend_line_size)(input_sequence)
+		sos = self.__concat_layers(
+			input_sequence,
+			StochasticOscillator,
+			[(arg,) for arg in config.stochastic_oscillators]
+		)
+		trend_lines = self.__concat_layers(
+			input_sequence,
+			TrendLine,
+			[(arg,) for arg in config.trend_lines]
+		)
 
 		flatten = Concatenate(axis=1)((
 			Flatten()(ff_conv),
-			stochastic_oscillator,
-			trend_line,
+			sos,
+			trend_lines,
 			extra_input
 		))
 

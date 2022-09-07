@@ -24,8 +24,8 @@ class ModelConfig:
 	ff_conv_pool_layers: List[ConvPoolLayer]
 	delta: bool
 	norm: bool
-	stochastic_oscillator_size: int
-	trend_line_size: int
+	stochastic_oscillators: List[int]
+	trend_lines: List[int]
 	mas_windows: List[int]
 	dense_activation: Callable
 	conv_activation: Callable
@@ -43,7 +43,7 @@ class ModelConfig:
 		if conv_out_size <= 0:
 			return False
 
-		if self.seq_len <= self.trend_line_size:
+		if True in [self.seq_len <= trend_line_size for trend_line_size in self.trend_lines]:
 			return False
 
 		return True
