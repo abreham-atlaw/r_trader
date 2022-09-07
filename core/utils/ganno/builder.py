@@ -7,6 +7,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten
 from tensorflow.keras.activations import sigmoid
 
+from lib.utils.logger import Logger
 from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, MultipleMovingAverages, TrendLine
 from .nnconfig import ModelConfig, ConvPoolLayer
 
@@ -47,7 +48,7 @@ class ModelBuilder(ABC):
 		model.compile(optimizer=optimizer, loss=loss)
 
 	def build(self, config: ModelConfig) -> Model:
-
+		Logger.info("[+]Building", config)
 		input_layer = Input(shape=self._get_input_shape(config.seq_len))
 
 		input_sequence = input_layer[:, :config.seq_len]
