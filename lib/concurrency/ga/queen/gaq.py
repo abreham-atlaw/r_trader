@@ -1,6 +1,8 @@
 from typing import *
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 import time
 import hashlib
 import os
@@ -43,9 +45,11 @@ class GAQueen(GeneticAlgorithm, ABC):
 
 			if (datetime.now() - start_datetime).seconds >= self.__timeout:
 				Logger.info("Timeout. Filling values.")
-				for i in range(len(values)):
-					if values[i] is None:
-						values[i] = self.__default_value
+				break
+
+		for i in range(len(values)):
+			if values[i] is None or np.isnan(values[i]):
+				values[i] = self.__default_value
 
 			time.sleep(self.__sleep_time)
 
