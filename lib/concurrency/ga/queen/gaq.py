@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 import time
 import hashlib
 import os
+from datetime import datetime
 from requests.exceptions import HTTPError
 
+from lib.utils.logger import Logger
 from lib.ga import GeneticAlgorithm, Species
 from lib.network.rest_interface import Serializer, NetworkApiClient
 from .requests import EvaluateRequest, GetResult, ResetRequest
@@ -13,11 +15,13 @@ from .requests import EvaluateRequest, GetResult, ResetRequest
 
 class GAQueen(GeneticAlgorithm, ABC):
 
-	def __init__(self, server_address, *args, sleep_time=5,  **kwargs):
+	def __init__(self, server_address, *args, sleep_time=5, timeout=12*60*60, default_value=0,  **kwargs):
 		super().__init__(*args, **kwargs)
 		self.__network_client = NetworkApiClient(os.path.join(server_address, "queen"))
 		self.__species_serializer = self._init_serializer()
 		self.__sleep_time = sleep_time
+		self.__timeout = timeout
+		self.__default_value = default_value
 
 	@abstractmethod
 	def _init_serializer(self) -> Serializer:
@@ -31,10 +35,18 @@ class GAQueen(GeneticAlgorithm, ABC):
 
 	def __collect_results(self, keys: List[str]) -> List[float]:
 		values = [None for _ in keys]
+		start_datetime = datetime.now()
 		while None in values:
 
 			for i, key in enumerate(keys):
 				values[i] = self.__collect_result(key)
+
+			if (datetime.now() - start_datetime).seconds >= self.__timeout:
+				Logger.info("Timeout. Filling values.")
+				for i in range(len(values)):
+					if values[i] is None:
+						values[i] = self.__default_value
+
 			time.sleep(self.__sleep_time)
 
 		return values
@@ -57,6 +69,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 		).hexdigest()
 
 	def _filter_generation(self, population: List[Species], target_size: int) -> List[Species]:
+		Logger.info(f"Filtering Population Size: {len(population)} => {target_size}")
 		keys = [self._generate_key(species, i) for i, species in enumerate(population)]
 		self.__create_requests(keys, population)
 		values = self.__collect_results(keys)
