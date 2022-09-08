@@ -1,10 +1,11 @@
 from typing import *
 
-from flask import Flask, Blueprint, request
+from flask import Flask, request
 
 import os
 import json
 
+from lib.utils.logger import Logger
 from .repository import DataRepository, PlainDataRepository
 
 
@@ -39,10 +40,12 @@ class GAServer:
 
 	def __handle_new_evaluate_request(self):
 		self.__repository.add_to_request_queue(request.json["key"], request.json["species"])
+		Logger.info(f"Queue Size: {len(self.__repository)}")
 		return "", 200
 
 	def __handle_result_request(self):
 		result = self.__repository.get_response(request.args.get("key"))
+		Logger.info(f"Queue Size: {len(self.__repository)}")
 		if result is not None:
 			return json.dumps(result)
 		return "", 404
@@ -53,6 +56,7 @@ class GAServer:
 
 	def __handle_evaluate_request(self):
 		result = self.__repository.get_request()
+		Logger.info(f"Queue Size: {len(self.__repository)}")
 		if result is None:
 			return "", 404
 		return json.dumps({
@@ -61,6 +65,7 @@ class GAServer:
 		})
 
 	def __handle_evaluate_response(self):
+		Logger.info(f"Queue Size: {len(self.__repository)}")
 		self.__repository.set_response(
 			request.json["key"],
 			request.json["value"]

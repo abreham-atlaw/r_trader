@@ -2,7 +2,7 @@ from typing import *
 from abc import ABC, abstractmethod
 
 
-class DataRepository:
+class DataRepository(ABC, Sized):
 
 	@abstractmethod
 	def add_to_request_queue(self, key: str, request: object):
@@ -48,3 +48,6 @@ class PlainDataRepository(DataRepository):
 	def reset(self):
 		self.__request_queue = []
 		self.__response_map = {}
+
+	def __len__(self):
+		return len(self.__request_queue)
