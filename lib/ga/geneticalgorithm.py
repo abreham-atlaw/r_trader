@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 import random
 import math
 
-from lib.utils.logger import Logger
 from .species import Species
 from .callbacks import Callback
 
@@ -77,9 +76,7 @@ class GeneticAlgorithm(ABC):
 
 	def __get_initial_generation(self) -> List[Species]:
 		if self.__loaded_initial_generation is None:
-			Logger.info("Generating new generation.")
 			return self._generate_initial_generation()
-		Logger.info("Using loaded generation.")
 		return self.__loaded_initial_generation
 
 	@staticmethod
