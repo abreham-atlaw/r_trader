@@ -44,7 +44,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 				values[i] = self.__collect_result(key)
 
 			if (datetime.now() - start_datetime).seconds >= self.__timeout:
-				Logger.info("Timeout. Filling values.")
+				Logger.info(f"Timeout. Complete: {len([value for value in values if value is not None])}/{len(values)}. Filling values.")
 				break
 
 		for i in range(len(values)):
