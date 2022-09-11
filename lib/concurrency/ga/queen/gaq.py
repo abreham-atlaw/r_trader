@@ -17,17 +17,22 @@ from .requests import EvaluateRequest, GetResult, ResetRequest
 
 class GAQueen(GeneticAlgorithm, ABC):
 
-	def __init__(self, server_address, *args, sleep_time=5, timeout=12*60*60, default_value=0,  **kwargs):
+	def __init__(self, server_address, *args, sleep_time=5, timeout=12*60*60, default_value=None,  **kwargs):
 		super().__init__(*args, **kwargs)
 		self.__network_client = NetworkApiClient(os.path.join(server_address, "queen"))
 		self.__species_serializer = self._init_serializer()
 		self.__sleep_time = sleep_time
 		self.__timeout = timeout
-		self.__default_value = default_value
+		self.__default_value = None
 
 	@abstractmethod
 	def _init_serializer(self) -> Serializer:
 		pass
+
+	def __get_default_value(self) -> float:
+		if self.__default_value is None:
+			return -1*np.random.random()
+		return self.__default_value
 
 	def __collect_result(self, key: str) -> Optional[float]:
 		try:
@@ -49,7 +54,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 
 		for i in range(len(values)):
 			if values[i] is None or np.isnan(values[i]):
-				values[i] = self.__default_value
+				values[i] = self.__get_default_value()
 
 			time.sleep(self.__sleep_time)
 
