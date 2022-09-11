@@ -32,9 +32,9 @@ class CheckpointCallback(Callback):
 					species_serializer
 				)
 			)
-		self.__save_path = save_path
+		self._save_path = save_path
 		if save_path is None:
-			self.__save_path = os.path.abspath("population.ga")
+			self._save_path = os.path.abspath("population.ga")
 
 	def on_epoch_end(self, population: List[Species]):
-		self.__fileio.dumps(population, self.__save_path)
+		self.__fileio.dumps(population, self._save_path)
