@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import random
 import math
 
+from lib.utils.logger import Logger
 from .species import Species
 from .callbacks import Callback
 
@@ -70,9 +71,9 @@ class GeneticAlgorithm(ABC):
 	def _render(self, population):
 
 		for species in population:
-			print(species)
+			Logger.info(str(species))
 
-		print("\n"*2, "-"*100)
+		Logger.info("\n"*2,"-"*100)
 
 	def __get_initial_generation(self) -> List[Species]:
 		if self.__loaded_initial_generation is None:
@@ -109,7 +110,7 @@ class GeneticAlgorithm(ABC):
 		generation = self.__get_initial_generation()
 
 		for epoch in range(epochs):
-			print(f"Epoch: {epoch+1}/{epochs}\t\tPopulation Size: {len(generation)}")
+			Logger.info(f"Epoch: {epoch+1}/{epochs}\t\tPopulation Size: {len(generation)}")
 			generation = self._perform_epoch(generation, callbacks)
-		print("Done")
+		Logger.info("Done")
 		return generation
