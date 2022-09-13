@@ -6,7 +6,7 @@ import os
 import json
 
 from lib.utils.logger import Logger
-from .repository import DataRepository, PlainDataRepository
+from .repository import DataRepository, PlainDataRepository, Cache, HashMapCache
 
 
 class GAServer:
@@ -15,9 +15,13 @@ class GAServer:
 		self.__app = Flask(__name__)
 		self.__host, self.__port = host, port
 		self.__repository = self._init_repository()
+		self.__cache = self._init_cache()
 
 	def _init_repository(self) -> DataRepository:
 		return PlainDataRepository()
+
+	def _init_cache(self) -> Cache:
+		return HashMapCache()
 
 	def _map_urls(self) -> List[Tuple[str, List[Tuple[str, Callable, List[str]]]]]:
 
@@ -39,7 +43,11 @@ class GAServer:
 				self.__app.add_url_rule(os.path.join(bp_url, url), view_func=handler, methods=methods)
 
 	def __handle_new_evaluate_request(self):
-		self.__repository.add_to_request_queue(request.json["key"], request.json["species"])
+		cached = self.__cache.retrieve(request.json["key"])
+		if cached is not None:
+			self.__repository.set_response(request.json["key"], cached)
+		else:
+			self.__repository.add_to_request_queue(request.json["key"], request.json["species"])
 		Logger.info(f"Queue Size: {len(self.__repository)}")
 		return "", 200
 
@@ -47,6 +55,7 @@ class GAServer:
 		result = self.__repository.get_response(request.args.get("key"))
 		Logger.info(f"Queue Size: {len(self.__repository)}")
 		if result is not None:
+			self.__cache.store(request.args.get("key"), result)
 			return json.dumps(result)
 		return "", 404
 

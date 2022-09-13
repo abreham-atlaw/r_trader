@@ -1,6 +1,51 @@
 from typing import *
 from abc import ABC, abstractmethod
 
+import hashlib
+import gc
+
+
+class Cache(ABC):
+
+	def _prepare_key(self, key: str) -> Hashable:
+		return hashlib.md5(bytes(key, encoding="utf-8")).hexdigest()
+
+	def store(self, key: str, value: float):
+		self._store(self._prepare_key(key), value)
+
+	@abstractmethod
+	def _store(self, key: Hashable, value: float):
+		pass
+
+	def retrieve(self, key: str) -> Optional[float]:
+		return self._retrieve(self._prepare_key(key))
+
+	@abstractmethod
+	def _retrieve(self, key: Hashable):
+		pass
+
+	@abstractmethod
+	def clear(self):
+		pass
+
+
+
+class HashMapCache(Cache):
+
+	def __init__(self):
+		self.__cache = {}
+
+	def _store(self, key: Hashable, value: float):
+		self.__cache[key] = value
+
+	def _retrieve(self, key: Hashable) -> Optional[float]:
+		return self.__cache.get(key)
+
+	def clear(self):
+		self.__cache.clear()
+		gc.collect()
+
+
 
 class DataRepository(ABC, Sized):
 
