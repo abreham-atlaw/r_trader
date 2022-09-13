@@ -53,11 +53,12 @@ class GAQueen(GeneticAlgorithm, ABC):
 				Logger.info(f"Timeout. Complete: {len([value for value in values if value is not None])}/{len(values)}. Filling values.")
 				break
 
+			time.sleep(self.__sleep_time)
+
 		for i in range(len(values)):
 			if values[i] is None or np.isnan(values[i]):
 				values[i] = self.__get_default_value()
 
-			time.sleep(self.__sleep_time)
 
 		return values
 
