@@ -49,16 +49,16 @@ class GAQueen(GeneticAlgorithm, ABC):
 				if values[i] is None:
 					values[i] = self.__collect_result(key)
 
-			if (datetime.now() - start_datetime).seconds >= self.__timeout:
+			if (datetime.now() - start_datetime).total_seconds() >= self.__timeout:
 				Logger.info(f"Timeout. Complete: {len([value for value in values if value is not None])}/{len(values)}. Filling values.")
 				break
 
+			Logger.info(f"Time left: {self.__timeout - (datetime.now() - start_datetime).total_seconds()}s", end="\r")
 			time.sleep(self.__sleep_time)
 
 		for i in range(len(values)):
 			if values[i] is None or np.isnan(values[i]):
 				values[i] = self.__get_default_value()
-
 
 		return values
 
