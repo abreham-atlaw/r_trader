@@ -53,7 +53,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 				Logger.info(f"Timeout. Complete: {len([value for value in values if value is not None])}/{len(values)}. Filling values.")
 				break
 
-			Logger.info(f"Time left: {self.__timeout - (datetime.now() - start_datetime).total_seconds()}s", end="\r")
+			Logger.info(f"Time left: {self.__timeout - (datetime.now() - start_datetime).total_seconds(): .2f}s", end="\r")
 			time.sleep(self.__sleep_time)
 
 		for i in range(len(values)):
