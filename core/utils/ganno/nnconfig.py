@@ -92,7 +92,9 @@ class NNConfig(Species):
 		)
 
 	@staticmethod
-	def __get_random_mean(x0, x1) -> int:
+	def __get_random_mean(x0, x1, expand_bounds: bool = True) -> int:
+		if expand_bounds:
+			x0, x1 = (5*x0 - x1)/4, (5*x1 - x0)/4
 		w = random.random()
 		return round((x0*w) + ((1-w)*x1))
 
