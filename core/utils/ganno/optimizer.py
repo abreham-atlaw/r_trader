@@ -3,6 +3,7 @@ from typing import *
 from tensorflow import keras
 
 import random
+import math
 from dataclasses import dataclass
 
 from lib.ga import GeneticAlgorithm
@@ -98,33 +99,62 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 			self.__initial_population_config = NNInitialPopulationConfig()
 
 	@staticmethod
-	def __generate_random_int_list(range_config: ListRangeConfig) -> List[int]:
+	def __generate_random_int_list(range_config: ListRangeConfig, value_upper_bound: Optional[int] = None) -> List[int]:
+		if value_upper_bound is not None:
+			range_config = ListRangeConfig(
+				length_range=range_config.length_range,
+				values_range=(
+					range_config.values_range[0],
+					min(
+						range_config.values_range[1],
+						value_upper_bound
+					)
+				)
+			)
 		return [random.randint(*range_config.values_range) for _ in range(random.randint(*range_config.length_range))]
 
 	@staticmethod
-	def __generate_random_cnn_layers(depth_range, features_range, size_range, pooling_range) -> List[ConvPoolLayer]:
-		return [
-			ConvPoolLayer(
-				size=random.randint(*size_range),
-				features=random.randint(*features_range),
-				pool=random.randint(*pooling_range)
+	def __generate_random_cnn_layers(input_size, depth_range, features_range, size_range, pooling_range) -> List[ConvPoolLayer]:
+
+		remaining_size = input_size
+		layers = []
+		for _ in range(random.randint(*depth_range)):
+			if remaining_size <= size_range[0]+1:
+				break
+			size = random.randint(size_range[0], min(remaining_size, size_range[1]))
+			remaining_size -= (size - 1)
+			pool = random.randint(pooling_range[0], min(remaining_size-1, pooling_range[1]))
+			if pool != 0:
+				remaining_size = math.ceil(remaining_size/pool) - 1
+			layers.append(
+				ConvPoolLayer(
+					size=size,
+					features=random.randint(*features_range),
+					pool=pool
+				)
 			)
-			for _ in range(random.randint(*depth_range))
-		]
+
+		return layers
 
 	def __generate_random_model(self, seq_len, loss) -> ModelConfig:
+		mas_windows = self.__generate_random_int_list(self.__initial_population_config.moving_averages_range, value_upper_bound=seq_len-1)
+
 		return ModelConfig(
 			seq_len=seq_len,
 			ff_dense_layers=self.__generate_random_int_list(self.__initial_population_config.dnn_layer_range),
 			ff_conv_pool_layers=self.__generate_random_cnn_layers(
+				input_size=seq_len - (max(mas_windows)-1),
 				depth_range=self.__initial_population_config.conv_layer_depth_range,
 				size_range=self.__initial_population_config.conv_layer_size_range,
 				features_range=self.__initial_population_config.conv_layer_features_range,
 				pooling_range=self.__initial_population_config.conv_layer_pooling_range
 			),
 			stochastic_oscillators=self.__generate_random_int_list(self.__initial_population_config.stochastic_oscillators_range),
-			trend_lines=self.__generate_random_int_list(self.__initial_population_config.trend_lines_range),
-			mas_windows=self.__generate_random_int_list(self.__initial_population_config.moving_averages_range),
+			trend_lines=self.__generate_random_int_list(
+				self.__initial_population_config.trend_lines_range,
+				value_upper_bound=seq_len-1
+			),
+			mas_windows=mas_windows,
 			delta=random.choice((True, False)),
 			norm=random.choice((True, False)),
 			dense_activation=random.choice(self.__initial_population_config.dense_activations),
