@@ -7,7 +7,7 @@ from copy import deepcopy
 
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
-# from core import Config, pg_connection
+from core import Config
 from .trade_environment import TradeEnvironment
 
 
