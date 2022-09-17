@@ -37,6 +37,8 @@ class ModelConfig:
 		conv_out_size = self.seq_len - (max(self.mas_windows) - 1)
 		for conv in self.ff_conv_pool_layers:
 			conv_out_size -= (conv.size - 1)
+			if conv_out_size <= 0:
+				break
 			if conv.pool != 0:
 				conv_out_size = math.ceil(conv_out_size/conv.pool) - 1
 
@@ -47,6 +49,9 @@ class ModelConfig:
 			return False
 
 		if True in [units <= 0 for units in self.ff_dense_layers]:
+			return False
+
+		if True in [layer.features <= 0 or layer.size <= 0 for layer in self.ff_conv_pool_layers]:
 			return False
 
 		return True
@@ -112,6 +117,14 @@ class NNConfig(Species):
 				larger_genes = self_value
 				if len(spouse_value) > len(self_value):
 					larger_genes = spouse_value
+				if len(larger_genes) < length:
+					larger_genes.extend([
+						NNConfig.__select_gene(
+							random.choice(self_value),
+							random.choice(spouse_value)
+						)
+						for i in range(length - len(larger_genes))
+					])
 				new_value.extend(larger_genes[len(new_value): length])
 			return new_value
 
