@@ -30,18 +30,18 @@ class NNInitialPopulationConfig:
 		values_range=(16, 2048)
 	)
 
-	conv_layer_depth_range: Tuple[int, int] = (2, 6)
+	conv_layer_depth_range: Tuple[int, int] = (2, 4)
 	conv_layer_features_range: Tuple[int, int] = (16, 256)
-	conv_layer_size_range: Tuple[int, int] = (2, 64)
-	conv_layer_pooling_range: Tuple[int, int] = (0, 16)
+	conv_layer_size_range: Tuple[int, int] = (2, 16)
+	conv_layer_pooling_range: Tuple[int, int] = (0, 4)
 
 	stochastic_oscillators_range: ListRangeConfig = ListRangeConfig(
 		length_range=(1, 16),
 		values_range=(5, 128)
 	)
 	trend_lines_range: ListRangeConfig = ListRangeConfig(
-		length_range=(1, 16),
-		values_range=(5, 256)
+		length_range=(1, 4),
+		values_range=(5, 64)
 	)
 	moving_averages_range: ListRangeConfig = ListRangeConfig(
 		length_range=(1, 10),
