@@ -100,9 +100,11 @@ class NNConfig(Species):
 		)
 
 	@staticmethod
-	def __get_random_mean(x0, x1, expand_bounds: bool = True) -> int:
+	def __get_random_mean(x0, x1, expand_bounds: bool = True, non_negative=True) -> int:
 		if expand_bounds:
 			x0, x1 = (5*x0 - x1)/4, (5*x1 - x0)/4
+		if non_negative:
+			x0, x1 = max(x0, 0), max(x1, 0)
 		w = random.random()
 		return round((x0*w) + ((1-w)*x1))
 
@@ -113,7 +115,7 @@ class NNConfig(Species):
 			swap_size = min(len(self_value), len(spouse_value))
 			new_value = [NNConfig.__select_gene(self_value[i], spouse_value[i]) for i in range(swap_size)]
 			length = NNConfig.__get_random_mean(len(self_value), len(spouse_value))
-			if length > len(new_value):
+			if length > len(new_value) and max(len(self_value), len(spouse_value)) != 0:
 				larger_genes = self_value
 				if len(spouse_value) > len(self_value):
 					larger_genes = spouse_value
@@ -123,6 +125,8 @@ class NNConfig(Species):
 							random.choice(self_value),
 							random.choice(spouse_value)
 						)
+						if swap_size != 0
+						else random.choice(larger_genes)
 						for i in range(length - len(larger_genes))
 					])
 				new_value.extend(larger_genes[len(new_value): length])
