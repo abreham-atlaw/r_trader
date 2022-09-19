@@ -32,8 +32,8 @@ class SignFilter(Layer):
 
 class Delta(Layer):
 
-	def __init__(self, name="delta", **kwargs):
-		super(Delta, self).__init__(name=name, **kwargs)
+	def __init__(self, **kwargs):
+		super(Delta, self).__init__( **kwargs)
 
 	def call(self, inputs: tf.Tensor, **kwargs):
 		return inputs[:, 1:] - inputs[:, :-1]
@@ -138,8 +138,8 @@ class OverlaysCombiner(Layer):
 
 class MovingAverage(OverlayIndicator):
 
-	def __init__(self, *args, name="moving_average", **kwargs):
-		super(MovingAverage, self).__init__(*args, name=name, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super(MovingAverage, self).__init__(*args, **kwargs)
 
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		return tf.reduce_mean(inputs, axis=1)
@@ -172,8 +172,8 @@ class ExponentialMovingAverage(Layer):
 
 class MovingStandardDeviation(OverlayIndicator):
 
-	def __init__(self, *args, name="moving_standard_deviation", **kwargs):
-		super(MovingStandardDeviation, self).__init__(*args, name=name, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super(MovingStandardDeviation, self).__init__(*args, **kwargs)
 
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		return tf.sqrt(
@@ -189,8 +189,8 @@ class MovingStandardDeviation(OverlayIndicator):
 
 class WilliamsPercentageRange(OverlayIndicator):
 
-	def __init__(self, *args, name="wpr", **kwargs):
-		super().__init__(*args, name=name, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		highest = tf.reduce_max(inputs, axis=1)
@@ -200,8 +200,8 @@ class WilliamsPercentageRange(OverlayIndicator):
 
 class StochasticOscillator(OverlayIndicator):
 
-	def __init__(self, *args, name="stochastic_oscillator", **kwargs):
-		super().__init__(*args, name=name, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		highest = tf.reduce_max(inputs, axis=1)
@@ -212,8 +212,8 @@ class StochasticOscillator(OverlayIndicator):
 
 class RelativeStrengthIndex(OverlayIndicator):
 
-	def __init__(self, *args, name="rsi", **kwargs):
-		super().__init__(*args, name=name, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.__delta = Delta()
 		self.__gain_filter = SignFilter(1)
 		self.__loss_filter = SignFilter(-1)
@@ -233,8 +233,8 @@ class RelativeStrengthIndex(OverlayIndicator):
 
 class TrendLine(Layer):
 
-	def __init__(self, size: int, *args, name="trend_line", **kwargs):
-		super().__init__(*args, name=name, **kwargs)
+	def __init__(self, size: int, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.__size = size
 
 	def call(self, inputs, *args, **kwargs):
