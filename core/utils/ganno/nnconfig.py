@@ -25,8 +25,11 @@ class ModelConfig:
 	delta: bool
 	norm: bool
 	stochastic_oscillators: List[int]
-	trend_lines: List[int]
+	rsi: List[int]
+	wpr: List[int]
 	mas_windows: List[int]
+	msd_windows: List[int]
+	trend_lines: List[int]
 	dense_activation: Callable
 	conv_activation: Callable
 	loss: Callable

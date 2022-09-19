@@ -40,7 +40,7 @@ class ModelConfigSerializer(Serializer):
 		return json
 
 	def deserialize(self, json_: Dict) -> ModelConfig:
-		config = ModelConfig(*[None for _ in range(12)])
+		config = ModelConfig(*[None for _ in range(15)])
 		config.__dict__ = json_.copy()
 		config.ff_conv_pool_layers = [
 			self.__conv_serializer.deserialize(layer)

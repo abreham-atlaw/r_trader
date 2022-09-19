@@ -35,16 +35,13 @@ class NNInitialPopulationConfig:
 	conv_layer_size_range: Tuple[int, int] = (2, 16)
 	conv_layer_pooling_range: Tuple[int, int] = (0, 4)
 
-	stochastic_oscillators_range: ListRangeConfig = ListRangeConfig(
-		length_range=(1, 16),
-		values_range=(5, 128)
-	)
-	trend_lines_range: ListRangeConfig = ListRangeConfig(
-		length_range=(1, 4),
+	overlay_indicators_range: ListRangeConfig = ListRangeConfig(
+		length_range=(1, 5),
 		values_range=(5, 64)
 	)
-	moving_averages_range: ListRangeConfig = ListRangeConfig(
-		length_range=(1, 10),
+
+	trend_lines_range: ListRangeConfig = ListRangeConfig(
+		length_range=(1, 4),
 		values_range=(5, 64)
 	)
 
@@ -137,24 +134,36 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 		return layers
 
 	def __generate_random_model(self, seq_len, loss) -> ModelConfig:
-		mas_windows = self.__generate_random_int_list(self.__initial_population_config.moving_averages_range, value_upper_bound=seq_len-1)
+
+		overlays = {
+			name: self.__generate_random_int_list(
+				self.__initial_population_config.overlay_indicators_range,
+				value_upper_bound=seq_len-1
+			)
+			for name in ["so", "rsi", "wpr", "ma", "msd"]
+		}
+
+		max_overlay = max([max(values) for values in overlays.values()])
 
 		return ModelConfig(
 			seq_len=seq_len,
 			ff_dense_layers=self.__generate_random_int_list(self.__initial_population_config.dnn_layer_range),
 			ff_conv_pool_layers=self.__generate_random_cnn_layers(
-				input_size=seq_len - (max(mas_windows)-1),
+				input_size=seq_len - (max_overlay-1),
 				depth_range=self.__initial_population_config.conv_layer_depth_range,
 				size_range=self.__initial_population_config.conv_layer_size_range,
 				features_range=self.__initial_population_config.conv_layer_features_range,
 				pooling_range=self.__initial_population_config.conv_layer_pooling_range
 			),
-			stochastic_oscillators=self.__generate_random_int_list(self.__initial_population_config.stochastic_oscillators_range),
+			stochastic_oscillators=overlays["so"],
+			rsi=overlays["rsi"],
+			wpr=overlays["wpr"],
+			mas_windows=overlays["ma"],
+			msd_windows=overlays["msd"],
 			trend_lines=self.__generate_random_int_list(
 				self.__initial_population_config.trend_lines_range,
 				value_upper_bound=seq_len-1
 			),
-			mas_windows=mas_windows,
 			delta=random.choice((True, False)),
 			norm=random.choice((True, False)),
 			dense_activation=random.choice(self.__initial_population_config.dense_activations),
