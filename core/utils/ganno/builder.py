@@ -1,14 +1,14 @@
 from typing import *
 from abc import ABC, abstractmethod
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten
 from tensorflow.keras.activations import sigmoid
 
 from lib.utils.logger import Logger
-from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, MultipleMovingAverages, TrendLine
+from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, TrendLine, OverlayIndicator,\
+	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner
 from .nnconfig import ModelConfig, ConvPoolLayer
 
 
@@ -40,6 +40,16 @@ class ModelBuilder(ABC):
 				layer = MaxPooling1D(pool_size=config.pool)(layer)
 		return layer
 
+	@staticmethod
+	def __create_overlays(cls: Type, args: List[Tuple], inputs: Layer) -> List[OverlayIndicator]:
+		if not isinstance(args[0], tuple):
+			args = [(arg,) for arg in args]
+
+		return [
+			cls(*arg)(inputs)
+			for arg in args
+		]
+
 	@abstractmethod
 	def _get_input_shape(self, seq_len: int) -> int:
 		pass
@@ -60,15 +70,20 @@ class ModelBuilder(ABC):
 		if config.norm:
 			prep_layer = Norm()(prep_layer)
 
-		mas = MultipleMovingAverages(config.mas_windows)(prep_layer)
+		overlays = [prep_layer]
+		for cls, args in [
+			(StochasticOscillator, config.stochastic_oscillators),
+			(RelativeStrengthIndex, config.rsi),
+			(WilliamsPercentageRange, config.wpr),
+			(MovingAverage, config.mas_windows),
+			(MovingStandardDeviation, config.msd_windows)
+		]:
+			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
-		ff_conv = self._add_ff_conv_layers(mas, config.ff_conv_pool_layers, config.conv_activation)
+		combined = OverlaysCombiner()(overlays)
 
-		sos = self.__concat_layers(
-			input_sequence,
-			StochasticOscillator,
-			[(arg,) for arg in config.stochastic_oscillators]
-		)
+		ff_conv = self._add_ff_conv_layers(combined, config.ff_conv_pool_layers, config.conv_activation)
+
 		trend_lines = self.__concat_layers(
 			input_sequence,
 			TrendLine,
@@ -77,7 +92,6 @@ class ModelBuilder(ABC):
 
 		flatten = Concatenate(axis=1)((
 			Flatten()(ff_conv),
-			sos,
 			trend_lines,
 			extra_input
 		))
