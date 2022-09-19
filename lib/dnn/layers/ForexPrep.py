@@ -1,8 +1,33 @@
 from typing import *
+from abc import abstractmethod, ABC
 
 import tensorflow as tf
 
 from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
+
+
+class Sign(Layer):
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+	def call(self, inputs, *args, **kwargs):
+		return tf.math.divide_no_nan(inputs, tf.abs(inputs))
+
+
+class SignFilter(Layer):
+
+	def __init__(self, sign, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__sign = sign
+		self.__sign_layer = Sign()
+
+	def call(self, inputs, *args, **kwargs):
+		return tf.abs(
+			tf.round(
+				(self.__sign_layer(inputs) + self.__sign)/2
+			)
+		)*inputs
 
 
 class Delta(Layer):
@@ -33,7 +58,6 @@ class Norm(Layer):
 	def call(self, inputs, **kwargs):
 		min_ = tf.reduce_min(inputs, axis=1)
 		return (inputs - tf.reshape(min_, (-1, 1))) / tf.reshape(tf.reduce_max(inputs, axis=1) - min_, (-1, 1))
-		# return (inputs - tf.reduce_min(inputs, axis=1))/tf.reshape(tf.reduce_max([tf.reduce_max(inputs, axis=1), tf.abs(tf.reduce_min(inputs, axis=1))], axis=0), (-1, 1, 1))
 
 
 class UnNorm(Layer):
@@ -59,28 +83,66 @@ class UnNorm(Layer):
 		return (norm * (max_ - min_)) + (min_*self.min_increment)
 
 
-class MovingAverage(Layer):
+class OverlayIndicator(Layer, ABC):
 
-	def __init__(self, average_gap, name="moving_average", **kwargs):
-		self.average_gap = average_gap
-		super(MovingAverage, self).__init__(name=name, **kwargs)
+	def __init__(self, window_size: int, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__window_size = window_size
+
+	@abstractmethod
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
+		pass
 
 	@tf.function
-	def calc_moving_average(self, inputs):
+	def call(self, inputs, *args, **kwargs):
 		output = []
-		for i in range(inputs.shape[1]-self.average_gap+1):
+		for i in range(inputs.shape[1] - self.__window_size+1):
 			output.append(
-				tf.reduce_mean(inputs[:, i: self.average_gap+i], axis=1)
+				self._on_time_point(inputs[:, i:self.__window_size+i])
 			)
 		return tf.stack(output, axis=1)
 
-	def call(self, inputs, **kwargs):
-		return self.calc_moving_average(inputs)
-
 	def get_config(self):
 		return {
-			"average_gap": self.average_gap
+			"window_size": self.__window_size
 		}
+
+
+class MultipleMovingAverages(Layer):
+
+	def __init__(self, sizes: List[int], *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__out_size_decrement = max(sizes) - 1
+		self.__mas = [MovingAverage(size) for size in sizes]
+
+	def call(self, inputs, *args, **kwargs):
+		out_size = inputs.shape[1] - self.__out_size_decrement
+		return tf.stack([
+			ma(inputs)[:, -out_size:]
+			for ma in self.__mas
+		], axis=2)
+
+
+class OverlaysCombiner(Layer):
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+	def call(self, inputs, *args, **kwargs):
+		out_size = min([overlay.shape[1] for overlay in inputs])
+		return tf.stack([
+			overlay[:, -out_size:]
+			for overlay in inputs
+		], axis=2)
+
+
+class MovingAverage(OverlayIndicator):
+
+	def __init__(self, *args, name="moving_average", **kwargs):
+		super(MovingAverage, self).__init__(*args, name=name, **kwargs)
+
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
+		return tf.reduce_mean(inputs, axis=1)
 
 
 class ExponentialMovingAverage(Layer):
@@ -108,13 +170,12 @@ class ExponentialMovingAverage(Layer):
 		}
 
 
-class MovingStandardDeviation(Layer):
+class MovingStandardDeviation(OverlayIndicator):
 
-	def __init__(self, window_size, name="moving_standard_deviation", **kwargs):
-		self.window_size = window_size
-		super(MovingStandardDeviation, self).__init__(name=name, **kwargs)
+	def __init__(self, *args, name="moving_standard_deviation", **kwargs):
+		super(MovingStandardDeviation, self).__init__(*args, name=name, **kwargs)
 
-	def sd(self, inputs):
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		return tf.sqrt(
 			tf.reduce_sum(
 				tf.pow(
@@ -125,61 +186,55 @@ class MovingStandardDeviation(Layer):
 			)
 		)
 
-	@tf.function
-	def calc_moving_sd(self, inputs):
-		output = []
-		for i in range(inputs.shape[1] - self.window_size+1):
-			output.append(
-				self.sd(inputs[:, i: self.window_size+i])
-			)
-		return tf.stack(output, axis=1)
 
-	def call(self, inputs, *args, **kwargs):
-		return self.calc_moving_sd(inputs)
+class WilliamsPercentageRange(OverlayIndicator):
 
-	def get_config(self):
-		return {
-			"window_size": self.window_size
-		}
+	def __init__(self, *args, name="wpr", **kwargs):
+		super().__init__(*args, name=name, **kwargs)
 
-
-class WilliamsPercentageRange(Layer):
-
-	def __init__(self, size: int, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.__size = size
-
-	def call(self, inputs, *args, **kwargs):
-		inputs = inputs[:, -self.__size:]
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		highest = tf.reduce_max(inputs, axis=1)
 		lowest = tf.reduce_min(inputs, axis=1)
-		return tf.expand_dims(
-			(inputs[:, 0] - highest)*100/(highest - lowest),
-			axis=1
-		)
+		return (inputs[:, 0] - highest) * 100 / (highest - lowest)
 
 
-class StochasticOscillator(Layer):
+class StochasticOscillator(OverlayIndicator):
 
-	def __init__(self, size: int, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.__size = size
+	def __init__(self, *args, name="stochastic_oscillator", **kwargs):
+		super().__init__(*args, name=name, **kwargs)
 
-	def call(self, inputs, *args, **kwargs):
-		inputs = inputs[:, -self.__size:]
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		highest = tf.reduce_max(inputs, axis=1)
 		lowest = tf.reduce_min(inputs, axis=1)
 		close = inputs[:, 0]
-		return tf.expand_dims(
-			(close - lowest)*100/(highest - lowest),
+		return (close - lowest) * 100 / (highest - lowest)
+
+
+class RelativeStrengthIndex(OverlayIndicator):
+
+	def __init__(self, *args, name="rsi", **kwargs):
+		super().__init__(*args, name=name, **kwargs)
+		self.__delta = Delta()
+		self.__gain_filter = SignFilter(1)
+		self.__loss_filter = SignFilter(-1)
+
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
+		percentage = tf.math.divide_no_nan(self.__delta(inputs), inputs[:, :-1])
+		average_gain = tf.reduce_mean(
+			self.__gain_filter(percentage),
 			axis=1
 		)
+		average_loss = tf.reduce_mean(
+			self.__loss_filter(percentage),
+			axis=1
+		)
+		return 1 - (1 / (1 + (average_gain / average_loss)))
 
 
 class TrendLine(Layer):
 
-	def __init__(self, size: int, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+	def __init__(self, size: int, *args, name="trend_line", **kwargs):
+		super().__init__(*args, name=name, **kwargs)
 		self.__size = size
 
 	def call(self, inputs, *args, **kwargs):
@@ -187,21 +242,6 @@ class TrendLine(Layer):
 			(inputs[:, 0] - inputs[:, -self.__size])/self.__size,
 			axis=1
 		)
-
-
-class MultipleMovingAverages(Layer):
-
-	def __init__(self, sizes: List[int], *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.__out_size_decrement = max(sizes) - 1
-		self.__mas = [MovingAverage(size) for size in sizes]
-
-	def call(self, inputs, *args, **kwargs):
-		out_size = inputs.shape[1] - self.__out_size_decrement
-		return tf.stack([
-			ma(inputs)[:, -out_size:]
-			for ma in self.__mas
-		], axis=2)
 
 
 class ForexPrep(Layer):
