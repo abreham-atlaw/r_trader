@@ -89,7 +89,7 @@ class NNConfig(Species):
 
 		if isinstance(gene, List):
 			if len(gene) == 0:
-				return  # TODO
+				return gene # TODO
 			for _ in range(random.randint(0, len(gene))):
 				index = random.randint(0, len(gene) - 1)
 				gene[index] = NNConfig.__mutate_gene(gene[index])
