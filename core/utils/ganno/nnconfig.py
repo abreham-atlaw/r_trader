@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from tensorflow import keras
 
-from lib.ga import Species
+from lib.ga.species import Species, ClassDictSpecies
 
 
 @dataclass
@@ -60,7 +60,7 @@ class ModelConfig:
 		return True
 
 
-class NNConfig(Species):
+class NNConfig(ClassDictSpecies):
 
 	CUSTOM_GENE_CLASSES = [
 		ModelConfig,
@@ -68,121 +68,22 @@ class NNConfig(Species):
 	]
 
 	def __init__(self, core_config: ModelConfig, delta_config: ModelConfig):
+		super().__init__()
 		self.core_config = core_config
 		self.delta_config = delta_config
 
-	@staticmethod
-	def __get_random_neighbor(x: int) -> int:
-		return round((random.random() + 0.5)*x)
-
-	@staticmethod
-	def __get_random_mean(x0, x1, expand_bounds: bool = True, non_negative=True) -> int:
-		if expand_bounds:
-			x0, x1 = (5*x0 - x1)/4, (5*x1 - x0)/4
-		if non_negative:
-			x0, x1 = max(x0, 0), max(x1, 0)
-		w = random.random()
-		return round((x0*w) + ((1-w)*x1))
-
-	@staticmethod
-	def __mutate_gene(gene: Any) -> Any:
-
-		if isinstance(gene, List):
-			if len(gene) == 0:
-				return gene # TODO
-			for _ in range(random.randint(0, len(gene))):
-				index = random.randint(0, len(gene) - 1)
-				gene[index] = NNConfig.__mutate_gene(gene[index])
-			return gene
-
-		if isinstance(gene, int):
-			return NNConfig.__get_random_neighbor(gene)
-
-		if isinstance(gene, bool):
-			return random.choice([True, False])
-
-		if isinstance(gene, tuple(NNConfig.CUSTOM_GENE_CLASSES)):
-
-			for _ in range(random.randint(1, len(gene.__dict__))):
-				key = random.choice(list(gene.__dict__.keys()))
-				gene.__dict__[key] = NNConfig.__mutate_gene(gene.__dict__[key])
-			return gene
-
-		return gene  # TODO: CREATE A LIST OF EQUIVALENT GENES
-
-	@staticmethod
-	def __select_gene(self_value, spouse_value):
-
-		if isinstance(self_value, List):
-			swap_size = min(len(self_value), len(spouse_value))
-			new_value = [NNConfig.__select_gene(self_value[i], spouse_value[i]) for i in range(swap_size)]
-			length = NNConfig.__get_random_mean(len(self_value), len(spouse_value))
-			if length > len(new_value) and max(len(self_value), len(spouse_value)) != 0:
-				larger_genes = self_value
-				if len(spouse_value) > len(self_value):
-					larger_genes = spouse_value
-				if len(larger_genes) < length:
-					larger_genes.extend([
-						NNConfig.__select_gene(
-							random.choice(self_value),
-							random.choice(spouse_value)
-						)
-						if swap_size != 0
-						else random.choice(larger_genes)
-						for i in range(length - len(larger_genes))
-					])
-				new_value.extend(larger_genes[len(new_value): length])
-			return new_value
-
-		if isinstance(self_value, int) and not isinstance(self_value, bool):
-			return NNConfig.__get_random_mean(self_value, spouse_value)
-
-		if isinstance(self_value, tuple(NNConfig.CUSTOM_GENE_CLASSES)):
-			return self_value.__class__(**{
-				key: NNConfig.__select_gene(self_value.__dict__[key], spouse_value.__dict__[key])
-				for key in self_value.__dict__.keys()
-			})
-
-		return random.choice((self_value, spouse_value))
-
-	@staticmethod
-	def __generate_offspring_model_config(
-			self_config: ModelConfig,
-			spouse_config: ModelConfig,
-			seq_len: int
-	) -> ModelConfig:
-
-		config: ModelConfig = NNConfig.__select_gene(self_config, spouse_config)
-		config.seq_len = seq_len
-
-		return config
-
-	def __generate_offspring(self, spouse: 'NNConfig') -> 'NNConfig':
-		seq_len = random.choice((spouse.core_config.seq_len, self.core_config.seq_len))
-		return NNConfig(
-			self.__generate_offspring_model_config(
-				self.core_config,
-				spouse.core_config,
-				seq_len
-			),
-			self.__generate_offspring_model_config(
-				self.delta_config,
-				spouse.core_config,
-				seq_len
-			)
-		)
+	def _get_gene_classes(self):
+		return NNConfig.CUSTOM_GENE_CLASSES
 
 	def mutate(self, *args, **kwargs):
-		self.core_config, self.delta_config = self.__mutate_gene(self.core_config), self.__mutate_gene(self.delta_config)
+		super().mutate(*args, **kwargs)
 		self.core_config.seq_len = self.delta_config.seq_len = random.choice([self.core_config.seq_len, self.delta_config.seq_len])
 
-	def reproduce(self, spouse: 'NNConfig', preferred_offsprings: int) -> List['NNConfig']:
-		offsprings = []
-		while len(offsprings) < preferred_offsprings:
-			offspring = self.__generate_offspring(spouse)
+	def _generate_offspring(self, spouse) -> 'NNConfig':
+		while True:
+			offspring: NNConfig = super()._generate_offspring(spouse)
 			if offspring.validate():
-				offsprings.append(offspring)
-		return offsprings
+				return offspring
 
 	def validate(self) -> bool:
 		return self.core_config.validate() and self.delta_config.validate()
