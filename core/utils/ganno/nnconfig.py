@@ -71,36 +71,9 @@ class NNConfig(Species):
 		self.core_config = core_config
 		self.delta_config = delta_config
 
-	def __mutate_seq_len(self):
-		change_range = math.ceil(self.core_config.seq_len / 10)
-		seq_len = self.core_config.seq_len + random.randint(-change_range, change_range)
-		self.core_config.seq_len = self.delta_config.seq_len = seq_len
-
 	@staticmethod
-	def __mutate_individual_ff_dense_layers(layers: List[int]):
-		index = random.randint(0, len(layers)-1)
-		layers[index] *= math.ceil(random.randint(5, 15) / 10)
-
-	@staticmethod
-	def __mutate__individual_ff_conv_pool_layers(layers: List[ConvPoolLayer]):
-		index = random.randint(0, len(layers)-1)
-		layer = layers[index]
-		layer.size *= math.ceil(random.randint(5, 15) / 10)
-
-		pool_change_range = math.ceil(layer.pool / 5)
-		layer.pool += random.randint(-pool_change_range, pool_change_range)
-
-		layer.features *= math.ceil(random.randint(5, 15) / 10)
-
-	def __mutate_ff_dense_layers(self):
-		self.__mutate_individual_ff_dense_layers(
-			random.choice([self.core_config, self.delta_config]).ff_dense_layers
-		)
-
-	def __mutate_ff_conv_layers(self):
-		self.__mutate__individual_ff_conv_pool_layers(
-			random.choice([self.core_config, self.delta_config]).ff_conv_pool_layers
-		)
+	def __get_random_neighbor(x: int) -> int:
+		return round((random.random() + 0.5)*x)
 
 	@staticmethod
 	def __get_random_mean(x0, x1, expand_bounds: bool = True, non_negative=True) -> int:
@@ -110,6 +83,32 @@ class NNConfig(Species):
 			x0, x1 = max(x0, 0), max(x1, 0)
 		w = random.random()
 		return round((x0*w) + ((1-w)*x1))
+
+	@staticmethod
+	def __mutate_gene(gene: Any) -> Any:
+
+		if isinstance(gene, List):
+			if len(gene) == 0:
+				return  # TODO
+			for _ in range(random.randint(0, len(gene))):
+				index = random.randint(0, len(gene) - 1)
+				gene[index] = NNConfig.__mutate_gene(gene[index])
+			return gene
+
+		if isinstance(gene, int):
+			return NNConfig.__get_random_neighbor(gene)
+
+		if isinstance(gene, bool):
+			return random.choice([True, False])
+
+		if isinstance(gene, tuple(NNConfig.CUSTOM_GENE_CLASSES)):
+
+			for _ in range(random.randint(1, len(gene.__dict__))):
+				key = random.choice(list(gene.__dict__.keys()))
+				gene.__dict__[key] = NNConfig.__mutate_gene(gene.__dict__[key])
+			return gene
+
+		return gene  # TODO: CREATE A LIST OF EQUIVALENT GENES
 
 	@staticmethod
 	def __select_gene(self_value, spouse_value):
@@ -174,9 +173,8 @@ class NNConfig(Species):
 		)
 
 	def mutate(self, *args, **kwargs):
-		random.choice(
-			[self.__mutate_seq_len, self.__mutate_ff_conv_layers, self.__mutate_ff_dense_layers]
-		)()
+		self.core_config, self.delta_config = self.__mutate_gene(self.core_config), self.__mutate_gene(self.delta_config)
+		self.core_config.seq_len = self.delta_config.seq_len = random.choice([self.core_config.seq_len, self.delta_config.seq_len])
 
 	def reproduce(self, spouse: 'NNConfig', preferred_offsprings: int) -> List['NNConfig']:
 		offsprings = []
