@@ -57,7 +57,7 @@ class ModelBuilder(ABC):
 	def _compile(self, model: Model, optimizer: keras.optimizers.Optimizer, loss: Callable):
 		model.compile(optimizer=optimizer, loss=loss)
 
-	def build(self, config: ModelConfig) -> Model:
+	def _build(self, config: ModelConfig) -> Model:
 		Logger.info("[+]Building", config)
 		input_layer = Input(shape=self._get_input_shape(config.seq_len))
 
@@ -118,6 +118,12 @@ class ModelBuilder(ABC):
 
 		return model
 
+	def build(self, config: ModelConfig) -> Model:
+		try:
+			return self._build(config)
+		except Exception as ex:
+			raise BuildException(str(ex))
+
 
 class CoreBuilder(ModelBuilder):
 
@@ -138,3 +144,7 @@ class DeltaBuilder(ModelBuilder):
 
 	def _get_input_shape(self, seq_len: int) -> int:
 		return seq_len + 2
+
+
+class BuildException(Exception):
+	pass
