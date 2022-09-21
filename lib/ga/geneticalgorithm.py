@@ -73,13 +73,14 @@ class GeneticAlgorithm(ABC):
 
 		population_values = [self._evaluate_species(species) for species in population]
 
-		Logger.info(f"Population Average Value: {sum(population_values)/len(population)}", end="\n\n")
+		log = f"\n\nPopulation Average Value: {sum(population_values)/len(population)}\n\n"
 
 		for species, value in zip(population, population_values):
-			Logger.info(str(species))
-			Logger.info(f"Value: {value}")
+			log += str(species) + f"\nValue: {value}"
 
-		Logger.info("\n"*2, "-"*100)
+		log += "\n"*2 + "-"*100
+
+		Logger.info(log)
 
 	def __get_initial_generation(self) -> List[Species]:
 		if self.__loaded_initial_generation is None:
