@@ -12,6 +12,7 @@ from requests.exceptions import HTTPError
 from lib.utils.logger import Logger
 from lib.ga import GeneticAlgorithm, Species
 from lib.network.rest_interface import Serializer, NetworkApiClient
+from lib.utils.tuplemap import TupleMap
 from .requests import EvaluateRequest, GetResult, ResetRequest
 
 
@@ -24,6 +25,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 		self.__sleep_time = sleep_time
 		self.__timeout = timeout
 		self.__default_value = None
+		self.__values_map = TupleMap()
 
 	@abstractmethod
 	def _init_serializer(self) -> Serializer:
@@ -71,6 +73,16 @@ class GAQueen(GeneticAlgorithm, ABC):
 				)
 			)
 
+	def __remote_evaluate(self, population: List[Species]) -> List[float]:
+		keys = [self._generate_key(species, i) for i, species in enumerate(population)]
+		self.__create_requests(keys, population)
+		return self.__collect_results(keys)
+
+	def __store_values(self, population, values):
+		self.__values_map.clear()
+		for instance, value in zip(population, values):
+			self.__values_map.store(instance, value)
+
 	def _generate_key(self, species: Species, index: int) -> str:
 		return hashlib.md5(
 			bytes(
@@ -80,11 +92,8 @@ class GAQueen(GeneticAlgorithm, ABC):
 		).hexdigest()
 
 	def _filter_generation(self, population: List[Species], target_size: int) -> List[Species]:
-		Logger.info(f"Filtering Population Size: {len(population)} => {target_size}")
-		keys = [self._generate_key(species, i) for i, species in enumerate(population)]
-		self.__create_requests(keys, population)
-		values = self.__collect_results(keys)
-		return sorted(population, key=lambda species: values[population.index(species)], reverse=True)[:target_size]
+		self.__store_values(population, self.__remote_evaluate(population))
+		return super()._filter_generation(population, target_size)
 
 	def _perform_epoch(self, *args, **kwargs) -> List[Species]:
 		self.__network_client.execute(
@@ -93,4 +102,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 		return super()._perform_epoch(*args, **kwargs)
 
 	def _evaluate_species(self, species: Species) -> float:
-		pass
+		value = self.__values_map.retrieve(species)
+		if value is None:
+			raise ValueError("Value not evaluated.")
+		return value

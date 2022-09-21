@@ -82,6 +82,7 @@ class NNConfig(ClassDictSpecies):
 	def _generate_offspring(self, spouse) -> 'NNConfig':
 		while True:
 			offspring: NNConfig = super()._generate_offspring(spouse)
+			offspring.core_config.seq_len = offspring.delta_config.seq_len = random.choice(([offspring.core_config.seq_len, offspring.delta_config.seq_len]))
 			if offspring.validate():
 				return offspring
 

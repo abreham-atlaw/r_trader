@@ -37,6 +37,7 @@ class GeneticAlgorithm(ABC):
 		return random.choice(population)
 
 	def _filter_generation(self, population: List[Species], target_size: int) -> List[Species]:
+		Logger.info(f"Filtering Population Size: {len(population)} => {target_size}")
 		return sorted(population, key=lambda species: self._evaluate_species(species), reverse=True)[:target_size]
 
 	def _mutate_population(self, population: List[Species]):
@@ -70,10 +71,15 @@ class GeneticAlgorithm(ABC):
 
 	def _render(self, population):
 
-		for species in population:
-			Logger.info(str(species))
+		population_values = [self._evaluate_species(species) for species in population]
 
-		Logger.info("\n"*2,"-"*100)
+		Logger.info(f"Population Average Value: {sum(population_values)/len(population)}", end="\n\n")
+
+		for species, value in zip(population, population_values):
+			Logger.info(str(species))
+			Logger.info(f"Value: {value}")
+
+		Logger.info("\n"*2, "-"*100)
 
 	def __get_initial_generation(self) -> List[Species]:
 		if self.__loaded_initial_generation is None:
