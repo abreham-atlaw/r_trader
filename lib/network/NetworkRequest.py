@@ -1,4 +1,4 @@
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ConnectionError
 
 from core import Config
 from lib.utils.logger import Logger
