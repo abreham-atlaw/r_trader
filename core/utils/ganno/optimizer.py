@@ -116,7 +116,7 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 		remaining_size = input_size
 		layers = []
 		for _ in range(random.randint(*depth_range)):
-			if remaining_size <= size_range[0]+1:
+			if remaining_size <= size_range[0]:
 				break
 			size = random.randint(size_range[0], min(remaining_size, size_range[1]))
 			remaining_size -= (size - 1)
@@ -144,12 +144,17 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 		}
 
 		max_overlay = max([max(values) for values in overlays.values()])
+		delta = random.choice((True, False)),
+
+		conv_input_size = seq_len - (max_overlay - 1)
+		if delta:
+			conv_input_size -= 1
 
 		return ModelConfig(
 			seq_len=seq_len,
 			ff_dense_layers=self.__generate_random_int_list(self.__initial_population_config.dnn_layer_range),
 			ff_conv_pool_layers=self.__generate_random_cnn_layers(
-				input_size=seq_len - (max_overlay-1),
+				input_size=conv_input_size,
 				depth_range=self.__initial_population_config.conv_layer_depth_range,
 				size_range=self.__initial_population_config.conv_layer_size_range,
 				features_range=self.__initial_population_config.conv_layer_features_range,

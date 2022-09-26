@@ -37,7 +37,15 @@ class ModelConfig:
 
 	def validate(self) -> bool:
 
-		conv_out_size = self.seq_len - (max(self.mas_windows) - 1)
+		conv_out_size = self.seq_len - (max([
+			max(oi)
+			for oi in [
+				self.stochastic_oscillators,
+				self.rsi,
+				self.wpr,
+				self.mas_windows,
+				self.msd_windows,
+			]]) - 1)
 		for conv in self.ff_conv_pool_layers:
 			conv_out_size -= (conv.size - 1)
 			if conv_out_size <= 0:
