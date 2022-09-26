@@ -86,7 +86,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 	def _generate_key(self, species: Species, index: int) -> str:
 		return hashlib.md5(
 			bytes(
-				f"{index}-{self.__species_serializer.serialize_json(species)}",
+				f"{self.__species_serializer.serialize_json(species)}",
 				encoding="utf-8"
 			)
 		).hexdigest()
