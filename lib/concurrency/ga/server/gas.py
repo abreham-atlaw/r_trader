@@ -6,7 +6,7 @@ import os
 import json
 
 from lib.utils.logger import Logger
-from .repository import DataRepository, PlainDataRepository, Cache, HashMapCache
+from .repository import DataRepository, PlainDataRepository, Cache, HashMapCache, MongoDBRepository
 
 
 class GAServer:
@@ -93,3 +93,13 @@ class GAServer:
 			host=self.__host,
 			port=self.__port
 		)
+
+
+class MongoGAServer(GAServer):
+
+	def __init__(self, mongo_url: str, *args, **kwargs):
+		self.__mongo_url = mongo_url
+		super().__init__(*args, **kwargs)
+
+	def _init_repository(self) -> DataRepository:
+		return MongoDBRepository(self.__mongo_url)
