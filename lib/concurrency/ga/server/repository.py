@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 import hashlib
 import gc
 
+from pymongo import MongoClient
+
 
 class Cache(ABC):
 
@@ -96,3 +98,40 @@ class PlainDataRepository(DataRepository):
 
 	def __len__(self):
 		return len(self.__request_queue)
+
+
+class MongoDBRepository(DataRepository):
+
+	def __init__(self, url: str, db_name: str = "ga_server"):
+		self.__client = MongoClient(url)
+		self.__db = self.__client[db_name]
+		self.__collection = self.__db["requests"]
+
+	def add_to_request_queue(self, key: str, request: object):
+		self.__collection.insert_one(
+			{
+				"key": key,
+				"request": request,
+				"value": None,
+				"init": False
+			}
+		)
+
+	def get_request(self) -> Optional[Tuple[str, object]]:
+		request = self.__collection.find_one({"init": False})
+		if request is None:
+			return None
+		self.__collection.update_one(request, {"$set": {"init": True}})
+		return request["key"], request["request"]
+
+	def set_response(self, key: str, value: float):
+		self.__collection.update_one({"key": key}, {"$set": {"value": value}})
+
+	def get_response(self, key: str) -> float:
+		return self.__collection.find_one({"key": key})["value"]
+
+	def reset(self):
+		self.__collection.delete_many({})
+
+	def __len__(self) -> int:
+		return self.__collection.count_documents({"init": False})
