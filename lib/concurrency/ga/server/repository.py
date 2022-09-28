@@ -118,10 +118,7 @@ class MongoDBRepository(DataRepository):
 		)
 
 	def get_request(self) -> Optional[Tuple[str, object]]:
-		request = self.__collection.find_one({"init": False})
-		if request is None:
-			return None
-		self.__collection.update_one(request, {"$set": {"init": True}})
+		request = self.__collection.find_one_and_update({"init": False}, {"$set": {"init": True}})
 		return request["key"], request["request"]
 
 	def set_response(self, key: str, value: float):
