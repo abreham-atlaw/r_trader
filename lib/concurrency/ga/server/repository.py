@@ -31,7 +31,6 @@ class Cache(ABC):
 		pass
 
 
-
 class HashMapCache(Cache):
 
 	def __init__(self):
@@ -46,7 +45,6 @@ class HashMapCache(Cache):
 	def clear(self):
 		self.__cache.clear()
 		gc.collect()
-
 
 
 class DataRepository(ABC, Sized):
@@ -119,6 +117,8 @@ class MongoDBRepository(DataRepository):
 
 	def get_request(self) -> Optional[Tuple[str, object]]:
 		request = self.__collection.find_one_and_update({"init": False}, {"$set": {"init": True}})
+		if request is None:
+			return None
 		return request["key"], request["request"]
 
 	def set_response(self, key: str, value: float):
