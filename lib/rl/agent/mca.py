@@ -190,8 +190,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return choice
 
-	def __manage_resources(self):
-		if psutil.virtual_memory().percent > (100 - self.__min_free_memory):
+	def __manage_resources(self, end=False):
+		if psutil.virtual_memory().percent > (100 - self.__min_free_memory) or end:
 			Logger.info("Realising Memory. Calling gc.collect")
 			gc.collect()
 
@@ -272,7 +272,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
 		if self.__use_stm:
 			self.__store_to_stm(root)
-			# self.__backup_and_clear_repository()
+			self.__backup_and_clear_repository()
+		else:
+			self._state_repository.clear()
+		self.__manage_resources(end=True)
 
 	def _select(self, parent_state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
