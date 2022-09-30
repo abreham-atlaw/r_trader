@@ -20,9 +20,9 @@ class ModelBuilder(ABC):
 		self.__summarize = summarize
 
 	@staticmethod
-	def __concat_layers(inputs: Layer, layer_class: Type, args: List[Any], axis=1) -> Layer:
+	def __concat_layers(inputs: Layer, layer_class: Type, args: List[Any], axis=1) -> Optional[Layer]:
 		if len(args) == 0:
-			return inputs
+			return None
 		layers = [layer_class(*arg)(inputs) for arg in args]
 		return Concatenate(
 			axis=axis
@@ -94,11 +94,11 @@ class ModelBuilder(ABC):
 			[(arg,) for arg in config.trend_lines]
 		)
 
-		flatten = Concatenate(axis=1)((
-			Flatten()(ff_conv),
-			trend_lines,
-			extra_input
-		))
+		flatten_inputs = [Flatten()(ff_conv), trend_lines, extra_input]
+		if trend_lines is None:
+			flatten_inputs.pop(1)
+
+		flatten = Concatenate(axis=1)(flatten_inputs)
 
 		ff_dense = self._add_ff_dense_layers(flatten, config.ff_dense_layers, config.dense_activation)
 
