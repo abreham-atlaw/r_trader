@@ -21,6 +21,8 @@ class ModelBuilder(ABC):
 
 	@staticmethod
 	def __concat_layers(inputs: Layer, layer_class: Type, args: List[Any], axis=1) -> Layer:
+		if len(args) == 0:
+			return inputs
 		layers = [layer_class(*arg)(inputs) for arg in args]
 		return Concatenate(
 			axis=axis
@@ -42,6 +44,8 @@ class ModelBuilder(ABC):
 
 	@staticmethod
 	def __create_overlays(cls: Type, args: List[Tuple], inputs: Layer) -> List[OverlayIndicator]:
+		if len(args) == 0:
+			return []
 		if not isinstance(args[0], tuple):
 			args = [(arg,) for arg in args]
 
