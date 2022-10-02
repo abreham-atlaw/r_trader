@@ -195,7 +195,7 @@ class WilliamsPercentageRange(OverlayIndicator):
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		highest = tf.reduce_max(inputs, axis=1)
 		lowest = tf.reduce_min(inputs, axis=1)
-		return (inputs[:, 0] - highest) * 100 / (highest - lowest)
+		return (inputs[:, 0] - highest) / (highest - lowest)
 
 
 class StochasticOscillator(OverlayIndicator):
@@ -207,7 +207,7 @@ class StochasticOscillator(OverlayIndicator):
 		highest = tf.reduce_max(inputs, axis=1)
 		lowest = tf.reduce_min(inputs, axis=1)
 		close = inputs[:, 0]
-		return (close - lowest) * 100 / (highest - lowest)
+		return (close - lowest) / (highest - lowest)
 
 
 class RelativeStrengthIndex(OverlayIndicator):
@@ -225,7 +225,7 @@ class RelativeStrengthIndex(OverlayIndicator):
 			axis=1
 		)
 		average_loss = tf.reduce_mean(
-			self.__loss_filter(percentage),
+			-1 * self.__loss_filter(percentage),
 			axis=1
 		)
 		return 1 - (1 / (1 + (average_gain / average_loss)))
