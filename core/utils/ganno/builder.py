@@ -69,8 +69,6 @@ class ModelBuilder(ABC):
 		extra_input = input_layer[:, config.seq_len:]
 
 		prep_layer = input_sequence
-		if config.delta:
-			prep_layer = Delta()(prep_layer)
 		if config.norm:
 			prep_layer = Norm()(prep_layer)
 
@@ -80,7 +78,8 @@ class ModelBuilder(ABC):
 			(RelativeStrengthIndex, config.rsi),
 			(WilliamsPercentageRange, config.wpr),
 			(MovingAverage, config.mas_windows),
-			(MovingStandardDeviation, config.msd_windows)
+			(MovingStandardDeviation, config.msd_windows),
+			(Delta, [()][:int(config.delta)])
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
