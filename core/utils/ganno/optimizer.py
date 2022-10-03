@@ -111,7 +111,13 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 		return [random.randint(*range_config.values_range) for _ in range(random.randint(*range_config.length_range))]
 
 	@staticmethod
-	def __generate_random_cnn_layers(input_size, depth_range, features_range, size_range, pooling_range) -> List[ConvPoolLayer]:
+	def __generate_random_cnn_layers(
+			input_size,
+			depth_range,
+			features_range,
+			size_range,
+			pooling_range
+	) -> List[ConvPoolLayer]:
 
 		remaining_size = input_size
 		layers = []
