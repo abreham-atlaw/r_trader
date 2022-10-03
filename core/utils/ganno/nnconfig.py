@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from tensorflow import keras
 
-from lib.ga.species import Species, ClassDictSpecies
+from lib.ga.species import ClassDictSpecies
 
 
 @dataclass
@@ -79,6 +79,9 @@ class NNConfig(ClassDictSpecies):
 		super().__init__()
 		self.core_config = core_config
 		self.delta_config = delta_config
+
+	def _get_protected_list_genes(self) -> List[str]:
+		return ['ff_conv_pool_layers']
 
 	def _get_gene_classes(self):
 		return NNConfig.CUSTOM_GENE_CLASSES

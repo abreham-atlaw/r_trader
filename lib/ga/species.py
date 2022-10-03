@@ -36,6 +36,9 @@ class ClassDictSpecies(Species, ABC):
 			if key.startswith("_")
 		]
 
+	def _get_protected_list_genes(self) -> List[str]:
+		return []
+
 	@staticmethod
 	def __get_random_neighbor(x: int) -> int:
 		return round((random.random() + 0.5)*x)
@@ -74,12 +77,14 @@ class ClassDictSpecies(Species, ABC):
 
 		return gene  # TODO: CREATE A LIST OF EQUIVALENT GENES
 
-	def __select_gene(self, self_value, spouse_value):
+	def __select_gene(self, self_value, spouse_value, protected=False):
 
 		if isinstance(self_value, List):
 			swap_size = min(len(self_value), len(spouse_value))
 			new_value = [self.__select_gene(self_value[i], spouse_value[i]) for i in range(swap_size)]
 			length = self.__get_random_mean(len(self_value), len(spouse_value))
+			if protected:
+				length = max(1, length)
 			if length > len(new_value) and max(len(self_value), len(spouse_value)) != 0:
 				larger_genes = self_value
 				if len(spouse_value) > len(self_value):
@@ -102,7 +107,12 @@ class ClassDictSpecies(Species, ABC):
 
 		if isinstance(self_value, tuple(self.__gene_classes)):
 			return self_value.__class__(**{
-				key: self.__select_gene(self_value.__dict__[key], spouse_value.__dict__[key])
+				key: self.__select_gene(
+					self_value.__dict__[key],
+					spouse_value.__dict__[key],
+					protected=key in self._get_protected_list_genes()
+				)
+
 				for key in self_value.__dict__.keys()
 				if key not in self._get_excluded_values()
 			})
