@@ -57,7 +57,10 @@ class Norm(Layer):
 
 	def call(self, inputs, **kwargs):
 		min_ = tf.reduce_min(inputs, axis=1)
-		return (inputs - tf.reshape(min_, (-1, 1))) / tf.reshape(tf.reduce_max(inputs, axis=1) - min_, (-1, 1))
+		return tf.math.divide_no_nan(
+			(inputs - tf.reshape(min_, (-1, 1))),
+			tf.reshape(tf.reduce_max(inputs, axis=1) - min_, (-1, 1))
+		)
 
 
 class UnNorm(Layer):
@@ -195,7 +198,7 @@ class WilliamsPercentageRange(OverlayIndicator):
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		highest = tf.reduce_max(inputs, axis=1)
 		lowest = tf.reduce_min(inputs, axis=1)
-		return (inputs[:, 0] - highest) / (highest - lowest)
+		return tf.math.divide_no_nan((inputs[:, 0] - highest), (highest - lowest))
 
 
 class StochasticOscillator(OverlayIndicator):
@@ -207,7 +210,7 @@ class StochasticOscillator(OverlayIndicator):
 		highest = tf.reduce_max(inputs, axis=1)
 		lowest = tf.reduce_min(inputs, axis=1)
 		close = inputs[:, 0]
-		return (close - lowest) / (highest - lowest)
+		return tf.math.divide_no_nan((close - lowest), (highest - lowest))
 
 
 class RelativeStrengthIndex(OverlayIndicator):
