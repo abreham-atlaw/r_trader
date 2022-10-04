@@ -243,6 +243,11 @@ class TrendLine(Layer):
 			axis=1
 		)
 
+	def get_config(self):
+		config = super().get_config()
+		config["size"] = self.__size
+		return config
+
 
 class ForexPrep(Layer):
 
