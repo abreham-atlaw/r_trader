@@ -176,7 +176,7 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 				value_upper_bound=seq_len-1
 			),
 			delta=random.choice((True, False)),
-			norm=random.choice((True, False)),
+			norm=True,
 			dense_activation=random.choice(self.__initial_population_config.dense_activations),
 			conv_activation=random.choice(self.__initial_population_config.conv_activations),
 			loss=loss,
