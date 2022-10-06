@@ -231,7 +231,7 @@ class RelativeStrengthIndex(OverlayIndicator):
 			-1 * self.__loss_filter(percentage),
 			axis=1
 		)
-		return 1 - (1 / (1 + (average_gain / average_loss)))
+		return 1 - (1 / (1 + tf.math.divide_no_nan(average_gain, average_loss)))
 
 
 class TrendLine(Layer):
