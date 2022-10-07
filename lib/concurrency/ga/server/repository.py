@@ -124,8 +124,12 @@ class MongoDBRepository(DataRepository):
 	def set_response(self, key: str, value: float):
 		self.__collection.update_one({"key": key}, {"$set": {"value": value}})
 
-	def get_response(self, key: str) -> float:
-		return self.__collection.find_one({"key": key})["value"]
+	def get_response(self, key: str) -> Optional[float]:
+		result = self.__collection.find_one({"key": key})
+		if result is None:
+			return None
+		return result["value"]
+
 
 	def reset(self):
 		self.__collection.delete_many({})
