@@ -194,6 +194,11 @@ class MonteCarloServer(ABC):
 
 	def __handle_end(self):
 		self._set_active(False)
+		Logger.info(
+			f"Simulations Done: "
+			f"Depth: {stats.get_max_depth(self._get_graph())}, "
+			f"Nodes: {len(stats.get_nodes(self._get_graph()))}"
+		)
 		optimal_action_node = max(self._get_graph().get_children(), key=lambda node: node.get_total_value())
 		emit("action", self.__graph_serializer.serialize(optimal_action_node)["action"])
 
