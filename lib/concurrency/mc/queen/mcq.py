@@ -51,7 +51,7 @@ class MonteCarloQueen(MonteCarloAgent, ABC):
 		self.__action_received = True
 
 	def __handle_action(self, action=None):
-		self.__set_received_action(self.__action_serializer.deserialize_json(action))
+		self.__set_received_action(self.__action_serializer.deserialize(action))
 
 	def _monte_carlo_tree_search(self, state) -> object:
 		print("Performing MonteCarlo Tree Search")
@@ -64,7 +64,7 @@ class MonteCarloQueen(MonteCarloAgent, ABC):
 			time.sleep(self.__wait_time)
 
 		self.__socketio.emit("end")
-		while not self.__is_action_received() or True:
+		while not self.__is_action_received():
 			time.sleep(self.__wait_time)
 
 		return self.__get_received_action()
