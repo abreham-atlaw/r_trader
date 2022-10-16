@@ -2,8 +2,6 @@ from typing import *
 
 import math
 import random
-import gc
-import sys
 from dataclasses import dataclass
 
 from tensorflow import keras
