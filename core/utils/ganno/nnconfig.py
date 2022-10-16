@@ -2,6 +2,8 @@ from typing import *
 
 import math
 import random
+import gc
+import sys
 from dataclasses import dataclass
 
 from tensorflow import keras
@@ -90,12 +92,20 @@ class NNConfig(ClassDictSpecies):
 		super().mutate(*args, **kwargs)
 		self.core_config.seq_len = self.delta_config.seq_len = random.choice([self.core_config.seq_len, self.delta_config.seq_len])
 
-	def _generate_offspring(self, spouse) -> 'NNConfig':
-		while True:
+	def _generate_offspring(self, spouse) -> Optional['NNConfig']:
+		try:
 			offspring: NNConfig = super()._generate_offspring(spouse)
-			offspring.core_config.seq_len = offspring.delta_config.seq_len = random.choice(([offspring.core_config.seq_len, offspring.delta_config.seq_len]))
+			offspring.core_config.seq_len = offspring.delta_config.seq_len = max(offspring.core_config.seq_len, offspring.delta_config.seq_len)
 			if offspring.validate():
 				return offspring
+			else:
+				del offspring
+				return self._generate_offspring(spouse)
+		except RecursionError:
+			return None
+
+	def reproduce(self, spouse: 'Species', preferred_offsprings: int) -> List['Species']:
+		return [offspring for offspring in super().reproduce(spouse, preferred_offsprings) if offspring is not None]
 
 	def validate(self) -> bool:
 		return self.core_config.validate() and self.delta_config.validate()
