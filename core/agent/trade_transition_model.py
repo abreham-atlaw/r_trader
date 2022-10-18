@@ -3,7 +3,7 @@ from typing import *
 from tensorflow import keras
 import numpy as np
 
-from lib.dnn.layers import Delta, Percentage, MovingAverage, Norm, UnNorm, MovingStandardDeviation
+from lib.dnn.layers import *
 from core import Config
 
 
@@ -34,11 +34,21 @@ class TransitionModel(keras.Model):
 				layer.__name__: layer
 				for layer in [
 					Delta,
+					Norm,
 					MovingAverage,
 					Percentage,
-					Norm,
 					UnNorm,
-					MovingStandardDeviation
+					MovingStandardDeviation,
+					Sign,
+					SignFilter,
+					MultipleMovingAverages,
+					OverlaysCombiner,
+					MovingAverage,
+					MovingStandardDeviation,
+					WilliamsPercentageRange,
+					StochasticOscillator,
+					RelativeStrengthIndex,
+					TrendLine
 				]
 			}
 		)
