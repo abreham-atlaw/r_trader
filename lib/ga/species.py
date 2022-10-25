@@ -2,6 +2,7 @@ from typing import *
 from abc import ABC, abstractmethod
 
 import random
+import math
 
 
 class Species(ABC):
@@ -40,8 +41,12 @@ class ClassDictSpecies(Species, ABC):
 		return []
 
 	@staticmethod
+	def __round(x: float) -> int:
+		return random.choice([math.floor, math.ceil])(x)
+
+	@staticmethod
 	def __get_random_neighbor(x: int) -> int:
-		return round((random.random() + 0.5)*x)
+		return ClassDictSpecies.__round((random.random() + 0.5)*x)
 
 	@staticmethod
 	def __get_random_mean(x0, x1, expand_bounds: bool = True, non_negative=True) -> int:
@@ -50,7 +55,7 @@ class ClassDictSpecies(Species, ABC):
 		if non_negative:
 			x0, x1 = max(x0, 0), max(x1, 0)
 		w = random.random()
-		return round((x0 * w) + ((1 - w) * x1))
+		return ClassDictSpecies.__round((x0 * w) + ((1 - w) * x1))
 
 	def __mutate_gene(self, gene: Any) -> Any:
 
