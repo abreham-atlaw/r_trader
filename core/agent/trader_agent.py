@@ -29,6 +29,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
+			core_model=None,
+			delta_model=None,
 			**kwargs
 	):
 		super().__init__(
@@ -44,15 +46,20 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta = state_change_delta
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
-		Logger.info("Loading Core Model")
-		self.set_transition_model(
-			TransitionModel.load_model(Config.CORE_MODEL_CONFIG.path)
-		)
-		self.__state_change_delta_cache = {}
+
+		if core_model is None:
+			Logger.info("Loading Core Model")
+			core_model = TransitionModel.load_model(Config.CORE_MODEL_CONFIG.path)
+		self.set_transition_model(core_model)
+
 		self.__delta_model = None
 		if state_change_delta_model_mode:
-			Logger.info("Loading Delta Model")
-			self.__delta_model = TransitionModel.load_model(Config.DELTA_MODEL_CONFIG.path)
+			self.__delta_model = delta_model
+			if delta_model is None:
+				Logger.info("Loading Delta Model")
+				self.__delta_model = TransitionModel.load_model(Config.DELTA_MODEL_CONFIG.path)
+
+		self.__state_change_delta_cache = {}
 
 	def __check_and_add_depth(self, input_: np.ndarray, depth: int) -> np.ndarray:
 		if self.__depth_mode:
@@ -145,24 +152,45 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		))
 
 	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
-		mid_state = self.__simulate_action(state, action)
-
+		# mid_state = self.__simulate_action(state, action)
+		#
+		# states = []
+		#
+		# if len(state.get_agent_state().get_open_trades()) != 0:
+		# 	states += self.__simulate_instruments_change(
+		# 		mid_state,
+		# 		self.__get_involved_instruments(state.get_agent_state().get_open_trades())
+		# 	)
+		#
+		# elif action is None or action.action == TraderAction.Action.CLOSE:
+		# 	states += self.__simulate_instruments_change(
+		# 		mid_state,
+		# 		state.get_market_state().get_tradable_pairs()
+		# 	)
+		#
+		# else:
+		# 	states += self.__simulate_instrument_change(mid_state, action.base_currency, action.quote_currency)
+		#
+		# return states
+		#
 		states = []
 
 		if len(state.get_agent_state().get_open_trades()) != 0:
 			states += self.__simulate_instruments_change(
-				mid_state,
+				state,
 				self.__get_involved_instruments(state.get_agent_state().get_open_trades())
 			)
 
 		elif action is None or action.action == TraderAction.Action.CLOSE:
 			states += self.__simulate_instruments_change(
-				mid_state,
+				state,
 				state.get_market_state().get_tradable_pairs()
 			)
 
 		else:
-			states += self.__simulate_instrument_change(mid_state, action.base_currency, action.quote_currency)
+			states += self.__simulate_instrument_change(state, action.base_currency, action.quote_currency)
+
+		states = [self.__simulate_action(mid_state, action) for mid_state in states]
 
 		return states
 
@@ -180,6 +208,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		for j in [-1, 1]:
 			new_state = state.__deepcopy__()
+			new_state.recent_balance = state.get_agent_state().get_balance()
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
@@ -191,7 +220,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:  # TODO: SETUP CACHER
 		new_state = copy.deepcopy(state)
-		new_state.recent_balance = state.get_agent_state().get_balance()
 
 		if action is None:
 			return new_state
