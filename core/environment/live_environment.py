@@ -17,12 +17,53 @@ from core.environment.trade_environment import TradeEnvironment
 
 class LiveEnvironment(TradeEnvironment):
 
-	def __init__(self):
-		super(LiveEnvironment, self).__init__()
-		self.__trader = Trader(
-			Config.OANDA_TOKEN,
-			Config.OANDA_TRADING_ACCOUNT_ID
-		)
+	def __init__(
+			self,
+			*args,
+			trader: Optional[Trader] = None,
+			instruments: Optional[List[Tuple[str, str]]] = None,
+			agent_currency: Tuple[str, str] = Config.AGENT_CURRENCY,
+			agent_max_instruments: Optional[int] = Config.AGENT_MAX_INSTRUMENTS,
+			agent_use_static_instruments: bool = Config.AGENT_USE_STATIC_INSTRUMENTS,
+			market_state_granularity: str = Config.MARKET_STATE_GRANULARITY,
+			**kwargs
+	):
+		super(LiveEnvironment, self).__init__(*args, **kwargs)
+		self.__agent_currency = agent_currency
+		self.__agent_max_instruments = agent_max_instruments
+		self.__market_state_granularity = market_state_granularity
+		self.__trader = trader
+		if trader is None:
+			self.__trader = Trader(
+				Config.OANDA_TOKEN,
+				Config.OANDA_TRADING_ACCOUNT_ID
+			)
+		self.__instruments = instruments
+		if instruments is None:
+			if agent_use_static_instruments:
+				self.__instruments = Config.AGENT_STATIC_INSTRUMENTS
+			else:
+				if agent_max_instruments is not None:
+					self.__instruments = self.__get_random_instruments(agent_max_instruments)
+				else:
+					self.__instruments = self.__trader.get_instruments()
+
+	def __get_random_instruments(self, size) -> List[Tuple[str, str]]:
+		instruments = self.__trader.get_instruments()
+		selected_instruments = None
+		while selected_instruments is None or \
+			self.__agent_currency not in self.__get_currencies(selected_instruments) or \
+			False in [
+				(self.__agent_currency, currency) in selected_instruments or (currency, self.__agent_currency) in selected_instruments
+				for currency in self.__get_currencies(selected_instruments)
+				if currency != self.__agent_currency
+			] or \
+			False in [
+				selected_instruments.count(instrument) == 1
+				for instrument in selected_instruments
+			]:
+			selected_instruments = random.choices(instruments, k=size)
+		return selected_instruments
 
 	def __to_oanda_action(self, action):
 		if action == TraderAction.Action.BUY:
@@ -63,36 +104,14 @@ class LiveEnvironment(TradeEnvironment):
 			currencies += pair
 		return list(set(currencies))
 
-	def __select_pairs(self, instruments) -> List[Tuple[str, str]]:
-		if Config.AGENT_USE_STATIC_INSTRUMENTS:
-			return Config.AGENT_STATIC_INSTRUMENTS
-
-		selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(instruments, k=Config.AGENT_MAX_INSTRUMENTS)
-		while selected_pairs is None or \
-			Config.AGENT_CURRENCY not in self.__get_currencies(selected_pairs) or \
-			False in [
-				(Config.AGENT_CURRENCY, currency) in selected_pairs or (currency, Config.AGENT_CURRENCY) in selected_pairs
-				for currency in self.__get_currencies(selected_pairs)
-				if currency != Config.AGENT_CURRENCY
-			] or \
-			False in [
-				selected_pairs.count(instrument) == 1
-				for instrument in selected_pairs
-			]:
-			Config.AGENT_RANDOM_SEED = random.randint(0, 1000000)
-			selected_pairs = random.Random(Config.AGENT_RANDOM_SEED).choices(instruments, k=Config.AGENT_MAX_INSTRUMENTS)
-		print(Config.AGENT_RANDOM_SEED)
-		return selected_pairs
-
 	def __get_market_state(self, memory_size, granularity) -> MarketState:
-		instruments = self.__select_pairs(self.__trader.get_instruments())
 		market_state = MarketState(
-			currencies=self.__get_currencies(instruments),
-			tradable_pairs=instruments,
+			currencies=self.__get_currencies(self.__instruments),
+			tradable_pairs=self.__instruments,
 			memory_len=memory_size
 		)
 
-		for base_currency, quote_currency in instruments:
+		for base_currency, quote_currency in self.__instruments:
 			market_state.update_state_of(
 				base_currency,
 				quote_currency,
@@ -138,7 +157,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__trader.close_trades((base_currency, quote_currency))
 
 	def _initiate_state(self) -> TradeState:
-		market_state = self.__get_market_state(Config.MARKET_STATE_MEMORY, Config.MARKET_STATE_GRANULARITY)
+		market_state = self.__get_market_state(self._market_state_memory, self.__market_state_granularity)
 		agent_state = self.__get_agent_state(market_state)
 
 		return TradeState(

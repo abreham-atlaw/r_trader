@@ -19,7 +19,7 @@ class TradeEnvironment(Environment, ABC):
 		self._state: Union[TradeState, None] = None
 		self.__time_penalty = time_penalty
 		self.__trade_size_gap = trade_size_gap
-		self.market_state_memory = market_state_memory
+		self._market_state_memory = market_state_memory
 
 	@abstractmethod
 	def _initiate_state(self) -> TradeState:
