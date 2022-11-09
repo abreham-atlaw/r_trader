@@ -47,6 +47,23 @@ class LiveEnvironment(TradeEnvironment):
 					self.__instruments = self.__get_random_instruments(agent_max_instruments)
 				else:
 					self.__instruments = self.__trader.get_instruments()
+		self.__all_instruments = self.__generate_all_instruments(self.__instruments, self.__agent_currency)
+
+	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
+		valid_instruments = self.__trader.get_instruments()
+		currencies = self.__get_currencies(instruments)
+		conversion_instruments = []
+		for currency in currencies:
+			if currency == agent_currency:
+				continue
+			currency_instrument = (currency, agent_currency)
+			if currency_instrument not in valid_instruments:
+				currency_instrument = (agent_currency, currency)
+			if currency_instrument not in instruments:
+				conversion_instruments.append(currency_instrument)
+
+		return instruments + conversion_instruments
+
 
 	def __get_random_instruments(self, size) -> List[Tuple[str, str]]:
 		instruments = self.__trader.get_instruments()
@@ -106,12 +123,12 @@ class LiveEnvironment(TradeEnvironment):
 
 	def __get_market_state(self, memory_size, granularity) -> MarketState:
 		market_state = MarketState(
-			currencies=self.__get_currencies(self.__instruments),
+			currencies=self.__get_currencies(self.__all_instruments),
 			tradable_pairs=self.__instruments,
 			memory_len=memory_size
 		)
 
-		for base_currency, quote_currency in self.__instruments:
+		for base_currency, quote_currency in self.__all_instruments:
 			market_state.update_state_of(
 				base_currency,
 				quote_currency,
@@ -169,4 +186,3 @@ class LiveEnvironment(TradeEnvironment):
 		if state is None:
 			state = self.get_state()
 		return self._initiate_state()
-
