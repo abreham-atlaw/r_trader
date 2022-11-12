@@ -17,29 +17,29 @@ class Filter(ABC):
 		return output_shape
 
 	@abstractmethod
-	def call(self, inputs: np.ndarray) -> np.ndarray:
+	def filter(self, inputs: np.ndarray) -> np.ndarray:
 		pass
 
 
-class NormFilter(Filter, Norm):
+class NormFilter(Norm, Filter):
 
-	def call(self, inputs: np.ndarray) -> np.ndarray:
-		return super().call(input)
+	def filter(self, inputs: np.ndarray) -> np.ndarray:
+		return self.call(input)
 
 
-class MovingAverageFilter(Filter, MovingAverage):
+class MovingAverageFilter(MovingAverage, Filter):
 
 	def calc_input_shape(self, output_shape: Tuple) -> Tuple:
 		return output_shape[0], output_shape[1] + self.get_window_size() - 1
 
-	def call(self, inputs: np.ndarray) -> np.ndarray:
-		return super().call(inputs)
+	def filter(self, inputs: np.ndarray) -> np.ndarray:
+		return self.call(inputs)
 
 
-class KelmanFilterFilter(Filter, KelmanFilter):
+class KelmanFilterFilter(KelmanFilter, Filter):
 
-	def call(self, inputs: np.ndarray) -> np.ndarray:
-		return super().call(inputs)
+	def filter(self, inputs: np.ndarray) -> np.ndarray:
+		return self.__call__(inputs).numpy()
 
 
 class CombinedDataPreparer:
@@ -91,29 +91,30 @@ class CombinedDataPreparer:
 	def __calc_filters_input_shape(self, output_shape: Tuple) -> Tuple:
 		input_shape = output_shape
 		for filter_ in self.__filters[::-1]:
-			filter_.calc_input_shape(input_shape)
+			input_shape = filter_.calc_input_shape(input_shape)
 		return input_shape
 
 	def __apply_filters(self, X: np.ndarray) -> np.ndarray:
 		for filter_ in self.__filters:
-			X = filter_.call(X)
+			X = filter_.filter(X)
 		return X
 
-	def __prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
-		X = np.zeros(sequence.shape[0] - self.__seq_len + 1)
+	def __prepare_sequence(self, sequence: np.ndarray, seq_len: int) -> np.ndarray:
+		X = np.zeros((sequence.shape[0] - seq_len + 1, seq_len))
 		for i in range(X.shape[0]):
-			X[i] = sequence[i: i+self.__seq_len]
+			X[i] = sequence[i: i + seq_len]
 		return X
 
 	def __prepare_df(self, df: pd.DataFrame) -> np.ndarray:
 		instruments = self.__get_currency_pairs(df)
 
-		X = np.zeros((0, self.__calc_filters_input_shape((0, self.__seq_len))))
+		X = np.zeros((0, self.__seq_len))
+		pre_filter_size = self.__calc_filters_input_shape((0, self.__seq_len))[1]
 
 		for base_currency, quote_currency in instruments:
 			instrument_sequence = self.__filter_instrument(df, (base_currency, quote_currency))["c"].to_numpy()
 			for i in range(self.__granularity):
-				Xi = self.__prepare_sequence(instrument_sequence)
+				Xi = self.__prepare_sequence(instrument_sequence, pre_filter_size)
 				X_filtered = self.__apply_filters(Xi)
 				X = np.concatenate((X, X_filtered))
 				del Xi, X_filtered
@@ -121,7 +122,8 @@ class CombinedDataPreparer:
 		return X
 
 	def __load_file(self, file_name: str, batch_idx: int) -> pd.DataFrame:
-		return pd.read_csv(file_name, index_col=0).iloc[self.__batch_size * batch_idx: self.__batch_size * (batch_idx + 1)]
+		return pd.read_csv(file_name, index_col=0).iloc[
+		       self.__batch_size * batch_idx: self.__batch_size * (batch_idx + 1)]
 
 	def __process_file(self, file: str, batch_idx: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
@@ -175,6 +177,7 @@ class CombinedDataPreparer:
 			)
 
 			batch_idx += 1
+
 
 # 		self.__save_df(train_df, self.__train_output_path)
 # 		self.__save_df(test_df, self.__test_output_path)
