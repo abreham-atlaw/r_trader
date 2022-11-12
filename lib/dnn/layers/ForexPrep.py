@@ -92,6 +92,9 @@ class OverlayIndicator(Layer, ABC):
 		super().__init__(*args, **kwargs)
 		self.__window_size = window_size
 
+	def get_window_size(self) -> int:
+		return self.__window_size
+
 	@abstractmethod
 	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
 		pass
@@ -148,6 +151,16 @@ class MovingAverage(OverlayIndicator):
 		return tf.reduce_mean(inputs, axis=1)
 
 
+class WeightedMovingAverage(OverlayIndicator):
+
+	def __init__(self, window_size, *args, **kwargs):
+		super(WeightedMovingAverage, self).__init__(window_size, *args, **kwargs)
+		self.__weights = tf.range(window_size, dtype=tf.float32) * (2/(window_size*(window_size-1)))
+
+	def _on_time_point(self, inputs: tf.Tensor) -> tf.Tensor:
+		return tf.reduce_sum(self.__weights*inputs, axis=1)
+
+
 class ExponentialMovingAverage(Layer):
 
 	def __init__(self, smoothing_factor):
@@ -171,6 +184,31 @@ class ExponentialMovingAverage(Layer):
 		return {
 			"smoothing_factor": self.__smoothing_factor
 		}
+
+
+class KelmanFilter(Layer):
+
+	def __init__(self, alpha: float, beta: float, *args, instances: int = 10000, **kwargs):
+		self.a = alpha
+		self.b = beta
+		super(KelmanFilter, self).__init__(*args, **kwargs)
+		self.__instances = instances
+
+	def build(self, input_shape):
+		self.__X = tf.Variable(tf.zeros((self.__instances, input_shape[1])))
+		self.__p = tf.Variable(tf.zeros((self.__instances,)))
+		self.__v = tf.Variable(tf.zeros_like(self.__p))
+		super().build(input_shape)
+
+	def call(self, Z, *args, **kwargs):
+		instances = Z.shape[0]
+		for i in range(Z.shape[1]):
+			diff = Z[:, i] - self.__p[:instances]
+			self.__X[:instances, i].assign(self.__p[:instances] + self.a * diff)
+			self.__v[:instances].assign(self.__v[:instances] + self.b * diff)
+			self.__p[:instances].assign(self.__X[:instances, i] + self.__v[:instances])
+
+		return self.__X[:instances]
 
 
 class MovingStandardDeviation(OverlayIndicator):
