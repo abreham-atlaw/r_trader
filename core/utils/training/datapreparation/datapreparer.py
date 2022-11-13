@@ -8,38 +8,7 @@ from datetime import datetime
 import os
 import gc
 
-from lib.dnn.layers import Norm, MovingAverage, KelmanFilter
-
-
-class Filter(ABC):
-
-	def calc_input_shape(self, output_shape: Tuple) -> Tuple:
-		return output_shape
-
-	@abstractmethod
-	def filter(self, inputs: np.ndarray) -> np.ndarray:
-		pass
-
-
-class NormFilter(Norm, Filter):
-
-	def filter(self, inputs: np.ndarray) -> np.ndarray:
-		return self.call(input)
-
-
-class MovingAverageFilter(MovingAverage, Filter):
-
-	def calc_input_shape(self, output_shape: Tuple) -> Tuple:
-		return output_shape[0], output_shape[1] + self.get_window_size() - 1
-
-	def filter(self, inputs: np.ndarray) -> np.ndarray:
-		return self.call(inputs)
-
-
-class KelmanFilterFilter(KelmanFilter, Filter):
-
-	def filter(self, inputs: np.ndarray) -> np.ndarray:
-		return self.__call__(inputs).numpy()
+from .filters import Filter
 
 
 class CombinedDataPreparer:
@@ -114,7 +83,7 @@ class CombinedDataPreparer:
 		for base_currency, quote_currency in instruments:
 			instrument_sequence = self.__filter_instrument(df, (base_currency, quote_currency))["c"].to_numpy()
 			for i in range(self.__granularity):
-				Xi = self.__prepare_sequence(instrument_sequence, pre_filter_size)
+				Xi = self.__prepare_sequence(instrument_sequence[i::self.__granularity], pre_filter_size)
 				X_filtered = self.__apply_filters(Xi)
 				X = np.concatenate((X, X_filtered))
 				del Xi, X_filtered
@@ -122,8 +91,7 @@ class CombinedDataPreparer:
 		return X
 
 	def __load_file(self, file_name: str, batch_idx: int) -> pd.DataFrame:
-		return pd.read_csv(file_name, index_col=0).iloc[
-		       self.__batch_size * batch_idx: self.__batch_size * (batch_idx + 1)]
+		return pd.read_csv(file_name, index_col=0).iloc[self.__batch_size * batch_idx: self.__batch_size * (batch_idx + 1)]
 
 	def __process_file(self, file: str, batch_idx: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
@@ -158,7 +126,7 @@ class CombinedDataPreparer:
 		batch_idx = 0
 		while True:
 			temp_df = self.__create_df()
-			for i, file in enumerate(self.__files):
+			for i,  file in enumerate(self.__files):
 				try:
 					new_data = self.__process_file(file, batch_idx)
 				except DataSetTooSmall:
@@ -178,9 +146,11 @@ class CombinedDataPreparer:
 
 			batch_idx += 1
 
-
-# 		self.__save_df(train_df, self.__train_output_path)
-# 		self.__save_df(test_df, self.__test_output_path)
+		if self.__export_remaining:
+			self.__save_df(
+				df,
+				self.__output_path
+			)
 
 
 class DataSetTooSmall(Exception):
