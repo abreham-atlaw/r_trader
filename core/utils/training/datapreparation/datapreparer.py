@@ -69,6 +69,8 @@ class CombinedDataPreparer:
 		return X
 
 	def __prepare_sequence(self, sequence: np.ndarray, seq_len: int) -> np.ndarray:
+		if sequence.shape[0] < seq_len:
+			raise DataSetTooSmall()
 		X = np.zeros((sequence.shape[0] - seq_len + 1, seq_len))
 		for i in range(X.shape[0]):
 			X[i] = sequence[i: i + seq_len]
