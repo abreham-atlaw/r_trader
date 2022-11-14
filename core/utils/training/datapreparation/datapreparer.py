@@ -96,7 +96,7 @@ class CombinedDataPreparer:
 	def __process_file(self, file: str, batch_idx: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 		raw_data = self.__load_file(file, batch_idx)
-		if len(raw_data) < self.__seq_len:
+		if len(raw_data) < self.__calc_filters_input_shape((0, self.__seq_len))[1]:
 			raise DataSetTooSmall()
 		sequences = self.__prepare_df(raw_data)
 		if len(sequences) == 0:
