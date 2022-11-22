@@ -188,27 +188,37 @@ class ExponentialMovingAverage(Layer):
 
 class KelmanFilter(Layer):
 
-	def __init__(self, alpha: float, beta: float, *args, instances: int = 10000, **kwargs):
+	def __init__(self, alpha: float, beta: float, *args, instances: int = 10000, function_mode=False, **kwargs):
 		self.a = alpha
 		self.b = beta
 		super(KelmanFilter, self).__init__(*args, **kwargs)
-		self.__instances = instances
-
-	def build(self, input_shape):
-		self.__X = tf.Variable(tf.zeros((self.__instances, input_shape[1])))
-		self.__p = tf.Variable(tf.zeros((self.__instances,)))
-		self.__v = tf.Variable(tf.zeros_like(self.__p))
-		super().build(input_shape)
 
 	def call(self, Z, *args, **kwargs):
-		instances = Z.shape[0]
-		for i in range(Z.shape[1]):
-			diff = Z[:, i] - self.__p[:instances]
-			self.__X[:instances, i].assign(self.__p[:instances] + self.a * diff)
-			self.__v[:instances].assign(self.__v[:instances] + self.b * diff)
-			self.__p[:instances].assign(self.__X[:instances, i] + self.__v[:instances])
+		X = tf.zeros_like(Z[:, 0:0])
+		p = Z[:, 0]
+		v = tf.zeros_like(p)
 
-		return self.__X[:instances]
+		for i in range(Z.shape[1]):
+			diff = Z[:, i] - p
+			X = tf.concat(
+				(
+					X,
+					tf.reshape(p + (self.a * diff), (-1, 1))
+				), axis=1)
+			v = v + self.b * diff
+			p = X[:, i] + v
+
+		return X
+
+	def get_config(self):
+		config = super().get_config()
+		config.update(
+			{
+				"alpha": self.a,
+				"beta": self.b,
+			}
+		)
+		return config
 
 
 class MovingStandardDeviation(OverlayIndicator):
