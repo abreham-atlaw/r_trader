@@ -1,6 +1,8 @@
 from typing import *
 
 from tensorflow.keras.models import Model
+from tensorflow.keras.utils import Sequence as KerasSequence
+from sklearn.model_selection import train_test_split
 
 import psutil
 import gc
@@ -13,8 +15,14 @@ from .callbacks import Callback
 
 class Trainer:
 
-	def __init__(self, min_memory_percent: float = 30):
+	def __init__(self, min_memory_percent: float = 30, test_size: float=0.3, val_size: float=0.3):
 		self.__min_memory_percent = min_memory_percent
+		self.__test_size = test_size
+		self.__val_size = val_size
+
+		for size, name in [(test_size, "Test"), (val_size, "Val")]:
+			if size < 0 or size > 1:
+				raise ValueError(f"{name} size should be in range [0, 1]")
 
 	def __monitor_memory(self):
 		while (100 - psutil.virtual_memory().percent) < self.__min_memory_percent:
@@ -23,7 +31,28 @@ class Trainer:
 			time.sleep(5)
 
 	@staticmethod
-	def __prepare_train_data(
+	def __split_data(secondary_size: float, indices: Optional[List[int]] = None, length: Optional[int] = None) -> Tuple[List[int], List[int]]:
+
+		if indices is None:
+			if length is None:
+				raise ValueError("Either indices or length should be supplied")
+			indices = list(range(length))
+
+		return train_test_split(indices, test_size=secondary_size)
+
+	def __split_train_val_test_data(self, processor: DataProcessor) -> Tuple[List[int], List[int], List[int]]:
+		train_indices, test_indices = self.__split_data(self.__test_size, length=len(processor))
+		train_indices, val_indices = self.__split_data(self.__val_size, indices=train_indices)
+
+		indices = train_indices, val_indices, test_indices
+
+		for ind in indices:
+			ind.sort()
+
+		return indices
+
+	@staticmethod
+	def __prepare_data(
 			processor: DataProcessor,
 			batch_idx: int,
 			depth: int,
@@ -45,6 +74,46 @@ class Trainer:
 		core_generator.shuffle(), delta_generator.shuffle()
 		return core_generator, delta_generator
 
+	def __evaluate_models(
+			self,
+			core_model: Model,
+			delta_model: Model,
+			processor: DataProcessor,
+			depth: int,
+			evaluation_indices: List[int]
+	) -> Tuple[
+			Union[
+				Tuple[float, float],
+				Tuple[float]
+			],
+			Union[
+				Tuple[float, float],
+				Tuple[float]
+			]
+	]:
+
+		metrics = ([], [])
+
+		for j in evaluation_indices:
+			core_generator, delta_generator = self.__prepare_data(
+				processor,
+				j,
+				depth,
+			)
+			core_metrics, delta_metrics = [
+				model.evaluate(generator, verbose=2)
+				for model, generator in zip((core_model, delta_model), (core_generator, delta_generator))
+			]
+			if isinstance(core_metrics, float):
+				core_metrics = (core_metrics,)
+			if isinstance(delta_metrics, float):
+				delta_metrics = (delta_metrics,)
+
+			metrics[0].append(core_metrics)
+			metrics[1].append(delta_metrics)
+
+		return tuple([tuple(np.mean(metric, axis=0)) for metric in metrics])
+
 	def fit(
 			self,
 			core_model: Model,
@@ -59,21 +128,27 @@ class Trainer:
 		if callbacks is None:
 			callbacks = []
 
+		train_indices, val_indices, test_indices = self.__split_train_val_test_data(processor)
+
 		for e in range(epochs):
 
 			for callback in callbacks:
 				callback.on_epoch_start(core_model, delta_model, e)
 
-			for j in range(start_batch, len(processor)):
+			print(f"Fitting Models")
+			for i, bch_idx in enumerate(train_indices):
+				if bch_idx < start_batch:
+					continue
+
 				print("\n\n", "-" * 100, "\n\n", sep="")
-				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{j + 1}/{len(processor)}")
+				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(train_indices)}")
 				print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 				for callback in callbacks:
-					callback.on_batch_start(core_model, delta_model, j)
+					callback.on_batch_start(core_model, delta_model, bch_idx)
 
-				core_generator, delta_generator = self.__prepare_train_data(
+				core_generator, delta_generator = self.__prepare_data(
 					processor,
-					j,
+					bch_idx,
 					depth,
 					start_depth=start_depth
 				)
@@ -87,11 +162,27 @@ class Trainer:
 				gc.collect()
 
 				for callback in callbacks:
-					callback.on_batch_end(core_model, delta_model, j)
+					callback.on_batch_end(core_model, delta_model, bch_idx)
 
-				start_batch = 0
+
+			print(f"Validating Models")
+			core_metrics, delta_metrics = self.__evaluate_models(
+				core_model,
+				delta_model,
+				processor,
+				depth,
+				val_indices
+			)
+
+			print(f"Core Metrics: {core_metrics}")
+			print(f"Delta Metrics: {delta_metrics}")
 
 			for callback in callbacks:
-				callback.on_batch_end(core_model, delta_model, e)
+				callback.on_epoch_end(core_model, delta_model, e)
 
-			start_depth = 0
+			start_batch, start_depth = 0, 0
+
+		print("Testing Models")
+		core_metrics, delta_metrics = self.__evaluate_models(core_model, delta_model, processor, depth, test_indices)
+		print(f"Core Metrics: {core_metrics}")
+		print(f"Delta Metrics: {delta_metrics}")
