@@ -136,11 +136,9 @@ class Trainer:
 				callback.on_epoch_start(core_model, delta_model, e)
 
 			print(f"Fitting Models")
-			for i, bch_idx in enumerate(train_indices):
-				if bch_idx < start_batch:
-					continue
+			for i, bch_idx in enumerate(train_indices[start_batch:]):
 
-				print("\n\n", "-" * 100, "\n\n", sep="")
+b				print("\n\n", "-" * 100, "\n\n", sep="")
 				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(train_indices)}")
 				print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 				for callback in callbacks:
