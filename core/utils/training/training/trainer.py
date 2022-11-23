@@ -1,5 +1,6 @@
 from typing import *
 
+import numpy as np
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import Sequence as KerasSequence
 from sklearn.model_selection import train_test_split
@@ -15,10 +16,19 @@ from .callbacks import Callback
 
 class Trainer:
 
-	def __init__(self, min_memory_percent: float = 30, test_size: float=0.3, val_size: float=0.3):
+	def __init__(
+			self,
+			min_memory_percent: float = 30,
+			test_size: float = 0.3,
+			val_size: float = 0.3,
+			batch_validation: bool = True
+	):
 		self.__min_memory_percent = min_memory_percent
 		self.__test_size = test_size
 		self.__val_size = val_size
+		self.__batch_validation = batch_validation
+
+		self.__set_variables(None, None, None, None, None)
 
 		for size, name in [(test_size, "Test"), (val_size, "Val")]:
 			if size < 0 or size > 1:
@@ -76,10 +86,6 @@ class Trainer:
 
 	def __evaluate_models(
 			self,
-			core_model: Model,
-			delta_model: Model,
-			processor: DataProcessor,
-			depth: int,
 			evaluation_indices: List[int]
 	) -> Tuple[
 			Union[
@@ -96,13 +102,13 @@ class Trainer:
 
 		for j in evaluation_indices:
 			core_generator, delta_generator = self.__prepare_data(
-				processor,
+				self.__processor,
 				j,
-				depth,
+				self.__depth
 			)
 			core_metrics, delta_metrics = [
 				model.evaluate(generator, verbose=2)
-				for model, generator in zip((core_model, delta_model), (core_generator, delta_generator))
+				for model, generator in zip(self.__models, (core_generator, delta_generator))
 			]
 			if isinstance(core_metrics, float):
 				core_metrics = (core_metrics,)
@@ -113,6 +119,34 @@ class Trainer:
 			metrics[1].append(delta_metrics)
 
 		return tuple([tuple(np.mean(metric, axis=0)) for metric in metrics])
+
+	def __validate_models(
+			self,
+	):
+		print(f"Validating Models")
+		core_metrics, delta_metrics = self.__evaluate_models(
+			self.__indices[1]
+		)
+
+		print(f"Core Metrics: {core_metrics}")
+		print(f"Delta Metrics: {delta_metrics}")
+
+	def __set_variables(
+			self,
+			indices,
+			models,
+			depth,
+			callbacks,
+			processor
+	):
+		self.__indices = indices
+		self.__models = models
+		self.__depth = depth
+		self.__callbacks = callbacks
+		self.__processor = processor
+
+	def __clear_variables(self):
+		self.__indices, self.__models, self.__depth, self.__callbacks, self.__processor  = None, None, None, None, None
 
 	def fit(
 			self,
@@ -128,7 +162,13 @@ class Trainer:
 		if callbacks is None:
 			callbacks = []
 
-		train_indices, val_indices, test_indices = self.__split_train_val_test_data(processor)
+		self.__set_variables(
+			self.__split_train_val_test_data(processor),
+			(core_model, delta_model),
+			depth,
+			callbacks,
+			processor
+		)
 
 		for e in range(epochs):
 
@@ -136,10 +176,10 @@ class Trainer:
 				callback.on_epoch_start(core_model, delta_model, e)
 
 			print(f"Fitting Models")
-			for i, bch_idx in enumerate(train_indices[start_batch:]):
+			for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
 
 				print("\n\n", "-" * 100, "\n\n", sep="")
-				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(train_indices)}")
+				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(self.__indices[0])}")
 				print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 				for callback in callbacks:
 					callback.on_batch_start(core_model, delta_model, bch_idx)
@@ -162,25 +202,19 @@ class Trainer:
 				for callback in callbacks:
 					callback.on_batch_end(core_model, delta_model, bch_idx)
 
-
-			print(f"Validating Models")
-			core_metrics, delta_metrics = self.__evaluate_models(
-				core_model,
-				delta_model,
-				processor,
-				depth,
-				val_indices
-			)
-
-			print(f"Core Metrics: {core_metrics}")
-			print(f"Delta Metrics: {delta_metrics}")
+				if self.__batch_validation:
+					self.__validate_models()
 
 			for callback in callbacks:
 				callback.on_epoch_end(core_model, delta_model, e)
 
+			self.__validate_models()
+
 			start_batch, start_depth = 0, 0
 
 		print("Testing Models")
-		core_metrics, delta_metrics = self.__evaluate_models(core_model, delta_model, processor, depth, test_indices)
+		core_metrics, delta_metrics = self.__evaluate_models(self.__indices[2])
 		print(f"Core Metrics: {core_metrics}")
 		print(f"Delta Metrics: {delta_metrics}")
+
+		self.__clear_variables()
