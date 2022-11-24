@@ -2,7 +2,6 @@ from typing import *
 
 import numpy as np
 from tensorflow.keras.models import Model
-from tensorflow.keras.utils import Sequence as KerasSequence
 from sklearn.model_selection import train_test_split
 
 import psutil
@@ -179,7 +178,7 @@ class Trainer:
 			for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
 
 				print("\n\n", "-" * 100, "\n\n", sep="")
-				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(self.__indices[0])}")
+				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(self.__indices[0][start_batch:])}")
 				print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 				for callback in callbacks:
 					callback.on_batch_start(core_model, delta_model, bch_idx)
