@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from tensorflow import keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten
+from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout
 from tensorflow.keras.activations import sigmoid
 
 from lib.utils.logger import Logger
@@ -29,9 +29,11 @@ class ModelBuilder(ABC):
 		)(layers)
 
 	@staticmethod
-	def _add_ff_dense_layers(layer: Layer, layers: List[int], activation: Callable) -> Layer:
-		for layer_size in layers:
+	def _add_ff_dense_layers(layer: Layer, layers: List[Tuple[int, int]], activation: Callable) -> Layer:
+		for layer_size, dropout in layers:
 			layer = Dense(layer_size, activation=activation)(layer)
+			if dropout != 0:
+				layer = Dropout(dropout)(layer)
 		return layer
 
 	@staticmethod

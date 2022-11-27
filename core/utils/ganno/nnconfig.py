@@ -20,7 +20,7 @@ class ConvPoolLayer:
 class ModelConfig:
 
 	seq_len: int
-	ff_dense_layers: List[int]
+	ff_dense_layers: List[Tuple[int, float]]
 	ff_conv_pool_layers: List[ConvPoolLayer]
 	delta: bool
 	norm: bool
