@@ -100,7 +100,7 @@ class DataProcessor:
 			delta_generator.add_data(delta_batch)
 			# print(f"\r[+]Preparing Data: {(i + 1) * 100 / rounds :.2f}%", end="")
 			gc.collect()
-		print()
+		# print()
 
 		return core_generator, delta_generator
 
