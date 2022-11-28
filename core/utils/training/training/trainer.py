@@ -70,7 +70,7 @@ class Trainer:
 		core_generator, delta_generator = None, None
 
 		for i in range(start_depth, depth):
-			print(f"[+]Processing Depth: {i + 1}/{depth}")
+			# print(f"[+]Processing Depth: {i + 1}/{depth}")
 			depth_core_generator, depth_delta_generator = processor.get_data(batch_idx, i)
 			if core_generator is None:
 				core_generator, delta_generator = depth_core_generator, depth_delta_generator
