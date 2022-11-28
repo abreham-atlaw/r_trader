@@ -98,7 +98,7 @@ class DataProcessor:
 				batch[i * self.__process_batch_size: (i + 1) * self.__process_batch_size], depth)
 			core_generator.add_data(core_batch)
 			delta_generator.add_data(delta_batch)
-			print(f"\r[+]Preparing Data: {(i + 1) * 100 / rounds :.2f}%", end="")
+			# print(f"\r[+]Preparing Data: {(i + 1) * 100 / rounds :.2f}%", end="")
 			gc.collect()
 		print()
 
