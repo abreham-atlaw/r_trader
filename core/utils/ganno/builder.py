@@ -31,7 +31,8 @@ class ModelBuilder(ABC):
 	@staticmethod
 	def _add_ff_dense_layers(layer: Layer, layers: List[Tuple[int, int]], activation: Callable) -> Layer:
 		for layer_size, dropout in layers:
-			layer = Dense(layer_size, activation=activation)(layer)
+			if layer_size != 0:
+				layer = Dense(layer_size, activation=activation)(layer)
 			if dropout != 0:
 				layer = Dropout(dropout)(layer)
 		return layer
@@ -39,9 +40,13 @@ class ModelBuilder(ABC):
 	@staticmethod
 	def _add_ff_conv_layers(layer: Layer, layers: List[ConvPoolLayer], activation: Callable) -> Layer:
 		for config in layers:
-			layer = Conv1D(kernel_size=config.size, filters=config.features, activation=activation)(layer)
+			if config.size != 0:
+				layer = Conv1D(kernel_size=config.size, filters=config.features, activation=activation)(layer)
 			if config.pool != 0:
 				layer = MaxPooling1D(pool_size=config.pool)(layer)
+			if config.dropout != 0:
+				layer = Dropout(config.dropout)(layer)
+
 		return layer
 
 	@staticmethod

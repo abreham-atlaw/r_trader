@@ -14,6 +14,7 @@ class ConvPoolLayer:
 	size: int
 	features: int
 	pool: int
+	dropout: float
 
 
 @dataclass
