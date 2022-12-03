@@ -52,6 +52,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		self.__transition_model = model
 
 	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> float:
+		return 0.5
 
 		prediction_input = self._state_action_to_model_input(initial_state, action, final_state).reshape((1, -1))
 
