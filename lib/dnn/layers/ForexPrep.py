@@ -136,7 +136,7 @@ class OverlaysCombiner(Layer):
 
 	@tf.function
 	def call(self, inputs, *args, **kwargs):
-		if len(inputs.shape) < 3:
+		if isinstance(inputs, tf.Tensor) and len(inputs.shape) < 3:
 			return tf.expand_dims(inputs, axis=2)
 		out_size = min([overlay.shape[1] for overlay in inputs])
 		return tf.stack([
