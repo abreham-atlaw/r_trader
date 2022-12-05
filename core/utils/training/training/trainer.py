@@ -20,12 +20,16 @@ class Trainer:
 			min_memory_percent: float = 30,
 			test_size: float = 0.3,
 			val_size: float = 0.3,
-			batch_validation: bool = True
+			batch_validation: bool = True,
+			incremental: bool = False,
+			increment_size: int = 1
 	):
 		self.__min_memory_percent = min_memory_percent
 		self.__test_size = test_size
 		self.__val_size = val_size
 		self.__batch_validation = batch_validation
+		self.__incremental = incremental
+		self.__increment_size = increment_size
 
 		self.__set_variables(None, None, None, None, None)
 
@@ -156,7 +160,8 @@ class Trainer:
 			epochs: int = 1,
 			callbacks: List[Callback] = None,
 			start_batch=0,
-			start_depth=0
+			start_depth=0,
+			start_inc_depth=1
 	):
 		if callbacks is None:
 			callbacks = []
@@ -169,47 +174,52 @@ class Trainer:
 			processor
 		)
 
-		for e in range(epochs):
+		if not self.__incremental:
+			start_inc_depth = depth
 
-			for callback in callbacks:
-				callback.on_epoch_start(core_model, delta_model, e)
+		for inc_depth in range(start_inc_depth, depth+1, self.__increment_size):
 
-			print(f"Fitting Models")
-			for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
-
-				print("\n\n", "-" * 100, "\n\n", sep="")
-				print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(self.__indices[0][start_batch:])}")
-				print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
-				for callback in callbacks:
-					callback.on_batch_start(core_model, delta_model, bch_idx)
-
-				core_generator, delta_generator = self.__prepare_data(
-					processor,
-					bch_idx,
-					depth,
-					start_depth=start_depth
-				)
-				print("[+]Fitting Core Model")
-				core_model.fit(core_generator, verbose=2)
-				print("[+]Fitting Delta Model")
-				delta_model.fit(delta_generator, verbose=2)
-				core_generator.destroy()
-				delta_generator.destroy()
-				del core_generator, delta_generator
-				gc.collect()
+			for e in range(epochs):
 
 				for callback in callbacks:
-					callback.on_batch_end(core_model, delta_model, bch_idx)
+					callback.on_epoch_start(core_model, delta_model, e)
 
-				if self.__batch_validation:
-					self.__validate_models()
+				print(f"Fitting Models")
+				for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
 
-			for callback in callbacks:
-				callback.on_epoch_end(core_model, delta_model, e)
+					print("\n\n", "-" * 100, "\n\n", sep="")
+					print(f"[+]Processing\t\tInc Depth: {inc_depth}/{depth}\t\tEpoch: {e + 1}/{epochs}\t\tBatch:{i + 1}/{len(self.__indices[0][start_batch:])}")
+					print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
+					for callback in callbacks:
+						callback.on_batch_start(core_model, delta_model, bch_idx)
 
-			self.__validate_models()
+					core_generator, delta_generator = self.__prepare_data(
+						processor,
+						bch_idx,
+						inc_depth,
+						start_depth=start_depth
+					)
+					print("[+]Fitting Core Model")
+					core_model.fit(core_generator, verbose=2)
+					print("[+]Fitting Delta Model")
+					delta_model.fit(delta_generator, verbose=2)
+					core_generator.destroy()
+					delta_generator.destroy()
+					del core_generator, delta_generator
+					gc.collect()
 
-			start_batch, start_depth = 0, 0
+					for callback in callbacks:
+						callback.on_batch_end(core_model, delta_model, bch_idx)
+
+					if self.__batch_validation:
+						self.__validate_models()
+
+				for callback in callbacks:
+					callback.on_epoch_end(core_model, delta_model, e)
+
+				self.__validate_models()
+
+				start_batch, start_depth = 0, 0
 
 		print("Testing Models")
 		core_metrics, delta_metrics = self.__evaluate_models(self.__indices[2])
