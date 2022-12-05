@@ -166,18 +166,18 @@ class Trainer:
 		if callbacks is None:
 			callbacks = []
 
-		self.__set_variables(
-			self.__split_train_val_test_data(processor),
-			(core_model, delta_model),
-			depth,
-			callbacks,
-			processor
-		)
-
 		if not self.__incremental:
 			start_inc_depth = depth
 
 		for inc_depth in range(start_inc_depth, depth+1, self.__increment_size):
+
+			self.__set_variables(
+				self.__split_train_val_test_data(processor),
+				(core_model, delta_model),
+				inc_depth,
+				callbacks,
+				processor
+			)
 
 			for e in range(epochs):
 
