@@ -79,7 +79,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		raise ValueError("Initial State and Final state are the same.") # TODO: FIND ANOTHER WAY TO HANDLE THIS.
 
 	def __get_state_change_delta(self, sequence: np.ndarray, direction: int, depth: Optional[int] = None) -> float:
-		return sequence[-1]*0.001
+		# return sequence[-1]*0.001
 
 		if direction == -1:
 			direction = 0
