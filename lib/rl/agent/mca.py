@@ -133,6 +133,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			state_repository: StateRepository = None,
 			use_stm: bool = True,
 			short_term_memory: 'MonteCarloAgent.NodeShortTermMemory' = None,
+			probability_correction: bool = False,
 			**kwargs
 	):
 
@@ -152,6 +153,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if state_repository is None:
 			self._state_repository = SectionalDictStateRepository(2, 15)
 		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
+		self.__probability_correction = probability_correction
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -171,7 +173,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		return self._get_environment().get_reward(state)
 
 	def _get_random_state_node(self, action_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
-		state_nodes = action_node.get_children()
+		state_nodes: List[MonteCarloAgent.Node] = action_node.get_children()
 
 		if len(state_nodes) == 1:
 			return state_nodes[0]
@@ -180,7 +182,12 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			state_node.weight
 			for state_node in state_nodes
 		]).astype('float64')
-		probabilities /= probabilities.sum()
+		counts = np.array([
+			state_node.visits
+			for state_node in state_nodes
+		]).astype('float64')
+
+		probabilities = self.__correct_probabilities(probabilities, counts)
 
 		choice = np.random.choice(
 			state_nodes,
@@ -189,6 +196,23 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)[0]
 
 		return choice
+
+	@staticmethod
+	def __squash_probabilities(probs: np.ndarray) -> np.ndarray:
+		return probs / probs.sum()
+
+	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):
+		total_counts = counts.sum()
+		if total_counts != 0:
+			frequency_probs = counts/counts.sum()
+		else:
+			frequency_probs = counts
+
+		corrected = self.__squash_probabilities(
+			(2*expected) - frequency_probs
+		)
+		corrected[corrected < 0] = 0
+		return corrected
 
 	def __manage_resources(self, end=False):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory) or end:
