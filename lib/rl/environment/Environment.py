@@ -30,7 +30,7 @@ class Environment(ABC):
 		pass
 
 	@abstractmethod
-	def get_valid_actions(self, state=None) -> List:
+	def is_action_valid(self, action, state) -> bool:
 		pass
 
 	@abstractmethod
@@ -43,7 +43,7 @@ class Environment(ABC):
 
 	@Logger.logged_method
 	def do(self, action) -> float:
-		if action not in self.get_valid_actions():
+		if not self.is_action_valid(action, self.get_state()):
 			raise ActionNotValidException()
 		self.perform_action(action)
 		self.update_ui()

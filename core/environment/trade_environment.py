@@ -69,35 +69,10 @@ class TradeEnvironment(Environment, ABC):
 	def check_is_running(self) -> bool:
 		return True
 
-	def get_valid_actions(self, state=None) -> List[Union[TraderAction, None]]:
-		if state is None:
-			state = self.get_state()
-		pairs = state.get_market_state().get_tradable_pairs()
-
-		amounts = [
-			(i + 1) * self.__trade_size_gap
-			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
-		]
-
-		actions = [
-			TraderAction(
-				pair[0],
-				pair[1],
-				action,
-				margin_used=amount
-			)
-			for pair in pairs
-			for action in [TraderAction.Action.BUY, TraderAction.Action.SELL]
-			for amount in amounts
-		]
-
-		actions += [
-			TraderAction(trade.get_trade().base_currency, trade.get_trade().quote_currency, TraderAction.Action.CLOSE)
-			for trade in state.get_agent_state().get_open_trades()
-		]
-
-		actions.append(None)
-		return actions
+	def is_action_valid(self, action: TraderAction, state: TradeState) -> bool:
+		if state.get_agent_state().get_margin_available() < action.margin_used:
+			return False
+		return True  # TODO: MORE VALIDATIONS
 
 	def get_state(self) -> TradeState:
 		if self._state is None:

@@ -31,7 +31,15 @@ class Agent(ABC):
 		self.__environment = environment
 
 	def _get_available_actions(self, state) -> List[object]:
-		return self._get_environment().get_valid_actions(state)
+		return [
+			action
+			for action in self._generate_actions(state)
+			if self._get_environment().is_action_valid(action, state)
+		]
+
+	@abstractmethod
+	def _generate_actions(self, state) -> List[object]:
+		pass
 
 	def _is_episode_over(self, state) -> bool:
 		if self._is_episodic:

@@ -78,8 +78,35 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		raise ValueError("Initial State and Final state are the same.") # TODO: FIND ANOTHER WAY TO HANDLE THIS.
 
+	def _generate_actions(self, state: TradeState) -> List[Optional[TraderAction]]:
+		pairs = state.get_market_state().get_tradable_pairs()
+
+		amounts = [
+			(i + 1) * self.__trade_size_gap
+			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
+		]
+
+		actions: List[Optional[TraderAction]] = [
+			TraderAction(
+				pair[0],
+				pair[1],
+				action,
+				margin_used=amount
+			)
+			for pair in pairs
+			for action in [TraderAction.Action.BUY, TraderAction.Action.SELL]
+			for amount in amounts
+		]
+
+		actions += [
+			TraderAction(trade.get_trade().base_currency, trade.get_trade().quote_currency, TraderAction.Action.CLOSE)
+			for trade in state.get_agent_state().get_open_trades()
+		]
+
+		actions.append(None)
+		return actions
+
 	def __get_state_change_delta(self, sequence: np.ndarray, direction: int, depth: Optional[int] = None) -> float:
-		# return sequence[-1]*0.001
 
 		if direction == -1:
 			direction = 0
@@ -154,27 +181,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		))
 
 	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
-		# mid_state = self.__simulate_action(state, action)
-		#
-		# states = []
-		#
-		# if len(state.get_agent_state().get_open_trades()) != 0:
-		# 	states += self.__simulate_instruments_change(
-		# 		mid_state,
-		# 		self.__get_involved_instruments(state.get_agent_state().get_open_trades())
-		# 	)
-		#
-		# elif action is None or action.action == TraderAction.Action.CLOSE:
-		# 	states += self.__simulate_instruments_change(
-		# 		mid_state,
-		# 		state.get_market_state().get_tradable_pairs()
-		# 	)
-		#
-		# else:
-		# 	states += self.__simulate_instrument_change(mid_state, action.base_currency, action.quote_currency)
-		#
-		# return states
-		#
+
 		states = []
 
 		if len(state.get_agent_state().get_open_trades()) != 0:
