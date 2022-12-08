@@ -70,7 +70,7 @@ class TradeEnvironment(Environment, ABC):
 		return True
 
 	def is_action_valid(self, action: TraderAction, state: TradeState) -> bool:
-		if state.get_agent_state().get_margin_available() < action.margin_used:
+		if action is not None and action.action != TraderAction.Action.CLOSE and state.get_agent_state().get_margin_available() < action.margin_used:
 			return False
 		return True  # TODO: MORE VALIDATIONS
 
