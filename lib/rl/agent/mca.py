@@ -154,6 +154,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._state_repository = SectionalDictStateRepository(2, 15)
 		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
 		self.__probability_correction = probability_correction
+		self.__current_graph_: Optional[MonteCarloAgent.Node] = None
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -168,6 +169,14 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	@abstractmethod
 	def _has_resource(self, resources) -> bool:
 		pass
+
+	def __init_current_graph(self, graph: 'MonteCarloAgent.Node'):
+		self.__current_graph = graph
+
+	def __get_current_graph(self) -> 'MonteCarloAgent.Node':
+		if self.__current_graph is None:
+			raise ValueError("Graph not set. Make sure __init_current_graph was called.")
+		return self.__current_graph
 
 	def _get_state_value(self, state):
 		return self._get_environment().get_reward(state)
@@ -212,7 +221,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			(2*expected) - frequency_probs
 		)
 		corrected[corrected < 0] = 0
-		return corrected
+
+		return self.__squash_probabilities(corrected)
 
 	def __manage_resources(self, end=False):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory) or end:
@@ -401,9 +411,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
 
-	def _monte_carlo_tree_search(self, state) -> object:
+	def _monte_carlo_tree_search(self, state) -> None:
 		root_node = MonteCarloAgent.Node(None, None, MonteCarloAgent.Node.NodeType.STATE)
 		self._state_repository.store(root_node.id, state)
+		self.__init_current_graph(root_node)
 
 		self._monte_carlo_simulation(root_node)
 
@@ -416,10 +427,13 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		Logger.info(f"Best Action {optimal_action}")
 		self.__finalize_step(root_node)
 
-		return optimal_action
-
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
-		pass
+		for action_node in self.__current_graph.get_children():
+			if action_node.action == action:
+				return action_node.get_total_value()
+
+		raise Exception(f"Action Not Found in Graph. Action={action}")
 
 	def _get_optimal_action(self, state, **kwargs):
-		return self._monte_carlo_tree_search(state)
+		self._monte_carlo_tree_search(state)
+		return super()._get_optimal_action(state, **kwargs)
