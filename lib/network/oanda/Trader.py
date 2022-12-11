@@ -5,10 +5,11 @@ import datetime
 
 from lib.utils.logger import Logger
 from core import Config
-from .data.models import AccountSummary, Trade, Order, CloseTradeResponse,  CreateOrderResponse, CandleStick, SpreadPrice
+from .data.models import AccountSummary, Trade, Order, CloseTradeResponse,  CreateOrderResponse, CandleStick, SpreadPrice, \
+	ClosedTradeDetails
 from . import OandaNetworkClient
 from .requests import AccountSummaryRequest, GetOpenTradesRequest, GetInstrumentsRequest, CreateOrderRequest, \
-	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest, GetSpreadPriceRequest
+	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest, GetSpreadPriceRequest, GetClosedTradesRequest
 from .exceptions import InstrumentNotFoundException, InvalidActionException, InsufficientMarginException
 
 
@@ -115,6 +116,14 @@ class Trader:
 			GetSpreadPriceRequest(
 				instrument
 			)
+		)
+
+	def get_closed_trades(self, count=None) -> List[ClosedTradeDetails]:
+		request = GetClosedTradesRequest()
+		if count is not None:
+			request = GetClosedTradesRequest(count=count)
+		return self.__client.execute(
+			request
 		)
 
 	def __get_margin_required(self, instrument: Tuple[str, str], units: int) -> float:

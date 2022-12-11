@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 from lib.network.rest_interface import Request
-from .data.models import AccountSummary, Trade, Order, CreateOrderResponse, CloseTradeResponse, Price, CandleStick, SpreadPrice
+from .data.models import AccountSummary, Trade, Order, CreateOrderResponse, CloseTradeResponse, Price, CandleStick, SpreadPrice, ClosedTradeDetails
 
 
 class AccountSummaryRequest(Request):
@@ -124,3 +124,19 @@ class GetSpreadPriceRequest(Request):
 
 	def _filter_response(self, response):
 		return response['prices'][0]
+
+
+class GetClosedTradesRequest(Request):
+
+	def __init__(self, count: int=50):
+		super().__init__(
+			"accounts/{{account_id}}/trades/",
+			get_params={
+				"count": count,
+				"state": "CLOSED"
+			},
+			output_class=List[ClosedTradeDetails]
+		)
+
+	def _filter_response(self, response):
+		return response["trades"]

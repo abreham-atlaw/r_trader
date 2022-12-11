@@ -1,7 +1,8 @@
+import datetime
 from typing import *
 
 import attr
-
+import pendulum
 
 
 @attr.define
@@ -146,3 +147,34 @@ class SpreadPrice:
 
 	def get_spread_cost(self) -> float:
 		return (self.get_buy() - self.get_sell())/2
+
+
+@attr.define
+class ClosedTradeDetails:
+
+	price: float = attr.ib()
+	instrument: str = attr.ib()
+	initialUnits: int = attr.ib()
+	initialMarginRequired: float = attr.ib()
+	realizedPL: float = attr.ib()
+	openTime: datetime.datetime = attr.ib()
+	closeTime: datetime.datetime = attr.ib()
+
+	def get_instrument(self) -> Tuple[str, str]:
+		from lib.network.oanda import Trader
+		return Trader.split_instrument(self.instrument)
+
+	@property
+	def margin(self) -> float:
+		return self.initialMarginRequired
+
+	@property
+	def action(self) -> int:
+		from lib.network.oanda import Trader
+		if self.initialUnits < 0:
+			return Trader.TraderAction.SELL
+		return Trader.TraderAction.BUY
+
+	@property
+	def holding_time(self) -> datetime.timedelta:
+		return self.closeTime - self.openTime
