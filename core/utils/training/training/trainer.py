@@ -224,7 +224,7 @@ class Trainer:
 
 					start_batch, start_depth = 0, 0
 
-			start_inc_depth = 0
+			start_inc_depth = 1
 		print("Testing Models")
 		core_metrics, delta_metrics = self.__evaluate_models(self.__indices[2])
 		print(f"Core Metrics: {core_metrics}")
