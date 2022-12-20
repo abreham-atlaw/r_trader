@@ -2,7 +2,6 @@ import datetime
 from typing import *
 
 import attr
-import pendulum
 
 
 @attr.define
