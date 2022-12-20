@@ -10,7 +10,7 @@ import copy
 from tensorflow.python.keras import Model
 
 from core import Config
-from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent, ActionRecommenderAgent
+from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
 from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
@@ -268,6 +268,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 			stm_balance_tolerance=Config.AGENT_STM_BALANCE_TOLERANCE,
 			stm_average_window=Config.AGENT_STM_AVERAGE_WINDOW_SIZE,
 			stm_attention_mode=Config.AGENT_STM_ATTENTION_MODE,
+			probability_correction=Config.AGENT_PROBABILITY_CORRECTION,
 			**kwargs
 	):
 		super(TraderMonteCarloAgent, self).__init__(
@@ -284,6 +285,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
 				balance_tolerance=stm_balance_tolerance,
 				attention_mode=stm_attention_mode
 			),
+			probability_correction=probability_correction,
 			**kwargs
 		)
 		self.__step_time = step_time
