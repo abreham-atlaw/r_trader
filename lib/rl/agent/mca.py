@@ -196,7 +196,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			for state_node in state_nodes
 		]).astype('float64')
 
-		probabilities = self.__correct_probabilities(probabilities, counts)
+		if self.__probability_correction:
+			probabilities = self.__correct_probabilities(probabilities, counts)
+		else:
+			probabilities = self.__squash_probabilities(probabilities)
 
 		choice = np.random.choice(
 			state_nodes,
