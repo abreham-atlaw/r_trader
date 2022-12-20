@@ -6,16 +6,17 @@ import numpy as np
 
 from datetime import datetime
 import copy
-from dataclasses import dataclass
+
+from tensorflow.python.keras import Model
 
 from core import Config
-from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
+from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent, ActionRecommenderAgent
 from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from .trader_action import TraderAction
-from .trade_transition_model import TransitionModel
+from .dnn_models import KerasModelHandler
 from .stm import TraderNodeShortTermMemory
 
 
@@ -49,7 +50,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		if core_model is None:
 			Logger.info("Loading Core Model")
-			core_model = TransitionModel.load_model(Config.CORE_MODEL_CONFIG.path)
+			core_model = KerasModelHandler.load_model(Config.CORE_MODEL_CONFIG.path)
 		self.set_transition_model(core_model)
 
 		self.__delta_model = None
@@ -57,7 +58,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			self.__delta_model = delta_model
 			if delta_model is None:
 				Logger.info("Loading Delta Model")
-				self.__delta_model = TransitionModel.load_model(Config.DELTA_MODEL_CONFIG.path)
+				self.__delta_model = KerasModelHandler.load_model(Config.DELTA_MODEL_CONFIG.path)
 
 		self.__state_change_delta_cache = {}
 
