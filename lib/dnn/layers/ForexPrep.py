@@ -303,6 +303,26 @@ class TrendLine(Layer):
 		return config
 
 
+class ProbabilityCorrector(Layer):
+
+	def __init__(self, accuracy: float, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__accuracy = accuracy
+
+	def update_accuracy(self, accuracy: float):
+		self.__accuracy = accuracy
+
+	def call(self, inputs, *args, **kwargs):
+		return self.__accuracy*inputs + (1-self.__accuracy)*(1-inputs)
+
+	def get_config(self):
+		config = super().get_config()
+		config.update({
+			"accuracy": self.__accuracy
+		})
+		return config
+
+
 class ForexPrep(Layer):
 
 	def __init__(self, average_gap=7, **kwargs):
