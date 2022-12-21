@@ -33,12 +33,14 @@ class DropboxUploadCallback(Callback):
 			batch_end: bool = True,
 			batch_steps: int = 1,
 			epoch_end: bool = True,
+			epoch_steps: int = 1
 	):
 		self.__session_id = self.__generate_session_id()
 		self.__dropbox_client = DropboxClient(folder=os.path.join(folder, "Session-%s" % (self.__session_id,)))
 		self.__batch_end = batch_end
 		self.__epoch_end = epoch_end
 		self.__batch_steps = batch_steps
+		self.__epoch_steps = epoch_steps
 
 	@staticmethod
 	def __generate_session_id() -> str:
@@ -74,5 +76,5 @@ class DropboxUploadCallback(Callback):
 			self.__call(core_model, delta_model)
 
 	def on_epoch_end(self, core_model: Model, delta_model: Model, epoch: int):
-		if self.__epoch_end:
+		if self.__epoch_end and (epoch + 1) % self.__epoch_steps == 0:
 			self.__call(core_model, delta_model)
