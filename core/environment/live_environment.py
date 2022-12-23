@@ -36,7 +36,8 @@ class LiveEnvironment(TradeEnvironment):
 		if trader is None:
 			self.__trader = Trader(
 				Config.OANDA_TOKEN,
-				Config.OANDA_TRADING_ACCOUNT_ID
+				Config.OANDA_TRADING_ACCOUNT_ID,
+				timezone=Config.TIMEZONE
 			)
 		self.__instruments = instruments
 		if instruments is None:
@@ -63,7 +64,6 @@ class LiveEnvironment(TradeEnvironment):
 				conversion_instruments.append(currency_instrument)
 
 		return instruments + conversion_instruments
-
 
 	def __get_random_instruments(self, size) -> List[Tuple[str, str]]:
 		instruments = self.__trader.get_instruments()
@@ -142,7 +142,8 @@ class LiveEnvironment(TradeEnvironment):
 
 		return market_state
 
-	def __candlesticks_to_dataframe(self, candlesticks: List[models.CandleStick]) -> pd.DataFrame:
+	@staticmethod
+	def __candlesticks_to_dataframe(candlesticks: List[models.CandleStick]) -> pd.DataFrame:
 		df_list = []
 		for candlestick in candlesticks:
 			candle_dict = candlestick.mid
@@ -166,7 +167,8 @@ class LiveEnvironment(TradeEnvironment):
 		self.__trader.trade(
 			(action.base_currency, action.quote_currency),
 			self.__to_oanda_action(action.action),
-			action.margin_used
+			action.margin_used,
+			time_in_force=Config.DEFAULT_TIME_IN_FORCE
 		)
 
 	def _close_trades(self, base_currency, quote_currency):

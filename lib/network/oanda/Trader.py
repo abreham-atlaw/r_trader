@@ -2,9 +2,9 @@ from typing import *
 
 import math
 import datetime
+import pytz
 
 from lib.utils.logger import Logger
-from core import Config
 from .data.models import AccountSummary, Trade, Order, CloseTradeResponse,  CreateOrderResponse, CandleStick, SpreadPrice, \
 	ClosedTradeDetails
 from . import OandaNetworkClient
@@ -29,11 +29,15 @@ class Trader:
 				return Trader.TraderAction.BUY
 			raise InvalidActionException()
 	
-	def __init__(self, token: str, account_no: str):
+	def __init__(self, token: str, account_no: str, timezone: pytz.timezone = None):
 		self.__token: str = token
 		self.__account_no: str = account_no
 		self.__client = OandaNetworkClient(Config.OANDA_TRADING_URL, self.__token, self.__account_no)
 		self.__summary: AccountSummary = self.get_account_summary()
+		self.__timezone = timezone
+		if timezone is None:
+			self.__timezone = pytz.timezone("UTC")
+		Logger.info(f"Using timezone {self.__timezone}")
 
 	def get_account_summary(self, update: bool = True) -> AccountSummary:
 		summary = self.__client.execute(AccountSummaryRequest())
@@ -92,7 +96,7 @@ class Trader:
 		return 1/price
 
 	def __localize_datetime(self, dt: datetime) -> datetime:
-		return Config.TIMEZONE.localize(dt)
+		return self.__timezone.localize(dt)
 
 	def get_candlestick(self, instrument: Tuple[str, str], from_: datetime = None, to: datetime = None,
 							granularity: str = None, count: int = None) -> List[CandleStick]:
@@ -137,7 +141,7 @@ class Trader:
 		return math.floor(in_quote / (self.__summary.marginRate * price))
 
 	@Logger.logged_method
-	def trade(self, instrument: Tuple, action: int, margin: float, time_in_force = Config.DEFAULT_TIME_IN_FORCE) -> CreateOrderResponse:
+	def trade(self, instrument: Tuple, action: int, margin: float, time_in_force="FOK") -> CreateOrderResponse:
 		instrument, action = self.__get_proper_instrument_action_pair(instrument, action)
 		if self.get_margin_available() < margin:
 			raise InsufficientMarginException()
