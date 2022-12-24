@@ -1,4 +1,5 @@
 import cattr
+import pytz
 from datetime import datetime
 
 
@@ -8,5 +9,5 @@ cattr.register_unstructure_hook(
     datetime, lambda dt: datetime.strftime(dt, TIME_FORMAT)
 )
 cattr.register_structure_hook(
-    datetime, lambda dt_str, _: datetime.strptime(dt_str.split(".")[0], TIME_FORMAT)
+    datetime, lambda dt_str, _: datetime.strptime(dt_str.split(".")[0], TIME_FORMAT).replace(tzinfo=pytz.UTC)
 )
