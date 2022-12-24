@@ -37,7 +37,8 @@ class LiveEnvironment(TradeEnvironment):
 			self.__trader = Trader(
 				Config.OANDA_TOKEN,
 				Config.OANDA_TRADING_ACCOUNT_ID,
-				timezone=Config.TIMEZONE
+				timezone=Config.TIMEZONE,
+				trading_url=Config.OANDA_TRADING_URL
 			)
 		self.__instruments = instruments
 		if instruments is None:
