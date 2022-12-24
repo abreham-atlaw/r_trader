@@ -1,4 +1,5 @@
 from typing import *
+from typing import Tuple
 
 import numpy as np
 from tensorflow.keras.models import Model
@@ -123,7 +124,7 @@ class Trainer:
 	def __evaluate_models(
 			self,
 			evaluation_indices: List[int]
-	) -> Tuple['Trainer.Metric', 'Trainer.Metric']:
+	) -> Tuple[Metric, ...]:
 
 		metrics = ([], [])
 
@@ -147,12 +148,13 @@ class Trainer:
 
 		return tuple([
 			Trainer.Metric(
+				model=mi,
 				source=2,
 				epoch=0,
 				depth=self.__depth,
 				value=tuple(np.mean(metric, axis=0))
 			)
-			for metric in metrics
+			for mi, metric in enumerate(metrics)
 		])
 
 	def __validate_models(
