@@ -4,8 +4,8 @@ from lib.network.rest_interface import Request
 
 class OandaNetworkClient(NetworkApiClient):
 
-	def __init__(self, url, token, account_id):
-		super().__init__(url)
+	def __init__(self, url, token, account_id, *args, **kwargs):
+		super().__init__(url, *args, **kwargs)
 		self.__account_id = account_id
 		self.__token = token
 		self.__headers = {

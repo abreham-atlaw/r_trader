@@ -29,10 +29,17 @@ class Trader:
 				return Trader.TraderAction.BUY
 			raise InvalidActionException()
 	
-	def __init__(self, token: str, account_no: str, timezone: pytz.timezone = None):
+	def __init__(
+			self,
+			token: str,
+			account_no: str,
+			timezone: pytz.timezone = None,
+			trading_url: str = "https://api-fxpractice.oanda.com/v3",
+			timeout: Optional[float] = None
+	):
 		self.__token: str = token
 		self.__account_no: str = account_no
-		self.__client = OandaNetworkClient(Config.OANDA_TRADING_URL, self.__token, self.__account_no)
+		self.__client = OandaNetworkClient(trading_url, self.__token, self.__account_no, timeout=timeout)
 		self.__summary: AccountSummary = self.get_account_summary()
 		self.__timezone = timezone
 		if timezone is None:

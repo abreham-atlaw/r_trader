@@ -11,25 +11,41 @@ from .exceptions import InvalidNetworkMethod
 
 class NetworkApiClient:
 
-	def __init__(self, url: str):
+	def __init__(self, url: str, timeout=None):
 		self.__url = url
 		if url.endswith("/"):
 			self.__url = url[:-1]
+		self.__timeout = timeout
 
 	def _get_complete_url(self, url):
 		return f"{self.__url}/{url}"
 
 	@network_call
 	def _get(self, request: Request, headers=None):
-		return requests.get(self._get_complete_url(request.get_url()), params=request.get_get_params(), headers=headers)
+		return requests.get(
+			self._get_complete_url(request.get_url()),
+			params=request.get_get_params(),
+			headers=headers,
+			timeout=self.__timeout
+		)
 
 	@network_call
 	def _post(self, request: Request, headers=None):
-		return requests.post(self._get_complete_url(request.get_url()), data=request.get_post_data(), headers=headers)
+		return requests.post(
+			self._get_complete_url(request.get_url()),
+			data=request.get_post_data(),
+			headers=headers,
+			timeout=self.__timeout
+		)
 
 	@network_call
 	def _put(self, request: Request, headers=None):
-		return requests.put(self._get_complete_url(request.get_url()), data=request.get_post_data(), headers=headers)
+		return requests.put(
+			self._get_complete_url(request.get_url()),
+			data=request.get_post_data(),
+			headers=headers,
+			timeout=self.__timeout
+		)
 
 	def execute(self, request: Request, headers: Optional[Dict] = None):
 		if headers is None:
