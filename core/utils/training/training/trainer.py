@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 import psutil
 import gc
 import time
+from dataclasses import dataclass
 
 from core.utils.training.datapreparation.dataprocessor import DataProcessor
 from core.utils.training.datapreparation.generators import WrapperGenerator
@@ -14,6 +15,38 @@ from .callbacks import Callback
 
 
 class Trainer:
+
+	@dataclass
+	class Metric:
+
+		source: int
+		model: int
+		epoch: int
+		depth: int
+		value: Tuple[float, ...]
+
+	class MetricsContainer:
+
+		def __init__(self):
+			self.__metrics = []
+
+		def add_metric(self, metric: 'Trainer.Metric'):
+			self.__metrics.append(metric)
+
+		def filter_metrics(self, source=None, epoch=None, depth=None, model=None) -> List['Trainer.Metric']:
+			filtered_metrics = self.__metrics
+
+			for attribute, value in zip(["source", "epoch", "depth", "model"], [source, epoch, depth, model]):
+				if value is None:
+					continue
+				filtered_metrics = [metric for metric in filtered_metrics if metric.__dict__.get(attribute) == value]
+
+			return filtered_metrics
+
+		def get_metric(self, source=None, epoch=None, depth=None, model=None) -> Tuple[float,...]:
+			metrics = self.filter_metrics(source=source, epoch=epoch, depth=depth, model=model)
+
+			return tuple(np.mean([metric.value for metric in metrics], axis=0))
 
 	def __init__(
 			self,
@@ -90,16 +123,7 @@ class Trainer:
 	def __evaluate_models(
 			self,
 			evaluation_indices: List[int]
-	) -> Tuple[
-			Union[
-				Tuple[float, float],
-				Tuple[float]
-			],
-			Union[
-				Tuple[float, float],
-				Tuple[float]
-			]
-	]:
+	) -> Tuple['Trainer.Metric', 'Trainer.Metric']:
 
 		metrics = ([], [])
 
@@ -121,18 +145,30 @@ class Trainer:
 			metrics[0].append(core_metrics)
 			metrics[1].append(delta_metrics)
 
-		return tuple([tuple(np.mean(metric, axis=0)) for metric in metrics])
+		return tuple([
+			Trainer.Metric(
+				source=2,
+				epoch=0,
+				depth=self.__depth,
+				value=tuple(np.mean(metric, axis=0))
+			)
+			for metric in metrics
+		])
 
 	def __validate_models(
 			self,
-	):
+	) -> Tuple['Trainer.Metric', 'Trainer.Metric']:
 		print(f"Validating Models")
 		core_metrics, delta_metrics = self.__evaluate_models(
 			self.__indices[1]
 		)
 
+		for metric in (core_metrics, delta_metrics):
+			metric.source = 1
+
 		print(f"Core Metrics: {core_metrics}")
 		print(f"Delta Metrics: {delta_metrics}")
+		return core_metrics, delta_metrics
 
 	def __set_variables(
 			self,
@@ -163,12 +199,14 @@ class Trainer:
 			start_depth=0,
 			start_inc_depth=1,
 			epochs_per_inc=1
-	):
+	) -> 'Trainer.MetricsContainer':
 		if callbacks is None:
 			callbacks = []
 
 		if not self.__incremental:
 			start_inc_depth = depth
+
+		metrics = Trainer.MetricsContainer()
 
 		for e in range(epochs):
 
@@ -203,9 +241,21 @@ class Trainer:
 							start_depth=start_depth
 						)
 						print("[+]Fitting Core Model")
-						core_model.fit(core_generator, verbose=2)
+						core_metric = core_model.fit(core_generator, verbose=2)
 						print("[+]Fitting Delta Model")
-						delta_model.fit(delta_generator, verbose=2)
+						delta_metric = delta_model.fit(delta_generator, verbose=2)
+
+						for mi, metric in enumerate((core_metric, delta_metric)):
+							metrics.add_metric(
+								Trainer.Metric(
+									source=0,
+									model=mi,
+									depth=inc_depth,
+									epoch=e*epochs_per_inc + epi,
+									value=tuple(np.array(list(metric.history.values())).flatten())
+								)
+							)
+
 						core_generator.destroy()
 						delta_generator.destroy()
 						del core_generator, delta_generator
@@ -220,14 +270,21 @@ class Trainer:
 					for callback in callbacks:
 						callback.on_epoch_end(core_model, delta_model, epi)
 
-					self.__validate_models()
+					core_metric, delta_metric = self.__validate_models()
+					for mi, metric in enumerate((core_metric, delta_metric)):
+						metrics.add_metric(metric)
 
 					start_batch, start_depth = 0, 0
 
 			start_inc_depth = 1
+
 		print("Testing Models")
 		core_metrics, delta_metrics = self.__evaluate_models(self.__indices[2])
 		print(f"Core Metrics: {core_metrics}")
 		print(f"Delta Metrics: {delta_metrics}")
+		for mi, metric in enumerate((core_metrics, delta_metrics)):
+			metrics.add_metric(metric)
 
 		self.__clear_variables()
+
+		return metrics
