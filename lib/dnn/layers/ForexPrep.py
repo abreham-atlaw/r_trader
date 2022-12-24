@@ -191,7 +191,7 @@ class ExponentialMovingAverage(Layer):
 
 class KelmanFilter(Layer):
 
-	def __init__(self, alpha: float, beta: float, *args, instances: int = 10000, function_mode=False, **kwargs):
+	def __init__(self, alpha: float, beta: float, *args, **kwargs):
 		self.a = alpha
 		self.b = beta
 		super(KelmanFilter, self).__init__(*args, **kwargs)
