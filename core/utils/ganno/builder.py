@@ -5,6 +5,7 @@ from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout
 from tensorflow.keras.activations import sigmoid
+from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
 from lib.utils.logger import Logger
 from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, TrendLine, OverlayIndicator,\
@@ -29,7 +30,7 @@ class ModelBuilder(ABC):
 		)(layers)
 
 	@staticmethod
-	def _add_ff_dense_layers(layer: Layer, layers: List[Tuple[int, int]], activation: Callable) -> Layer:
+	def _add_ff_dense_layers(layer: KerasTensor, layers: List[Tuple[int, int]], activation: Callable) -> Layer:
 		for layer_size, dropout in layers:
 			if layer_size != 0:
 				layer = Dense(layer_size, activation=activation)(layer)
@@ -38,7 +39,7 @@ class ModelBuilder(ABC):
 		return layer
 
 	@staticmethod
-	def _add_ff_conv_layers(layer: Layer, layers: List[ConvPoolLayer], activation: Callable) -> Layer:
+	def _add_ff_conv_layers(layer: KerasTensor, layers: List[ConvPoolLayer], activation: Callable) -> Layer:
 		for config in layers:
 			if config.size != 0:
 				layer = Conv1D(kernel_size=config.size, filters=config.features, activation=activation)(layer)
@@ -62,15 +63,21 @@ class ModelBuilder(ABC):
 		]
 
 	@abstractmethod
-	def _get_input_shape(self, seq_len: int) -> int:
+	def _get_input_shape(self, config: ModelConfig) -> int:
 		pass
+
+	def _get_output_shape(self, config: ModelConfig) -> int:
+		return 1
+
+	def _finalize_output_layer(self, output_layer: KerasTensor, config: ModelConfig):
+		return output_layer
 
 	def _compile(self, model: Model, optimizer: keras.optimizers.Optimizer, loss: Callable):
 		model.compile(optimizer=optimizer, loss=loss)
 
 	def _build(self, config: ModelConfig) -> Model:
 		Logger.info("[+]Building", config)
-		input_layer = Input(shape=self._get_input_shape(config.seq_len))
+		input_layer = Input(shape=self._get_input_shape(config))
 
 		input_sequence = input_layer[:, :config.seq_len]
 		extra_input = input_layer[:, config.seq_len:]
@@ -108,7 +115,10 @@ class ModelBuilder(ABC):
 
 		ff_dense = self._add_ff_dense_layers(flatten, config.ff_dense_layers, config.dense_activation)
 
-		output_layer = Dense(1, activation=self.__output_activation)(ff_dense)
+		output_layer = Dense(
+			self._get_output_shape(config),
+			activation=self.__output_activation
+		)(ff_dense)
 
 		if self.__un_norm:
 			output_layer = UnNorm(min_increment=False)(
@@ -119,7 +129,7 @@ class ModelBuilder(ABC):
 			)
 			output_layer = Reshape((1,))(output_layer)
 
-		model = Model(inputs=input_layer, outputs=output_layer)
+		model = Model(inputs=input_layer, outputs=self._finalize_output_layer(output_layer, config))
 
 		self._compile(model, config.optimizer, config.loss)
 
@@ -140,8 +150,8 @@ class CoreBuilder(ModelBuilder):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, output_activation=sigmoid, **kwargs)
 
-	def _get_input_shape(self, seq_len: int) -> int:
-		return seq_len + 1
+	def _get_input_shape(self, config: ModelConfig) -> int:
+		return config.seq_len + 1
 
 	def _compile(self, model: Model, optimizer: keras.optimizers.Optimizer, loss: Callable):
 		model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
@@ -152,8 +162,8 @@ class DeltaBuilder(ModelBuilder):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, un_norm=True, **kwargs)
 
-	def _get_input_shape(self, seq_len: int) -> int:
-		return seq_len + 2
+	def _get_input_shape(self, config: ModelConfig) -> int:
+		return config.seq_len + 2
 
 
 class BuildException(Exception):
