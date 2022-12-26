@@ -23,7 +23,7 @@ class MockDataGenerator:
 	def __eval(self, x) -> np.ndarray:
 		return self.__b + np.sum([
 			np.sin(
-				(x*3.14*(i**self.__p)/self.__size) + (i**self.__s)
+				(x*3.14*((i-1)**self.__p)/self.__size) + (i**self.__s)
 			)/(i**self.__a)
 			for i in range(1, self.__f+1)
 		], axis=0)
