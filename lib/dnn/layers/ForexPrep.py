@@ -1,8 +1,8 @@
 from typing import *
 from abc import abstractmethod, ABC
 
+import keras.constraints
 import tensorflow as tf
-
 from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
 
 
@@ -189,12 +189,12 @@ class ExponentialMovingAverage(Layer):
 		}
 
 
-class KelmanFilter(Layer):
+class KelmanStaticFilter(Layer):
 
 	def __init__(self, alpha: float, beta: float, *args, **kwargs):
 		self.a = alpha
 		self.b = beta
-		super(KelmanFilter, self).__init__(*args, **kwargs)
+		super(KelmanStaticFilter, self).__init__(*args, **kwargs)
 
 	def call(self, Z, *args, **kwargs):
 		X = tf.zeros_like(Z[:, 0:0])
@@ -222,6 +222,31 @@ class KelmanFilter(Layer):
 			}
 		)
 		return config
+
+
+class KelmanFilter(Layer):
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.a = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=keras.constraints.non_neg())
+		self.b = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=keras.constraints.non_neg())
+
+	def call(self, Z, *args, **kwargs):
+		X = tf.zeros_like(Z[:, 0:0])
+		p = Z[:, 0]
+		v = tf.zeros_like(p)
+
+		for i in range(Z.shape[1]):
+			diff = Z[:, i] - p
+			X = tf.concat(
+				(
+					X,
+					tf.reshape(p + (self.a * diff), (-1, 1))
+				), axis=1)
+			v = v + self.b * diff
+			p = X[:, i] + v
+
+		return X
 
 
 class MovingStandardDeviation(OverlayIndicator):
