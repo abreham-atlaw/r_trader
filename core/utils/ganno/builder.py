@@ -9,7 +9,8 @@ from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
 from lib.utils.logger import Logger
 from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, TrendLine, OverlayIndicator,\
-	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner
+	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner, KelmanFilter,\
+	KelmanStaticFilter
 from .nnconfig import ModelConfig, ConvPoolLayer
 
 
@@ -93,7 +94,9 @@ class ModelBuilder(ABC):
 			(WilliamsPercentageRange, config.wpr),
 			(MovingAverage, config.mas_windows),
 			(MovingStandardDeviation, config.msd_windows),
-			(Delta, [()][:int(config.delta)])
+			(KelmanStaticFilter, config.kelman_static_filters),
+			(KelmanFilter, [() for _ in range(config.kelman_filters)]),
+			(Delta, [()][:int(config.delta)]),
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
