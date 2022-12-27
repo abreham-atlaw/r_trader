@@ -1,7 +1,5 @@
 from typing import *
 from abc import abstractmethod, ABC
-
-import keras.constraints
 import tensorflow as tf
 from tensorflow.keras.layers import Layer, Concatenate, Reshape, Activation
 
@@ -228,8 +226,9 @@ class KelmanFilter(Layer):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.a = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=keras.constraints.non_neg())
-		self.b = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=keras.constraints.non_neg())
+		self.a = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
+		self.b = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
+		self.w = self.add_weight(shape=(1,), initializer="random_normal", trainable=True)
 
 	def call(self, Z, *args, **kwargs):
 		X = tf.zeros_like(Z[:, 0:0])
@@ -246,7 +245,7 @@ class KelmanFilter(Layer):
 			v = v + self.b * diff
 			p = X[:, i] + v
 
-		return X
+		return X*self.w
 
 
 class MovingStandardDeviation(OverlayIndicator):
