@@ -65,7 +65,7 @@ class Trainer:
 		self.__incremental = incremental
 		self.__increment_size = increment_size
 
-		self.__set_variables(None, None, None, None, None)
+		self.__set_variables(None, None, None, None, None, None)
 
 		for size, name in [(test_size, "Test"), (val_size, "Val")]:
 			if size < 0 or size > 1:
