@@ -102,7 +102,9 @@ class ModelBuilder(ABC):
 		if config.norm:
 			prep_layer = Norm()(prep_layer)
 
-		overlays = [prep_layer]
+		overlays = []
+		if config.include_prep:
+			overlays.append(prep_layer)
 		for cls, args in [
 			(StochasticOscillator, config.stochastic_oscillators),
 			(RelativeStrengthIndex, config.rsi),

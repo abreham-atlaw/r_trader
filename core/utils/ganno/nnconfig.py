@@ -25,6 +25,7 @@ class ModelConfig:
 	ff_conv_pool_layers: List[ConvPoolLayer]
 	delta: bool
 	norm: bool
+	include_prep: bool
 	stochastic_oscillators: List[int]
 	rsi: List[int]
 	wpr: List[int]
