@@ -135,7 +135,7 @@ class Trainer:
 				self.__depth
 			)
 			core_metrics, delta_metrics = [
-				model.evaluate(generator, verbose=2)
+				model.evaluate(generator, verbose=self.__verbose)
 				for model, generator in zip(self.__models, (core_generator, delta_generator))
 			]
 			if isinstance(core_metrics, float):
@@ -178,16 +178,18 @@ class Trainer:
 			models,
 			depth,
 			callbacks,
-			processor
+			processor,
+			verbose
 	):
 		self.__indices = indices
 		self.__models = models
 		self.__depth = depth
 		self.__callbacks = callbacks
 		self.__processor = processor
+		self.__verbose = verbose
 
 	def __clear_variables(self):
-		self.__indices, self.__models, self.__depth, self.__callbacks, self.__processor  = None, None, None, None, None
+		self.__indices, self.__models, self.__depth, self.__callbacks, self.__processor, self.__verbose = None, None, None, None, None, None
 
 	def fit(
 			self,
@@ -200,13 +202,14 @@ class Trainer:
 			start_batch=0,
 			start_depth=0,
 			start_inc_depth=1,
-			epochs_per_inc=1
+			epochs_per_inc=1,
+			verbose=1
 	) -> 'Trainer.MetricsContainer':
 		if callbacks is None:
 			callbacks = []
 
 		if not self.__incremental:
-			start_inc_depth = depth
+			start_inc_depth, epochs_per_inc = depth, 1
 
 		metrics = Trainer.MetricsContainer()
 
@@ -219,7 +222,8 @@ class Trainer:
 					(core_model, delta_model),
 					inc_depth,
 					callbacks,
-					processor
+					processor,
+					verbose
 				)
 
 				for epi in range(epochs_per_inc):
@@ -243,9 +247,9 @@ class Trainer:
 							start_depth=start_depth
 						)
 						print("[+]Fitting Core Model")
-						core_metric = core_model.fit(core_generator, verbose=2)
+						core_metric = core_model.fit(core_generator, verbose=verbose)
 						print("[+]Fitting Delta Model")
-						delta_metric = delta_model.fit(delta_generator, verbose=2)
+						delta_metric = delta_model.fit(delta_generator, verbose=verbose)
 
 						for mi, metric in enumerate((core_metric, delta_metric)):
 							metrics.add_metric(
