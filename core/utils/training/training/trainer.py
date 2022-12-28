@@ -203,7 +203,7 @@ class Trainer:
 			start_depth=0,
 			start_inc_depth=1,
 			epochs_per_inc=1,
-			verbose=1
+			verbose=2
 	) -> 'Trainer.MetricsContainer':
 		if callbacks is None:
 			callbacks = []
