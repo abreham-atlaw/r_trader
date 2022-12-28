@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 
 from tensorflow import keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout
+from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout, \
+	Add, Subtract
 from tensorflow.keras.activations import sigmoid
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
@@ -52,6 +53,20 @@ class ModelBuilder(ABC):
 		return layer
 
 	@staticmethod
+	def _add_kelman_filters(layer: KerasTensor, layers: int) -> List[KerasTensor]:
+
+		if layers == 0:
+			return layer
+
+		filters = [KelmanFilter()(layer)]
+		filters_sum = filters[0]
+		for _ in range(layers-1):
+			filters.append(KelmanFilter()(Subtract()((layer, filters_sum))))
+			filters_sum = Add()((filters_sum, filters[-1]))
+
+		return filters
+
+	@staticmethod
 	def __create_overlays(cls: Type, args: List[Tuple], inputs: Layer) -> List[OverlayIndicator]:
 		if len(args) == 0:
 			return []
@@ -95,10 +110,11 @@ class ModelBuilder(ABC):
 			(MovingAverage, config.mas_windows),
 			(MovingStandardDeviation, config.msd_windows),
 			(KelmanStaticFilter, config.kelman_static_filters),
-			(KelmanFilter, [() for _ in range(config.kelman_filters)]),
 			(Delta, [()][:int(config.delta)]),
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
+
+		overlays.extend(self._add_kelman_filters(prep_layer, config.kelman_filters))
 
 		combined = OverlaysCombiner()(overlays)
 
