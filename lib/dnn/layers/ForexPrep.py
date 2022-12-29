@@ -226,9 +226,9 @@ class KelmanFilter(Layer):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.a = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
-		self.b = self.add_weight(shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
-		self.w = self.add_weight(shape=(1,), initializer="random_normal", trainable=True)
+		self.a = self.add_weight(name="alpha", shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
+		self.b = self.add_weight(name="beta", shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
+		self.w = self.add_weight(name="weight", shape=(1,), initializer="random_normal", trainable=True)
 
 	def call(self, Z, *args, **kwargs):
 		X = tf.zeros_like(Z[:, 0:0])
