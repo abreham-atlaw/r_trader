@@ -1,10 +1,11 @@
+import math
 from typing import *
 from abc import ABC, abstractmethod
 
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout, \
-	Add, Subtract
+	Add, Subtract, AveragePooling1D, UpSampling1D
 from tensorflow.keras.activations import sigmoid
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
@@ -12,7 +13,7 @@ from lib.utils.logger import Logger
 from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, TrendLine, OverlayIndicator,\
 	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner, KelmanFilter,\
 	KelmanStaticFilter
-from .nnconfig import ModelConfig, ConvPoolLayer
+from .nnconfig import ModelConfig, ConvPoolLayer, KelmanFiltersConfig
 
 
 class ModelBuilder(ABC):
@@ -53,16 +54,49 @@ class ModelBuilder(ABC):
 		return layer
 
 	@staticmethod
-	def _add_kelman_filters(layer: KerasTensor, layers: int) -> List[KerasTensor]:
+	def __create_kelman_filter(input_layer: KerasTensor, compute_size: int, percentage: float) -> KerasTensor:
+		input_layer = input_layer[:, -math.floor(percentage * input_layer.shape[1]):]
+		pool_size = math.ceil(input_layer.shape[1]/compute_size)
+		if pool_size > 1:
+			input_layer = Flatten()(
+				AveragePooling1D(pool_size)(
+					Reshape((-1, 1))(input_layer)
+				)
+			)
+		out = KelmanFilter()(input_layer)
+		if pool_size > 1:
+			out = Flatten()(
+				UpSampling1D(math.ceil(pool_size/percentage))(
+					Reshape((-1, 1))(out)
+				)
+			)
+		return out
 
-		if layers == 0:
-			return layer
+	@staticmethod
+	def _add_kelman_filters(layer: KerasTensor, config: KelmanFiltersConfig) -> List[KerasTensor]:
 
-		filters = [KelmanFilter()(layer)]
+		if config == 0:
+			return [layer]
+
+		filters = [
+			ModelBuilder.__create_kelman_filter(
+				layer,
+				config.compute_size,
+				config.percentages[0]
+			)
+		]
 		filters_sum = filters[0]
-		for _ in range(layers-1):
-			filters.append(KelmanFilter()(Subtract()((layer, filters_sum))))
-			filters_sum = Add()((filters_sum, filters[-1]))
+		filters_size = filters_sum.shape[1]
+		for p in config.percentages[1:]:
+			filters.append(
+				ModelBuilder.__create_kelman_filter(
+					Subtract()((layer[:, -filters_size:], filters_sum)),
+					config.compute_size,
+					p
+				)
+			)
+			filters_size = min(filters_sum.shape[1], filters[-1].shape[1])
+			filters_sum = Add()((filters_sum[:, -filters_size:], filters[-1][:, -filters_size]))
 
 		return filters
 
@@ -116,11 +150,7 @@ class ModelBuilder(ABC):
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
-		if config.kelman_filters[0] != 0:
-			pooled_layer = prep_layer
-			if config.kelman_filters[1] != 0:
-				pooled_layer = Flatten()(MaxPooling1D(config.kelman_filters[1])(Reshape((-1, 1))(prep_layer)))
-			overlays.extend(self._add_kelman_filters(pooled_layer, config.kelman_filters[0]))
+		overlays.extend(self._add_kelman_filters(prep_layer, config.kelman_filters))
 
 		combined = OverlaysCombiner()(overlays)
 

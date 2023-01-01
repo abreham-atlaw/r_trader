@@ -18,6 +18,12 @@ class ConvPoolLayer:
 
 
 @dataclass
+class KelmanFiltersConfig:
+	compute_size: int
+	percentages: List[float]
+
+
+@dataclass
 class ModelConfig:
 
 	seq_len: int
@@ -29,7 +35,7 @@ class ModelConfig:
 	stochastic_oscillators: List[int]
 	rsi: List[int]
 	wpr: List[int]
-	kelman_filters: Tuple[int, int]
+	kelman_filters: KelmanFiltersConfig
 	kelman_static_filters: List[Tuple[float, float]]
 	mas_windows: List[int]
 	msd_windows: List[int]
