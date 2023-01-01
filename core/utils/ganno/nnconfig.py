@@ -29,7 +29,7 @@ class ModelConfig:
 	stochastic_oscillators: List[int]
 	rsi: List[int]
 	wpr: List[int]
-	kelman_filters: int
+	kelman_filters: Tuple[int, int]
 	kelman_static_filters: List[Tuple[float, float]]
 	mas_windows: List[int]
 	msd_windows: List[int]

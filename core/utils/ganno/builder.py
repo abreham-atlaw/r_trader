@@ -116,7 +116,11 @@ class ModelBuilder(ABC):
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
-		overlays.extend(self._add_kelman_filters(prep_layer, config.kelman_filters))
+		if config.kelman_filters[0] != 0:
+			pooled_layer = prep_layer
+			if config.kelman_filters[1] != 0:
+				pooled_layer = Flatten()(MaxPooling1D(config.kelman_filters[1])(Reshape((-1, 1))(prep_layer)))
+			overlays.extend(self._add_kelman_filters(pooled_layer, config.kelman_filters[0]))
 
 		combined = OverlaysCombiner()(overlays)
 
