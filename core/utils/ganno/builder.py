@@ -54,8 +54,8 @@ class ModelBuilder(ABC):
 		return layer
 
 	@staticmethod
-	def __create_kelman_filter(input_layer: KerasTensor, compute_size: int, percentage: float) -> KerasTensor:
-		input_layer = input_layer[:, -math.floor(percentage * input_layer.shape[1]):]
+	def __create_kelman_filter(input_layer: KerasTensor, compute_size: int, percentage: float, initial_size: int) -> KerasTensor:
+		input_layer = input_layer[:, -math.floor(percentage * initial_size):]
 		pool_size = math.ceil(input_layer.shape[1]/compute_size)
 		if pool_size > 1:
 			input_layer = Flatten()(
@@ -82,7 +82,8 @@ class ModelBuilder(ABC):
 			ModelBuilder.__create_kelman_filter(
 				layer,
 				config.compute_size,
-				config.percentages[0]
+				config.percentages[0],
+				layer.shape[1]
 			)
 		]
 		filters_sum = filters[0]
@@ -92,7 +93,8 @@ class ModelBuilder(ABC):
 				ModelBuilder.__create_kelman_filter(
 					Subtract()((layer[:, -filters_size:], filters_sum)),
 					config.compute_size,
-					p
+					p,
+					layer.shape[1]
 				)
 			)
 			filters_size = min(filters_sum.shape[1], filters[-1].shape[1])
