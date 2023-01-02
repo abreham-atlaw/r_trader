@@ -66,7 +66,7 @@ class ModelBuilder(ABC):
 		out = KelmanFilter()(input_layer)
 		if pool_size > 1:
 			out = Flatten()(
-				UpSampling1D(math.ceil(pool_size/percentage))(
+				UpSampling1D(math.ceil(pool_size))(
 					Reshape((-1, 1))(out)
 				)
 			)
