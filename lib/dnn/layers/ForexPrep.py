@@ -224,11 +224,22 @@ class KelmanStaticFilter(Layer):
 
 class KelmanFilter(Layer):
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.a = self.add_weight(name="alpha", shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
-		self.b = self.add_weight(name="beta", shape=(1,), initializer="random_normal", trainable=True, dtype=tf.float32, constraint=tf.keras.constraints.non_neg())
-		self.w = self.add_weight(name="weight", shape=(1,), initializer="random_normal", trainable=True, constraint=tf.keras.constraints.non_neg())
+	def __init__(self, *args, name=None, **kwargs):
+		super().__init__(*args, name=name, **kwargs)
+		self.a, self.b, self.w = None, None, None
+
+	def build(self, input_shape):
+		self.a, self.b, self.w = [
+			self.add_weight(
+				name=name,
+				shape=(1,),
+				initializer="random_normal",
+				trainable=True,
+				constraint=tf.keras.constraints.non_neg()
+			)
+			for name in ["alpha", "beta", "weight"]
+		]
+		super().build(input_shape)
 
 	def call(self, Z, *args, **kwargs):
 		X = tf.zeros_like(Z[:, 0:0])
