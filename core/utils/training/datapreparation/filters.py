@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from tensorflow.keras.layers import Layer
 
-from lib.dnn.layers import Norm, MovingAverage, KelmanFilter, WeightedMovingAverage, OverlayIndicator
+from lib.dnn.layers import Norm, MovingAverage, KalmanFilter, WeightedMovingAverage, OverlayIndicator
 
 
 class Filter(ABC):
@@ -47,10 +47,10 @@ class MovingAverageFilter(OverlayFilter):
 		super().__init__(MovingAverage(window_size=window_size))
 
 
-class KelmanFilterFilter(LayerFilter):
+class KalmanFilterFilter(LayerFilter):
 
 	def __init__(self, alpha: float, beta: float):
-		super().__init__(KelmanFilter(alpha, beta))
+		super().__init__(KalmanFilter(alpha, beta))
 
 
 class WeightedMovingAverageFilter(OverlayFilter):

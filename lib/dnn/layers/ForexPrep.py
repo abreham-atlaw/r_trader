@@ -187,12 +187,12 @@ class ExponentialMovingAverage(Layer):
 		}
 
 
-class KelmanStaticFilter(Layer):
+class KalmanStaticFilter(Layer):
 
 	def __init__(self, alpha: float, beta: float, *args, **kwargs):
 		self.a = alpha
 		self.b = beta
-		super(KelmanStaticFilter, self).__init__(*args, **kwargs)
+		super(KalmanStaticFilter, self).__init__(*args, **kwargs)
 
 	def call(self, Z, *args, **kwargs):
 		X = tf.zeros_like(Z[:, 0:0])
@@ -222,7 +222,7 @@ class KelmanStaticFilter(Layer):
 		return config
 
 
-class KelmanFilter(Layer):
+class KalmanFilter(Layer):
 
 	def __init__(self, *args, name=None, **kwargs):
 		super().__init__(*args, name=name, **kwargs)

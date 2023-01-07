@@ -11,9 +11,9 @@ from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
 from lib.utils.logger import Logger
 from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, TrendLine, OverlayIndicator,\
-	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner, KelmanFilter,\
-	KelmanStaticFilter
-from .nnconfig import ModelConfig, ConvPoolLayer, KelmanFiltersConfig
+	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner, KalmanFilter,\
+	KalmanStaticFilter
+from .nnconfig import ModelConfig, ConvPoolLayer, KalmanFiltersConfig
 
 
 class ModelBuilder(ABC):
@@ -54,7 +54,7 @@ class ModelBuilder(ABC):
 		return layer
 
 	@staticmethod
-	def __create_kelman_filter(input_layer: KerasTensor, compute_size: int, percentage: float, initial_size: int) -> KerasTensor:
+	def __create_kalman_filter(input_layer: KerasTensor, compute_size: int, percentage: float, initial_size: int) -> KerasTensor:
 		input_layer = input_layer[:, -math.floor(percentage * initial_size):]
 		pool_size = math.ceil(input_layer.shape[1]/compute_size)
 		if pool_size > 1:
@@ -63,7 +63,7 @@ class ModelBuilder(ABC):
 					Reshape((-1, 1))(input_layer)
 				)
 			)
-		out = KelmanFilter()(input_layer)
+		out = KalmanFilter()(input_layer)
 		if pool_size > 1:
 			out = Flatten()(
 				UpSampling1D(math.ceil(pool_size))(
@@ -73,13 +73,13 @@ class ModelBuilder(ABC):
 		return out
 
 	@staticmethod
-	def _add_kelman_filters(layer: KerasTensor, config: KelmanFiltersConfig) -> List[KerasTensor]:
+	def _add_kalman_filters(layer: KerasTensor, config: KalmanFiltersConfig) -> List[KerasTensor]:
 
 		if config == 0:
 			return [layer]
 
 		filters = [
-			ModelBuilder.__create_kelman_filter(
+			ModelBuilder.__create_kalman_filter(
 				layer,
 				config.compute_size,
 				config.percentages[0],
@@ -90,7 +90,7 @@ class ModelBuilder(ABC):
 		filters_size = filters_sum.shape[1]
 		for p in config.percentages[1:]:
 			filters.append(
-				ModelBuilder.__create_kelman_filter(
+				ModelBuilder.__create_kalman_filter(
 					Subtract()((layer[:, -filters_size:], filters_sum)),
 					config.compute_size,
 					p,
@@ -147,12 +147,12 @@ class ModelBuilder(ABC):
 			(WilliamsPercentageRange, config.wpr),
 			(MovingAverage, config.mas_windows),
 			(MovingStandardDeviation, config.msd_windows),
-			(KelmanStaticFilter, config.kelman_static_filters),
+			(KalmanStaticFilter, config.kalman_static_filters),
 			(Delta, [()][:int(config.delta)]),
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
-		overlays.extend(self._add_kelman_filters(prep_layer, config.kelman_filters))
+		overlays.extend(self._add_kalman_filters(prep_layer, config.kalman_filters))
 
 		combined = OverlaysCombiner()(overlays)
 
