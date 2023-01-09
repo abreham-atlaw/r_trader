@@ -75,7 +75,7 @@ class ModelBuilder(ABC):
 	@staticmethod
 	def _add_kalman_filters(layer: KerasTensor, config: KalmanFiltersConfig) -> List[KerasTensor]:
 
-		if config == 0:
+		if len(config.percentages) == 0:
 			return [layer]
 
 		filters = [
