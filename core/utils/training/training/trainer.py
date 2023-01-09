@@ -215,6 +215,9 @@ class Trainer:
 
 		for e in range(epochs):
 
+			for callback in callbacks:
+				callback.on_epoch_start(core_model, delta_model, e)
+
 			for inc_depth in range(start_inc_depth, depth+1, self.__increment_size):
 
 				self.__set_variables(
@@ -281,6 +284,9 @@ class Trainer:
 						metrics.add_metric(metric)
 
 					start_batch, start_depth = 0, 0
+
+			for callback in callbacks:
+				callback.on_epoch_end(core_model, delta_model, e)
 
 			start_inc_depth = 1
 
