@@ -31,12 +31,25 @@ class NetworkApiClient:
 
 	@network_call
 	def _post(self, request: Request, headers=None):
-		return requests.post(
+		files = None
+		if request.get_files() is not None:
+			files = {
+				key: open(filename, "rb")
+				for key, filename in
+				request.get_files().items()
+			}
+		response = requests.post(
 			self._get_complete_url(request.get_url()),
 			data=request.get_post_data(),
+			params=request.get_get_params(),
 			headers=headers,
+			files=files,
 			timeout=self.__timeout
 		)
+		if files is not None:
+			for _, file in files.items():
+				file.close()
+		return response
 
 	@network_call
 	def _put(self, request: Request, headers=None):
