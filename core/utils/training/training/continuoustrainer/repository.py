@@ -38,7 +38,11 @@ class FileStorageTrainerRepository(TrainerRepository, ABC):
 		self.__file_storage.upload_file(id)
 
 	def get_checkpoint(self, id: str) -> typing.Optional[typing.Tuple[typing.Tuple[str, str], int]]:
-		checkpoint_url = self.__file_storage.get_url(id)
+		try:
+			checkpoint_url = self.__file_storage.get_url(id)
+		except Exception:
+			return None
+
 		os.system(f"wget {checkpoint_url} -O {id}")
 		with open(id) as file:
 			core_url, delta_url, epoch = file.read().split(self.__DELIMITER)
