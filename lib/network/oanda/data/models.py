@@ -120,16 +120,16 @@ class CandleStick:
 	mid: Dict = attr.ib()
 
 	def get_open(self) -> float:
-		return self.mid.get("o")
+		return float(self.mid.get("o"))
 
 	def get_close(self) -> float:
-		return self.mid.get("c")
+		return float(self.mid.get("c"))
 
 	def get_high(self) -> float:
-		return self.mid.get("h")
+		return float(self.mid.get("h"))
 
 	def get_low(self) -> float:
-		return self.mid.get("l")
+		return float(self.mid.get("l"))
 
 
 @attr.define
