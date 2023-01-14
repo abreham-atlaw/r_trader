@@ -49,6 +49,13 @@ class Trainer:
 
 			return tuple(np.mean([metric.value for metric in metrics], axis=0))
 
+	@dataclass
+	class State:
+		epoch: int
+		epi: int
+		batch: int
+		depth: int
+
 	def __init__(
 			self,
 			min_memory_percent: float = 30,
@@ -64,6 +71,7 @@ class Trainer:
 		self.__batch_validation = batch_validation
 		self.__incremental = incremental
 		self.__increment_size = increment_size
+		self.__state = None
 
 		self.__set_variables(None, None, None, None, None, None)
 
@@ -213,12 +221,16 @@ class Trainer:
 
 		metrics = Trainer.MetricsContainer()
 
+		state = Trainer.State(0, 0, start_batch, start_inc_depth)
+
 		for e in range(epochs):
+			state.epoch = epochs - e
 
 			for callback in callbacks:
-				callback.on_epoch_start(core_model, delta_model, e)
+				callback.on_epoch_start(core_model, delta_model, state)
 
 			for inc_depth in range(start_inc_depth, depth+1, self.__increment_size):
+				state.depth = inc_depth
 
 				self.__set_variables(
 					self.__split_train_val_test_data(processor),
@@ -230,18 +242,20 @@ class Trainer:
 				)
 
 				for epi in range(epochs_per_inc):
+					state.epi = epochs_per_inc - epi
 
 					for callback in callbacks:
-						callback.on_epoch_start(core_model, delta_model, epi)
+						callback.on_epoch_start(core_model, delta_model, state)
 
 					print(f"Fitting Models")
 					for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
+						state.batch = i+start_batch
 
 						print("\n\n", "-" * 100, "\n\n", sep="")
 						print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tInc Depth: {inc_depth}/{depth}\t\tInc Epoch: {epi + 1}/{epochs_per_inc}\t\tBatch:{i + 1}/{len(self.__indices[0][start_batch:])}")
 						print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 						for callback in callbacks:
-							callback.on_batch_start(core_model, delta_model, bch_idx)
+							callback.on_batch_start(core_model, delta_model, state)
 
 						core_generator, delta_generator = self.__prepare_data(
 							processor,
@@ -271,13 +285,13 @@ class Trainer:
 						gc.collect()
 
 						for callback in callbacks:
-							callback.on_batch_end(core_model, delta_model, bch_idx)
+							callback.on_batch_end(core_model, delta_model, state)
 
 						if self.__batch_validation:
 							self.__validate_models()
 
 					for callback in callbacks:
-						callback.on_epoch_end(core_model, delta_model, epi)
+						callback.on_epoch_end(core_model, delta_model, state)
 
 					core_metric, delta_metric = self.__validate_models()
 					for mi, metric in enumerate((core_metric, delta_metric)):
@@ -286,7 +300,7 @@ class Trainer:
 					start_batch, start_depth = 0, 0
 
 			for callback in callbacks:
-				callback.on_epoch_end(core_model, delta_model, e)
+				callback.on_epoch_end(core_model, delta_model, state)
 
 			start_inc_depth = 1
 
