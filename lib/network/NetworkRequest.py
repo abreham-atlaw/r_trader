@@ -11,8 +11,8 @@ def network_call(func):
 		while tries is None or tries > 0:
 			try:
 				return func(*args, **kwargs)
-			except (HTTPError, ConnectionError):
-				Logger.warning(f"Network Call {func.__name__} Failed.")
+			except (HTTPError, ConnectionError) as e:
+				Logger.warning(f"Network Call {func.__name__} Failed.({e})")
 				if tries is not None:
 					tries -= 1
 					Logger.warning(f"Tries Left {tries}")
