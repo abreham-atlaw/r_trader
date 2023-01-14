@@ -12,7 +12,18 @@ class Request:
 		POST = "POST"
 		PUT = "PUT"
 
-	def __init__(self, url: str, get_params: Dict = None, post_data: object = None, method: str = Method.GET, output_class: type = None, url_params=None, headers: Dict = None):
+	def __init__(
+			self,
+			url: str,
+			get_params: Dict = None,
+			post_data: object = None,
+			files: dict = None,
+			method: str = Method.GET,
+			output_class: type = None,
+			url_params=None,
+			headers: Dict = None,
+			content_type: Optional[str] = "application/json"
+	):
 		self.__url = url
 		self.__method = method
 		self.__get_params = get_params
@@ -20,6 +31,7 @@ class Request:
 		self.__post_data = post_data
 		self.__url_params = url_params
 		self.__headers = headers
+		self.__files = files
 
 		if post_data is None:
 			self.__post_data = {}
@@ -34,6 +46,9 @@ class Request:
 
 	def get_url(self) -> str:
 		return self.__url.format(**self.__url_params)
+
+	def get_files(self) -> Optional[dict]:
+		return self.__files
 
 	def get_get_params(self) -> Dict:
 		return self.__get_params
