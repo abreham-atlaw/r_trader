@@ -1,4 +1,5 @@
 from typing import *
+from abc import abstractmethod, ABC
 
 from tensorflow import keras
 from tensorflow.keras.models import Model
@@ -7,74 +8,100 @@ import os
 import random
 from datetime import datetime
 
-from core.utils.file_storage import DropboxClient
+from lib.utils.file_storage import DropboxClient, PCloudClient, FileStorage
+from core import Config
 
 
 class Callback:
 
-	def on_batch_end(self, core_model: Model, delta_model: Model, batch: int):
+	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		pass
 
-	def on_batch_start(self, core_model: Model, delta_model: Model, batch: int):
+	def on_batch_start(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		pass
 
-	def on_epoch_end(self, core_model: Model, delta_model: Model, epoch: int):
+	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		pass
 
-	def on_epoch_start(self, core_model: Model, delta_model: Model, epoch: int):
+	def on_epoch_start(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		pass
 
 
-class DropboxUploadCallback(Callback):
+class CheckpointCallback(Callback):
+
+	TYPES = ("core", "delta")
 
 	def __init__(
 			self,
-			folder="/RForexTrader",
+			save_path=None,
 			batch_end: bool = True,
 			batch_steps: int = 1,
 			epoch_end: bool = True,
 			epoch_steps: int = 1
 	):
-		self.__session_id = self.__generate_session_id()
-		self.__dropbox_client = DropboxClient(folder=os.path.join(folder, "Session-%s" % (self.__session_id,)))
 		self.__batch_end = batch_end
 		self.__epoch_end = epoch_end
 		self.__batch_steps = batch_steps
 		self.__epoch_steps = epoch_steps
 
-	@staticmethod
-	def __generate_session_id() -> str:
-		return str(random.randint(0, 100))
+		if save_path is None:
+			save_path = "./"
+		self.__save_path = os.path.abspath(save_path)
 
-	@staticmethod
-	def __export_model(model: keras.Model, type_: str) -> str:
-		file_name = f"{type_}_{datetime.now()}.h5"
-		model.save(file_name)
-		return file_name
+	def _generate_file_name(self, type_: str):
+		return f"{type_}.h5"
 
-	def __save_model(self, core_model, delta_model) -> Tuple[str]:
-		return tuple([
-			self.__export_model(internal_model, name)
-			for internal_model, name in (
-				(core_model, "core"),
-				(delta_model, "delta")
-			)
-		])
-
-	def __upload_model(self, model_path: str):
-		self.__dropbox_client.upload_file(model_path)
+	def _save_model(self, model: keras.Model, type_: str) -> str:
+		file_path = os.path.join(self.__save_path, self._generate_file_name(type_))
+		print(f"[+]Saving {type_} model to {file_path}")
+		model.save(file_path)
+		return file_path
 
 	def __call(self, core_model: Model, delta_model: Model):
-		print("[+](Session %s)Saving Model..." % self.__session_id)
-		paths = self.__save_model(core_model, delta_model)
-		print("[+](Session %s)Uploading Model..." % self.__session_id)
-		for path in paths:
-			self.__upload_model(path)
+		for model, type_ in zip([core_model, delta_model], self.TYPES):
+			file_path = self._save_model(model, type_)
 
-	def on_batch_end(self, core_model: Model, delta_model: Model, batch: int):
-		if self.__batch_end and (batch + 1) % self.__batch_steps == 0:
+	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+		if self.__batch_end and (state.batch + 1) % self.__batch_steps == 0:
 			self.__call(core_model, delta_model)
 
-	def on_epoch_end(self, core_model: Model, delta_model: Model, epoch: int):
-		if self.__epoch_end and (epoch + 1) % self.__epoch_steps == 0:
+	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+		if self.__epoch_end and (state.epoch + 1) % self.__epoch_steps == 0:
 			self.__call(core_model, delta_model)
+
+
+class CheckpointUploadCallback(CheckpointCallback , ABC):
+
+	def __init__(self, base_path: str, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._session_id = self.__generate_session_id()
+		self.__file_storage = self._create_filestorage(base_path)
+
+	@staticmethod
+	def __generate_session_id() -> str:
+		return f"{str(random.randint(0, 10000))} - {str(datetime.now().timestamp())}"
+
+	@abstractmethod
+	def _create_filestorage(self, base_path: str) -> FileStorage:
+		pass
+
+	def _save_model(self, model: keras.Model, type_: str) -> str:
+		path = super()._save_model(model, type_)
+		print(f"[+]Uploading {type_} model(Session: {self._session_id})...")
+		self.__file_storage.upload_file(path)
+		return self.__file_storage.get_url(os.path.basename(path))
+
+
+class DropboxCheckpointUploadCallback(CheckpointUploadCallback):
+
+	def _create_filestorage(self, base_path: str) -> FileStorage:
+		return DropboxClient(token=Config.DROPBOX_API_TOKEN, folder=os.path.join(base_path, "Session-%s" % (self._session_id,)))
+
+
+class PCloudCheckpointUploadCallback(CheckpointUploadCallback):
+
+	def _create_filestorage(self, base_path: str) -> FileStorage:
+		return PCloudClient(token=Config.PCLOUD_API_TOKEN, folder=base_path)
+
+	def _generate_file_name(self, type_: str):
+		return f"{self._session_id}-{super()._generate_file_name(type_)}"
