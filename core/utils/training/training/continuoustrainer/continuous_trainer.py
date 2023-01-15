@@ -26,7 +26,7 @@ class ContinuousTrainer(Trainer):
 			self.__tracker = tracker
 
 		def on_epoch_start(self, core_model: Model, delta_model: Model, state: Trainer.State):
-			self.__tracker.epoch = state
+			self.__tracker.state = state
 
 	def __init__(self, repository: TrainerRepository, *args, custom_objects=None, **kwargs):
 		super().__init__(*args, **kwargs)
