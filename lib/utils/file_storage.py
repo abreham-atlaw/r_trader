@@ -21,7 +21,7 @@ class FileStorage(ABC):
 
 	def download(self, path, download_path: Union[str, None] = None):
 		url = self.get_url(path)
-		command = f"wget \"{url}\""
+		command = f"wget --no-verbose \"{url}\""
 		if download_path is not None:
 			command = f"{command} -O {download_path}"
 		os.system(command)
