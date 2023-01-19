@@ -89,7 +89,7 @@ class CheckpointUploadCallback(CheckpointCallback , ABC):
 		path = super()._save_model(model, type_)
 		print(f"[+]Uploading {type_} model(Session: {self._session_id})...")
 		self.__file_storage.upload_file(path)
-		return self.__file_storage.get_url(os.path.basename(path))
+		return os.path.basename(path)
 
 
 class DropboxCheckpointUploadCallback(CheckpointUploadCallback):

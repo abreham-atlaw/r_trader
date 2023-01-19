@@ -5,6 +5,7 @@ from tensorflow import keras
 
 import unittest
 from unittest.mock import MagicMock
+import os
 
 from core.utils.training.training import Trainer
 from lib.utils.file_storage import PCloudClient
@@ -12,6 +13,7 @@ from core.utils.training.datapreparation.dataprocessor import DataProcessor
 from core.utils.training.training.continuoustrainer import ContinuousTrainer
 from core.utils.training.training.continuoustrainer.callbacks import PCloudContinuousTrainerCheckpointCallback
 from core.utils.training.training.continuoustrainer.repository import PCloudTrainerRepository
+from core import Config
 
 
 class ContinuousTrainerTest(unittest.TestCase):
@@ -21,8 +23,7 @@ class ContinuousTrainerTest(unittest.TestCase):
 	__STATE = Trainer.State(__EPOCH, 0, 0, 0)
 
 	def setUp(self) -> None:
-		return
-		# self.__create_checkpoint()
+		self.__create_checkpoint()
 
 	def __create_checkpoint(self) -> typing.Tuple[str, str]:
 		core_model, delta_model = self.__generate_model(), self.__generate_model(True)
@@ -48,7 +49,8 @@ class ContinuousTrainerTest(unittest.TestCase):
 		core_model, delta_model = self.__generate_model(), self.__generate_model(True)
 		processor = DataProcessor(generator, core_model, delta_model, 32, 32)
 		trainer = ContinuousTrainer(
-			repository=PCloudTrainerRepository("/Apps/RTrader")
+			repository=PCloudTrainerRepository("/Apps/RTrader"),
+			file_storage=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader")
 		)
 		trainer.fit(
 			id=self.__ID,

@@ -11,7 +11,7 @@ from core import Config
 class TrainerRepository(ABC):
 
 	@abstractmethod
-	def update_checkpoint(self, id: str, urls: typing.Tuple[str, str], epoch: int):  # TODO: epoch: int  => state: Trainer.State
+	def update_checkpoint(self, id: str, paths: typing.Tuple[str, str], epoch: int):  # TODO: epoch: int  => state: Trainer.State
 		pass
 
 	@abstractmethod
@@ -31,9 +31,9 @@ class FileStorageTrainerRepository(TrainerRepository, ABC):
 	def _create_file_storage(self, base_path: str) -> FileStorage:
 		pass
 
-	def update_checkpoint(self, id: str, urls: typing.Tuple[str, str], epoch: int):
+	def update_checkpoint(self, id: str, paths: typing.Tuple[str, str], epoch: int):
 		file = open(id, "w")
-		print(f"{urls[0]}{self.__DELIMITER}{urls[1]}{self.__DELIMITER}{epoch}", file=file, end="")
+		print(f"{paths[0]}{self.__DELIMITER}{paths[1]}{self.__DELIMITER}{epoch}", file=file, end="")
 		file.close()
 		self.__file_storage.upload_file(id)
 
