@@ -19,9 +19,12 @@ class FileStorage(ABC):
 	def upload_file(self, file_path: str, upload_path: Union[str, None] = None):
 		pass
 
-	def download(self, path, download_path):
+	def download(self, path, download_path: Union[str, None] = None):
 		url = self.get_url(path)
-		os.system(f"wget \"{url}\" -O {download_path}")
+		command = f"wget \"{url}\""
+		if download_path is not None:
+			command = f"{command} -O {download_path}"
+		os.system(command)
 
 
 class DropboxClient(FileStorage):
