@@ -72,9 +72,11 @@ class CheckpointCallback(Callback):
 
 class CheckpointUploadCallback(CheckpointCallback , ABC):
 
-	def __init__(self, base_path: str, *args, **kwargs):
+	def __init__(self, base_path: str, *args, session_id=None, **kwargs):
 		super().__init__(*args, **kwargs)
-		self._session_id = self.__generate_session_id()
+		self._session_id = session_id
+		if session_id is None:
+			self._session_id = self.__generate_session_id()
 		self.__file_storage = self._create_filestorage(base_path)
 
 	@staticmethod
