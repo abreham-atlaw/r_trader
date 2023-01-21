@@ -35,18 +35,18 @@ class ContinuousTrainerCheckpointCallback(ContinuousTrainerCallback, CheckpointU
 		return self.__id
 
 	def _save_model(self, model: keras.Model, type_: str) -> str:
-		url = super()._save_model(model, type_)
-		self.__current_checkpoint[0][self.TYPES.index(type_)] = url
-		return url
+		path = super()._save_model(model, type_)
+		self.__current_checkpoint[0][self.TYPES.index(type_)] = path
+		return path
 
-	def on_epoch_end(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State):
+	def _call(self, core_model: keras.Model, delta_model: keras.Model, state: 'Trainer.State'):
 		self.__current_checkpoint = [[None, None], state.epoch]
-		super().on_epoch_end(core_model, delta_model, state)
+		super()._call(core_model, delta_model, state)
 		if None not in self.__current_checkpoint[0]:
 			self.__get_repository().update_checkpoint(self.__get_id(), *self.__current_checkpoint)
 
 	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State):
-		super().on_epoch_end(core_model, delta_model, state)
+		self._call(core_model, delta_model, state)
 
 
 class PCloudContinuousTrainerCheckpointCallback(PCloudCheckpointUploadCallback, ContinuousTrainerCheckpointCallback):

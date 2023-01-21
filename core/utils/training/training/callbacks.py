@@ -57,17 +57,17 @@ class CheckpointCallback(Callback):
 		model.save(file_path)
 		return file_path
 
-	def __call(self, core_model: Model, delta_model: Model):
+	def _call(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		for model, type_ in zip([core_model, delta_model], self.TYPES):
 			file_path = self._save_model(model, type_)
 
 	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		if self.__batch_end and (state.batch + 1) % self.__batch_steps == 0:
-			self.__call(core_model, delta_model)
+			self._call(core_model, delta_model, state)
 
 	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		if self.__epoch_end and (state.epoch + 1) % self.__epoch_steps == 0:
-			self.__call(core_model, delta_model)
+			self._call(core_model, delta_model, state)
 
 
 class CheckpointUploadCallback(CheckpointCallback , ABC):
