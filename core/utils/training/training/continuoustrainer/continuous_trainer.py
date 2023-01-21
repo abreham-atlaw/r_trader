@@ -36,7 +36,8 @@ class ContinuousTrainer(Trainer):
 		self.__custom_objects = custom_objects
 
 	def __signal_handler(self, _, __):
-		raise TimeoutException
+		print("[-]Timeout")
+		raise TimeoutException()
 
 	def __prepare_callbacks(self, callbacks: typing.List[Callback], id):
 		for callback in callbacks:
