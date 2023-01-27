@@ -31,7 +31,7 @@ class FilesGenerator(KerasSequence):
 		self.__size = int(np.ceil(self.__get_total_num_rows() / self.batch_size))
 		self.__random_state = self.__get_new_random_state()
 
-	def __load_file(self, idx, shuffle=True) -> pd.DataFrame:
+	def __load_file(self, idx, shuffle=False) -> pd.DataFrame:
 		cached: Optional[pd.DataFrame] = self.__files_cache.retrieve(idx)
 		if cached is not None:
 			return cached
