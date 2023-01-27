@@ -48,7 +48,7 @@ class ContinuousTrainer(Trainer):
 	def __download_model(url: str, out: str):
 		os.system(f"wget --no-verbose {url} -O {out}")
 
-	def __get_checkpoint(self, id: str) -> typing.Optional[typing.Tuple[typing.Tuple[Model, Model], int]]:
+	def __get_checkpoint(self, id: str) -> typing.Optional[typing.Tuple[typing.Tuple[Model, Model], Trainer.State]]:
 		checkpoint = self.__repository.get_checkpoint(id)
 		if checkpoint is None:
 			return None
@@ -58,8 +58,9 @@ class ContinuousTrainer(Trainer):
 			filename = f"{type_}.h5"
 			self.__file_storage.download(path, filename)
 			models.append(load_model(filename, custom_objects=self.__custom_objects))
+		models: typing.Tuple[Model, Model] = tuple(models)
 
-		return tuple(models), checkpoint[1]
+		return models, checkpoint[1]
 
 	def fit(
 			self,
@@ -73,6 +74,7 @@ class ContinuousTrainer(Trainer):
 			start_batch=0,
 			start_depth=0,
 			start_inc_depth=1,
+			start_epoch_per_inc=0,
 			epochs_per_inc=1,
 			verbose=2,
 			timeout: typing.Optional[int] = None
@@ -85,15 +87,20 @@ class ContinuousTrainer(Trainer):
 
 		checkpoint = self.__get_checkpoint(id)
 		if checkpoint is not None:
-			(core_model, delta_model) = checkpoint[0]
-			epochs = checkpoint[1]
+			(core_model, delta_model), state = checkpoint
+			epochs, start_batch, start_inc_depth, start_epoch_per_inc = (
+				state.epoch,
+				state.batch,
+				state.depth,
+				state.epi
+			)
 
 		tracker = ContinuousTrainer.StateTracker(None)
 
 		callbacks += [ContinuousTrainer.StateTrackerCallback(tracker)]
 
 		try:
-			super().fit(
+			return super().fit(
 				core_model,
 				delta_model,
 				processor,
@@ -103,6 +110,7 @@ class ContinuousTrainer(Trainer):
 				start_batch,
 				start_depth,
 				start_inc_depth,
+				start_epoch_per_inc,
 				epochs_per_inc,
 				verbose
 			)

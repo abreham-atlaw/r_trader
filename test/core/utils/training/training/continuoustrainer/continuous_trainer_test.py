@@ -5,7 +5,6 @@ from tensorflow import keras
 
 import unittest
 from unittest.mock import MagicMock
-import os
 
 from core.utils.training.training import Trainer
 from lib.utils.file_storage import PCloudClient
@@ -20,12 +19,12 @@ class ContinuousTrainerTest(unittest.TestCase):
 
 	__ID = "5"
 	__EPOCH = 24
-	__STATE = Trainer.State(__EPOCH, 0, 0, 0)
+	__STATE = Trainer.State(45, 5, 3, 2)
 
 	def setUp(self) -> None:
 		self.__create_checkpoint()
 
-	def __create_checkpoint(self) -> typing.Tuple[str, str]:
+	def __create_checkpoint(self):
 		core_model, delta_model = self.__generate_model(), self.__generate_model(True)
 		repository = PCloudTrainerRepository("/Apps/RTrader")
 
@@ -33,7 +32,8 @@ class ContinuousTrainerTest(unittest.TestCase):
 		callback.init(self.__ID, repository)
 		callback.on_epoch_end(core_model, delta_model, self.__STATE)
 
-	def __generate_model(self, delta=False):
+	@staticmethod
+	def __generate_model(delta=False):
 		model = keras.Sequential()
 		model.add(keras.layers.InputLayer(101 + int(delta)))
 		model.add(keras.layers.Dense(10))
@@ -50,15 +50,17 @@ class ContinuousTrainerTest(unittest.TestCase):
 		processor = DataProcessor(generator, core_model, delta_model, 32, 32)
 		trainer = ContinuousTrainer(
 			repository=PCloudTrainerRepository("/Apps/RTrader"),
-			file_storage=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader")
+			file_storage=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader"),
+			incremental=True
 		)
 		trainer.fit(
 			id=self.__ID,
 			core_model=core_model,
 			delta_model=delta_model,
 			processor=processor,
-			depth=1,
+			depth=10,
 			epochs=50,
+			epochs_per_inc=10,
 			callbacks=[
 				PCloudContinuousTrainerCheckpointCallback(base_path="/Apps/RTrader", batch_end=False)
 			],

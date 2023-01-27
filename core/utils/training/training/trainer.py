@@ -210,6 +210,7 @@ class Trainer:
 			start_batch=0,
 			start_depth=0,
 			start_inc_depth=1,
+			start_epochs_per_inc=0,
 			epochs_per_inc=1,
 			verbose=2
 	) -> 'Trainer.MetricsContainer':
@@ -241,8 +242,8 @@ class Trainer:
 					verbose
 				)
 
-				for epi in range(epochs_per_inc):
-					state.epi = epochs_per_inc - epi
+				for epi in range(start_epochs_per_inc, epochs_per_inc):
+					state.epi = epi
 
 					for callback in callbacks:
 						callback.on_epoch_start(core_model, delta_model, state)
@@ -298,6 +299,7 @@ class Trainer:
 						metrics.add_metric(metric)
 
 					start_batch, start_depth = 0, 0
+				start_epochs_per_inc = 0
 
 			for callback in callbacks:
 				callback.on_epoch_end(core_model, delta_model, state)

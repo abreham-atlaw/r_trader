@@ -3,7 +3,7 @@ from abc import ABC
 
 from tensorflow import keras
 
-from core.utils.training.training import  Trainer
+from core.utils.training.training import Trainer
 from core.utils.training.training.callbacks import Callback, CheckpointUploadCallback, PCloudCheckpointUploadCallback
 from .repository import TrainerRepository
 
@@ -40,7 +40,7 @@ class ContinuousTrainerCheckpointCallback(ContinuousTrainerCallback, CheckpointU
 		return path
 
 	def _call(self, core_model: keras.Model, delta_model: keras.Model, state: 'Trainer.State'):
-		self.__current_checkpoint = [[None, None], state.epoch]
+		self.__current_checkpoint = [[None, None], state]
 		super()._call(core_model, delta_model, state)
 		if None not in self.__current_checkpoint[0]:
 			self.__get_repository().update_checkpoint(self.__get_id(), *self.__current_checkpoint)
