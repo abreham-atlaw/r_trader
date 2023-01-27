@@ -63,7 +63,8 @@ class Trainer:
 			val_size: float = 0.3,
 			batch_validation: bool = True,
 			incremental: bool = False,
-			increment_size: int = 1
+			increment_size: int = 1,
+			random_state: Optional[int] = None
 	):
 		self.__min_memory_percent = min_memory_percent
 		self.__test_size = test_size
@@ -72,6 +73,7 @@ class Trainer:
 		self.__incremental = incremental
 		self.__increment_size = increment_size
 		self.__state = None
+		self.__random_state = random_state
 
 		self.__set_variables(None, None, None, None, None, None)
 
@@ -85,15 +87,14 @@ class Trainer:
 			gc.collect()
 			time.sleep(5)
 
-	@staticmethod
-	def __split_data(secondary_size: float, indices: Optional[List[int]] = None, length: Optional[int] = None) -> Tuple[List[int], List[int]]:
+	def __split_data(self, secondary_size: float, indices: Optional[List[int]] = None, length: Optional[int] = None) -> Tuple[List[int], List[int]]:
 
 		if indices is None:
 			if length is None:
 				raise ValueError("Either indices or length should be supplied")
 			indices = list(range(length))
 
-		return train_test_split(indices, test_size=secondary_size)
+		return train_test_split(indices, test_size=secondary_size, random_state=self.__random_state)
 
 	def __split_train_val_test_data(self, processor: DataProcessor) -> Tuple[List[int], List[int], List[int]]:
 		train_indices, test_indices = self.__split_data(self.__test_size, length=len(processor))
