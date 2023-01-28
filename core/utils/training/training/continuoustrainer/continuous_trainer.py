@@ -17,17 +17,19 @@ from .callbacks import ContinuousTrainerCheckpointCallback, ContinuousTrainerCal
 class ContinuousTrainer(Trainer):
 
 	@dataclass
-	class StateTracker:
+	class StateMetricsTracker:
 		state: typing.Optional[Trainer.State]
+		metrics: typing.Optional[Trainer.MetricsContainer]
 
-	class StateTrackerCallback(Callback):
+	class StateMetricsTrackerCallback(Callback):
 
-		def __init__(self, tracker: 'ContinuousTrainer.StateTracker', *args, **kwargs):
+		def __init__(self, tracker: 'ContinuousTrainer.StateMetricsTracker', *args, **kwargs):
 			super().__init__(*args, **kwargs)
 			self.__tracker = tracker
 
-		def on_epoch_start(self, core_model: Model, delta_model: Model, state: Trainer.State):
+		def on_epoch_start(self, core_model: Model, delta_model: Model, state: Trainer.State, metrics: Trainer.MetricsContainer):
 			self.__tracker.state = state
+			self.__tracker.metrics = metrics
 
 	def __init__(self, repository: TrainerRepository, file_storage: FileStorage, *args, custom_objects=None, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -95,9 +97,9 @@ class ContinuousTrainer(Trainer):
 				state.epi
 			)
 
-		tracker = ContinuousTrainer.StateTracker(None)
+		tracker = ContinuousTrainer.StateMetricsTracker(None, None)
 
-		callbacks += [ContinuousTrainer.StateTrackerCallback(tracker)]
+		callbacks += [ContinuousTrainer.StateMetricsTrackerCallback(tracker)]
 
 		try:
 			return super().fit(
@@ -117,7 +119,7 @@ class ContinuousTrainer(Trainer):
 		except TimeoutException:
 			for callback in callbacks:
 				if isinstance(callback, ContinuousTrainerCallback):
-					callback.on_timeout(core_model, delta_model, tracker.state)
+					callback.on_timeout(core_model, delta_model, tracker.state, tracker.metrics)
 
 
 class TimeoutException(Exception):

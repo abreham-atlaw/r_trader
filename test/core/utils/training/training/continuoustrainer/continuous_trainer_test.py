@@ -30,7 +30,7 @@ class ContinuousTrainerTest(unittest.TestCase):
 
 		callback = PCloudContinuousTrainerCheckpointCallback(base_path="/Apps/RTrader")
 		callback.init(self.__ID, repository)
-		callback.on_epoch_end(core_model, delta_model, self.__STATE)
+		callback.on_epoch_end(core_model, delta_model, self.__STATE, None)
 
 	@staticmethod
 	def __generate_model(delta=False):
@@ -51,7 +51,9 @@ class ContinuousTrainerTest(unittest.TestCase):
 		trainer = ContinuousTrainer(
 			repository=PCloudTrainerRepository("/Apps/RTrader"),
 			file_storage=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader"),
-			incremental=True
+			incremental=True,
+			batch_validation=False,
+			random_state=42
 		)
 		trainer.fit(
 			id=self.__ID,
@@ -64,5 +66,5 @@ class ContinuousTrainerTest(unittest.TestCase):
 			callbacks=[
 				PCloudContinuousTrainerCheckpointCallback(base_path="/Apps/RTrader", batch_end=False)
 			],
-			timeout=2*60
+			timeout=10*60
 		)

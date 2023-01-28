@@ -61,7 +61,7 @@ class CheckpointCallback(Callback):
 		model.save(file_path)
 		return file_path
 
-	def _call(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
+	def _call(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
 		for model, type_ in zip([core_model, delta_model], self.TYPES):
 			file_path = self._save_model(model, type_)
 

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from core.utils.training.datapreparation.dataprocessor import DataProcessor
 from core.utils.training.datapreparation.generators import WrapperGenerator
-from .callbacks import Callback
+from .callbacks import Callback, CallbackException
 
 
 class Trainer:
@@ -236,7 +236,10 @@ class Trainer:
 			state.epoch = epochs - e
 
 			for callback in callbacks:
-				callback.on_epoch_start(core_model, delta_model, state)
+				try:
+					callback.on_epoch_start(core_model, delta_model, state, metrics)
+				except CallbackException:
+					break
 
 			for inc_depth in range(start_inc_depth, depth+1, self.__increment_size):
 				state.depth = inc_depth
@@ -254,7 +257,10 @@ class Trainer:
 					state.epi = epi
 
 					for callback in callbacks:
-						callback.on_epoch_start(core_model, delta_model, state)
+						try:
+							callback.on_epoch_start(core_model, delta_model, state, metrics)
+						except CallbackException:
+							break
 
 					print(f"Fitting Models")
 					for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
@@ -264,7 +270,10 @@ class Trainer:
 						print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tInc Depth: {inc_depth}/{depth}\t\tInc Epoch: {epi + 1}/{epochs_per_inc}\t\tBatch:{i + 1}/{len(self.__indices[0][start_batch:])}")
 						print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 						for callback in callbacks:
-							callback.on_batch_start(core_model, delta_model, state)
+							try:
+								callback.on_batch_start(core_model, delta_model, state, metrics)
+							except CallbackException:
+								break
 
 						core_generator, delta_generator = self.__prepare_data(
 							processor,
@@ -294,13 +303,19 @@ class Trainer:
 						gc.collect()
 
 						for callback in callbacks:
-							callback.on_batch_end(core_model, delta_model, state)
+							try:
+								callback.on_batch_end(core_model, delta_model, state, metrics)
+							except CallbackException:
+								break
 
 						if self.__batch_validation:
 							self.__validate_models()
 
 					for callback in callbacks:
-						callback.on_epoch_end(core_model, delta_model, state)
+						try:
+							callback.on_epoch_end(core_model, delta_model, state, metrics)
+						except CallbackException:
+							break
 
 					core_metric, delta_metric = self.__validate_models()
 					for mi, metric in enumerate((core_metric, delta_metric)):
@@ -310,7 +325,10 @@ class Trainer:
 				start_epochs_per_inc = 0
 
 			for callback in callbacks:
-				callback.on_epoch_end(core_model, delta_model, state)
+				try:
+					callback.on_epoch_end(core_model, delta_model, state, metrics)
+				except CallbackException:
+					break
 
 			start_inc_depth = 1
 
