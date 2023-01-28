@@ -10,7 +10,7 @@ from .repository import TrainerRepository
 
 class ContinuousTrainerCallback(Callback):
 
-	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State):
+	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State, metrics: 'Trainer.MetricsContainer'):
 		pass
 
 
@@ -45,7 +45,7 @@ class ContinuousTrainerCheckpointCallback(ContinuousTrainerCallback, CheckpointU
 		if None not in self.__current_checkpoint[0]:
 			self.__get_repository().update_checkpoint(self.__get_id(), *self.__current_checkpoint)
 
-	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State):
+	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State, metrics: 'Trainer.MetricsContainer'):
 		self._call(core_model, delta_model, state)
 
 

@@ -49,6 +49,13 @@ class Trainer:
 
 			return tuple(np.mean([metric.value for metric in metrics], axis=0))
 
+		def __iter__(self):
+			for metric in self.__metrics:
+				yield metric
+
+		def __len__(self):
+			return len(self.__metrics)
+
 	@dataclass
 	class State:
 		epoch: int

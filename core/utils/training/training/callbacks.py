@@ -14,17 +14,21 @@ from core import Config
 
 class Callback:
 
-	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		pass
 
-	def on_batch_start(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def on_batch_start(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		pass
 
-	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		pass
 
-	def on_epoch_start(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def on_epoch_start(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		pass
+
+
+class CallbackException(Exception):
+	pass
 
 
 class CheckpointCallback(Callback):
@@ -57,15 +61,15 @@ class CheckpointCallback(Callback):
 		model.save(file_path)
 		return file_path
 
-	def _call(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def _call(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		for model, type_ in zip([core_model, delta_model], self.TYPES):
 			file_path = self._save_model(model, type_)
 
-	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		if self.__batch_end and (state.batch + 1) % self.__batch_steps == 0:
 			self._call(core_model, delta_model, state)
 
-	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State'):
+	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
 		if self.__epoch_end and (state.epoch + 1) % self.__epoch_steps == 0:
 			self._call(core_model, delta_model, state)
 
@@ -113,3 +117,56 @@ class LocalCheckpointUploadCallback(CheckpointUploadCallback):
 
 	def _create_filestorage(self, base_path: str) -> FileStorage:
 		return LocalStorage(base_path, port=8000)
+
+
+class EarlyStoppingCallback(Callback):
+
+	class Modes:
+		MIN = -1
+		MAX = 1
+
+	class EarlyStopException(CallbackException):
+		pass
+
+	def __init__(
+			self,
+			model: int,
+			source=1,  # Validation
+			patience=0,
+			value_idx=0,  # LOSS
+			mode=Modes.MIN,
+
+	):
+		self.__model = model
+		self.__source = source
+		self.__patience = patience
+		self.__value_idx = value_idx
+		self.__mode = mode
+		if mode not in [self.Modes.MIN, self.Modes.MAX]:
+			raise Exception(f"Invalid Mode: {self.__mode}")
+
+	def __early_stop(self, metrics: 'Trainer.MetricsContainer') -> bool:
+		depth = max([metric.depth for metric in metrics])
+		values = [
+			metric.value[self.__value_idx]
+			for metric in metrics.filter_metrics(
+							source=self.__source,
+							depth=depth,
+							model=self.__model
+						)
+				]
+		if len(values) < self.__patience+2:
+			return False
+		values = values[-(self.__patience+2):]
+		for i in range(self.__patience+1):
+			diff = values[i+1] - values[i]
+			if diff/abs(diff) == self.__mode:
+				return False
+		return True
+
+	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
+		depth = max([metric.depth for metric in metrics])
+		if state.depth != depth:
+			return
+		if self.__early_stop(metrics):
+			raise EarlyStoppingCallback.EarlyStopException()
