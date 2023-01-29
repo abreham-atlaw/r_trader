@@ -3,6 +3,9 @@ from abc import ABC
 
 from tensorflow import keras
 
+import os
+import json
+
 from core.utils.training.training import Trainer
 from core.utils.training.training.callbacks import Callback, CheckpointUploadCallback, PCloudCheckpointUploadCallback
 from .repository import TrainerRepository
@@ -10,7 +13,13 @@ from .repository import TrainerRepository
 
 class ContinuousTrainerCallback(Callback):
 
-	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State, metrics: 'Trainer.MetricsContainer'):
+	def on_timeout(
+			self,
+			core_model: keras.Model,
+			delta_model: keras.Model,
+			state: Trainer.State,
+			metrics: 'Trainer.MetricsContainer'
+	):
 		pass
 
 
@@ -21,8 +30,8 @@ class ContinuousTrainerCheckpointCallback(ContinuousTrainerCallback, CheckpointU
 		self.__repository, self.__id = None, None
 		self.__current_checkpoint = [[None, None], None]
 
-	def init(self, id: str, repository: TrainerRepository):
-		self.__id, self.__repository = id, repository
+	def init(self, id_: str, repository: TrainerRepository):
+		self.__id, self.__repository = id_, repository
 
 	def __get_repository(self) -> TrainerRepository:
 		if self.__repository is None:
@@ -45,7 +54,13 @@ class ContinuousTrainerCheckpointCallback(ContinuousTrainerCallback, CheckpointU
 		if None not in self.__current_checkpoint[0]:
 			self.__get_repository().update_checkpoint(self.__get_id(), *self.__current_checkpoint)
 
-	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State, metrics: 'Trainer.MetricsContainer'):
+	def on_timeout(
+			self,
+			core_model: keras.Model,
+			delta_model: keras.Model,
+			state: Trainer.State,
+			metrics: 'Trainer.MetricsContainer'
+	):
 		self._call(core_model, delta_model, state)
 
 
@@ -55,7 +70,14 @@ class PCloudContinuousTrainerCheckpointCallback(PCloudCheckpointUploadCallback, 
 
 class RecursiveNotebookCallback(ContinuousTrainerCallback):
 
-	def __init__(self, username: str, key: str, kernel: str, meta_data: Dict = None, notebook_pull_path: str = None):
+	def __init__(
+			self,
+			username: str,
+			key: str,
+			kernel: str,
+			meta_data: typing.Dict = None,
+			notebook_pull_path: str = None
+	):
 		super().__init__()
 		self.__api = self.__create_api(username, key)
 		self.__kernel = kernel
