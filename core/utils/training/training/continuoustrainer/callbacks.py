@@ -51,3 +51,53 @@ class ContinuousTrainerCheckpointCallback(ContinuousTrainerCallback, CheckpointU
 
 class PCloudContinuousTrainerCheckpointCallback(PCloudCheckpointUploadCallback, ContinuousTrainerCheckpointCallback):
 	pass
+
+
+class RecursiveNotebookCallback(ContinuousTrainerCallback):
+
+	def __init__(self, username: str, key: str, kernel: str, meta_data: Dict = None, notebook_pull_path: str = None):
+		super().__init__()
+		self.__api = self.__create_api(username, key)
+		self.__kernel = kernel
+		self.__meta_data = meta_data
+		if meta_data is None:
+			self.__meta_data = {}
+		self.__pull_path = notebook_pull_path
+		if notebook_pull_path is None:
+			self.__pull_path = f"./notebook-{self.__kernel}"
+
+	@staticmethod
+	def __create_api(username, key):
+		os.environ["KAGGLE_USERNAME"] = username
+		os.environ["KAGGLE_KEY"] = key
+		from kaggle.api.kaggle_api_extended import KaggleApi
+		api = KaggleApi()
+		api.authenticate()
+		return api
+
+	@staticmethod
+	def __update_meta(meta_data, path):
+		if len(meta_data) == 0:
+			return
+
+		meta_path = os.path.join(path, "kernel-metadata.json")
+		with open(meta_path, "r") as file:
+			meta = json.load(file)
+
+		meta.update(meta_data)
+
+		with open(meta_path, "w") as file:
+			json.dump(meta, file)
+
+	def __pull_notebook(self, kernel: str, pull_path: str):
+		os.mkdir(pull_path)
+		self.__api.kernels_pull(kernel, pull_path, metadata=True)
+
+	def __push_notebook(self, path):
+		self.__api.kernels_push(path)
+
+	def on_timeout(self, core_model: keras.Model, delta_model: keras.Model, state: Trainer.State, metrics: Trainer.MetricsContainer):
+		self.__pull_notebook(self.__kernel, self.__pull_path)
+		self.__update_meta(self.__meta_data, self.__pull_path)
+		self.__push_notebook(self.__pull_path)
+
