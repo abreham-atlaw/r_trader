@@ -10,6 +10,7 @@ from datetime import datetime
 
 from lib.utils.file_storage import DropboxClient, PCloudClient, FileStorage, LocalStorage
 from core import Config
+from .repository import MetricRepository
 
 
 class Callback:
@@ -173,3 +174,24 @@ class EarlyStoppingCallback(Callback):
 			return
 		if self.__early_stop(metrics):
 			raise EarlyStoppingCallback.EarlyStopException()
+
+
+class MetricUploaderCallback(Callback):
+
+	def __init__(self, repository: MetricRepository, on_batch_end=False, on_epoch_end=True):
+		self.__repository = repository
+		self.__on_batch_end = on_batch_end
+		self.__on_epoch_end = on_epoch_end
+
+	def _call(self, metrics: "Trainer.MetricsContainer"):
+		for metric in metrics:
+			if not self.__repository.exists(metric):
+				self.__repository.write_metric(metric)
+
+	def on_batch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
+		if self.__on_batch_end:
+			self._call(metrics)
+
+	def on_epoch_end(self, core_model: Model, delta_model: Model, state: 'Trainer.State', metrics: 'Trainer.MetricsContainer'):
+		if self.__on_epoch_end:
+			self._call(metrics)

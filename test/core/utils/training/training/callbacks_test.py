@@ -5,10 +5,12 @@ from tensorflow import keras
 
 import unittest
 import math
+import random
 
 from lib.utils.file_storage import PCloudClient
 from core.utils.training.training.trainer import Trainer
-from core.utils.training.training.callbacks import PCloudCheckpointUploadCallback, EarlyStoppingCallback
+from core.utils.training.training.callbacks import PCloudCheckpointUploadCallback, EarlyStoppingCallback, MetricUploaderCallback
+from core.utils.training.training.repository import MongoDBMetricRepository
 from core import Config
 
 import matplotlib.pyplot as plt
@@ -40,7 +42,7 @@ class EarlyStoppingCallbackTest(unittest.TestCase):
 
 
 	def test_min_loss_pass(self):
-		callback = EarlyStoppingCallback(model=0, patience=8, source=1, mode=EarlyStoppingCallback.Modes.MIN)
+		callback = EarlyStoppingCallback(model=0, patience=8, source=1, mode=EarlyStoppingCallback.Modes.MIN, verbose=True)
 		metrics = Trainer.MetricsContainer()
 		for i in range(20):
 			metrics.add_metric(Trainer.Metric(
@@ -60,7 +62,7 @@ class EarlyStoppingCallbackTest(unittest.TestCase):
 		self.assertFalse(early_stopped)
 
 	def test_min_loss_stop(self):
-		callback = EarlyStoppingCallback(model=0, patience=8, source=1, mode=EarlyStoppingCallback.Modes.MIN)
+		callback = EarlyStoppingCallback(model=0, patience=8, source=1, mode=EarlyStoppingCallback.Modes.MIN, verbose=True)
 		metrics = Trainer.MetricsContainer()
 		for i in range(20):
 			metrics.add_metric(Trainer.Metric(
@@ -78,3 +80,17 @@ class EarlyStoppingCallbackTest(unittest.TestCase):
 			early_stopped = True
 
 		self.assertTrue(early_stopped)
+
+
+class MetricUploaderCallbackTest(unittest.TestCase):
+
+	def test_functionality(self):
+
+		callback = MetricUploaderCallback(MongoDBMetricRepository(Config.MONGODB_URL, "test"))
+
+		container = Trainer.MetricsContainer()
+		for i in range(2):
+			for j in range(5):
+				container.add_metric(Trainer.Metric(2, i, j, 4, (random.random(), random.random())))
+
+		callback.on_epoch_end(None, None, None, container)

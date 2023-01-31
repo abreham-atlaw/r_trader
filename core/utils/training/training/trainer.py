@@ -56,6 +56,9 @@ class Trainer:
 		def __len__(self):
 			return len(self.__metrics)
 
+		def __getitem__(self, item):
+			return self.__metrics[item]
+
 	@dataclass
 	class State:
 		epoch: int
