@@ -135,7 +135,7 @@ class EarlyStoppingCallback(Callback):
 			patience=0,
 			value_idx=0,  # LOSS
 			mode=Modes.MIN,
-
+			verbose=False
 	):
 		self.__model = model
 		self.__source = source
@@ -144,6 +144,7 @@ class EarlyStoppingCallback(Callback):
 		self.__mode = mode
 		if mode not in [self.Modes.MIN, self.Modes.MAX]:
 			raise Exception(f"Invalid Mode: {self.__mode}")
+		self.__verbose = verbose
 
 	def __early_stop(self, metrics: 'Trainer.MetricsContainer') -> bool:
 		depth = max([metric.depth for metric in metrics])
@@ -155,6 +156,8 @@ class EarlyStoppingCallback(Callback):
 							model=self.__model
 						)
 				]
+		if self.__verbose:
+			print(f"EarlyStoppingCallback: Values -> {values}")
 		if len(values) < self.__patience+2:
 			return False
 		values = values[-(self.__patience+2):]
