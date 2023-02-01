@@ -178,6 +178,7 @@ class Trainer:
 
 	def __validate_models(
 			self,
+			epoch
 	) -> Tuple['Trainer.Metric', 'Trainer.Metric']:
 		print(f"Validating Models")
 		core_metrics, delta_metrics = self.__evaluate_models(
@@ -186,6 +187,7 @@ class Trainer:
 
 		for metric in (core_metrics, delta_metrics):
 			metric.source = 1
+			metric.epoch = epoch
 
 		print(f"Core Metrics: {core_metrics}")
 		print(f"Delta Metrics: {delta_metrics}")
@@ -312,7 +314,7 @@ class Trainer:
 								break
 
 						if self.__batch_validation:
-							self.__validate_models()
+							self.__validate_models(e*epochs_per_inc + epi)
 
 					for callback in callbacks:
 						try:
@@ -320,7 +322,7 @@ class Trainer:
 						except CallbackException:
 							break
 
-					core_metric, delta_metric = self.__validate_models()
+					core_metric, delta_metric = self.__validate_models(e*epochs_per_inc + epi)
 					for mi, metric in enumerate((core_metric, delta_metric)):
 						metrics.add_metric(metric)
 
