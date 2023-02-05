@@ -219,26 +219,26 @@ class Trainer:
 			processor: DataProcessor,
 			depth: int,
 			epochs: int = 1,
-			callbacks: List[Callback] = None,
-			start_batch=0,
-			start_depth=0,
-			start_inc_depth=1,
-			start_epochs_per_inc=0,
 			epochs_per_inc=1,
+			callbacks: List[Callback] = None,
+			initial_state: 'Trainer.State' = None,
 			verbose=2
 	) -> 'Trainer.MetricsContainer':
 		if callbacks is None:
 			callbacks = []
 
 		if not self.__incremental:
-			start_inc_depth, epochs_per_inc = depth, 1
+			initial_state.depth, epochs_per_inc = depth, 1
 
 		metrics = Trainer.MetricsContainer()
 
-		state = Trainer.State(0, 0, start_batch, start_inc_depth)
+		if initial_state is None:
+			initial_state = Trainer.State(0, 0, 0, 1)
 
-		for e in range(epochs):
-			state.epoch = epochs - e
+		state = Trainer.State(0, 0, 0, 1)
+
+		for e in range(initial_state.epoch, epochs):
+			state.epoch = e
 
 			for callback in callbacks:
 				try:
@@ -246,7 +246,7 @@ class Trainer:
 				except CallbackException:
 					break
 
-			for inc_depth in range(start_inc_depth, depth+1, self.__increment_size):
+			for inc_depth in range(initial_state.depth, depth + 1, self.__increment_size):
 				state.depth = inc_depth
 
 				self.__set_variables(
@@ -258,7 +258,7 @@ class Trainer:
 					verbose
 				)
 
-				for epi in range(start_epochs_per_inc, epochs_per_inc):
+				for epi in range(initial_state.epi, epochs_per_inc):
 					state.epi = epi
 
 					for callback in callbacks:
@@ -268,11 +268,11 @@ class Trainer:
 							break
 
 					print(f"Fitting Models")
-					for i, bch_idx in enumerate(self.__indices[0][start_batch:]):
-						state.batch = i+start_batch
+					for i, bch_idx in enumerate(self.__indices[0][initial_state.batch:]):
+						state.batch = i + initial_state.batch
 
 						print("\n\n", "-" * 100, "\n\n", sep="")
-						print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tInc Depth: {inc_depth}/{depth}\t\tInc Epoch: {epi + 1}/{epochs_per_inc}\t\tBatch:{i + 1}/{len(self.__indices[0][start_batch:])}")
+						print(f"[+]Processing\t\tEpoch: {e + 1}/{epochs}\t\tInc Depth: {inc_depth}/{depth}\t\tInc Epoch: {epi + 1}/{epochs_per_inc}\t\tBatch:{i + 1}/{len(self.__indices[0][initial_state.batch:])}")
 						print(f"[+]Used Memory: {psutil.virtual_memory().percent}%")
 						for callback in callbacks:
 							try:
@@ -284,7 +284,6 @@ class Trainer:
 							processor,
 							bch_idx,
 							inc_depth,
-							start_depth=start_depth
 						)
 						print("[+]Fitting Core Model")
 						core_metric = core_model.fit(core_generator, verbose=verbose)
@@ -326,16 +325,16 @@ class Trainer:
 					for mi, metric in enumerate((core_metric, delta_metric)):
 						metrics.add_metric(metric)
 
-					start_batch, start_depth = 0, 0
-				start_epochs_per_inc = 0
+					initial_state.batch = 0
+				initial_state.epi = 0
+			if self.__incremental:
+				initial_state.depth = 1
 
 			for callback in callbacks:
 				try:
-					callback.on_epoch_end(core_model, delta_model, state, metrics)
+					callback.on_epoch_end(core_model, delta_model, initial_state, metrics)
 				except CallbackException:
 					break
-
-			start_inc_depth = 1
 
 		print("Testing Models")
 		core_metrics, delta_metrics = self.__evaluate_models(self.__indices[2])

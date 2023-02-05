@@ -72,12 +72,9 @@ class ContinuousTrainer(Trainer):
 			processor: DataProcessor,
 			depth: int,
 			epochs: int = 1,
-			callbacks: typing.List[Callback] = None,
-			start_batch=0,
-			start_depth=0,
-			start_inc_depth=1,
-			start_epoch_per_inc=0,
 			epochs_per_inc=1,
+			callbacks: typing.List[Callback] = None,
+			initial_state: 'Trainer.State' = None,
 			verbose=2,
 			timeout: typing.Optional[int] = None
 	) -> 'Trainer.MetricsContainer':
@@ -89,13 +86,7 @@ class ContinuousTrainer(Trainer):
 
 		checkpoint = self.__get_checkpoint(id)
 		if checkpoint is not None:
-			(core_model, delta_model), state = checkpoint
-			epochs, start_batch, start_inc_depth, start_epoch_per_inc = (
-				state.epoch,
-				state.batch,
-				state.depth,
-				state.epi
-			)
+			(core_model, delta_model), initial_state = checkpoint
 
 		tracker = ContinuousTrainer.StateMetricsTracker(None, None)
 
@@ -108,14 +99,12 @@ class ContinuousTrainer(Trainer):
 				processor,
 				depth,
 				epochs,
-				callbacks,
-				start_batch,
-				start_depth,
-				start_inc_depth,
-				start_epoch_per_inc,
 				epochs_per_inc,
+				callbacks,
+				initial_state,
 				verbose
 			)
+
 		except TimeoutException:
 			for callback in callbacks:
 				if isinstance(callback, ContinuousTrainerCallback):
