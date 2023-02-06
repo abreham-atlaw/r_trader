@@ -16,9 +16,8 @@ CONFIGS_FILE_NAME = "configs.txt"
 
 class Agent(ABC):
 
-	def __init__(self, episodic = False, explore_exploit_tradeoff: float = 0.3, update_agent=True):
+	def __init__(self, explore_exploit_tradeoff: float = 0.3, update_agent=True):
 		self.__environment: Union[Environment, None] = None
-		self._is_episodic = episodic
 		self._explore_exploit_tradeoff = explore_exploit_tradeoff
 		self._update_agent = update_agent
 
@@ -42,9 +41,7 @@ class Agent(ABC):
 		pass
 
 	def _is_episode_over(self, state) -> bool:
-		if self._is_episodic:
-			return self._get_environment().is_episode_over(state)
-		return False
+		return self._get_environment().is_episode_over(state)
 
 	@abstractmethod
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
@@ -92,7 +89,7 @@ class Agent(ABC):
 			self.perform_timestep()
 
 	def loop(self):
-		if self._is_episodic:
+		if self._get_environment().is_episodic():
 			while True:
 				self.perform_episode()
 				self._get_environment().reset()
@@ -105,7 +102,6 @@ class Agent(ABC):
 			"explore_exploit_tradeoff": self._explore_exploit_tradeoff,
 			"discount": self._discount_factor,
 			"depth": self._depth,
-			"episodic": self._is_episodic
 		}
 
 	def save(self, location):
