@@ -49,6 +49,9 @@ class Environment(ABC):
 		self.update_ui()
 		return self.get_reward()
 
+	def is_episodic(self) -> bool:
+		return self.episodic
+
 	def reset(self):
 		self.start()
 
