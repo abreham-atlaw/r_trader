@@ -227,13 +227,13 @@ class Trainer:
 		if callbacks is None:
 			callbacks = []
 
+		if initial_state is None:
+			initial_state = Trainer.State(0, 0, 0, 1)
+
 		if not self.__incremental:
 			initial_state.depth, epochs_per_inc = depth, 1
 
 		metrics = Trainer.MetricsContainer()
-
-		if initial_state is None:
-			initial_state = Trainer.State(0, 0, 0, 1)
 
 		state = Trainer.State(0, 0, 0, 1)
 
