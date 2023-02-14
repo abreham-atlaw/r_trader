@@ -45,6 +45,9 @@ class DataProcessor:
 		self.__seq_len = self.__core_model.input_shape[1] - 1
 		self.__cache = BatchDepthCache(cache_size)
 
+	def set_models(self, core_model: Model, delta_model: Model):
+		self.__core_model, self.__delta_model = core_model, delta_model
+
 	def __forecast(self, sequence, depth, initial_depth=0) -> np.ndarray:
 
 		for i in range(initial_depth, depth):
