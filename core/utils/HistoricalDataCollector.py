@@ -50,7 +50,6 @@ class DataFetcher(ABC):
 		previous_start_time = None
 
 		while to > start_time and previous_start_time != start_time:
-			print(f"[+]Getting from {start_time} to {to}")
 			try:
 				datapoints = self._fetch_max(start_time, instrument)
 			except DatasetNotFoundException:
