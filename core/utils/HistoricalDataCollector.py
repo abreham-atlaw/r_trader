@@ -122,8 +122,16 @@ class OandaDataFetcher(DataFetcher):
 			for cs in candlesticks
 		]
 
+	def __fetch_candlestick(self, instrument, length, from_) -> List[CandleStick]:
+		try:
+			return self.__trader.get_candlestick(instrument, count=length, from_=from_, granularity="M1")
+		except HTTPError:
+			print("HTTPError Retrying...")
+			time.sleep(5)
+			return self.__fetch_candlestick(instrument, length, from_)
+
 	def _fetch_max(self, from_: datetime.datetime, instrument: Tuple[str, str]) -> List[DataPoint]:
-		candlesticks = self.__trader.get_candlestick(instrument, count=5000, from_=from_, granularity="M1")
+		candlesticks = self.__fetch_candlestick(instrument, 500, from_)
 		return self.__candlesticks_to_datapoints(candlesticks)
 
 
