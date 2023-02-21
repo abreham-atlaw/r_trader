@@ -3,12 +3,17 @@ from abc import ABC
 
 from tensorflow import keras
 
+from dependency_injector.wiring import inject, Provide
+
 import os
 import json
 
+from core.di.application_container import ApplicationContainer
+from core.utils.kaggle import SessionsManager, ResourcesManager, ResourceUnavailableException
 from core.utils.training.training import Trainer
 from core.utils.training.training.callbacks import Callback, CheckpointUploadCallback, PCloudCheckpointUploadCallback
 from .repository import TrainerRepository
+
 
 
 class ContinuousTrainerCallback(Callback):
@@ -123,3 +128,37 @@ class RecursiveNotebookCallback(ContinuousTrainerCallback):
 		self.__update_meta(self.__meta_data, self.__pull_path)
 		self.__push_notebook(self.__pull_path)
 
+
+class ResourceAwareRecursiveNotebookCallback(ContinuousTrainerCallback):
+
+	@inject
+	def __init__(
+			self,
+			kernel,
+			use_gpu,
+			meta_data: typing.Dict = None,
+			sessions_manager: SessionsManager = Provide[ApplicationContainer.kaggle.sessions_manager],
+			resources_manager: ResourcesManager = Provide[ApplicationContainer.kaggle.resources_manager]
+	):
+		super().__init__()
+		self.__kernel = kernel
+		self.__use_gpu = use_gpu
+		self.__sessions_manager = sessions_manager
+		self.__resources_manager = resources_manager
+		self.__meta_data = meta_data
+		if meta_data is None:
+			self.__meta_data = {}
+
+	@inject
+	def on_timeout(
+			self,
+			core_model: keras.Model,
+			delta_model: keras.Model,
+			state: Trainer.State,
+			metrics: 'Trainer.MetricsContainer',
+	):
+		try:
+			account = self.__resources_manager.allocate_notebook(use_gpu=self.__use_gpu)
+		except ResourceUnavailableException:
+			account = self.__resources_manager.allocate_notebook(use_gpu=False)
+		self.__sessions_manager.start_session(self.__kernel, account, self.__meta_data)
