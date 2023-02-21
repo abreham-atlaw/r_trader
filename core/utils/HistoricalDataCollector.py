@@ -17,8 +17,6 @@ from lib.network.oanda import Trader
 from lib.network.oanda.data.models import CandleStick
 
 
-
-
 @dataclass
 class DataPoint:
 	v: int
@@ -124,9 +122,11 @@ class OandaDataFetcher(DataFetcher):
 
 	def __fetch_candlestick(self, instrument, length, from_) -> List[CandleStick]:
 		try:
-			return self.__trader.get_candlestick(instrument, count=length, from_=from_, granularity="M1")
-		except HTTPError:
-			print("HTTPError Retrying...")
+			candlesticks = self.__trader.get_candlestick(instrument, count=length, from_=from_, granularity="M1")
+			if candlesticks is None:
+				raise ValueError("Candlestick is None")
+		except (ValueError, HTTPError) as ex:
+			print(f"Error {ex}. \nRetrying...", )
 			time.sleep(5)
 			return self.__fetch_candlestick(instrument, length, from_)
 
@@ -201,5 +201,5 @@ if __name__ == "__main__":
 	instruments = trader.get_instruments()
 
 	fetcher = OandaDataFetcher(trader)
-	data_collector = DataCollector(fetcher, "../../Data/Minutes", resume=True)
+	data_collector = DataCollector(fetcher, "../../Temp/Data", resume=True)
 	data_collector.collect_data(instruments)
