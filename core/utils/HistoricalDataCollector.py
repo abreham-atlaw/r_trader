@@ -125,6 +125,7 @@ class OandaDataFetcher(DataFetcher):
 			candlesticks = self.__trader.get_candlestick(instrument, count=length, from_=from_, granularity="M1")
 			if candlesticks is None:
 				raise ValueError("Candlestick is None")
+			return candlesticks
 		except (ValueError, HTTPError) as ex:
 			print(f"Error {ex}. \nRetrying...", )
 			time.sleep(5)
