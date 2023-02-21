@@ -86,6 +86,7 @@ class SessionsManager:
 			meta_data: typing.Dict[str, typing.Any],
 			gpu: bool = True
 	):
+		print(f"Running {kernel} on {account.username}(gpu={gpu})")
 		self.__run_notebook(kernel, account, meta_data, gpu)
 		self.__register_session(kernel, account, gpu)
 
