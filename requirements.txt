@@ -54,6 +54,7 @@ jupyter-console==6.4.0
 jupyter-core==4.7.1
 jupyterlab-pygments==0.1.2
 jupyterlab-widgets==1.0.0
+kaggle==1.5.12
 keras==2.6.0
 keras-nightly==2.5.0.dev2021032900
 Keras-Preprocessing==1.1.2
