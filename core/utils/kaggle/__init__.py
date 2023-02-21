@@ -1,2 +1,2 @@
-from .resource_manager import ResourcesManager
+from .resource_manager import ResourcesManager, ResourceUnavailableException
 from .sessions_manager import SessionsManager
