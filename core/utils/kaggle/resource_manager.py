@@ -59,6 +59,17 @@ class ResourcesManager:
 		resource.remaining_instances += 1
 		self.__resources_repository.save_resources(resources)
 
+	def reset_resources(self, accounts: typing.List[Account] = None, gpu_amount=30, gpu_instances=2, cpu_instances=10):
+		if accounts is None:
+			accounts = self.__accounts_repository.get_accounts()
+
+		for account in accounts:
+			resources = self.__resources_repository.get_resources(account)
+			resources.get_resource(Resources.Devices.CPU).remaining_instances = cpu_instances
+			resources.get_resource(Resources.Devices.GPU).remaining_instances = gpu_instances
+			resources.get_resource(Resources.Devices.GPU).remaining_amount = gpu_amount
+			self.__resources_repository.save_resources(resources)
+
 
 class ResourceUnavailableException(Exception):
 	pass
