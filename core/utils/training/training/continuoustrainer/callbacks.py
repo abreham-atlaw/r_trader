@@ -9,7 +9,7 @@ import os
 import json
 
 from core.di.application_container import ApplicationContainer
-from core.utils.kaggle import SessionsManager, ResourcesManager, ResourceUnavailableException
+from core.utils.kaggle import FusedManager, SessionsManager
 from core.utils.training.training import Trainer
 from core.utils.training.training.callbacks import Callback, CheckpointUploadCallback, PCloudCheckpointUploadCallback
 from .repository import TrainerRepository
@@ -137,15 +137,15 @@ class ResourceAwareRecursiveNotebookCallback(ContinuousTrainerCallback):
 			kernel,
 			use_gpu,
 			meta_data: typing.Dict = None,
-			sessions_manager: SessionsManager = Provide[ApplicationContainer.kaggle.sessions_manager],
-			resources_manager: ResourcesManager = Provide[ApplicationContainer.kaggle.resources_manager]
+			manager: FusedManager = Provide[ApplicationContainer.kaggle.fused_manager],
+			session_manager: SessionsManager = Provide[ApplicationContainer.kaggle.sessions_manager]
 	):
 		super().__init__()
 		self.__kernel = kernel
 		self.__use_gpu = use_gpu
-		self.__sessions_manager = sessions_manager
-		self.__resources_manager = resources_manager
 		self.__meta_data = meta_data
+		self.__manager = manager
+		self.__sessions_manager = session_manager
 		if meta_data is None:
 			self.__meta_data = {}
 
@@ -157,8 +157,5 @@ class ResourceAwareRecursiveNotebookCallback(ContinuousTrainerCallback):
 			state: Trainer.State,
 			metrics: 'Trainer.MetricsContainer',
 	):
-		try:
-			account = self.__resources_manager.allocate_notebook(use_gpu=self.__use_gpu)
-		except ResourceUnavailableException:
-			account = self.__resources_manager.allocate_notebook(use_gpu=False)
-		self.__sessions_manager.start_session(self.__kernel, account, self.__meta_data)
+		self.__manager.start_session(self.__kernel, self.__meta_data, self.__use_gpu)
+		self.__sessions_manager.finish_session(self.__kernel)
