@@ -51,6 +51,7 @@ class SessionsManager:
 	@staticmethod
 	def __pull_notebook(api, kernel: str) -> str:
 		pull_path = f".notebook-{kernel}".replace("/", "-")
+		SessionsManager.__clean(pull_path)
 		os.mkdir(pull_path)
 		api.kernels_pull(kernel, pull_path, metadata=True)
 		return pull_path
