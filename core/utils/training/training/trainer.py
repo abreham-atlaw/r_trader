@@ -157,6 +157,9 @@ class Trainer:
 				model.evaluate(generator, verbose=self.__verbose)
 				for model, generator in zip(self.__models, (core_generator, delta_generator))
 			]
+			core_generator.destroy()
+			delta_generator.destroy()
+			del core_generator, delta_generator
 			if isinstance(core_metrics, float):
 				core_metrics = (core_metrics,)
 			if isinstance(delta_metrics, float):
