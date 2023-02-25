@@ -311,6 +311,7 @@ class TradeState(ModelBasedState):
 		self.agent_state = agent_state
 		self.recent_balance = recent_balance
 		self.__depth = 0
+		self.__attached_state = {}
 
 	def get_market_state(self) -> MarketState:
 		return self.market_state
@@ -331,6 +332,18 @@ class TradeState(ModelBasedState):
 
 	def get_depth(self) -> int:
 		return self.__depth
+
+	def attach_state(self, key: Hashable, state: Any):
+		self.__attached_state[key] = state
+
+	def detach_state(self, key: Hashable) -> Any:
+		return self.__attached_state.pop(key)
+
+	def get_attached_state(self, key: Hashable) -> Any:
+		return self.__attached_state[key]
+
+	def is_state_attached(self, key: Hashable) -> bool:
+		return key in self.__attached_state.keys()
 
 	def __deepcopy__(self, memo=None):
 		market_state = self.market_state.__deepcopy__()
