@@ -4,6 +4,7 @@ from typing import *
 import numpy as np
 
 import math
+from dataclasses import dataclass
 
 from lib.utils.logger import Logger
 from lib.rl.environment import ModelBasedState
@@ -354,6 +355,14 @@ class TradeState(ModelBasedState):
 	def __eq__(self, other):
 		if not isinstance(other, TraderAction):
 			return False
+
+
+@dataclass
+class ArbitradeTradeState:
+	start_point: float
+	checkpoints: Tuple[float, float]
+	close_points: Tuple[float, float]
+	instrument: Tuple[str, str]
 
 
 class CurrencyNotFoundException(Exception):

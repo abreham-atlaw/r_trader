@@ -6,18 +6,134 @@ import numpy as np
 
 from datetime import datetime
 import copy
+import random
+import math
 
 from tensorflow.python.keras import Model
 
 from core import Config
-from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
+from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent, Agent
 from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
-from core.environment.trade_state import TradeState, AgentState
+from core.environment.trade_state import TradeState, AgentState, ArbitradeTradeState
 from core.environment.trade_environment import TradeEnvironment
 from .trader_action import TraderAction
 from .dnn_models import KerasModelHandler
 from .stm import TraderNodeShortTermMemory
+
+
+class ArbitrageTraderAgent(Agent):
+
+	__STATE_KEY = "ArbitrageTradeState"
+	__DIRECTION_ACTION_MAP = {
+		-1: TraderAction.Action.SELL,
+		1: TraderAction.Action.BUY
+	}
+
+	def __init__(self, zone_size: float, base_margin: float, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__zone_size = zone_size
+		self.__base_margin = base_margin
+
+	def _generate_actions(self, state) -> List[object]:
+		pass
+
+	def _get_state_action_value(self, state, action, **kwargs) -> float:
+		pass
+
+	def _update_state_action_value(self, initial_state, action, final_state, value):
+		pass
+
+	def __get_crossing_direction(self, points: Tuple[float, float], point: float) -> Optional[int]:
+		for i, cp in points:
+			d = -2*(i-0.5)
+			if d*point - d*cp > 0 or math.isclose(point, cp):
+				return int(d)
+		return None
+
+	def __generate_arbitrage_state(self, state: TradeState, instrument: Tuple[str, str]) -> ArbitradeTradeState:
+		start_point = state.get_market_state().get_current_price(instrument[0], instrument[1])
+		real_zone_size = start_point*self.__zone_size
+
+		checkpoints = start_point-(real_zone_size/2), start_point+(real_zone_size/2)
+		close_points = checkpoints[0] - real_zone_size, checkpoints[1] + real_zone_size
+
+		return ArbitradeTradeState(
+			start_point=start_point,
+			checkpoints=checkpoints,
+			close_points=close_points,
+			instrument=instrument
+		)
+
+	def __choose_instrument(self, state: TradeState) -> Tuple[str, str]:
+		return random.choice(state.get_market_state().get_tradable_pairs())
+
+	def __is_arbitrage_mode(self, state: TradeState) -> bool:
+		return state.is_state_attached(self.__STATE_KEY)
+
+	def __get_arbitrage_state(self, state: TradeState) -> ArbitradeTradeState:
+		return state.get_attached_state(self.__STATE_KEY)
+
+	def __set_arbitrage_state(self, state: TradeState, arbitrage_state: ArbitradeTradeState):
+		state.attach_state(self.__STATE_KEY, arbitrage_state)
+
+	def __start_arbitrage_state(self, state: TradeState):
+		arbitrage_state = self.__generate_arbitrage_state(state, self.__choose_instrument(state))
+		self.__set_arbitrage_state(state, arbitrage_state)
+
+	def __on_checkpoint(self, state: TradeState, direction: int) -> Optional[TraderAction]:
+		arbitrage_state = self.__get_arbitrage_state(state)
+		action = self.__DIRECTION_ACTION_MAP[direction]
+		trades = state.get_agent_state().get_open_trades(*arbitrage_state.instrument)
+
+		if len(trades) != 0 and action == trades[-1].get_trade().action:
+			return None
+
+		if len(trades) == 0:
+			margin_size = self.__base_margin
+		elif len(trades) == 1:
+			margin_size = 3 * self.__base_margin
+		else:
+			margin_size = 2 * trades[-1].get_trade().margin_used
+
+		return TraderAction(
+			arbitrage_state.instrument[0],
+			arbitrage_state.instrument[1],
+			action,
+			margin_size
+		)
+
+	def __on_close_point(self, state: TradeState, direction: int) -> Optional[TraderAction]:
+		arbitrage_state = self.__get_arbitrage_state(state)
+		return TraderAction(
+			arbitrage_state.instrument[0],
+			arbitrage_state.instrument[1],
+			TraderAction.Action.CLOSE,
+		)
+
+	def __monitor_arbitrage(self, state: TradeState) -> Optional[TraderAction]:
+
+		arbitrage_state = self.__get_arbitrage_state(state)
+
+		for points, callback in zip(
+				[arbitrage_state.checkpoints, arbitrage_state.close_points],
+				[self.__on_checkpoint, self.__on_close_point]
+		):
+			direction = self.__get_crossing_direction(
+				points,
+				state.get_market_state().get_current_price(*arbitrage_state.instrument)
+			)
+			if direction is not None:
+				action = callback(state, direction)
+				if action is not None:
+					return action
+		return None
+
+	def _policy(self, state, **kwargs):
+		if not self.__is_arbitrage_mode(state):
+			self.__start_arbitrage_state(state)
+			return None
+		return self.__monitor_arbitrage(state)
 
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
