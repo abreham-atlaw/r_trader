@@ -30,7 +30,13 @@ class ArbitrageTraderAgent(Agent):
 		1: TraderAction.Action.BUY
 	}
 
-	def __init__(self, zone_size: float, base_margin: float, *args, **kwargs):
+	def __init__(
+			self,
+			*args,
+			zone_size: float = Config.AGENT_ARBITRAGE_ZONE_SIZE,
+			base_margin: float = Config.AGENT_ARBITRAGE_BASE_MARGIN,
+			**kwargs
+	):
 		super().__init__(*args, **kwargs)
 		self.__zone_size = zone_size
 		self.__base_margin = base_margin
