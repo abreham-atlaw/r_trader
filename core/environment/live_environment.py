@@ -188,4 +188,6 @@ class LiveEnvironment(TradeEnvironment):
 	def _refresh_state(self, state: TradeState = None) -> TradeState:
 		if state is None:
 			state = self.get_state()
-		return self._initiate_state()
+		new_state = self._initiate_state()
+		new_state._TradeState__attached_state = state._TradeState__attached_state
+		return new_state
