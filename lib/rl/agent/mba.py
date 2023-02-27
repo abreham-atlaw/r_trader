@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from lib.rl.environment import ModelBasedState
-from .agent import Agent
+from .action_choice_agent import ActionChoiceAgent
 
 
-class ModelBasedAgent(Agent, ABC):
+class ModelBasedAgent(ActionChoiceAgent, ABC):
 
 	class Cacher:  # TODO: ADD DEPTH
 
