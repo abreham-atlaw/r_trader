@@ -32,10 +32,10 @@ class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 
 	def get_resources(self, account: Account) -> Resources:
 		resources = self._get_resources(account)
-		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_cpu_instances - len(
-			self.__sessions_repository.filter(gpu=True, active=True, account=account))
-		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_gpu_instances - len(
+		resources.get_resource(Resources.Devices.CPU).remaining_instances = self.__allowed_cpu_instances - len(
 			self.__sessions_repository.filter(gpu=False, active=True, account=account))
+		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_gpu_instances - len(
+			self.__sessions_repository.filter(gpu=True, active=True, account=account))
 		return resources
 
 
