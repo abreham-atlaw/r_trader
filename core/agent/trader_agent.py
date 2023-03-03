@@ -94,15 +94,18 @@ class ArbitrageTraderAgent(Agent):
 	def __on_checkpoint(self, state: TradeState, direction: int) -> Optional[TraderAction]:
 		arbitrage_state = self.__get_arbitrage_state(state)
 		action = self.__DIRECTION_ACTION_MAP[direction]
+		trades = state.get_agent_state().get_open_trades()
+
+		margin_size = None
 
 		if arbitrage_state.margin_stage == ArbitradeTradeState.MarginStage.STAGE_ZERO:
 			margin_size = self.__base_margin
-			arbitrage_state.increment_margin_stage()
+		elif action == trades[-1].get_trade().action:
+			return None
 		elif arbitrage_state.margin_stage == ArbitradeTradeState.MarginStage.STAGE_ONE:
-			margin_size = 3 * self.__base_margin
-			arbitrage_state.increment_margin_stage()
-		else:
-			margin_size = 2 * state.get_agent_state().get_open_trades()[-1].get_trade().margin_used
+			margin_size = 3 * state.get_agent_state().get_open_trades()[-1].get_trade().margin_used
+
+		arbitrage_state.increment_margin_stage()
 
 		return TraderAction(
 			arbitrage_state.instrument[0],
