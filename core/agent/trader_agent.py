@@ -9,11 +9,9 @@ import copy
 import random
 import math
 
-from tensorflow.python.keras import Model
 
 from core import Config
 from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent, ActionChoiceAgent, Agent
-from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState, ArbitradeTradeState
 from core.environment.trade_environment import TradeEnvironment
@@ -50,7 +48,8 @@ class ArbitrageTraderAgent(Agent):
 	def _update_state_action_value(self, initial_state, action, final_state, value):
 		pass
 
-	def __get_crossing_direction(self, points: Tuple[float, float], point: float) -> Optional[int]:
+	@staticmethod
+	def __get_crossing_direction(points: Tuple[float, float], point: float) -> Optional[int]:
 		for i, cp in enumerate(points):
 			d = 2*(i-0.5)
 			if d*point - d*cp > 0 or math.isclose(point, cp):
@@ -87,10 +86,24 @@ class ArbitrageTraderAgent(Agent):
 	def __set_arbitrage_state(self, state: TradeState, arbitrage_state: ArbitradeTradeState):
 		state.attach_state(self.__STATE_KEY, arbitrage_state)
 
-	def __start_arbitrage_state(self, state: TradeState):
+	def __start_arbitrage_state(self, state: TradeState) -> Optional[TraderAction]:
+		instrument = self.__choose_instrument(state)
 		arbitrage_state = self.__generate_arbitrage_state(state, self.__choose_instrument(state))
 		Logger.info(f"[+]Starting Arbitrage with {arbitrage_state}")
 		self.__set_arbitrage_state(state, arbitrage_state)
+		if len(state.get_agent_state().get_open_trades(*instrument)) != 0:
+			return TraderAction(
+				*instrument,
+				TraderAction.Action.CLOSE
+			)
+		return None
+
+	def __on_insufficient_margin(self, state: TradeState) -> Optional[TraderAction]:
+		arbitrage_state = self.__get_arbitrage_state(state)
+		return TraderAction(
+			*arbitrage_state.instrument,
+			TraderAction.Action.CLOSE
+		)
 
 	def __on_checkpoint(self, state: TradeState, direction: int) -> Optional[TraderAction]:
 		arbitrage_state = self.__get_arbitrage_state(state)
@@ -107,6 +120,10 @@ class ArbitrageTraderAgent(Agent):
 			margin_size = 3 * state.get_agent_state().get_open_trades()[-1].get_trade().margin_used
 
 		arbitrage_state.increment_margin_stage()
+
+		if margin_size > state.get_agent_state().get_margin_available():
+			Logger.warning("Insufficient Balance to continue sequence...")
+			return self.__on_insufficient_margin(state)
 
 		return TraderAction(
 			arbitrage_state.instrument[0],
@@ -145,8 +162,7 @@ class ArbitrageTraderAgent(Agent):
 
 	def _policy(self, state, **kwargs):
 		if not self.__is_arbitrage_mode(state):
-			self.__start_arbitrage_state(state)
-			return None
+			return self.__start_arbitrage_state(state)
 		return self.__monitor_arbitrage(state)
 
 
