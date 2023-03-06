@@ -253,15 +253,18 @@ class AgentState:
 		if action.margin_used > self.get_margin_available():
 			raise InsufficientFundsException
 
-		self.__balance -= action.units * self.__to_agent_currency(
-			value=self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency),
-			from_currency=action.quote_currency
-		)
+		enter_value = current_value + ((action.action - 0.5) * 2) * self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency)
+
+		# self.__balance -= action.units * self.__to_agent_currency(
+		# 	value=self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency),
+		# 	from_currency=action.quote_currency
+		# )
 
 		if self.__core_pricing:
 			self.__balance -= self.__commission_cost
+
 		self.__open_trades.append(
-			AgentState.OpenTrade(action, current_value)
+			AgentState.OpenTrade(action, enter_value)
 		)
 
 	def __to_agent_currency(self, value, from_currency) -> float:
