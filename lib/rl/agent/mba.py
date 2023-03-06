@@ -59,15 +59,13 @@ class ModelBasedAgent(Agent, ABC):
 			self.__actions = []
 			self.__cache = np.array([[[None, None]]])
 
-	def __init__(self, discount: float = 0.7, depth: int = None, session_caching: bool = True, episodic: bool = True, **kwargs):
-		super(ModelBasedAgent, self).__init__(episodic=episodic, **kwargs)
+	def __init__(self, discount: float = 0.7, depth: int = None, session_caching: bool = True, **kwargs):
+		super(ModelBasedAgent, self).__init__(**kwargs)
 		self._discount_factor = discount
 		self._depth = depth
 		self.__session_caching = session_caching
 		if session_caching:
 			self.__session_cacher: ModelBasedAgent.Cacher = ModelBasedAgent.Cacher()
-		if not self._is_episodic and self._depth is None:
-			raise Exception("Non-Episodic Tasks can't have depth=None")
 
 	@abstractmethod
 	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state) -> float:
