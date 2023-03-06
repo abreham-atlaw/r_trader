@@ -363,7 +363,6 @@ class ArbitradeTradeState:
 	class MarginStage:
 		STAGE_ZERO = 0
 		STAGE_ONE = 1
-		STAGE_TWO = 2
 
 	start_point: float
 	checkpoints: Tuple[float, float]
@@ -372,7 +371,7 @@ class ArbitradeTradeState:
 	margin_stage: int = MarginStage.STAGE_ZERO
 
 	def increment_margin_stage(self):
-		if self.margin_stage == ArbitradeTradeState.MarginStage.STAGE_TWO:
+		if self.margin_stage == ArbitradeTradeState.MarginStage.STAGE_ONE:
 			return
 		self.margin_stage += 1
 
