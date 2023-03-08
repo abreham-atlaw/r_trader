@@ -59,10 +59,12 @@ class ArbitrageTraderAgent(Agent):
 	def __generate_arbitrage_state(self, state: TradeState, instrument: Tuple[str, str]) -> ArbitradeTradeState:
 		start_point = state.get_market_state().get_current_price(instrument[0], instrument[1])
 		real_zone_size = start_point*self.__zone_size
-		spread_zone_size = real_zone_size + state.get_market_state().get_spread_state_of(instrument[0], instrument[1])
+		spread_cost = state.get_market_state().get_spread_state_of(*instrument)
+		spread_zone_size = real_zone_size + 2*spread_cost
 
 		checkpoints = start_point-(real_zone_size/2), start_point+(real_zone_size/2)
-		close_points = checkpoints[0] - spread_zone_size, checkpoints[1] + spread_zone_size
+		spread_checkpoints = checkpoints[0] - spread_cost, checkpoints[1] + spread_cost
+		close_points = spread_checkpoints[0] - spread_zone_size, spread_checkpoints[1] + spread_zone_size
 
 		return ArbitradeTradeState(
 			start_point=start_point,
