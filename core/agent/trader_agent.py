@@ -100,6 +100,7 @@ class ArbitrageTraderAgent(Agent):
 
 	def __on_insufficient_margin(self, state: TradeState) -> Optional[TraderAction]:
 		arbitrage_state = self.__get_arbitrage_state(state)
+		self.__detach_arbitrage_state(state)
 		return TraderAction(
 			*arbitrage_state.instrument,
 			TraderAction.Action.CLOSE
