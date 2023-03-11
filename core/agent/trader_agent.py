@@ -185,7 +185,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	):
 		super().__init__(
 			*args,
-			episodic=False,
 			depth=Config.AGENT_DEPTH,
 			explore_exploit_tradeoff=Config.AGENT_EXPLOIT_EXPLORE_TRADEOFF,
 			update_agent=update_agent,
