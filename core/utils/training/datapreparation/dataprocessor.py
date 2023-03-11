@@ -37,6 +37,7 @@ class DataProcessor:
 			mini_batch_size: int,
 			process_batch_size: int,
 			cache_size: int = 5,
+			direction_rounding: bool = False
 	):
 		self.__generator = generator
 		self.__core_model, self.__delta_model = core_model, delta_model
@@ -44,6 +45,7 @@ class DataProcessor:
 		self.__process_batch_size = process_batch_size
 		self.__seq_len = self.__core_model.input_shape[1] - 1
 		self.__cache = BatchDepthCache(cache_size)
+		self.__direction_rounding = direction_rounding
 
 	def set_models(self, core_model: Model, delta_model: Model):
 		self.__core_model, self.__delta_model = core_model, delta_model
@@ -52,9 +54,16 @@ class DataProcessor:
 
 		for i in range(initial_depth, depth):
 			depth = np.ones((sequence.shape[0], 1)) * i
+
 			directions = self.__core_model.predict(np.concatenate((sequence, depth), axis=1))
-			deltas = self.__delta_model.predict(np.concatenate((sequence, directions, depth), axis=1))
-			values = sequence[:, -1:] + (2 * directions - 1) * deltas
+			round_directions = np.round(directions)
+
+			delta_direction = directions
+			if self.__direction_rounding:
+				delta_direction = round_directions
+
+			deltas = self.__delta_model.predict(np.concatenate((sequence, delta_direction, depth), axis=1))
+			values = sequence[:, -1:] + (2 * round_directions - 1) * deltas
 			sequence = np.concatenate((sequence[:, 1:], values), axis=1)
 
 		return sequence
