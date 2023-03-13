@@ -24,8 +24,12 @@ class MongoAccountsRepository(AccountsRepository):
 	def __init__(self, mongo_client: MongoClient, db_name="kaggle", collection_name="accounts"):
 		super().__init__()
 		self.__collection = mongo_client[db_name][collection_name]
+		self.__cached = None
 
-	def get_accounts(self) -> typing.List[Account]:
+	def __get_cached(self) -> typing.Optional[typing.List[Account]]:
+		return self.__cached
+
+	def __get_from_db(self) -> typing.List[Account]:
 		accounts_raw = self.__collection.find()
 		accounts_list = []
 		for account_json in accounts_raw:
@@ -33,6 +37,17 @@ class MongoAccountsRepository(AccountsRepository):
 			account.__dict__ = account_json.copy()
 			accounts_list.append(account)
 		return accounts_list
+
+	def __cache(self, accounts: typing.List[Account]):
+		self.__cached = accounts
+
+	def get_accounts(self) -> typing.List[Account]:
+		cached = self.__get_cached()
+		if cached is not None:
+			return cached
+		from_db = self.__get_from_db()
+		self.__cache(from_db)
+		return from_db
 
 
 class LocalAccountsRepository(AccountsRepository):
