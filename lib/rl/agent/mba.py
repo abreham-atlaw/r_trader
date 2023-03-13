@@ -61,7 +61,7 @@ class ModelBasedAgent(ActionChoiceAgent, ABC):
 
 	def __init__(self, discount: float = 0.7, depth: int = None, session_caching: bool = True, **kwargs):
 		super(ModelBasedAgent, self).__init__(**kwargs)
-		self._discount_factor = discount
+		self.__discount_factor = discount
 		self._depth = depth
 		self.__session_caching = session_caching
 		if session_caching:
@@ -82,6 +82,9 @@ class ModelBasedAgent(ActionChoiceAgent, ABC):
 	@abstractmethod
 	def _get_possible_states(self, state: ModelBasedState, action) -> List[ModelBasedState]:
 		pass
+
+	def _get_discount_factor(self, depth: int) -> float:
+		return self.__discount_factor
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
 		self._update_transition_probability(initial_state, action, final_state)

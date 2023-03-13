@@ -18,6 +18,7 @@ CONFIGS_FILE_NAME = "configs.txt"
 class ActionChoiceAgent(Agent):
 
 	def __init__(self, explore_exploit_tradeoff: float = 0.3, update_agent=True):
+		super().__init__()
 		self.__environment: Union[Environment, None] = None
 		self._explore_exploit_tradeoff = explore_exploit_tradeoff
 		self._update_agent = update_agent

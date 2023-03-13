@@ -11,7 +11,7 @@ import math
 
 
 from core import Config
-from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent, ActionChoiceAgent, Agent
+from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent, Agent
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState, ArbitradeTradeState
 from core.environment.trade_environment import TradeEnvironment
@@ -30,12 +30,10 @@ class ArbitrageTraderAgent(Agent):
 
 	def __init__(
 			self,
-			*args,
 			zone_size: float = Config.AGENT_ARBITRAGE_ZONE_SIZE,
 			base_margin: float = Config.AGENT_ARBITRAGE_BASE_MARGIN,
-			**kwargs
 	):
-		super().__init__(*args, **kwargs)
+		super().__init__()
 		self.__zone_size = zone_size
 		self.__base_margin = base_margin
 
@@ -179,6 +177,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
+			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			core_model=None,
 			delta_model=None,
 			**kwargs
@@ -209,6 +208,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				self.__delta_model = KerasModelHandler.load_model(Config.DELTA_MODEL_CONFIG.path)
 
 		self.__state_change_delta_cache = {}
+		self.__discount_function = discount_function
 
 	def __check_and_add_depth(self, input_: np.ndarray, depth: int) -> np.ndarray:
 		if self.__depth_mode:
@@ -225,7 +225,12 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 					state.get_depth()
 				)
 
-		raise ValueError("Initial State and Final state are the same.") # TODO: FIND ANOTHER WAY TO HANDLE THIS.
+		raise ValueError("Initial State and Final state are the same.")  # TODO: FIND ANOTHER WAY TO HANDLE THIS.
+
+	def _get_discount_factor(self, depth) -> float:
+		if self.__discount_function is None:
+			return super()._get_discount_factor(depth)
+		return self.__discount_function(depth)
 
 	def _generate_actions(self, state: TradeState) -> List[Optional[TraderAction]]:
 		pairs = state.get_market_state().get_tradable_pairs()
