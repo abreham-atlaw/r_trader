@@ -31,11 +31,13 @@ class ArbitrageTraderAgent(Agent):
 	def __init__(
 			self,
 			zone_size: float = Config.AGENT_ARBITRAGE_ZONE_SIZE,
+			zone_guarantee_percent: float = Config.AGENT_ARBITRAGE_ZONE_GUARANTEE_PERCENT,
 			base_margin: float = Config.AGENT_ARBITRAGE_BASE_MARGIN,
 	):
 		super().__init__()
 		self.__zone_size = zone_size
 		self.__base_margin = base_margin
+		self.__zone_guarantee_percent = zone_guarantee_percent
 
 	def _generate_actions(self, state) -> List[object]:
 		pass
@@ -62,7 +64,9 @@ class ArbitrageTraderAgent(Agent):
 
 		checkpoints = start_point-(real_zone_size/2), start_point+(real_zone_size/2)
 		spread_checkpoints = checkpoints[0] - spread_cost, checkpoints[1] + spread_cost
-		close_points = spread_checkpoints[0] - spread_zone_size, spread_checkpoints[1] + spread_zone_size
+		close_points = \
+			spread_checkpoints[0] - (spread_zone_size * (1+self.__zone_guarantee_percent)), \
+			spread_checkpoints[1] + (spread_zone_size * (1+self.__zone_guarantee_percent))
 
 		return ArbitradeTradeState(
 			start_point=start_point,
