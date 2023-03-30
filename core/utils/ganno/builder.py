@@ -75,9 +75,6 @@ class ModelBuilder(ABC):
 	@staticmethod
 	def _add_kalman_filters(layer: KerasTensor, config: KalmanFiltersConfig) -> List[KerasTensor]:
 
-		if len(config.percentages) == 0:
-			return [layer]
-
 		filters = [
 			ModelBuilder.__create_kalman_filter(
 				layer,
@@ -152,7 +149,8 @@ class ModelBuilder(ABC):
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
-		overlays.extend(self._add_kalman_filters(prep_layer, config.kalman_filters))
+		if len(config.kalman_filters.percentages) > 0:
+			overlays.extend(self._add_kalman_filters(prep_layer, config.kalman_filters))
 
 		combined = OverlaysCombiner()(overlays)
 
