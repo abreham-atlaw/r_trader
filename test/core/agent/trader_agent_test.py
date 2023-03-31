@@ -8,7 +8,7 @@ import numpy as np
 from copy import deepcopy
 
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
-from core.agent.trader_agent import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent
 
 
 class TraderAgentTest(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 from lib.concurrency.mc.queen import MonteCarloQueen
 from lib.network.rest_interface import Serializer
-from core.agent.trader_agent import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent
 from core.agent.concurrency.mc.data.serializer import TraderActionSerializer, TradeStateSerializer
 from core import Config
 

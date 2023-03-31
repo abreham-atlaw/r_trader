@@ -1,5 +1,3 @@
-from typing import *
-
 import numpy as np
 
 import unittest
@@ -7,7 +5,7 @@ import unittest
 from lib.utils.staterepository import DictStateRepository
 from lib.rl.agent.mca import MonteCarloAgent
 from core.environment.trade_state import TradeState, MarketState, AgentState
-from core.agent.stm import TraderNodeMemoryMatcher, TraderNodeShortTermMemory, TraderNodeMemory
+from core.agent.agents.montecarlo_agent.stm import TraderNodeMemoryMatcher, TraderNodeShortTermMemory, TraderNodeMemory
 
 
 class TraderSTMTest(unittest.TestCase):
