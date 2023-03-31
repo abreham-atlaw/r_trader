@@ -66,7 +66,7 @@ class RTraderApplication:
 			print(f"Couldn't Initialize DB.\n %s" % (ex,))
 
 	def __start_agent(self, environment):
-		from core.agent.trader_agent import TraderMonteCarloAgent
+		from core.agent.agents import TraderMonteCarloAgent
 
 		agent = TraderMonteCarloAgent()
 		agent.set_environment(environment)
@@ -130,7 +130,7 @@ class RTraderApplication:
 
 	def __run_arbitrage(self):
 		print("Running Arbitrage Trader...")
-		from core.agent.trader_agent import ArbitrageTraderAgent
+		from core.agent.agents import ArbitrageTraderAgent
 
 		agent = ArbitrageTraderAgent()
 		self.__setup_agent(agent)

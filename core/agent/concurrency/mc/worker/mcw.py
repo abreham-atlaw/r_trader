@@ -1,6 +1,6 @@
 from lib.concurrency.mc.worker import MonteCarloWorkerAgent
 from lib.network.rest_interface import Serializer
-from core.agent.trader_agent import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent
 from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer, TradeStateSerializer
 from core import Config
 

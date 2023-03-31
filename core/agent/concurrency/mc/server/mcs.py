@@ -1,5 +1,5 @@
 
-from core.agent.trader_agent import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent
 
 from lib.concurrency.mc.server import MonteCarloServer, MonteCarloServerAgent
 from lib.network.rest_interface import Serializer
