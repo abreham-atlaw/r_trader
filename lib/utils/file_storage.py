@@ -105,6 +105,8 @@ class PCloudClient(FileStorage):
 			)
 
 		def _filter_response(self, response):
+			if isinstance(response, dict) and response.get("result") == 7001:
+				raise FileNotFoundException()
 			return f"{response.get('hosts')[0]}{response.get('path')}".replace('\/', '/')
 
 	def __init__(self, token, folder, pcloud_base_url="https://api.pcloud.com/"):
@@ -172,3 +174,7 @@ class LocalStorage(FileStorage):
 		if upload_path is None:
 			upload_path = ""
 		os.system(f"cp {file_path} {os.path.join(self.__base_path, upload_path)}")
+
+
+class FileNotFoundException(Exception):
+	pass

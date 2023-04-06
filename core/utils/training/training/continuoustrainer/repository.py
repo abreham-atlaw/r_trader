@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import os
 import json
 
-from lib.utils.file_storage import FileStorage, PCloudClient, LocalStorage
+from lib.utils.file_storage import FileStorage, PCloudClient, LocalStorage, FileNotFoundException
 from core.utils.training.training import Trainer
 from core import Config
 
@@ -57,7 +57,7 @@ class FileStorageTrainerRepository(TrainerRepository, ABC):
 	def get_checkpoint(self, id: str) -> typing.Optional[typing.Tuple[typing.Tuple[str, str], Trainer.State]]:
 		try:
 			checkpoint_url = self.__file_storage.get_url(id)
-		except Exception:
+		except FileNotFoundException:
 			return None
 
 		os.system(f"wget {checkpoint_url} -O {id}")
