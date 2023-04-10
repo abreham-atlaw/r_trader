@@ -122,7 +122,7 @@ class ArbitrageAnalyzer:
 		return sum([
 			int(self.__has_crossed(
 				sequence=sequence[i: i+time_steps],
-				points=np.array([zone_size, -zone_size])*sequence[i]/2 + sequence[i],
+				points=np.array([zone_size, -zone_size])/2 + sequence[i],
 				directions=[ArbitrageAnalyzer.Direction.UP, ArbitrageAnalyzer.Direction.DOWN]
 			))
 			for i in range(sample_size)]
@@ -143,7 +143,7 @@ class ArbitrageAnalyzer:
 			sample_sequence = sequence[i: i+time_steps]
 			_, close_point = self.__get_points_first_cross(
 				sequence=sample_sequence,
-				points=np.array([close_zone_size, -close_zone_size])*sample_sequence[0]/2 + sample_sequence[0],
+				points=np.array([close_zone_size, -close_zone_size])/2 + sample_sequence[0],
 				directions=[ArbitrageAnalyzer.Direction.UP, ArbitrageAnalyzer.Direction.DOWN]
 			)
 
@@ -152,7 +152,7 @@ class ArbitrageAnalyzer:
 
 			if self.__has_bounced(
 				sequence=sample_sequence,
-				points=np.array([bounce_zone_size, -bounce_zone_size])*sample_sequence[0]/2 + sample_sequence[0],
+				points=np.array([bounce_zone_size, -bounce_zone_size])/2 + sample_sequence[0],
 				bounces=bounces
 			):
 				bounce_counts += 1
