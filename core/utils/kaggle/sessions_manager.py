@@ -71,6 +71,7 @@ class SessionsManager:
 			meta_data: typing.Dict[str, typing.Any],
 			gpu: bool
 	):
+		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
 		meta_data["enable_gpu"] = gpu
 		api = self.__create_api(account)
 		path = self.__pull_notebook(api, kernel)
@@ -80,16 +81,27 @@ class SessionsManager:
 		finally:
 			self.__clean(path)
 
+	def __prepare_for_run(self, kernel: str):
+		print(f"Preparing to run {kernel}...")
+		self.finish_session(kernel, multiple=True)
+
 	def start_session(
 			self,
 			kernel: str,
 			account: Account,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu: bool = True
+			gpu: bool = True,
+			close_others: bool = True
 	):
-		print(f"Running {kernel} on {account.username}(gpu={gpu})")
+		print(f"Running {kernel} on {account.username}(gpu={gpu})...")
+		self.__prepare_for_run(kernel)
 		self.__run_notebook(kernel, account, meta_data, gpu)
 		self.__register_session(kernel, account, gpu)
 
-	def finish_session(self, kernel: str):
-		self.__session_repository.finish_session(self.__session_repository.filter(kernel=kernel, active=True)[0])
+	def finish_session(self, kernel: str, multiple=False):
+		print(f"Finishing {kernel} with multiple={multiple}")
+		active_sessions = self.__session_repository.filter(kernel=kernel, active=True)
+		if not multiple:
+			active_sessions = multiple[:1]
+		for session in active_sessions:
+			self.__session_repository.finish_session(session)
