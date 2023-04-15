@@ -102,6 +102,6 @@ class SessionsManager:
 		print(f"Finishing {kernel} with multiple={multiple}")
 		active_sessions = self.__session_repository.filter(kernel=kernel, active=True)
 		if not multiple:
-			active_sessions = multiple[:1]
+			active_sessions = active_sessions[:1]
 		for session in active_sessions:
 			self.__session_repository.finish_session(session)
