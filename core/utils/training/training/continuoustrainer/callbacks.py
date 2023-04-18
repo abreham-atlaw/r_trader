@@ -158,4 +158,3 @@ class ResourceAwareRecursiveNotebookCallback(ContinuousTrainerCallback):
 			metrics: 'Trainer.MetricsContainer',
 	):
 		self.__manager.start_session(self.__kernel, self.__meta_data, self.__use_gpu)
-		self.__sessions_manager.finish_session(self.__kernel)
