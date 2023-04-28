@@ -24,11 +24,23 @@ class KalmanFiltersConfig:
 
 
 @dataclass
+class TransformerConfig:
+	heads: int
+	ff_dense: List[Tuple[int, float]]
+	dense_activation: Callable
+	attention_dropout: float
+	dense_dropout: float
+
+
+@dataclass
 class ModelConfig:
 
 	seq_len: int
 	ff_dense_layers: List[Tuple[int, float]]
 	ff_conv_pool_layers: List[ConvPoolLayer]
+	float_embedding: Optional[int]
+	positional_encoding: bool
+	transformer_config: TransformerConfig
 	delta: bool
 	norm: bool
 	include_prep: bool
