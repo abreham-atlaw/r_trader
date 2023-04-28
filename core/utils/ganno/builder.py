@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout, \
-	Add, Subtract, AveragePooling1D, UpSampling1D, MultiHeadAttention
+	Add, Subtract, AveragePooling1D, UpSampling1D, MultiHeadAttention, LayerNormalization
 from tensorflow.keras.activations import sigmoid
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
@@ -57,9 +57,9 @@ class ModelBuilder(ABC):
 	def _add_transformer_block(layer: KerasTensor, config: TransformerConfig) -> KerasTensor:
 		attention = MultiHeadAttention(config.heads, key_dim=layer.shape[-1])(layer, layer)
 		attention = Dropout(config.attention_dropout)(attention)
-		norm = Norm()(Add()([attention, layer]))
+		norm = LayerNormalization()(Add()([attention, layer]))
 		ff_out = ModelBuilder._add_ff_dense_layers(norm, config.ff_dense + [(norm.shape[2], config.dense_dropout)], config.dense_activation)
-		return Norm()(Add()([ff_out, norm]))
+		return LayerNormalization()(Add()([ff_out, norm]))
 
 	@staticmethod
 	def __create_kalman_filter(input_layer: KerasTensor, compute_size: int, percentage: float, initial_size: int) -> KerasTensor:
