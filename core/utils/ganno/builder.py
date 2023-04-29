@@ -45,7 +45,12 @@ class ModelBuilder(ABC):
 	def _add_ff_conv_layers(layer: KerasTensor, layers: List[ConvPoolLayer], activation: Callable) -> KerasTensor:
 		for config in layers:
 			if config.size != 0:
-				layer = Conv1D(kernel_size=config.size, filters=config.features, activation=activation)(layer)
+				layer = Conv1D(
+					kernel_size=config.size,
+					filters=config.features,
+					activation=activation,
+					padding=config.padding
+				)(layer)
 			if config.pool != 0:
 				layer = MaxPooling1D(pool_size=config.pool)(layer)
 			if config.dropout != 0:
