@@ -172,7 +172,9 @@ class ModelBuilder(ABC):
 		if config.positional_encoding:
 			encoding = PositionalEncoding()(encoding)
 
-		transformer_block = self._add_transformer_block(encoding, config.transformer_config)
+		transformer_block = encoding
+		if config.transformer_config is not None:
+			transformer_block = self._add_transformer_block(encoding, config.transformer_config)
 
 		trend_lines = self.__concat_layers(
 			input_sequence,

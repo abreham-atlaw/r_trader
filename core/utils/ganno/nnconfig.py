@@ -38,9 +38,6 @@ class ModelConfig:
 	seq_len: int
 	ff_dense_layers: List[Tuple[int, float]]
 	ff_conv_pool_layers: List[ConvPoolLayer]
-	float_embedding: Optional[int]
-	positional_encoding: bool
-	transformer_config: TransformerConfig
 	delta: bool
 	norm: bool
 	include_prep: bool
@@ -56,6 +53,9 @@ class ModelConfig:
 	conv_activation: Callable
 	loss: Callable
 	optimizer: keras.optimizers.Optimizer
+	float_embedding: Optional[int] = None
+	positional_encoding: bool = False
+	transformer_config: Optional[TransformerConfig] = None
 
 	def validate(self) -> bool:
 
