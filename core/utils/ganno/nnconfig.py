@@ -15,6 +15,7 @@ class ConvPoolLayer:
 	features: int
 	pool: int
 	dropout: float
+	padding: str = "valid"
 
 
 @dataclass
