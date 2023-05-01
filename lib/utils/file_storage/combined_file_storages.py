@@ -2,7 +2,8 @@ import os.path
 import random
 import typing
 
-from .file_storages import FileStorage, PCloudClient, FileNotFoundException
+from .file_storages import FileStorage, PCloudClient
+from .exceptions import FileNotFoundException
 
 
 class CombinedFileStorage(FileStorage):

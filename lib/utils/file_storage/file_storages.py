@@ -9,6 +9,7 @@ from threading import Thread
 
 from lib.network.rest_interface.requests import Request
 from lib.network.rest_interface.NetworkApiClient import NetworkApiClient
+from .exceptions import FileNotFoundException
 
 
 class FileStorage(ABC):
@@ -175,6 +176,3 @@ class LocalStorage(FileStorage):
 			upload_path = ""
 		os.system(f"cp {file_path} {os.path.join(self.__base_path, upload_path)}")
 
-
-class FileNotFoundException(Exception):
-	pass
