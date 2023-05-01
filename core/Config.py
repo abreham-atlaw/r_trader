@@ -43,8 +43,9 @@ DROPBOX_API_TOKEN = "QNheD1qJMugAAAAAAAAAAQfJuql5BxK2s2xo2MMZ8M2zGNRGZ9Xf2sWTyEl
 DROPBOX_FOLDER = "/RForexTrader"
 
 # PCLOUD_API_TOKEN = "wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV"  # main
-PCLOUD_API_TOKEN = "NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk"  # 0
+# PCLOUD_API_TOKEN = "NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk"  # 0
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
+
 PCLOUD_TOKENS = [
 	# "wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV",  # abrishatlaw@gmail.com
 	# "NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk",  # abrishatlaw@yahoo.com
@@ -53,9 +54,13 @@ PCLOUD_TOKENS = [
 	"2j45M7ZXe7s7ZpLEC790EkIjTyKWdusIvr8DXhwh7",  # abrehamatlaw321@gmail.com
 	"x3sJRVZxDks7ZWz4hFfjjd7LKie66pdzdjQJqguck",  # abrehamatlaw@outlook.com
 	"dfD12XZHDks7ZU7Uicr7HefmO3gUUPpjT8FXkz4wX",  # abreham.atlaw@outlook.com
-
 ]
+
+PCLOUD_API_TOKEN = PCLOUD_TOKENS[0]
+
 PCLOUD_FOLDER = "/Apps/RTrader"
+MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")
+CHECKPOINT_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Checkpoints/10M/10MA")
 
 POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"
 
