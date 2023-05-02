@@ -115,6 +115,9 @@ AGENT_PROBABILITY_CORRECTION = True
 AGENT_ARBITRAGE_ZONE_SIZE = 0.02
 AGENT_ARBITRAGE_ZONE_GUARANTEE_PERCENT = 0.00
 AGENT_ARBITRAGE_BASE_MARGIN = 10
+AGENT_MAX_OPEN_TRADES = 20
+AGENT_NUM_ACTIONS = 20
+AGENT_RECOMMENDATION_PERCENT = 0.5
 
 MC_WORKER_STEP_TIME = 0.05*60
 MC_WORKERS = 4
@@ -151,6 +154,13 @@ DELTA_MODEL_CONFIG = ModelConfig(
 	id="delta",
 	url="https://www.dropbox.com/s/io0fbl7m44e6k8a/delta-bb_wrapped.h5?dl=0",
 	path=os.path.join(BASE_DIR, "res/m10/combined_trained/delta_model_d.h5"),
+	download=False
+)
+
+ARA_MODEL_CONFIG = ModelConfig(
+	id="ara",
+	url="",
+	path=None,
 	download=False
 )
 

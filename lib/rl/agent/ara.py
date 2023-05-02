@@ -7,7 +7,7 @@ from tensorflow.keras.models import Model
 from .action_choice_agent import ActionChoiceAgent
 
 
-class ActionRecommendationAgent(ActionChoiceAgent):
+class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 
 	def __init__(
 			self,
@@ -17,7 +17,7 @@ class ActionRecommendationAgent(ActionChoiceAgent):
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
-		self.__num_actions = num_actions
+		self._num_actions = num_actions
 		self.__model = self._init_ara_model()
 		self.__batch = []
 		self.__batch_size = batch_size
@@ -31,11 +31,11 @@ class ActionRecommendationAgent(ActionChoiceAgent):
 		pass
 
 	@abstractmethod
-	def _prepare_output(self, output: np.ndarray) -> object:
+	def _prepare_output(self, state: object, output: np.ndarray) -> object:
 		pass
 
 	@abstractmethod
-	def _prepare_train_output(self, action: object) -> np.ndarray:
+	def _prepare_train_output(self, state: object, action: object) -> np.ndarray:
 		pass
 
 	def _generate_action(self, inputs: np.ndarray) -> np.ndarray:
@@ -44,11 +44,12 @@ class ActionRecommendationAgent(ActionChoiceAgent):
 	def _generate_actions(self, state) -> typing.List[object]:
 		return [
 			self._prepare_output(
+				state,
 				self._generate_action(
 					self._prepare_input(state, i)
 				)
 			)
-			for i in range(self.__num_actions)
+			for i in range(self._num_actions)
 		]
 
 	def _prepare_train_data(
@@ -65,7 +66,7 @@ class ActionRecommendationAgent(ActionChoiceAgent):
 			)
 			for i, instance in range(len(state_instances)):
 				X.append(self._prepare_input(instance[0], i))
-				y.append(self._prepare_train_output(instance[1]))
+				y.append(self._prepare_train_output(instance[0], instance[1]))
 
 		return np.array(X), np.array(y)
 
