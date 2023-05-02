@@ -2,19 +2,35 @@ import typing
 from abc import ABC
 
 import numpy as np
+from tensorflow.keras import models
 
+from lib.rl.agent import ActionRecommendationAgent
+from lib.utils.logger import Logger
 from core.agent.trader_action import TraderAction
 from core.environment.trade_state import TradeState, AgentState
-from lib.rl.agent import ActionRecommendationAgent
+from core import Config
+from core.agent.utils.dnn_models import KerasModelHandler
 
 
 class ActionRecommendationTrader(ActionRecommendationAgent, ABC):
 
-	def __init__(self, num_open_trades: int, *args, **kwargs):
+	def __init__(
+			self,
+			*args,
+			num_open_trades: int = Config.AGENT_MAX_OPEN_TRADES,
+			ara_model_path: str = Config.ARA_MODEL_CONFIG.path,
+			**kwargs
+	):
 		super().__init__(*args, **kwargs)
 		self.__num_open_trades = num_open_trades
+		self.__model_path = ara_model_path
 
-	def __serialize_open_trade(self, state: TradeState, trade: AgentState.OpenTrade) -> np.ndarray:
+	def _init_ara_model(self) -> models.Model:
+		Logger.info("Loading Action Recommendation Model...")
+		return KerasModelHandler.load_model(self.__model_path)
+
+	@staticmethod
+	def __serialize_open_trade(state: TradeState, trade: AgentState.OpenTrade) -> np.ndarray:
 		value = [
 			trade.get_enter_value(),
 			int(trade.get_trade().action == TraderAction.Action.BUY),
@@ -31,7 +47,6 @@ class ActionRecommendationTrader(ActionRecommendationAgent, ABC):
 			trades[i, 0] = 1
 		return trades
 
-	@staticmethod
 	def _prepare_input(self, state: TradeState, index: int) -> np.ndarray:
 		return np.expand_dims(np.concatenate([
 			state.get_market_state().get_price_matrix().flatten(),
@@ -41,11 +56,11 @@ class ActionRecommendationTrader(ActionRecommendationAgent, ABC):
 		]), 0)
 
 	@staticmethod
-	def __get_class(self, classes: typing.List[object], values: typing.List[float]) -> typing.Any:
+	def __get_class(classes: typing.List[object], values: typing.List[float]) -> typing.Any:
 		return max(classes, key=lambda class_: values[classes.index(class_)])
 
 	@staticmethod
-	def __one_hot_encoding(self, classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
+	def __one_hot_encoding(classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
 		return [1 if class_ == c else 0 for c in classes]
 
 	def _prepare_output(self, state: TradeState, output: np.ndarray) -> TraderAction:

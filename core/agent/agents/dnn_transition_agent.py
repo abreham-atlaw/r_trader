@@ -20,7 +20,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __init__(
 			self,
 			*args,
-			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
 			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			update_agent=Config.UPDATE_AGENT,
@@ -37,7 +36,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			update_agent=update_agent,
 			**kwargs
 		)
-		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
 		self.__state_change_delta = state_change_delta
 		self.__depth_mode = depth_mode
@@ -79,34 +77,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if self.__discount_function is None:
 			return super()._get_discount_factor(depth)
 		return self.__discount_function(depth)
-
-	def _generate_actions(self, state: TradeState) -> List[Optional[TraderAction]]:
-		pairs = state.get_market_state().get_tradable_pairs()
-
-		amounts = [
-			(i + 1) * self.__trade_size_gap
-			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
-		]
-
-		actions: List[Optional[TraderAction]] = [
-			TraderAction(
-				pair[0],
-				pair[1],
-				action,
-				margin_used=amount
-			)
-			for pair in pairs
-			for action in [TraderAction.Action.BUY, TraderAction.Action.SELL]
-			for amount in amounts
-		]
-
-		actions += [
-			TraderAction(trade.get_trade().base_currency, trade.get_trade().quote_currency, TraderAction.Action.CLOSE)
-			for trade in state.get_agent_state().get_open_trades()
-		]
-
-		actions.append(None)
-		return actions
 
 	def __get_state_change_delta(self, sequence: np.ndarray, direction: int, depth: Optional[int] = None) -> float:
 
