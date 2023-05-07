@@ -14,6 +14,7 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 			num_actions: int,
 			*args,
 			batch_size: int = 32,
+			ara_tries: int = None,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -21,6 +22,9 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 		self.__model = self._init_ara_model()
 		self.__batch = []
 		self.__batch_size = batch_size
+		if ara_tries is None:
+			ara_tries = num_actions*10
+		self.__tries = ara_tries
 
 	@abstractmethod
 	def _init_ara_model(self) -> Model:
@@ -31,31 +35,36 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 		pass
 
 	@abstractmethod
-	def _prepare_output(self, state: object, output: np.ndarray) -> object:
+	def _prepare_output(self, state: object, output: typing.List[np.ndarray]) -> object:
 		pass
 
 	@abstractmethod
-	def _prepare_train_output(self, state: object, action: object) -> np.ndarray:
+	def _prepare_train_output(self, state: object, action: object) -> typing.List[np.ndarray]:
 		pass
 
-	def _generate_action(self, inputs: np.ndarray) -> np.ndarray:
+	def _generate_action(self, inputs: np.ndarray) -> typing.List[np.ndarray]:
 		return self.__model.predict(inputs)
 
 	def _generate_actions(self, state) -> typing.List[object]:
-		return [
-			self._prepare_output(
+
+		actions = []
+		i = 0
+		while len(actions) < self._num_actions and i < self.__tries:
+			action = self._prepare_output(
 				state,
 				self._generate_action(
 					self._prepare_input(state, i)
 				)
 			)
-			for i in range(self._num_actions)
-		]
+			if self._get_environment().is_action_valid(action, state) and action not in actions:
+				actions.append(action)
+			i += 1
+		return actions
 
 	def _prepare_train_data(
 			self,
 			batch: typing.List[typing.Tuple[object, object, float]]
-	) -> typing.Tuple[np.ndarray, np.ndarray]:
+	) -> typing.Tuple[np.ndarray, typing.List[np.ndarray]]:
 		states = list(set([instance[0] for instance in batch]))
 		X, y = [], []
 		for state in states:
@@ -66,11 +75,12 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 			)
 			for i, instance in range(len(state_instances)):
 				X.append(self._prepare_input(instance[0], i))
-				y.append(self._prepare_train_output(instance[0], instance[1]))
+				for j, out in enumerate(self._prepare_train_output(instance[0], instance[1])):
+					y[j].append(out)
 
-		return np.array(X), np.array(y)
+		return np.array(X), [np.array(o) for o in y]
 
-	def _fit_model(self, model: Model, X: np.ndarray, y: np.ndarray):
+	def _fit_model(self, model: Model, X: np.ndarray, y: typing.List[np.ndarray]):
 		model.fit(X, y)
 
 	def _train_batch(self, batch: typing.List[typing.Tuple[object, object, float]], model: Model):
