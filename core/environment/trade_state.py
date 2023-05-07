@@ -98,6 +98,15 @@ class MarketState:
 	def set_spread_state(self, spread_state: np.ndarray):
 		self.__spread_state = spread_state
 
+	def get_price_matrix(self) -> np.ndarray:
+		return self.__state
+
+	def get_spread_matrix(self) -> np.ndarray:
+		return self.__spread_state
+
+	def get_memory_len(self) -> int:
+		return self.__state.shape[2]
+
 	def get_currencies(self) -> List[str]:
 		return self.__currencies
 
