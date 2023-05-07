@@ -73,7 +73,7 @@ class ActionRecommendationTrader(ActionRecommendationAgent, ABC):
 		)
 
 		action = self.__get_class(
-			[TraderAction.Action.BUY, TraderAction.Action.SELL],
+			[TraderAction.Action.BUY, TraderAction.Action.SELL, TraderAction.Action.CLOSE],
 			output[len(instruments):len(instruments)+2]
 		)
 		margin = output[-1]
@@ -94,7 +94,7 @@ class ActionRecommendationTrader(ActionRecommendationAgent, ABC):
 		)
 		output.extend(
 			self.__one_hot_encoding(
-				[TraderAction.Action.BUY, TraderAction.Action.SELL],
+				[TraderAction.Action.BUY, TraderAction.Action.SELL, TraderAction.Action.CLOSE],
 				action.action
 			)
 		)
