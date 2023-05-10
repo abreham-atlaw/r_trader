@@ -13,7 +13,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import models
 
 from lib.utils.logger import Logger
-from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent
+from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, ActionRecommendationBalancerAgent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 
@@ -170,3 +170,13 @@ class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 				list(range(64)),
 				action.to_square
 			)]]
+
+
+class ChessActionRecommendationBalancerAgent(
+	ActionRecommendationBalancerAgent,
+	ChessActionRecommenderAgent,
+	ChessActionChoiceAgent,
+	ABC
+):
+	def _generate_static_actions(self, state: ChessState) -> typing.List[object]:
+		return ChessActionChoiceAgent._generate_actions(self, state)
