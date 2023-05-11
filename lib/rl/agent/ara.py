@@ -31,59 +31,78 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 		pass
 
 	@abstractmethod
-	def _prepare_input(self, state: object, index: int) -> np.ndarray:
+	def _prepare_inputs(self, states: typing.List[typing.Any], indexes: typing.List[int]) -> np.ndarray:
 		pass
 
 	@abstractmethod
-	def _prepare_output(self, state: object, output: typing.List[np.ndarray]) -> object:
+	def _prepare_outputs(self, states: typing.List[typing.Any], outputs: typing.List[np.array]) -> typing.List[typing.Any]:
 		pass
 
 	@abstractmethod
-	def _prepare_train_output(self, state: object, action: object) -> typing.List[np.ndarray]:
+	def _prepare_train_outputs(
+			self,
+			states: typing.List[typing.Any],
+			actions: typing.List[typing.Any]
+	) -> typing.List[np.ndarray]:
 		pass
 
 	def _generate_action(self, inputs: np.ndarray) -> typing.List[np.ndarray]:
 		return self.__model.predict(inputs)
 
-	def _generate_actions(self, state) -> typing.List[object]:
+	def _generate_actions(self, state: typing.Any) -> typing.List[typing.List[typing.Any]]:
 
 		actions = []
 		i = 0
-		while len(actions) < self._num_actions and i < self.__tries:
-			action = self._prepare_output(
-				state,
+		required_actions = self._num_actions
+
+		while required_actions > 0 and i < self.__tries:
+
+			states = [state for _ in range(required_actions)]
+			new_actions = self._prepare_outputs(
+				states,
 				self._generate_action(
-					self._prepare_input(state, i)
+					self._prepare_inputs(
+						states=states,
+						indexes=list(range(i, i+required_actions))
+					)
 				)
 			)
-			if self._get_environment().is_action_valid(action, state) and action not in actions:
-				actions.append(action)
-			i += 1
+			actions += [
+				action
+				for action in new_actions
+				if self._get_environment().is_action_valid(action, state)
+			]
+
+			i += len(new_actions)
+			required_actions = min(self._num_actions - len(actions), self.__tries)
+
+
 		return actions
 
 	def _prepare_train_data(
 			self,
 			batch: typing.List[typing.Tuple[object, object, float]]
 	) -> typing.Tuple[np.ndarray, typing.List[np.ndarray]]:
-		# TODO: YOU ARE HERE: CONVERT _prepare_* to batch based so to recommend asynchronously.
 
-		states = list(set([instance[0] for instance in batch]))
-		X, y = [], None
-		for state in states:
+		states_set = set([instance[0] for instance in batch])
+
+		states = []
+		indexes = []
+		actions = []
+
+		for state in states_set:
 			state_instances = sorted(
 				[instance for instance in batch if instance[0] == state],
 				key=lambda instance: instance[2],
 				reverse=True
 			)
-			for i, instance in enumerate(state_instances):
-				X.append(self._prepare_input(instance[0], i))
-				outs = self._prepare_train_output(instance[0], instance[1])
-				if y is None:
-					y = [[] for _ in outs]
-				for j, out in enumerate(outs):
-					y[j].append(out)
 
-		return np.array(X), [np.array(o) for o in y]
+			for i, instance in enumerate(state_instances):
+				states.append(instance[0])
+				indexes.append(i)
+				actions.append(instance[1])
+
+		return self._prepare_inputs(states, indexes), self._prepare_train_outputs(states, actions)
 
 	def _fit_model(self, model: Model, X: np.ndarray, y: typing.List[np.ndarray]):
 		model.fit(X, y)

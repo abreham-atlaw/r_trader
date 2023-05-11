@@ -13,7 +13,8 @@ from tensorflow.keras import layers
 from tensorflow.keras import models
 
 from lib.utils.logger import Logger
-from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, ActionRecommendationBalancerAgent
+from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, \
+	ActionRecommendationBalancerAgent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 
@@ -61,7 +62,7 @@ class ChessMonteCarloAgent(MonteCarloAgent, ABC):
 
 class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 
-	PRE_TRAIN_MODEL_PATH = "./chess_ara.h5"
+	PRE_TRAIN_MODEL_PATH = "chess_ara.h5"
 	PRE_TRAIN_BOARDS_NUM = 10
 	PRE_TRAIN_MOVE_INDEXES_NUM = 10
 	PRE_TRAIN_MAX_MOVE_DEPTH = 10
@@ -85,14 +86,14 @@ class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 		return boards
 
 	@Logger.logged_method
-	def __generate_pretrain_data(self) -> typing.Tuple[np.ndarray, typing.List[np.ndarray]]:
+	def __generate_pretrain_data(self) -> typing.Tuple[np.ndarray, typing.List[np.ndarray]]:  # TODO: MIGRATE
 		boards = self.__generate_random_boards(self.PRE_TRAIN_BOARDS_NUM)
 		X, y = [], None
 		for board in boards:
 			state = ChessState(board.turn, board)
 			for j in range(self.PRE_TRAIN_MOVE_INDEXES_NUM):
 				X.append(self._prepare_input(state, j).flatten())
-				outs = self._prepare_train_output(state, random.choice(list(board.legal_moves)))
+				outs = self._prepare_train_outputs(state, random.choice(list(board.legal_moves)))
 				if y is None:
 					y = [[] for _ in outs]
 				for i, out in enumerate(outs):
@@ -113,7 +114,7 @@ class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 			dense = layers.Dense(layer_size, activation="relu")(dense)
 		outs = [
 			layers.Dense(64, activation="softmax")(dense)
-			for i in range(2)
+			for _ in range(2)
 		]
 		model = Model(inputs=inputs, outputs=outs)
 		model.compile(optimizer="adam", loss=["categorical_crossentropy" for _ in range(2)])
@@ -130,38 +131,55 @@ class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 			model.save(self.PRE_TRAIN_MODEL_PATH)
 			return model
 
-	def _prepare_input(self, state: ChessState, index: int) -> np.ndarray:
-		return np.expand_dims(
-			np.concatenate(
-				[
-					self.__one_hot_encoding(list(range(-6, 7)), piece)
-					for piece in [
-						state.get_board().piece_at(i).piece_type * 2*(int(state.get_board().piece_at(i).color) - 0.5)
-						if state.get_board().piece_at(i) is not None
-						else 0
-						for i in range(64)
-					]
-				] + [[index, int(state.get_board().turn)]],
-				axis=0
-				),
+	def __prepare_input(self, state: ChessState, index: int) -> np.ndarray:
+		return np.concatenate(
+			[
+				self.__one_hot_encoding(list(range(-6, 7)), piece)
+				for piece in [
+					state.get_board().piece_at(i).piece_type * 2*(int(state.get_board().piece_at(i).color) - 0.5)
+					if state.get_board().piece_at(i) is not None
+					else 0
+					for i in range(64)
+				]
+			] + [[index, int(state.get_board().turn)]],
 			axis=0
 		)
 
+	def _prepare_inputs(self, states: typing.List[typing.Any], indexes: typing.List[int]) -> np.ndarray:
+		return np.array([
+			self.__prepare_input(state, index)
+			for state, index in zip(states, indexes)
+		])
+
 	@staticmethod
-	def __get_class(classes: typing.List[object], values: typing.List[float] ) -> typing.Any:
+	def __get_class(classes: typing.List[object], values: typing.List[float]) -> typing.Any:
 		return max(classes, key=lambda class_: values[classes.index(class_)])
 
 	@staticmethod
 	def __one_hot_encoding(classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
 		return [1 if class_ == c else 0 for c in classes]
 
-	def _prepare_output(self, state: ChessState, output: typing.List[np.ndarray]) -> chess.Move:
+	def __prepare_output(self, state: ChessState, output: typing.List[np.ndarray]) -> chess.Move:
 		return chess.Move(
 			from_square=self.__get_class(list(range(64)), list(output[0].flatten())),
 			to_square=self.__get_class(list(range(64)), list(output[1].flatten()))
 		)
 
-	def _prepare_train_output(self, state: ChessState, action: chess.Move) -> typing.List[np.ndarray]:
+	def _prepare_outputs(self, states: typing.List[typing.Any], outputs: typing.List[np.array]) -> typing.List[typing.Any]:
+
+		sep_outputs = [
+			[
+				outputs[j][i]
+				for j in range(len(outputs))
+			]
+			for i in range(len(outputs[0]))
+		]
+		return [
+			self.__prepare_output(state, output)
+			for state, output in zip(states, sep_outputs)
+		]
+
+	def __prepare_train_output(self, state: ChessState, action: chess.Move) -> typing.List[np.ndarray]:
 		return [np.array(out) for out in [
 			self.__one_hot_encoding(
 				list(range(64)),
@@ -170,6 +188,23 @@ class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 				list(range(64)),
 				action.to_square
 			)]]
+
+	def _prepare_train_outputs(
+			self,
+			states: typing.List[typing.Any],
+			actions: typing.List[typing.Any]
+	) -> typing.List[np.ndarray]:
+		outputs = None
+
+		for state, action in zip(states, actions):
+			outs = self.__prepare_train_output(state, action)
+			if outputs is None:
+				outputs = [[] for _ in outs]
+
+			for i, out in enumerate(outs):
+				outputs[i].append(out)
+
+		return [np.array(out) for out in outputs]
 
 
 class ChessActionRecommendationBalancerAgent(
