@@ -1,10 +1,12 @@
 import random
+import time
 import typing
 from typing import List
 from abc import ABC
 
 from copy import deepcopy
 import datetime as dt
+import attr
 
 import chess
 import numpy as np
@@ -17,6 +19,7 @@ from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, Ac
 	ActionRecommendationBalancerAgent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
+from lib.network.rest_interface import NetworkApiClient, Request
 
 
 class ChessActionChoiceAgent(ActionChoiceAgent, ABC):
@@ -27,8 +30,61 @@ class ChessActionChoiceAgent(ActionChoiceAgent, ABC):
 
 class ChessModelBasedAgent(ModelBasedAgent, ABC):
 
-	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state) -> float:
-		return 0.2
+	class LiChessClient(NetworkApiClient):
+
+		def __init__(self, token: str):
+			super().__init__(
+				url="https://explorer.lichess.ovh",
+			)
+			self.__token = token
+
+		def execute(self, request: Request, headers: typing.Optional[typing.Dict] = None):
+			if headers is None:
+				headers = {}
+			headers["Authorization"] = f"Bearer {self.__token}"
+			return super().execute(request, headers)
+
+	@attr.define
+	class Stats:
+		white: int
+		draws: int
+		black: int
+
+		def total(self) -> int:
+			return self.white + self.draws + self.black
+
+	class StatsRequest(Request):
+
+		def __init__(self, moves: typing.List[str]):
+			super().__init__(
+				url="masters",
+				get_params={
+					"play": ",".join(moves)
+				},
+				method=Request.Method.GET,
+				output_class=ChessModelBasedAgent.Stats
+			)
+
+	LICHESS_TOKEN = "lip_b7sTGBkX2VOYg1YyrzfK"
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__lichess_client = ChessModelBasedAgent.LiChessClient(self.LICHESS_TOKEN)
+
+	def __get_num_games(self, board: chess.Board) -> int:
+		while True:
+			try:
+				return self.__lichess_client.execute(
+					request=ChessModelBasedAgent.StatsRequest(
+						moves=[str(move) for move in board.move_stack]
+					)
+				).total()
+			except:
+				time.sleep(2*60)
+				return self.__get_num_games(board)
+
+	def _get_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState) -> float:
+		return self.__get_num_games(final_state.get_board())/self.__get_num_games(initial_state.get_board())
 
 	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state):
 		pass
