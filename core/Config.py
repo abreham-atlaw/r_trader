@@ -47,14 +47,16 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	# "wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV",  # abrishatlaw@gmail.com
+	"wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV",  # abrishatlaw@gmail.com
 	# "NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk",  # abrishatlaw@yahoo.com
 	# "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky",  # abreham.atlaw@yahoo.com
 	"nQPjjkZPays7ZLH1sLOxheqpKqnD5knEQJyI1MC27",  # hiwotahab12@gmail.com
-	"2j45M7ZXe7s7ZpLEC790EkIjTyKWdusIvr8DXhwh7",  # abrehamatlaw321@gmail.com
+	# "2j45M7ZXe7s7ZpLEC790EkIjTyKWdusIvr8DXhwh7",  # abrehamatlaw321@gmail.com
 	# "x3sJRVZxDks7ZWz4hFfjjd7LKie66pdzdjQJqguck",  # abrehamatlaw@outlook.com
 	"dfD12XZHDks7ZU7Uicr7HefmO3gUUPpjT8FXkz4wX",  # abreham.atlaw@outlook.com
-	"oiXabkZEWJs7ZByRMi5xqGOVBCVX4Chg4Hu1Nxd8V",  # abreham-atlaw@outlook.com
+	# "oiXabkZEWJs7ZByRMi5xqGOVBCVX4Chg4Hu1Nxd8V",  # abreham-atlaw@outlook.com
+	"RsKwd7Znvzs7ZnTT2ztq1t848HV3M1vyIMfRel7LX",  # abreham_atlaw@outlook.com
+	"HUjxQVZiyRs7Z6oG28FwC1NfJOAsw9YYdCQELt1ay",  # abreham.a@outlook.com
 ]
 
 PCLOUD_API_TOKEN = PCLOUD_TOKENS[0]
