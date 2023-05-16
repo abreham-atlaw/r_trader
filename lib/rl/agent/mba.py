@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from lib.rl.environment import ModelBasedState
-from .agent import Agent
+from .action_choice_agent import ActionChoiceAgent
 
 
-class ModelBasedAgent(Agent, ABC):
+class ModelBasedAgent(ActionChoiceAgent, ABC):
 
 	class Cacher:  # TODO: ADD DEPTH
 
@@ -59,15 +59,13 @@ class ModelBasedAgent(Agent, ABC):
 			self.__actions = []
 			self.__cache = np.array([[[None, None]]])
 
-	def __init__(self, discount: float = 0.7, depth: int = None, session_caching: bool = True, episodic: bool = True, **kwargs):
-		super(ModelBasedAgent, self).__init__(episodic=episodic, **kwargs)
-		self._discount_factor = discount
+	def __init__(self, discount: float = 0.7, depth: int = None, session_caching: bool = True, **kwargs):
+		super(ModelBasedAgent, self).__init__(**kwargs)
+		self.__discount_factor = discount
 		self._depth = depth
 		self.__session_caching = session_caching
 		if session_caching:
 			self.__session_cacher: ModelBasedAgent.Cacher = ModelBasedAgent.Cacher()
-		if not self._is_episodic and self._depth is None:
-			raise Exception("Non-Episodic Tasks can't have depth=None")
 
 	@abstractmethod
 	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state) -> float:
@@ -84,6 +82,9 @@ class ModelBasedAgent(Agent, ABC):
 	@abstractmethod
 	def _get_possible_states(self, state: ModelBasedState, action) -> List[ModelBasedState]:
 		pass
+
+	def _get_discount_factor(self, depth: int) -> float:
+		return self.__discount_factor
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
 		self._update_transition_probability(initial_state, action, final_state)

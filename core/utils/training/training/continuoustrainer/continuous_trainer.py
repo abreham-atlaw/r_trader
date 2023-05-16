@@ -87,6 +87,7 @@ class ContinuousTrainer(Trainer):
 		checkpoint = self.__get_checkpoint(id)
 		if checkpoint is not None:
 			(core_model, delta_model), initial_state = checkpoint
+			processor.set_models(core_model, delta_model)
 
 		tracker = ContinuousTrainer.StateMetricsTracker(None, None)
 

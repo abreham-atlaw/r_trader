@@ -3,12 +3,17 @@ from abc import ABC
 
 from tensorflow import keras
 
+from dependency_injector.wiring import inject, Provide
+
 import os
 import json
 
+from core.di.application_container import ApplicationContainer
+from core.utils.kaggle import FusedManager, SessionsManager
 from core.utils.training.training import Trainer
 from core.utils.training.training.callbacks import Callback, CheckpointUploadCallback, PCloudCheckpointUploadCallback
 from .repository import TrainerRepository
+
 
 
 class ContinuousTrainerCallback(Callback):
@@ -123,3 +128,33 @@ class RecursiveNotebookCallback(ContinuousTrainerCallback):
 		self.__update_meta(self.__meta_data, self.__pull_path)
 		self.__push_notebook(self.__pull_path)
 
+
+class ResourceAwareRecursiveNotebookCallback(ContinuousTrainerCallback):
+
+	@inject
+	def __init__(
+			self,
+			kernel,
+			use_gpu,
+			meta_data: typing.Dict = None,
+			manager: FusedManager = Provide[ApplicationContainer.kaggle.fused_manager],
+			session_manager: SessionsManager = Provide[ApplicationContainer.kaggle.sessions_manager]
+	):
+		super().__init__()
+		self.__kernel = kernel
+		self.__use_gpu = use_gpu
+		self.__meta_data = meta_data
+		self.__manager = manager
+		self.__sessions_manager = session_manager
+		if meta_data is None:
+			self.__meta_data = {}
+
+	@inject
+	def on_timeout(
+			self,
+			core_model: keras.Model,
+			delta_model: keras.Model,
+			state: Trainer.State,
+			metrics: 'Trainer.MetricsContainer',
+	):
+		self.__manager.start_session(self.__kernel, self.__meta_data, self.__use_gpu)

@@ -20,6 +20,7 @@ Cython==0.29.26
 debugpy==1.4.1
 decorator==5.0.9
 defusedxml==0.7.1
+dependency-injector==4.41.0
 Deprecated==1.2.13
 dill==0.3.4
 dropbox==11.27.0
@@ -53,6 +54,7 @@ jupyter-console==6.4.0
 jupyter-core==4.7.1
 jupyterlab-pygments==0.1.2
 jupyterlab-widgets==1.0.0
+kaggle==1.5.13
 keras==2.6.0
 keras-nightly==2.5.0.dev2021032900
 Keras-Preprocessing==1.1.2

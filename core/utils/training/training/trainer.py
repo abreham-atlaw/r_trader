@@ -157,6 +157,9 @@ class Trainer:
 				model.evaluate(generator, verbose=self.__verbose)
 				for model, generator in zip(self.__models, (core_generator, delta_generator))
 			]
+			core_generator.destroy()
+			delta_generator.destroy()
+			del core_generator, delta_generator
 			if isinstance(core_metrics, float):
 				core_metrics = (core_metrics,)
 			if isinstance(delta_metrics, float):
@@ -227,13 +230,13 @@ class Trainer:
 		if callbacks is None:
 			callbacks = []
 
+		if initial_state is None:
+			initial_state = Trainer.State(0, 0, 0, 1)
+
 		if not self.__incremental:
 			initial_state.depth, epochs_per_inc = depth, 1
 
 		metrics = Trainer.MetricsContainer()
-
-		if initial_state is None:
-			initial_state = Trainer.State(0, 0, 0, 1)
 
 		state = Trainer.State(0, 0, 0, 1)
 

@@ -4,20 +4,15 @@ from abc import ABC
 import tensorflow as tf
 import numpy as np
 
-from datetime import datetime
 import copy
 
-from tensorflow.python.keras import Model
-
 from core import Config
-from lib.rl.agent import DNNTransitionAgent, MarkovAgent, MonteCarloAgent
-from lib.rl.environment import ModelBasedState
+from lib.rl.agent import DNNTransitionAgent
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
-from .trader_action import TraderAction
-from .dnn_models import KerasModelHandler
-from .stm import TraderNodeShortTermMemory
+from core.agent.trader_action import TraderAction
+from core.agent.utils.dnn_models import KerasModelHandler
 
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
@@ -25,24 +20,22 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __init__(
 			self,
 			*args,
-			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
 			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
+			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			core_model=None,
 			delta_model=None,
 			**kwargs
 	):
 		super().__init__(
 			*args,
-			episodic=False,
 			depth=Config.AGENT_DEPTH,
 			explore_exploit_tradeoff=Config.AGENT_EXPLOIT_EXPLORE_TRADEOFF,
 			update_agent=update_agent,
 			**kwargs
 		)
-		self.__trade_size_gap = trade_size_gap
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
 		self.__state_change_delta = state_change_delta
 		self.__depth_mode = depth_mode
@@ -61,6 +54,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				self.__delta_model = KerasModelHandler.load_model(Config.DELTA_MODEL_CONFIG.path)
 
 		self.__state_change_delta_cache = {}
+		self.__discount_function = discount_function
 
 	def __check_and_add_depth(self, input_: np.ndarray, depth: int) -> np.ndarray:
 		if self.__depth_mode:
@@ -77,35 +71,12 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 					state.get_depth()
 				)
 
-		raise ValueError("Initial State and Final state are the same.") # TODO: FIND ANOTHER WAY TO HANDLE THIS.
+		raise ValueError("Initial State and Final state are the same.")  # TODO: FIND ANOTHER WAY TO HANDLE THIS.
 
-	def _generate_actions(self, state: TradeState) -> List[Optional[TraderAction]]:
-		pairs = state.get_market_state().get_tradable_pairs()
-
-		amounts = [
-			(i + 1) * self.__trade_size_gap
-			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
-		]
-
-		actions: List[Optional[TraderAction]] = [
-			TraderAction(
-				pair[0],
-				pair[1],
-				action,
-				margin_used=amount
-			)
-			for pair in pairs
-			for action in [TraderAction.Action.BUY, TraderAction.Action.SELL]
-			for amount in amounts
-		]
-
-		actions += [
-			TraderAction(trade.get_trade().base_currency, trade.get_trade().quote_currency, TraderAction.Action.CLOSE)
-			for trade in state.get_agent_state().get_open_trades()
-		]
-
-		actions.append(None)
-		return actions
+	def _get_discount_factor(self, depth) -> float:
+		if self.__discount_function is None:
+			return super()._get_discount_factor(depth)
+		return self.__discount_function(depth)
 
 	def __get_state_change_delta(self, sequence: np.ndarray, direction: int, depth: Optional[int] = None) -> float:
 
@@ -244,58 +215,3 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		)
 
 		return new_state
-
-
-class TraderMarkovAgent(MarkovAgent, TraderDNNTransitionAgent):
-	
-	def __init__(self, *args, **kwargs):
-		super(TraderMarkovAgent, self).__init__(*args, **kwargs)
-
-
-class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
-
-	def __init__(
-			self,
-			*args,
-			step_time=Config.AGENT_STEP_TIME,
-			discount=Config.AGENT_DISCOUNT_FACTOR,
-			min_free_memory_percent=Config.MIN_FREE_MEMORY,
-			logical=Config.AGENT_LOGICAL_MCA,
-			uct_exploration_weight=Config.AGENT_UCT_EXPLORE_WEIGHT,
-			use_stm=Config.AGENT_STM,
-			stm_size=Config.AGENT_STM_SIZE,
-			stm_threshold=Config.AGENT_STM_THRESHOLD,
-			stm_balance_tolerance=Config.AGENT_STM_BALANCE_TOLERANCE,
-			stm_average_window=Config.AGENT_STM_AVERAGE_WINDOW_SIZE,
-			stm_attention_mode=Config.AGENT_STM_ATTENTION_MODE,
-			probability_correction=Config.AGENT_PROBABILITY_CORRECTION,
-			**kwargs
-	):
-		super(TraderMonteCarloAgent, self).__init__(
-			*args,
-			discount=discount,
-			min_free_memory_percent=min_free_memory_percent,
-			logical=logical,
-			uct_exploration_weight=uct_exploration_weight,
-			use_stm=use_stm,
-			short_term_memory=TraderNodeShortTermMemory(
-				stm_size,
-				stm_threshold,
-				stm_average_window,
-				balance_tolerance=stm_balance_tolerance,
-				attention_mode=stm_attention_mode
-			),
-			probability_correction=probability_correction,
-			**kwargs
-		)
-		self.__step_time = step_time
-
-	def _init_resources(self) -> object:
-		start_time = datetime.now()
-		return start_time
-
-	def _has_resource(self, start_time) -> bool:
-		return (datetime.now() - start_time).seconds < self.__step_time
-
-	def _get_state_node_instant_value(self, state_node: 'MonteCarloAgent.Node') -> float:
-		return self._get_environment().get_reward(state_node.state) - self._get_environment().get_reward(state_node.parent.parent.state)

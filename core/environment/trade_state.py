@@ -4,6 +4,7 @@ from typing import *
 import numpy as np
 
 import math
+from dataclasses import dataclass
 
 from lib.utils.logger import Logger
 from lib.rl.environment import ModelBasedState
@@ -97,6 +98,15 @@ class MarketState:
 	def set_spread_state(self, spread_state: np.ndarray):
 		self.__spread_state = spread_state
 
+	def get_price_matrix(self) -> np.ndarray:
+		return self.__state
+
+	def get_spread_matrix(self) -> np.ndarray:
+		return self.__spread_state
+
+	def get_memory_len(self) -> int:
+		return self.__state.shape[2]
+
 	def get_currencies(self) -> List[str]:
 		return self.__currencies
 
@@ -106,6 +116,12 @@ class MarketState:
 	def convert(self, value, from_, to):
 		return value * self.get_current_price(from_, to)
 
+	def get_price_matrix(self) -> np.ndarray:
+		return self.__state
+
+	def get_spread_matrix(self) -> np.ndarray:
+		return self.__spread_state
+
 	def __deepcopy__(self, memo=None):
 		return MarketState(
 			currencies=self.__currencies.copy(),
@@ -113,6 +129,8 @@ class MarketState:
 			state=self.__state.copy(),
 			spread_state=self.__spread_state.copy()
 		)
+
+
 
 	def __eq__(self, other):
 		if not isinstance(other, MarketState):
@@ -253,15 +271,18 @@ class AgentState:
 		if action.margin_used > self.get_margin_available():
 			raise InsufficientFundsException
 
-		self.__balance -= action.units * self.__to_agent_currency(
-			value=self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency),
-			from_currency=action.quote_currency
-		)
+		enter_value = current_value + ((action.action - 0.5) * 2) * self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency)
+
+		# self.__balance -= action.units * self.__to_agent_currency(
+		# 	value=self.__market_state.get_spread_state_of(action.base_currency, action.quote_currency),
+		# 	from_currency=action.quote_currency
+		# )
 
 		if self.__core_pricing:
 			self.__balance -= self.__commission_cost
+
 		self.__open_trades.append(
-			AgentState.OpenTrade(action, current_value)
+			AgentState.OpenTrade(action, enter_value)
 		)
 
 	def __to_agent_currency(self, value, from_currency) -> float:
@@ -311,6 +332,7 @@ class TradeState(ModelBasedState):
 		self.agent_state = agent_state
 		self.recent_balance = recent_balance
 		self.__depth = 0
+		self.__attached_state = {}
 
 	def get_market_state(self) -> MarketState:
 		return self.market_state
@@ -332,6 +354,18 @@ class TradeState(ModelBasedState):
 	def get_depth(self) -> int:
 		return self.__depth
 
+	def attach_state(self, key: Hashable, state: Any):
+		self.__attached_state[key] = state
+
+	def detach_state(self, key: Hashable) -> Any:
+		return self.__attached_state.pop(key)
+
+	def get_attached_state(self, key: Hashable) -> Any:
+		return self.__attached_state[key]
+
+	def is_state_attached(self, key: Hashable) -> bool:
+		return key in self.__attached_state.keys()
+
 	def __deepcopy__(self, memo=None):
 		market_state = self.market_state.__deepcopy__()
 		agent_state = self.agent_state.__deepcopy__(memo={'market_state': market_state})
@@ -341,6 +375,25 @@ class TradeState(ModelBasedState):
 	def __eq__(self, other):
 		if not isinstance(other, TraderAction):
 			return False
+
+
+@dataclass
+class ArbitradeTradeState:
+
+	class MarginStage:
+		STAGE_ZERO = 0
+		STAGE_ONE = 1
+
+	start_point: float
+	checkpoints: Tuple[float, float]
+	close_points: Tuple[float, float]
+	instrument: Tuple[str, str]
+	margin_stage: int = MarginStage.STAGE_ZERO
+
+	def increment_margin_stage(self):
+		if self.margin_stage == ArbitradeTradeState.MarginStage.STAGE_ONE:
+			return
+		self.margin_stage += 1
 
 
 class CurrencyNotFoundException(Exception):

@@ -1,6 +1,5 @@
 import os
 import sys
-import asyncio
 
 
 class RTraderApplication:
@@ -12,6 +11,7 @@ class RTraderApplication:
 		MC_QUEEN = "mc-queen"
 		MC_WORKER = "mc-worker"
 		MC_WORKER_POOL = "mc-worker-pool"
+		ARBITRAGE = "arbitrage"
 
 	def __init__(self, config=None):
 		self.RUN_FUNCTIONS = {
@@ -20,7 +20,8 @@ class RTraderApplication:
 			RTraderApplication.Mode.MC_SERVER: self.__run_mc_server,
 			RTraderApplication.Mode.MC_QUEEN: self.__run_mc_queen,
 			RTraderApplication.Mode.MC_WORKER: self.__run_mc_worker,
-			RTraderApplication.Mode.MC_WORKER_POOL: self.__run_mc_worker_pool
+			RTraderApplication.Mode.MC_WORKER_POOL: self.__run_mc_worker_pool,
+			RTraderApplication.Mode.ARBITRAGE: self.__run_arbitrage
 		}
 		self.config = config
 		self.is_setup = False
@@ -65,9 +66,9 @@ class RTraderApplication:
 			print(f"Couldn't Initialize DB.\n %s" % (ex,))
 
 	def __start_agent(self, environment):
-		from core.agent.trader_agent import TraderMonteCarloAgent
+		from core.agent.agents import TraderAgent
 
-		agent = TraderMonteCarloAgent()
+		agent = TraderAgent()
 		agent.set_environment(environment)
 		agent.loop()
 
@@ -85,7 +86,8 @@ class RTraderApplication:
 		environment.start()
 		self.__start_agent(environment)
 
-	def __setup_mc_agent(self, agent):
+	@staticmethod
+	def __setup_agent(agent):
 		from core.environment import LiveEnvironment
 		print("Setting up Environment")
 		environment = LiveEnvironment()
@@ -98,7 +100,7 @@ class RTraderApplication:
 		from core.agent.concurrency.mc.server import TraderMonteCarloServer, TraderMonteCarloServerSimulator
 
 		agent = TraderMonteCarloServerSimulator()
-		self.__setup_mc_agent(agent)
+		self.__setup_agent(agent)
 
 		server = TraderMonteCarloServer(agent)
 		server.start()
@@ -108,14 +110,14 @@ class RTraderApplication:
 		from core.agent.concurrency.mc.worker import TraderMonteCarloWorkerAgent
 
 		worker = TraderMonteCarloWorkerAgent()
-		self.__setup_mc_agent(worker)
+		self.__setup_agent(worker)
 		worker.start()
 
 	def __run_mc_worker_pool(self):
 		print("Running MC-Worker-Pool")
 		from core.agent.concurrency.mc.worker import TraderMonteCarloWorkerPool
 
-		pool = TraderMonteCarloWorkerPool(prepare_agent=self.__setup_mc_agent)
+		pool = TraderMonteCarloWorkerPool(prepare_agent=self.__setup_agent)
 		pool.start()
 
 	def __run_mc_queen(self):
@@ -123,8 +125,16 @@ class RTraderApplication:
 		from core.agent.concurrency.mc.queen import TraderMonteCarloQueen
 
 		queen = TraderMonteCarloQueen()
-		self.__setup_mc_agent(queen)
+		self.__setup_agent(queen)
 		queen.loop()
+
+	def __run_arbitrage(self):
+		print("Running Arbitrage Trader...")
+		from core.agent.agents import ArbitrageTraderAgent
+
+		agent = ArbitrageTraderAgent()
+		self.__setup_agent(agent)
+		agent.loop()
 
 	def run_args(self, args):
 		mode = args[1]

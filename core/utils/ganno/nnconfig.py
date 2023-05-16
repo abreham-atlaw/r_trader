@@ -15,12 +15,22 @@ class ConvPoolLayer:
 	features: int
 	pool: int
 	dropout: float
+	padding: str = "valid"
 
 
 @dataclass
 class KalmanFiltersConfig:
 	compute_size: int
 	percentages: List[float]
+
+
+@dataclass
+class TransformerConfig:
+	heads: int
+	ff_dense: List[Tuple[int, float]]
+	dense_activation: Callable
+	attention_dropout: float
+	dense_dropout: float
 
 
 @dataclass
@@ -44,6 +54,9 @@ class ModelConfig:
 	conv_activation: Callable
 	loss: Callable
 	optimizer: keras.optimizers.Optimizer
+	float_embedding: Optional[int] = None
+	positional_encoding: bool = False
+	transformer_config: Optional[TransformerConfig] = None
 
 	def validate(self) -> bool:
 

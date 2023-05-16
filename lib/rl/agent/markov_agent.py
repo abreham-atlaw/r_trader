@@ -18,7 +18,7 @@ class MarkovAgent(ModelBasedAgent, ABC):
 			return reward
 
 		action = self._policy(state, depth=depth)
-		value = reward + (self._discount_factor * self._get_state_action_value(state, action, depth=depth))
+		value = reward + (self._get_discount_factor(depth) * self._get_state_action_value(state, action, depth=depth))
 		return value
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:

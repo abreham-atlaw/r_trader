@@ -8,7 +8,7 @@ import os
 import random
 from datetime import datetime
 
-from lib.utils.file_storage import DropboxClient, PCloudClient, FileStorage, LocalStorage
+from lib.utils.file_storage import DropboxClient, PCloudClient, FileStorage, LocalStorage, PCloudCombinedFileStorage
 from core import Config
 from .repository import MetricRepository
 
@@ -108,7 +108,7 @@ class DropboxCheckpointUploadCallback(CheckpointUploadCallback):
 class PCloudCheckpointUploadCallback(CheckpointUploadCallback):
 
 	def _create_filestorage(self, base_path: str) -> FileStorage:
-		return PCloudClient(token=Config.PCLOUD_API_TOKEN, folder=base_path)
+		return PCloudCombinedFileStorage(Config.PCLOUD_TOKENS, base_path)
 
 	def _generate_file_name(self, type_: str):
 		return f"{self._session_id}-{super()._generate_file_name(type_)}"

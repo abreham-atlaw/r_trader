@@ -371,10 +371,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		if reward is None:
 			reward = node.instant_value
-		node.add_value(self._discount_factor * reward)
+		node.add_value(self._get_discount_factor(node.depth) * reward)
 
 		if node.node_type == MonteCarloAgent.Node.NodeType.ACTION:
-			reward = reward * self._discount_factor
+			reward = reward * self._get_discount_factor(node.depth)
 
 		self.__legacy_backpropagate(node.parent, reward)
 
@@ -384,7 +384,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if node.node_type == MonteCarloAgent.Node.NodeType.STATE:
 			node.set_total_value(node.instant_value)
 			if node.has_children():
-				node.add_value(self._discount_factor * max([action_node.get_total_value() for action_node in node.get_children()]))
+				node.add_value(self._get_discount_factor(node.depth) * max([action_node.get_total_value() for action_node in node.get_children()]))
 
 		else:
 			total_weight = np.sum([state_node.weight for state_node in node.get_children()])

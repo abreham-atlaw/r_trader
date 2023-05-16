@@ -5,15 +5,15 @@ from abc import ABC, abstractmethod
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout, \
-	Add, Subtract, AveragePooling1D, UpSampling1D
+	Add, Subtract, AveragePooling1D, UpSampling1D, MultiHeadAttention, LayerNormalization
 from tensorflow.keras.activations import sigmoid
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
 from lib.utils.logger import Logger
 from lib.dnn.layers import Delta, Norm, UnNorm, StochasticOscillator, TrendLine, OverlayIndicator,\
 	WilliamsPercentageRange, RelativeStrengthIndex, MovingAverage, MovingStandardDeviation, OverlaysCombiner, KalmanFilter,\
-	KalmanStaticFilter
-from .nnconfig import ModelConfig, ConvPoolLayer, KalmanFiltersConfig
+	KalmanStaticFilter, FloatEmbedding, PositionalEncoding
+from .nnconfig import ModelConfig, ConvPoolLayer, KalmanFiltersConfig, TransformerConfig
 
 
 class ModelBuilder(ABC):
@@ -33,7 +33,7 @@ class ModelBuilder(ABC):
 		)(layers)
 
 	@staticmethod
-	def _add_ff_dense_layers(layer: KerasTensor, layers: List[Tuple[int, int]], activation: Callable) -> Layer:
+	def _add_ff_dense_layers(layer: KerasTensor, layers: List[Tuple[int, float]], activation: Callable) -> KerasTensor:
 		for layer_size, dropout in layers:
 			if layer_size != 0:
 				layer = Dense(layer_size, activation=activation)(layer)
@@ -42,16 +42,29 @@ class ModelBuilder(ABC):
 		return layer
 
 	@staticmethod
-	def _add_ff_conv_layers(layer: KerasTensor, layers: List[ConvPoolLayer], activation: Callable) -> Layer:
+	def _add_ff_conv_layers(layer: KerasTensor, layers: List[ConvPoolLayer], activation: Callable) -> KerasTensor:
 		for config in layers:
 			if config.size != 0:
-				layer = Conv1D(kernel_size=config.size, filters=config.features, activation=activation)(layer)
+				layer = Conv1D(
+					kernel_size=config.size,
+					filters=config.features,
+					activation=activation,
+					padding=config.padding
+				)(layer)
 			if config.pool != 0:
 				layer = MaxPooling1D(pool_size=config.pool)(layer)
 			if config.dropout != 0:
 				layer = Dropout(config.dropout)(layer)
 
 		return layer
+
+	@staticmethod
+	def _add_transformer_block(layer: KerasTensor, config: TransformerConfig) -> KerasTensor:
+		attention = MultiHeadAttention(config.heads, key_dim=layer.shape[-1])(layer, layer)
+		attention = Dropout(config.attention_dropout)(attention)
+		norm = LayerNormalization()(Add()([attention, layer]))
+		ff_out = ModelBuilder._add_ff_dense_layers(norm, config.ff_dense + [(norm.shape[2], config.dense_dropout)], config.dense_activation)
+		return LayerNormalization()(Add()([ff_out, norm]))
 
 	@staticmethod
 	def __create_kalman_filter(input_layer: KerasTensor, compute_size: int, percentage: float, initial_size: int) -> KerasTensor:
@@ -74,9 +87,6 @@ class ModelBuilder(ABC):
 
 	@staticmethod
 	def _add_kalman_filters(layer: KerasTensor, config: KalmanFiltersConfig) -> List[KerasTensor]:
-
-		if len(config.percentages) == 0:
-			return [layer]
 
 		filters = [
 			ModelBuilder.__create_kalman_filter(
@@ -152,11 +162,24 @@ class ModelBuilder(ABC):
 		]:
 			overlays.extend(self.__create_overlays(cls, args, prep_layer))
 
-		overlays.extend(self._add_kalman_filters(prep_layer, config.kalman_filters))
+		if len(config.kalman_filters.percentages) > 0:
+			overlays.extend(self._add_kalman_filters(prep_layer, config.kalman_filters))
 
 		combined = OverlaysCombiner()(overlays)
 
 		ff_conv = self._add_ff_conv_layers(combined, config.ff_conv_pool_layers, config.conv_activation)
+
+		embedding = ff_conv
+		if config.float_embedding is not None:
+			embedding = FloatEmbedding(config.float_embedding)(embedding)
+
+		encoding = embedding
+		if config.positional_encoding:
+			encoding = PositionalEncoding()(encoding)
+
+		transformer_block = encoding
+		if config.transformer_config is not None:
+			transformer_block = self._add_transformer_block(encoding, config.transformer_config)
 
 		trend_lines = self.__concat_layers(
 			input_sequence,
@@ -164,7 +187,7 @@ class ModelBuilder(ABC):
 			[(arg,) for arg in config.trend_lines]
 		)
 
-		flatten_inputs = [Flatten()(ff_conv), trend_lines, extra_input]
+		flatten_inputs = [Flatten()(transformer_block), trend_lines, extra_input]
 		if trend_lines is None:
 			flatten_inputs.pop(1)
 
