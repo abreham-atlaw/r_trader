@@ -1,5 +1,6 @@
-from datetime import datetime
+from abc import ABC
 
+from datetime import datetime
 
 from core import Config
 from lib.rl.agent import MonteCarloAgent
@@ -7,7 +8,7 @@ from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from .stm import TraderNodeShortTermMemory
 
 
-class TraderMonteCarloAgent(MonteCarloAgent, TraderDNNTransitionAgent):
+class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 
 	def __init__(
 			self,

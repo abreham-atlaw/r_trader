@@ -4,4 +4,4 @@ from .mba import ModelBasedAgent
 from .markov_agent import MarkovAgent
 from .mca import MonteCarloAgent
 from .agent import Agent
-from .ara import ActionRecommendationAgent
+from .ara import ActionRecommendationAgent, ActionRecommendationBalancerAgent
