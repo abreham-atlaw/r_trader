@@ -4,17 +4,20 @@ from abc import ABC, abstractmethod
 import numpy as np
 from tensorflow.keras.models import Model
 
-from .agent import Agent
 from lib.rl.agent.utils.agent_data_generator import AgentDataGenerator
-from .utils.dnn_manager import DNNManager
+from lib.rl.agent import ActionChoiceAgent
 
-class DeepReinforcementAgent(Agent, ABC):
 
-	def __init__(self, dra_dnn_manager: DNNManager, *args, batch_size=1, **kwargs):
+class DeepReinforcementAgent(ActionChoiceAgent, ABC):
+
+	def __init__(self, *args, batch_size=1, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.__dnn_manager = dra_dnn_manager
-		self.__model = dra_dnn_manager.get_model()
+		self.__model = self._init_model()
 		self.__generator = AgentDataGenerator(batch_size)
+
+	@abstractmethod
+	def _init_model(self) -> Model:
+		pass
 
 	@abstractmethod
 	def _prepare_dra_input(self, state: typing.Any, action: typing.Any) -> np.ndarray:

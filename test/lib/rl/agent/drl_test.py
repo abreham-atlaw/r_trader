@@ -8,7 +8,12 @@ from tensorflow.keras import models
 import unittest
 
 from lib.rl.agent.drl import DeepReinforcementAgent
-from .environments import TicTacToeEnvironment
+from test.lib.rl.environment.environments.chess import ChessGame
+from .agents.chess import ChessGameAgent, ChessActionChoiceAgent, ChessDeepReinforcementAgent
+
+
+class ChessAgent(ChessGameAgent, ChessDeepReinforcementAgent, ChessActionChoiceAgent):
+	pass
 
 
 class DeepReinforcementAgentTest(unittest.TestCase):
@@ -39,11 +44,9 @@ class DeepReinforcementAgentTest(unittest.TestCase):
 		def _generate_actions(self, state) -> List[object]:
 			return self._get_environment().get_valid_actions()
 
-	def setUp(self):
-		self.__environment = TicTacToeEnvironment()
-		self.__environment.start()
-
 	def test_functionality(self):
-		agent = DeepReinforcementAgentTest.TicTacToeAgent(batch_size=4, explore_exploit_tradeoff=1)
-		agent.set_environment(self.__environment)
-		agent.loop()
+		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, batch_size=1)
+		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, batch_size=1)
+
+		game = ChessGame(agent0, agent1)
+		game.start()

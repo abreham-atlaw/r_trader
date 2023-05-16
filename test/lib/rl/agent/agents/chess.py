@@ -16,11 +16,20 @@ from tensorflow.keras import models
 
 from lib.utils.logger import Logger
 from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, \
-	ActionRecommendationBalancerAgent
+	ActionRecommendationBalancerAgent, DeepReinforcementAgent, Agent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 from lib.network.rest_interface import NetworkApiClient, Request
 from lib.utils.stm import CueMemoryMatcher
+from lib.rl.agent import DeepReinforcementAgent
+
+
+class ChessGameAgent(Agent, ABC):
+
+	def perform_timestep(self):
+		while self._get_environment().get_state().get_current_player() != self._get_environment().get_state().get_player_side():
+			time.sleep(1)
+		super().perform_timestep()
 
 
 class ChessActionChoiceAgent(ActionChoiceAgent, ABC):
@@ -290,3 +299,68 @@ class ChessActionRecommendationBalancerAgent(
 ):
 	def _generate_static_actions(self, state: ChessState) -> typing.List[object]:
 		return ChessActionChoiceAgent._generate_actions(self, state)
+
+
+class ChessDeepReinforcementAgent(
+	DeepReinforcementAgent,
+	ABC
+):
+
+	__DRL_MODEL_PATH = "drl_model.h5"
+
+	def __create_model(self) -> Model:
+		inputs = layers.Input((961,))
+
+		dense = inputs
+		for size in [64, 64]:
+			dense = layers.Dense(size, activation="relu")(dense)
+
+		out = layers.Dense(1, activation="sigmoid")(dense)
+
+		model = models.Model(inputs=inputs, outputs=out)
+		model.compile(loss="mse", optimizer="adam")
+
+		return model
+
+	def _init_model(self) -> Model:
+		try:
+			return models.load_model(self.__DRL_MODEL_PATH)
+		except Exception as ex:
+			model = self.__create_model()
+			model.save(self.__DRL_MODEL_PATH)
+			return model
+
+	@staticmethod
+	def __get_class(classes: typing.List[object], values: typing.List[float]) -> typing.Any:
+		return max(classes, key=lambda class_: values[classes.index(class_)])
+
+	@staticmethod
+	def __one_hot_encoding(classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
+		return [1 if class_ == c else 0 for c in classes]
+
+	def __prepare_input(self, state: ChessState, action: chess.Move) -> np.ndarray:
+		return np.concatenate(
+			[
+				self.__one_hot_encoding(list(range(-6, 7)), piece)
+				for piece in [
+					state.get_board().piece_at(i).piece_type * 2*(int(state.get_board().piece_at(i).color) - 0.5)
+					if state.get_board().piece_at(i) is not None
+					else 0
+					for i in range(64)
+				]
+			] + [
+				self.__one_hot_encoding(list(range(64)), action.from_square),
+				self.__one_hot_encoding(list(range(64)), action.to_square),
+				[int(state.get_board().turn)]
+			],
+			axis=0
+		)
+
+	def _prepare_dra_input(self, state: ChessState, action: chess.Move) -> np.ndarray:
+		return self.__prepare_input(state, action)
+
+	def _prepare_dra_output(self, state: ChessState, action: chess.Move, output: np.ndarray) -> float:
+		return output.flatten()[0]
+
+	def _prepare_train_value(self, state: ChessState, action: chess.Move, value: float) -> np.ndarray:
+		return np.array([value])

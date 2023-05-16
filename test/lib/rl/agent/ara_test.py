@@ -4,15 +4,11 @@ import unittest
 import time
 
 from test.lib.rl.environment.environments.chess import ChessEnvironment, ChessGame
-from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent
+from .agents.chess import ChessGameAgent, ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent
 
 
-class ChessAgent(ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent):
-
-	def perform_timestep(self):
-		while self._get_environment().get_state().get_current_player() != self._get_environment().get_state().get_player_side():
-			time.sleep(1)
-		super().perform_timestep()
+class ChessAgent(ChessGameAgent, ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent):
+	pass
 
 
 class ActionRecommendationAgent(unittest.TestCase):
