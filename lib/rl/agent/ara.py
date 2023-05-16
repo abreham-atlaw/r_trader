@@ -76,7 +76,6 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 			i += len(new_actions)
 			required_actions = min(self._num_actions - len(actions), self.__tries)
 
-
 		return actions
 
 	def _prepare_train_data(

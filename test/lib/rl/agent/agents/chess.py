@@ -20,6 +20,7 @@ from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, Ac
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 from lib.network.rest_interface import NetworkApiClient, Request
+from lib.utils.stm import CueMemoryMatcher
 
 
 class ChessActionChoiceAgent(ActionChoiceAgent, ABC):
@@ -84,7 +85,8 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 				return self.__get_num_games(board)
 
 	def _get_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState) -> float:
-		return self.__get_num_games(final_state.get_board())/self.__get_num_games(initial_state.get_board())
+		# return self.__get_num_games(final_state.get_board())/self.__get_num_games(initial_state.get_board())
+		return 0.2
 
 	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state):
 		pass
@@ -108,6 +110,23 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 
 
 class ChessMonteCarloAgent(MonteCarloAgent, ABC):
+
+	class ChessStateMemoryMatcher(CueMemoryMatcher):
+
+		def is_match(self, cue: ChessState, memory: ChessState) -> bool:
+			return cue.get_board() == memory.get_board() and cue.get_player_side() == memory.get_player_side()
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(
+			*args,
+			short_term_memory=MonteCarloAgent.NodeShortTermMemory(
+				100,
+				MonteCarloAgent.NodeMemoryMatcher(
+					ChessMonteCarloAgent.ChessStateMemoryMatcher()
+				)
+			),
+			**kwargs
+		)
 
 	def _init_resources(self) -> object:
 		return dt.datetime.now()
