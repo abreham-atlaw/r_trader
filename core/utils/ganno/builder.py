@@ -86,6 +86,28 @@ class ModelBuilder(ABC):
 		return out
 
 	@staticmethod
+	def __concatenate_conv_features(layers: List[KerasTensor]):
+		if len(layers) == 1:
+			return layers[0]
+		min_size = min([layer.shape[1] for layer in layers])
+		return Concatenate(axis=2)([
+			layer[:, -min_size:, :]
+			for layer in layers
+		])
+
+	def _add_conv_block(self, layer: KerasTensor, configs: List[Union[ConvPoolLayer, List[ConvPoolLayer]]], activation) -> KerasTensor:
+		if len(configs) == 0:
+			return layer
+		if not isinstance(configs[0], list):
+			configs = [configs]
+
+		return self.__concatenate_conv_features([
+			self._add_ff_conv_layers(layer, config, activation)
+			for config in configs
+		])
+
+
+	@staticmethod
 	def _add_kalman_filters(layer: KerasTensor, config: KalmanFiltersConfig) -> List[KerasTensor]:
 
 		filters = [
@@ -167,7 +189,7 @@ class ModelBuilder(ABC):
 
 		combined = OverlaysCombiner()(overlays)
 
-		ff_conv = self._add_ff_conv_layers(combined, config.ff_conv_pool_layers, config.conv_activation)
+		ff_conv = self._add_conv_block(combined, config.ff_conv_pool_layers, config.conv_activation)
 
 		embedding = ff_conv
 		if config.float_embedding is not None:
