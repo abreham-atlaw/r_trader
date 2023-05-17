@@ -38,7 +38,7 @@ class ModelConfig:
 
 	seq_len: int
 	ff_dense_layers: List[Tuple[int, float]]
-	ff_conv_pool_layers: List[ConvPoolLayer]
+	ff_conv_pool_layers: List[Union[ConvPoolLayer, List[ConvPoolLayer]]]
 	delta: bool
 	norm: bool
 	include_prep: bool
