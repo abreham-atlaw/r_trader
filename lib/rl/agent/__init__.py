@@ -6,5 +6,5 @@ from .mca import MonteCarloAgent
 from .agent import Agent
 from .action_choice_agent import ActionChoiceAgent
 from .ara import ActionRecommendationAgent, ActionRecommendationBalancerAgent
-
+from .cra import CumulativeRewardAgent
 from .drl import DeepReinforcementAgent
