@@ -46,7 +46,8 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 							action
 						),
 						0
-					)
+					),
+					verbose=0
 				)
 			)
 		)
