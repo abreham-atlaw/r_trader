@@ -4,6 +4,7 @@ import chess
 import chess.svg
 
 from threading import Thread
+from copy import deepcopy
 
 from lib.rl.environment import Environment, ModelBasedState
 from lib.rl.agent.agent import Agent
@@ -62,13 +63,29 @@ class ChessEnvironment(Environment):
 			board.piece_at(i) is not None and board.piece_at(i).color == color
 		])
 
+	def __get_pieces_value_difference(self, board, side) -> int:
+		return self.__get_pieces_value(board, side) - self.__get_pieces_value(board, not side)
+
+	def __get_pieces_reward(self, board, side) -> float:
+		if len(board.move_stack) < 2:
+			return 0
+		current_value = self.__get_pieces_value_difference(board, side)
+		old_board = deepcopy(board)
+		for _ in range(2):
+			old_board.pop()
+		old_value = self.__get_pieces_value_difference(old_board, side)
+		return current_value - old_value
+
+	def __get_time_penalty(self) -> float:
+		return 0.3
+
 	def get_reward(self, state: ChessState = None) -> float:
 		if state is None:
 			state = self.get_state()
-
+		time_penalty = self.__get_time_penalty()
 		game_end_reward = self.__get_game_end_reward(state)
-		pieces_reward = self.__get_pieces_value(state.get_board(), state.get_player_side()) - self.__get_pieces_value(state.get_board(), not state.get_player_side())
-		return 10*game_end_reward + pieces_reward
+		pieces_reward = self.__get_pieces_reward(state.get_board(), state.get_player_side())
+		return 100*game_end_reward + pieces_reward - time_penalty
 
 	def perform_action(self, action: chess.Move):
 		self.get_state().get_board().push(action)

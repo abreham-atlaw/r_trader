@@ -7,12 +7,12 @@ from tensorflow.keras import models
 
 import unittest
 
-from lib.rl.agent.drl import DeepReinforcementAgent
+from lib.rl.agent import DeepReinforcementAgent, CumulativeRewardAgent
 from test.lib.rl.environment.environments.chess import ChessGame
 from .agents.chess import ChessGameAgent, ChessActionChoiceAgent, ChessDeepReinforcementAgent
 
 
-class ChessAgent(ChessGameAgent, ChessDeepReinforcementAgent, ChessActionChoiceAgent):
+class ChessAgent(CumulativeRewardAgent, ChessGameAgent, ChessDeepReinforcementAgent, ChessActionChoiceAgent):
 	pass
 
 
@@ -45,8 +45,8 @@ class DeepReinforcementAgentTest(unittest.TestCase):
 			return self._get_environment().get_valid_actions()
 
 	def test_functionality(self):
-		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, batch_size=1)
-		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, batch_size=1)
+		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, batch_size=1, reward_cumulation_size=10, reward_cumulation_discount=0.9)
+		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, batch_size=1, reward_cumulation_size=10, reward_cumulation_discount=0.9)
 
 		game = ChessGame(agent0, agent1)
 		game.start()
