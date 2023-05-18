@@ -61,7 +61,7 @@ PCLOUD_TOKENS = [
 	"aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com
 ]
 
-PCLOUD_API_TOKEN = PCLOUD_TOKENS[1]
+PCLOUD_API_TOKEN = PCLOUD_TOKENS[-1]
 
 PCLOUD_FOLDER = "/Apps/RTrader"
 MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")
