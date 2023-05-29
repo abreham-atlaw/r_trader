@@ -47,9 +47,9 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	# "wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV",  # abrishatlaw@gmail.com
-	# "NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk",  # abrishatlaw@yahoo.com
-	"1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky",  # abreham.atlaw@yahoo.com
+	"wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV",  # abrishatlaw@gmail.com
+	"NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk",  # abrishatlaw@yahoo.com
+	# "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky",  # abreham.atlaw@yahoo.com
 	# "nQPjjkZPays7ZLH1sLOxheqpKqnD5knEQJyI1MC27",  # hiwotahab12@gmail.com
 	# "2j45M7ZXe7s7ZpLEC790EkIjTyKWdusIvr8DXhwh7",  # abrehamatlaw321@gmail.com
 	# "x3sJRVZxDks7ZWz4hFfjjd7LKie66pdzdjQJqguck",  # abrehamatlaw@outlook.com
