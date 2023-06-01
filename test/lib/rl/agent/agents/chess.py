@@ -10,13 +10,14 @@ import attr
 
 import chess
 import numpy as np
+import tensorflow as tf
 from tensorflow.python.keras import Model
 from tensorflow.keras import layers
 from tensorflow.keras import models
 
 from lib.utils.logger import Logger
 from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, \
-	ActionRecommendationBalancerAgent
+	ActionRecommendationBalancerAgent, DNNTransitionAgent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 from lib.network.rest_interface import NetworkApiClient, Request
@@ -98,6 +99,9 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 		mid_state = deepcopy(state)
 		mid_state.get_board().push(action)
 
+		if mid_state.get_board().is_game_over():
+			return [mid_state]
+
 		states = []
 
 		for possible_action in mid_state.get_board().legal_moves:
@@ -116,7 +120,7 @@ class ChessMonteCarloAgent(MonteCarloAgent, ABC):
 		def is_match(self, cue: ChessState, memory: ChessState) -> bool:
 			return cue.get_board() == memory.get_board() and cue.get_player_side() == memory.get_player_side()
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, step_time=1*60, **kwargs):
 		super().__init__(
 			*args,
 			short_term_memory=MonteCarloAgent.NodeShortTermMemory(
@@ -125,14 +129,66 @@ class ChessMonteCarloAgent(MonteCarloAgent, ABC):
 					ChessMonteCarloAgent.ChessStateMemoryMatcher()
 				)
 			),
+			logical=True,
 			**kwargs
 		)
+		self.__step_time = step_time
 
 	def _init_resources(self) -> object:
 		return dt.datetime.now()
 
 	def _has_resource(self, resources: dt.datetime) -> bool:
-		return (dt.datetime.now() - resources).total_seconds() < 1*60
+		return (dt.datetime.now() - resources).total_seconds() < self.__step_time
+
+
+class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__model = self._load_model()
+
+	def _load_model(self):
+		return models.load_model("dta_model.h5")
+
+	def _get_transition_model(self) -> models.Model:
+		return self.__model
+
+	def __one_hot_encoding(self, classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
+		return [1 if class_ == c else 0 for c in classes]
+
+	def _state_action_to_model_input(self, state: ChessState, action, final_state: ChessState) -> np.ndarray:
+		board = deepcopy(state.get_board())
+		board.push(action)
+		move = final_state.get_board().move_stack[-1]
+		return np.expand_dims(
+			np.concatenate([
+				self.__one_hot_encoding(list(range(-6, 7)), piece)
+				for piece in [
+					board.piece_at(i).piece_type * 2 * (int(board.piece_at(i).color) - 0.5)
+					if board.piece_at(i) is not None
+					else 0
+					for i in range(64)
+				]
+			] + [self.__one_hot_encoding(
+				list(range(64)),
+				move.from_square
+			)] + [self.__one_hot_encoding(
+					list(range(64)),
+					move.to_square
+				)],
+				axis=0
+			),
+			axis=0
+		)
+
+	def _prediction_to_transition_probability(self, initial_state: ModelBasedState, output: np.ndarray,
+											  final_state: ModelBasedState) -> float:
+		return max(1e-5, float(tf.reshape(output, (-1,))[0]))
+
+	def _get_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
+		return None
+
+	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
+		return
 
 
 class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):

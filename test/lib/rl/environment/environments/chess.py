@@ -4,6 +4,7 @@ import chess
 import chess.svg
 
 from threading import Thread
+from copy import deepcopy
 
 from lib.rl.environment import Environment, ModelBasedState
 from lib.rl.agent.agent import Agent
@@ -46,13 +47,22 @@ class ChessEnvironment(Environment):
 
 	def __get_game_end_reward(self, state: ChessState) -> float:
 		if state.get_board().is_checkmate():
-			if state.get_current_player() == state.get_player_side():
+			if state.get_current_player() != state.get_player_side():
 				return 1
 			else:
 				return -1
 		if state.get_board().is_stalemate():
 			return 0
 		return 0
+
+	def __get_pieces_difference(self, board, color):
+		if len(board.move_stack) < 2:
+			return 0
+		previous_board = deepcopy(board)
+		previous_board.pop()
+		previous_board.pop()
+
+		return self.__get_pieces_value(board, color) - self.__get_pieces_value(previous_board, color)
 
 	def __get_pieces_value(self, board, color) -> int:
 		return sum([
@@ -67,8 +77,9 @@ class ChessEnvironment(Environment):
 			state = self.get_state()
 
 		game_end_reward = self.__get_game_end_reward(state)
-		pieces_reward = self.__get_pieces_value(state.get_board(), state.get_player_side()) - self.__get_pieces_value(state.get_board(), not state.get_player_side())
-		return 10*game_end_reward + pieces_reward
+		pieces_reward = self.__get_pieces_difference(state.get_board(), state.get_player_side()) - self.__get_pieces_difference(state.get_board(), not state.get_player_side())
+		total_reward = 1e5*game_end_reward + 1e3*pieces_reward
+		return total_reward
 
 	def perform_action(self, action: chess.Move):
 		self.get_state().get_board().push(action)
