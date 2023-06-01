@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from core.utils.training.training import Trainer
-from lib.utils.file_storage import PCloudClient
+from lib.utils.file_storage import PCloudClient, PCloudCombinedFileStorage
 from core.utils.training.datapreparation.dataprocessor import DataProcessor
 from core.utils.training.training.continuoustrainer import ContinuousTrainer
 from core.utils.training.training.continuoustrainer.callbacks import PCloudContinuousTrainerCheckpointCallback
@@ -50,7 +50,7 @@ class ContinuousTrainerTest(unittest.TestCase):
 		processor = DataProcessor(generator, core_model, delta_model, 32, 32)
 		trainer = ContinuousTrainer(
 			repository=PCloudTrainerRepository("/Apps/RTrader"),
-			file_storage=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader"),
+			file_storage=PCloudCombinedFileStorage(Config.PCLOUD_TOKENS, "/Apps/RTrader"),
 			incremental=True,
 			batch_validation=False,
 			random_state=42
@@ -66,5 +66,7 @@ class ContinuousTrainerTest(unittest.TestCase):
 			callbacks=[
 				PCloudContinuousTrainerCheckpointCallback(base_path="/Apps/RTrader", batch_end=False)
 			],
-			timeout=10*60
+			timeout=10*60,
+			core_training=True,
+			delta_training=False
 		)

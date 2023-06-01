@@ -225,7 +225,9 @@ class Trainer:
 			epochs_per_inc=1,
 			callbacks: List[Callback] = None,
 			initial_state: 'Trainer.State' = None,
-			verbose=2
+			verbose=2,
+			core_training: bool = True,
+			delta_training: bool = True
 	) -> 'Trainer.MetricsContainer':
 		if callbacks is None:
 			callbacks = []
@@ -288,12 +290,17 @@ class Trainer:
 							bch_idx,
 							inc_depth,
 						)
-						print("[+]Fitting Core Model")
-						core_metric = core_model.fit(core_generator, verbose=verbose)
-						print("[+]Fitting Delta Model")
-						delta_metric = delta_model.fit(delta_generator, verbose=verbose)
+						core_metric, delta_metric = None, None
+						if core_training:
+							print("[+]Fitting Core Model")
+							core_metric = core_model.fit(core_generator, verbose=verbose)
+						if delta_training:
+							print("[+]Fitting Delta Model")
+							delta_metric = delta_model.fit(delta_generator, verbose=verbose)
 
 						for mi, metric in enumerate((core_metric, delta_metric)):
+							if metric is None:
+								continue
 							metrics.add_metric(
 								Trainer.Metric(
 									source=0,

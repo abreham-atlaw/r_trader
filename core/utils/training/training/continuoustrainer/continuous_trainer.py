@@ -76,7 +76,9 @@ class ContinuousTrainer(Trainer):
 			callbacks: typing.List[Callback] = None,
 			initial_state: 'Trainer.State' = None,
 			verbose=2,
-			timeout: typing.Optional[int] = None
+			timeout: typing.Optional[int] = None,
+			core_training: bool = True,
+			delta_training: bool = True
 	) -> 'Trainer.MetricsContainer':
 
 		self.__prepare_callbacks(callbacks, id)
@@ -103,7 +105,9 @@ class ContinuousTrainer(Trainer):
 				epochs_per_inc,
 				callbacks,
 				initial_state,
-				verbose
+				verbose,
+				core_training,
+				delta_training
 			)
 
 		except TimeoutException:
