@@ -66,7 +66,8 @@ class ModelConfigSerializer(Serializer):
 			for layer in data.ff_conv_pool_layers
 		]
 		json["kalman_filters"] = self.__kalmanconfigserializer.serialize(data.kalman_filters)
-		json["transformer_config"] = self.__transformer_serializer.serialize(data.transformer_config)
+		if data.transformer_config is not None:
+			json["transformer_config"] = self.__transformer_serializer.serialize(data.transformer_config)
 		json["loss"] = losses.serialize(data.loss)
 		json["optimizer"] = optimizers.serialize(data.optimizer)
 		json["dense_activation"] = activations.serialize(data.dense_activation)
@@ -82,7 +83,8 @@ class ModelConfigSerializer(Serializer):
 			for layer in config.ff_conv_pool_layers
 		]
 		config.kalman_filters = self.__kalmanconfigserializer.deserialize(config.kalman_filters)
-		config.transformer_config = self.__transformer_serializer.deserialize(config.transformer_config)
+		if config.transformer_config is not None:
+			config.transformer_config = self.__transformer_serializer.deserialize(config.transformer_config)
 		config.loss = losses.deserialize(config.loss)
 		config.optimizer = optimizers.deserialize(config.optimizer)
 		config.dense_activation = activations.deserialize(config.dense_activation)
