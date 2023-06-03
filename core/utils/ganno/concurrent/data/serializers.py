@@ -15,7 +15,7 @@ class ConvPoolLayerSerializer(Serializer):
 		return data.__dict__.copy()
 
 	def deserialize(self, json_: Dict) -> ConvPoolLayer:
-		obj = ConvPoolLayer(*[None for _ in range(3)])
+		obj = ConvPoolLayer(*[None for _ in range(4)])
 		obj.__dict__ = json_.copy()
 		return obj
 
