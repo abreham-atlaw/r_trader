@@ -1,2 +1,2 @@
 from .optimizer import NNGeneticAlgorithm
-from .trainer import Trainer, LiveTrainer
+from .trainer import GannoTrainer

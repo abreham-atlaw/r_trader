@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from lib.ga import GeneticAlgorithm
 from lib.utils.logger import Logger
 from .builder import ModelBuilder, CoreBuilder, DeltaBuilder
-from .trainer import Trainer
-from .nnconfig import NNConfig, ConvPoolLayer, ModelConfig
+from .trainer import GannoTrainer
+from .nnconfig import NNConfig, ConvPoolLayer, ModelConfig, KalmanFiltersConfig
 
 
 @dataclass
@@ -23,6 +23,8 @@ class ListRangeConfig:
 class NNInitialPopulationConfig:
 
 	size: int = 10
+
+	dropout_range: Tuple[float, float] = (0, 0.9)
 
 	seq_len_range: Tuple[int, int] = (16, 256)
 	dnn_layer_range: ListRangeConfig = ListRangeConfig(
@@ -76,7 +78,7 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 
 	def __init__(
 			self,
-			trainer: Trainer,
+			trainer: GannoTrainer,
 			*args,
 			core_builder: Optional[ModelBuilder] = None,
 			delta_builder: Optional[ModelBuilder] = None,
@@ -129,11 +131,13 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 			pool = random.randint(pooling_range[0], min(remaining_size-1, pooling_range[1]))
 			if pool != 0:
 				remaining_size = math.ceil(remaining_size/pool) - 1
+
 			layers.append(
 				ConvPoolLayer(
 					size=size,
 					features=random.randint(*features_range),
-					pool=pool
+					pool=pool,
+					dropout=0
 				)
 			)
 
@@ -158,7 +162,7 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 
 		return ModelConfig(
 			seq_len=seq_len,
-			ff_dense_layers=self.__generate_random_int_list(self.__initial_population_config.dnn_layer_range),
+			ff_dense_layers=[(x, 0) for x in self.__generate_random_int_list(self.__initial_population_config.dnn_layer_range)],
 			ff_conv_pool_layers=self.__generate_random_cnn_layers(
 				input_size=conv_input_size,
 				depth_range=self.__initial_population_config.conv_layer_depth_range,
@@ -180,7 +184,13 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 			dense_activation=random.choice(self.__initial_population_config.dense_activations),
 			conv_activation=random.choice(self.__initial_population_config.conv_activations),
 			loss=loss,
-			optimizer=random.choice(self.__initial_population_config.optimizers)
+			optimizer=random.choice(self.__initial_population_config.optimizers),
+			include_prep=True,
+			kalman_filters=KalmanFiltersConfig(
+				0,
+				[]
+			),
+			kalman_static_filters=[]
 		)
 
 	def __generate_random_core_model(self, seq_len) -> ModelConfig:
@@ -209,11 +219,16 @@ class NNGeneticAlgorithm(GeneticAlgorithm):
 				population.append(config)
 		return population
 
+	def _combine_loss(self, core_loss: float, delta_loss: float):
+		return 1/(core_loss * delta_loss)
+
 	@Logger.logged_method
 	def _evaluate_species(self, species: NNConfig) -> float:
 		Logger.info("Building Models")
 		core_model, delta_model = self.__build_models(species)
 		Logger.info("Fitting Models")
-		self.__trainer.fit(core_model, delta_model)
-		Logger.info("Evaluating Models")
-		return 1/self.__trainer.evaluate(core_model, delta_model)
+		metrics = self.__trainer.fit(core_model, delta_model)
+		return self._combine_loss(
+			core_loss=metrics.get_metric(source=1, model=0)[0],
+			delta_loss=metrics.get_metric(source=1, model=1)[0]
+		)

@@ -82,7 +82,7 @@ class ModelConfig:
 		if True in [self.seq_len <= trend_line_size for trend_line_size in self.trend_lines]:
 			return False
 
-		if True in [units <= 0 for units in self.ff_dense_layers]:
+		if True in [units[0] <= 0 for units in self.ff_dense_layers]:
 			return False
 
 		if True in [layer.features <= 0 or layer.size <= 0 for layer in self.ff_conv_pool_layers]:
