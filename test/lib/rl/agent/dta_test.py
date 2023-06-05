@@ -386,7 +386,7 @@ class DNNAgentTest(unittest.TestCase):
 			raise Exception(f"Invalid Final-State {final_state}")
 
 		@Logger.logged_method
-		def _state_action_to_model_input(self, state, action, final_state) -> np.ndarray:
+		def _prepare_dta_input(self, state, action, final_state) -> np.ndarray:
 			return np.array([
 				state.player_state.get_sum(),
 				len(state.opposition_state.cards),
@@ -394,11 +394,11 @@ class DNNAgentTest(unittest.TestCase):
 			])
 
 		@Logger.logged_method
-		def _prediction_to_transition_probability(self, initial_state, output: np.ndarray, final_state) -> float:
+		def _prepare_dta_output(self, initial_state, output: np.ndarray, final_state) -> float:
 			return float(output[0][self.get_final_state_index(initial_state, final_state)])
 
 		@Logger.logged_method
-		def _get_train_output(self, initial_state, action, final_state) -> np.ndarray:
+		def _prepare_dta_train_output(self, initial_state, action, final_state) -> np.ndarray:
 			output = np.zeros((5,))
 			output[self.get_final_state_index(initial_state, final_state)] = 1
 			return output

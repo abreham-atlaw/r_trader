@@ -14,6 +14,7 @@ from lib.utils.math import sigmoid
 from lib.utils.staterepository import StateRepository, SectionalDictStateRepository
 from lib.utils.stm import ShortTermMemory, CueMemoryMatcher, ExactCueMemoryMatcher
 from temp import stats
+from ..environment import ModelBasedState
 
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
@@ -328,6 +329,30 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return self._select(chosen_state_node)
 
+	def __collect_transition_inputs(self, state_node: 'MonteCarloAgent.Node') -> Tuple[List[ModelBasedState], List[Any], List[ModelBasedState], List['MonteCarloAgent.Node']]:
+		states_inputs = []
+		actions_inputs = []
+		final_states_inputs = []
+		state_nodes = []
+		state: ModelBasedState = self._state_repository.retrieve(state_node.id)
+		for action in self._get_available_actions(state):
+			action_node = MonteCarloAgent.Node(state_node, action, MonteCarloAgent.Node.NodeType.ACTION)
+			for final_state in self._get_possible_states(state, action):
+				states_inputs.append(state)
+				actions_inputs.append(action)
+				final_states_inputs.append(final_state)
+
+				final_state_node = MonteCarloAgent.Node(
+					action_node,
+					None,
+					MonteCarloAgent.Node.NodeType.STATE,
+				)
+				action_node.add_child(final_state_node)
+				state_nodes.append(final_state_node)
+			state_node.add_child(action_node)
+
+		return states_inputs, actions_inputs, final_states_inputs, state_nodes
+
 	def _expand(self, state_node: 'MonteCarloAgent.Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
 			return
@@ -337,23 +362,42 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			Logger.info(f"Recall Depth: {stats.get_max_depth(state_node)}")
 			return
 
-		for action in self._get_available_actions(self._state_repository.retrieve(state_node.id)):
-			action_node = MonteCarloAgent.Node(state_node, action, MonteCarloAgent.Node.NodeType.ACTION)
-			for possible_state in self._get_possible_states(self._state_repository.retrieve(state_node.id), action):
-				weight = self._get_expected_transition_probability(self._state_repository.retrieve(state_node.id), action, possible_state)
-				value = self._get_environment().get_reward(possible_state)
-				possible_state_node = MonteCarloAgent.Node(
-					action_node,
-					None,
-					MonteCarloAgent.Node.NodeType.STATE,
-					weight=weight,
-					instant_value=value,
-					depth=state_node.depth+1
-				)
-				possible_state.set_depth(possible_state_node.depth)
-				self._state_repository.store(possible_state_node.id, possible_state)
-				action_node.add_child(possible_state_node)
-			state_node.add_child(action_node)
+		states, actions, final_states, possible_state_nodes = self.__collect_transition_inputs(state_node)
+
+		probability_distribution = self._get_expected_transition_probability_distribution(states, actions, final_states)
+
+		for i in range(len(probability_distribution)):
+			node = possible_state_nodes[i]
+			node.instant_value = self._get_expected_instant_reward(final_states[i])
+			node.weight = probability_distribution[i]
+			node.depth = state_node.depth + 1
+			self._state_repository.store(node.id, final_states[i])
+			final_states[i].set_depth(node.depth)
+
+
+		# for action in self._get_available_actions(state):
+		#
+		# 	action_node = MonteCarloAgent.Node(state_node, action, MonteCarloAgent.Node.NodeType.ACTION)
+		# 	possible_states = self._get_possible_states(self._state_repository.retrieve(state_node.id), action)
+		# 	probability_distribution = self._get_expected_transition_probability_distribution(
+		# 		[state for _ in range(len(possible_states))],
+		# 		[action for _ in range(len(possible_states))],
+		# 		possible_states
+		# 	)
+		# 	for possible_state, weight in zip(possible_states, probability_distribution):
+		# 		value = self._get_expected_instant_reward(possible_state)
+		# 		possible_state_node = MonteCarloAgent.Node(
+		# 			action_node,
+		# 			None,
+		# 			MonteCarloAgent.Node.NodeType.STATE,
+		# 			weight=weight,
+		# 			instant_value=value,
+		# 			depth=state_node.depth+1
+		# 		)
+		# 		possible_state.set_depth(possible_state_node.depth)
+		# 		self._state_repository.store(possible_state_node.id, possible_state)
+		# 		action_node.add_child(possible_state_node)
+		# 	state_node.add_child(action_node)
 
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 

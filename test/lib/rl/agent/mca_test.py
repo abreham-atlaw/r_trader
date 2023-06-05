@@ -47,9 +47,17 @@ class MonteCarloTest(unittest.TestCase):
 		# 	move_stack=['e4', 'e5', 'Qh5', 'd6', 'Bc4', 'a6'],
 		# 	best_move="h5f7"
 		# ),
+		# BestMoveDataPoint(
+		# 	move_stack=['d4', 'd5', 'e4', 'e6', 'Bg5', 'Nh6'],
+		# 	best_move="g5d8"
+		# ),
 		BestMoveDataPoint(
-			move_stack=['d4', 'd5', 'e4', 'e6', 'Bg5', 'Nh6'],
-			best_move="g5d8"
+			move_stack=['e4', 'e5', 'Nf3', 'Qf6', 'd3x`'],
+			best_move="b8c6"
+		),
+		BestMoveDataPoint(
+			move_stack=['e4', 'e5', 'Nf3', 'Be7', 'Nc3', 'Bg5'],
+			best_move="f3g5"
 		)
 	]
 
@@ -67,10 +75,10 @@ class MonteCarloTest(unittest.TestCase):
 			board.push_san(move)
 		state = ChessState(board.turn, board)
 		action: chess.Move = agent._policy(state)
-		self.assertEquals(action.uci(), dp.best_move)
+		self.assertEqual(action.uci(), dp.best_move)
 
 	def test_best_move(self):
-		agent = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=30)
+		agent = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=60)
 		env = ChessEnvironment()
 		agent.set_environment(env)
 		for dp in self.BEST_MOVE_TEST_CASES:

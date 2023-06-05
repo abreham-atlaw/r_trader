@@ -85,11 +85,11 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 				time.sleep(2*60)
 				return self.__get_num_games(board)
 
-	def _get_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState) -> float:
+	def _get_expected_transition_probability_distribution(self, initial_states: List[ChessState], actions: List[chess.Move], final_states: List[ChessState]) -> List[float]:
 		# return self.__get_num_games(final_state.get_board())/self.__get_num_games(initial_state.get_board())
-		return 0.2
+		return [0.2 for _ in range(len(initial_states))]
 
-	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state):
+	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state):
 		pass
 
 	def _get_expected_instant_reward(self, state: ChessState) -> float:
@@ -155,7 +155,7 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __one_hot_encoding(self, classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
 		return [1 if class_ == c else 0 for c in classes]
 
-	def _state_action_to_model_input(self, state: ChessState, action, final_state: ChessState) -> np.ndarray:
+	def __prepare_single_dta_input(self, state: ChessState, action: chess.Move, final_state: ChessState) -> np.ndarray:
 		board = deepcopy(state.get_board())
 		board.push(action)
 		move = final_state.get_board().move_stack[-1]
@@ -168,10 +168,10 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 					else 0
 					for i in range(64)
 				]
-			] + [self.__one_hot_encoding(
-				list(range(64)),
-				move.from_square
-			)] + [self.__one_hot_encoding(
+				] + [self.__one_hot_encoding(
+					list(range(64)),
+					move.from_square
+				)] + [self.__one_hot_encoding(
 					list(range(64)),
 					move.to_square
 				)],
@@ -180,14 +180,27 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 			axis=0
 		)
 
-	def _prediction_to_transition_probability(self, initial_state: ModelBasedState, output: np.ndarray,
-											  final_state: ModelBasedState) -> float:
-		return max(1e-5, float(tf.reshape(output, (-1,))[0]))
+	def __prepare_single_dta_output(self, initial_state: ModelBasedState, output: np.ndarray,
+							final_state: ModelBasedState) -> float:
+		return max(1e-5, float(output.flatten()[0]))
 
-	def _get_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
-		return None
+	def _prepare_dta_input(self, states: typing.List[ChessState], actions: List[typing.Any], final_states: typing.List[ChessState]) -> np.ndarray:
+		return np.concatenate([
+			self.__prepare_single_dta_input(state, action, final_state)
+			for state, action, final_state in zip(states, actions, final_states)
+		])
 
-	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
+	def _prepare_dta_output(self, initial_states: typing.List[ModelBasedState], outputs: typing.List[np.ndarray],
+							final_states: typing.List[ModelBasedState]) -> List[float]:
+		return [
+			self.__prepare_single_dta_output(initial_state, output, final_state)
+			for initial_state, output, final_state in zip(initial_states, outputs, final_states)
+		]
+
+	def _prepare_dta_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
+		return np.ndarray([None])
+
+	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state: ModelBasedState):
 		return
 
 

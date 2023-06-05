@@ -32,15 +32,15 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		self.__cache = {}
 
 	@abstractmethod
-	def _state_action_to_model_input(self, state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
+	def _prepare_dta_input(self, state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> np.ndarray:
 		pass
 
 	@abstractmethod
-	def _prediction_to_transition_probability(self, initial_state: ModelBasedState, output: np.ndarray, final_state: ModelBasedState) -> float:
+	def _prepare_dta_output(self, initial_state: List[ModelBasedState], output: np.ndarray, final_state: List[ModelBasedState]) -> List[float]:
 		pass
 
 	@abstractmethod
-	def _get_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
+	def _prepare_dta_train_output(self, initial_state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> np.ndarray:
 		pass
 
 	def _get_transition_model(self) -> keras.Model:
@@ -51,21 +51,37 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def set_transition_model(self, model: keras.Model):
 		self.__transition_model = model
 
-	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> float:
+	def __get_cached(self, inputs: np.ndarray) -> np.ndarray:
+		out = np.array([np.nan for _ in range(len(inputs))])
+		for i in range(len(inputs)):
+			cached = self.__cache.get(inputs[i].tobytes())
+			if cached is not None:
+				out[i] = cached
+		return out
+
+	def __cache_predictions(self, inputs: np.ndarray, predictions: np.ndarray):
+		for i in range(len(inputs)):
+			self.__cache[inputs[i].tobytes()] = predictions[i]
+
+	def _get_expected_transition_probability_distribution(self, initial_state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> List[float]:
 		# return 0.5
-		prediction_input = self._state_action_to_model_input(initial_state, action, final_state).reshape((1, -1))
+		prediction_input = self._prepare_dta_input(initial_state, action, final_state)
 
-		prediction = self.__cache.get(prediction_input.tobytes())
-		if prediction is None:
-			prediction = self._get_transition_model()(
-				prediction_input
+		prediction = self.__get_cached(prediction_input)
+
+		not_cached_indexes = np.isnan(prediction)
+		if np.any(not_cached_indexes):
+			prediction[not_cached_indexes] = self._prepare_dta_output(
+				initial_state,
+				self._get_transition_model().predict(prediction_input[not_cached_indexes]),
+				final_state
 			)
-			self.__cache[prediction_input.tobytes()] = prediction
 
-		return self._prediction_to_transition_probability(initial_state, prediction, final_state)
+			self.__cache_predictions(prediction_input[not_cached_indexes], prediction[not_cached_indexes])
+
+		return list(prediction)
 
 	def _fit_model(self, X: np.ndarray, y: np.ndarray, fit_params: Dict):
-		self._get_transition_model().summary()
 		self._get_transition_model().fit(X, y, **fit_params)
 
 	def _update_model(self, batch=None):
@@ -77,9 +93,9 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			self.__fit_params
 		)
 
-	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
-		new_batch = [self._state_action_to_model_input(initial_state, action, final_state)], [
-			self._get_train_output(initial_state, action, final_state)]
+	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state: ModelBasedState):
+		new_batch = [self._prepare_dta_input(initial_states, action, final_state)], [
+			self._prepare_dta_train_output(initial_states, action, final_state)]
 
 		if not self._enable_batch_update:
 			self._update_model(new_batch)

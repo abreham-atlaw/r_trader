@@ -68,11 +68,11 @@ class ModelBasedAgent(ActionChoiceAgent, ABC):
 			self.__session_cacher: ModelBasedAgent.Cacher = ModelBasedAgent.Cacher()
 
 	@abstractmethod
-	def _get_expected_transition_probability(self, initial_state: ModelBasedState, action, final_state) -> float:
+	def _get_expected_transition_probability_distribution(self, initial_states: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> List[float]:
 		pass
 
 	@abstractmethod
-	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state):
+	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state):
 		pass
 
 	@abstractmethod

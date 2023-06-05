@@ -61,7 +61,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			input_ = np.append(input_, depth)
 		return input_
 
-	def _state_action_to_model_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
+	def _prepare_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
@@ -111,7 +111,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return return_value
 
-	def _prediction_to_transition_probability(
+	def _prepare_dta_output(
 			self,
 			initial_state: TradeState,
 			output: np.ndarray,
@@ -128,7 +128,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 			return 1-predicted_value
 
-	def _get_train_output(self, initial_state: TradeState, action, final_state: TradeState) -> np.ndarray:
+	def _prepare_dta_train_output(self, initial_state: TradeState, action, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			if final_state.get_market_state().get_current_price(base_currency, quote_currency) == initial_state.get_market_state().get_current_price(base_currency, quote_currency):
