@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from tensorflow import keras
+from tensorflow.keras import models
 
 import os
 
@@ -63,18 +64,20 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		for i in range(len(inputs)):
 			self.__cache[inputs[i].tobytes()] = predictions[i]
 
-	def _get_expected_transition_probability_distribution(self, initial_state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> List[float]:
-		# return 0.5
-		prediction_input = self._prepare_dta_input(initial_state, action, final_state)
+	def _predict(self, model: models.Model, inputs: np.array) -> np.ndarray:
+		return model.predict(inputs)
+
+	def _get_expected_transition_probability_distribution(self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]) -> List[float]:
+		prediction_input = self._prepare_dta_input(initial_states, action, final_states)
 
 		prediction = self.__get_cached(prediction_input)
 
 		not_cached_indexes = np.isnan(prediction)
 		if np.any(not_cached_indexes):
 			prediction[not_cached_indexes] = self._prepare_dta_output(
-				initial_state,
-				self._get_transition_model().predict(prediction_input[not_cached_indexes]),
-				final_state
+				initial_states,
+				self._predict(self._get_transition_model(), prediction_input[not_cached_indexes]),
+				final_states
 			)
 
 			self.__cache_predictions(prediction_input[not_cached_indexes], prediction[not_cached_indexes])
@@ -93,9 +96,11 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			self.__fit_params
 		)
 
-	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state: ModelBasedState):
-		new_batch = [self._prepare_dta_input(initial_states, action, final_state)], [
-			self._prepare_dta_train_output(initial_states, action, final_state)]
+	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
+		new_batch = (
+			self._prepare_dta_input([initial_state], [action], [final_state]),
+			self._prepare_dta_train_output([initial_state], [action], [final_state])
+		)
 
 		if not self._enable_batch_update:
 			self._update_model(new_batch)
