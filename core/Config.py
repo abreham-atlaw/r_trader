@@ -49,7 +49,7 @@ DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
 	"wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV",  # abrishatlaw@gmail.com +
 	# "DlGoOXZ6O9B7ZdGgqwlGGeLSY61AtilTCzyT6wcp7",  # abrishatlaw@yahoo.com -
-	"1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky",  # abreham.atlaw@yahoo.com +
+	"oK6lvkZIO9B7ZP7ygR4MSe44Um0rp610L2uCo33TV",  # abreham.atlaw@yahoo.com +
 	"nQPjjkZPays7ZLH1sLOxheqpKqnD5knEQJyI1MC27",  # hiwotahab12@gmail.com +
 	"2j45M7ZXe7s7ZpLEC790EkIjTyKWdusIvr8DXhwh7",  # abrehamatlaw321@gmail.com +
 	# "9JGIfXZxDks7Znj51XPJ1DIzyH4YNq2kXT4uXwrg7",  # abrehamatlaw@outlook.com -
