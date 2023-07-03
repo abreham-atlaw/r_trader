@@ -147,7 +147,10 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__model = self._load_model()
 
 	def _load_model(self):
-		return models.load_model("dta_model.h5")
+		model = models.load_model("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/chesstpm.h5", compile=False)
+		model.compile(optimizer="adam", loss=["categorical_crossentropy" for _ in range(2)],
+					  metrics=[["accuracy"], ["accuracy"]])
+		return model
 
 	def _get_transition_model(self) -> models.Model:
 		return self.__model
@@ -155,34 +158,26 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __one_hot_encoding(self, classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
 		return [1 if class_ == c else 0 for c in classes]
 
-	def __prepare_single_dta_input(self, state: ChessState, action: chess.Move, final_state: ChessState) -> np.ndarray:
-		board = deepcopy(state.get_board())
-		board.push(action)
-		move = final_state.get_board().move_stack[-1]
-		return np.expand_dims(
-			np.concatenate([
-				self.__one_hot_encoding(list(range(-6, 7)), piece)
-				for piece in [
-					board.piece_at(i).piece_type * 2 * (int(board.piece_at(i).color) - 0.5)
-					if board.piece_at(i) is not None
-					else 0
-					for i in range(64)
-				]
-				] + [self.__one_hot_encoding(
-					list(range(64)),
-					move.from_square
-				)] + [self.__one_hot_encoding(
-					list(range(64)),
-					move.to_square
-				)],
-				axis=0
-			),
-			axis=0
-		)
+	@staticmethod
+	def __encode_board(board):
+		encoding = np.zeros((14, 8, 8), dtype=int)
+		for i in range(64):
+			piece = board.piece_at(i)
+			if piece is not None:
+				encoding[piece.piece_type + int(piece.color) * 6][i // 8][i % 8] = 1
+		encoding[13] = 1 if board.turn == chess.BLACK else 0
+		return encoding.reshape(-1)
 
-	def __prepare_single_dta_output(self, initial_state: ModelBasedState, output: np.ndarray,
-							final_state: ModelBasedState) -> float:
-		return max(1e-5, float(output.flatten()[0]))
+	def __prepare_single_dta_input(self, state: ChessState, action: chess.Move, final_state: ChessState) -> np.ndarray:
+		mid_board = deepcopy(final_state.get_board())
+		mid_board.pop()
+		return np.array([self.__encode_board(mid_board)])
+
+	def __prepare_single_dta_output(self, initial_state: ChessState, output: np.ndarray,
+							final_state: ChessState) -> float:
+		move = final_state.get_board().move_stack[-1]
+		output = output.flatten()
+		return output[move.from_square]*output[move.to_square + 64]
 
 	def _prepare_dta_input(self, states: typing.List[ChessState], actions: List[typing.Any], final_states: typing.List[ChessState]) -> np.ndarray:
 		return np.concatenate([
@@ -197,11 +192,28 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 			for initial_state, output, final_state in zip(initial_states, outputs, final_states)
 		]
 
-	def _prepare_dta_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
-		return np.ndarray([None])
+	def __encode_action(self, action: chess.Move):
+		start_square = action.from_square
+		end_square = action.to_square
+		encoding = np.zeros(128, dtype=int)
+		encoding[start_square] = 1
+		encoding[64 + end_square] = 1
+		return encoding
 
-	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state: ModelBasedState):
-		return
+	def __prepare_single_dta_train_output(self, initial_state: ChessState, action: chess.Move, final_state: ChessState) -> np.ndarray:
+		return self.__encode_action(final_state.get_board().move_stack[-1])
+
+	def _prepare_dta_train_output(self, initial_states: typing.List[ChessState], actions: typing.List[chess.Move], final_states: typing.List[ChessState]) -> np.ndarray:
+		return np.stack([
+			self.__prepare_single_dta_train_output(initial_state, action, final_state)
+			for initial_state, action, final_state in zip(initial_states, actions, final_states)
+		])
+
+	def _fit_model(self, X: np.ndarray, y: np.ndarray, fit_params: typing.Dict):
+		self.__model.fit(X, [y[:, :64], y[:, 64:]], epochs=100)
+
+	def _predict(self, model: models.Model, inputs: np.array) -> np.ndarray:
+		return np.concatenate(super()._predict(model, inputs), axis=1)
 
 
 class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
