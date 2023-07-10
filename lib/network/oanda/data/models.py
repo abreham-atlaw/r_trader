@@ -49,7 +49,7 @@ class Trade:
 		return abs(self.initialUnits)
 
 	def get_current_price(self) -> float:
-		return self.price - (self.unrealizedPL/self.initialUnits)
+		return self.price + (self.unrealizedPL/self.initialUnits)
 		#return self.price
 
 
