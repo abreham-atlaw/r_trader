@@ -12,6 +12,7 @@ class RTraderApplication:
 		MC_WORKER = "mc-worker"
 		MC_WORKER_POOL = "mc-worker-pool"
 		ARBITRAGE = "arbitrage"
+		TREND_TAKE_PROFIT = "trend-takeprofit"
 
 	def __init__(self, config=None):
 		self.RUN_FUNCTIONS = {
@@ -21,7 +22,8 @@ class RTraderApplication:
 			RTraderApplication.Mode.MC_QUEEN: self.__run_mc_queen,
 			RTraderApplication.Mode.MC_WORKER: self.__run_mc_worker,
 			RTraderApplication.Mode.MC_WORKER_POOL: self.__run_mc_worker_pool,
-			RTraderApplication.Mode.ARBITRAGE: self.__run_arbitrage
+			RTraderApplication.Mode.ARBITRAGE: self.__run_arbitrage,
+			RTraderApplication.Mode.TREND_TAKE_PROFIT: self.__run_trend_takeprofit
 		}
 		self.config = config
 		self.is_setup = False
@@ -133,6 +135,14 @@ class RTraderApplication:
 		from core.agent.agents import ArbitrageTraderAgent
 
 		agent = ArbitrageTraderAgent()
+		self.__setup_agent(agent)
+		agent.loop()
+
+	def __run_trend_takeprofit(self):
+		print("Running Trend Takeprofit Trader...")
+		from core.agent.agents import TrendTakeProfitAgent
+
+		agent = TrendTakeProfitAgent()
 		self.__setup_agent(agent)
 		agent.loop()
 
