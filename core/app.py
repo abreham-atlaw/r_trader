@@ -13,6 +13,7 @@ class RTraderApplication:
 		MC_WORKER_POOL = "mc-worker-pool"
 		ARBITRAGE = "arbitrage"
 		TREND_TAKE_PROFIT = "trend-takeprofit"
+		MONTECARLO_TAKE_PROFIT = "mc-takeprofit"
 
 	def __init__(self, config=None):
 		self.RUN_FUNCTIONS = {
@@ -23,7 +24,8 @@ class RTraderApplication:
 			RTraderApplication.Mode.MC_WORKER: self.__run_mc_worker,
 			RTraderApplication.Mode.MC_WORKER_POOL: self.__run_mc_worker_pool,
 			RTraderApplication.Mode.ARBITRAGE: self.__run_arbitrage,
-			RTraderApplication.Mode.TREND_TAKE_PROFIT: self.__run_trend_takeprofit
+			RTraderApplication.Mode.TREND_TAKE_PROFIT: self.__run_trend_takeprofit,
+			RTraderApplication.Mode.MONTECARLO_TAKE_PROFIT: self.__run_montecarlo_takeprofit
 		}
 		self.config = config
 		self.is_setup = False
@@ -143,6 +145,14 @@ class RTraderApplication:
 		from core.agent.agents import TrendTakeProfitAgent
 
 		agent = TrendTakeProfitAgent()
+		self.__setup_agent(agent)
+		agent.loop()
+
+	def __run_montecarlo_takeprofit(self):
+		print("Running MonteCarlo Takeprofit Trader...")
+		from core.agent.agents import MonteCarloTakeProfitAgent
+
+		agent = MonteCarloTakeProfitAgent()
 		self.__setup_agent(agent)
 		agent.loop()
 

@@ -15,3 +15,7 @@ class TraderAgent(TakeProfitAgent, TraderRandomAgent):
 
 class TrendTakeProfitAgent(TakeProfitAgent, TrendTraderAgent):
 	pass
+
+
+class MonteCarloTakeProfitAgent(TakeProfitAgent, TraderDNNTransitionAgent, TraderMonteCarloAgent, ActionChoiceTrader):
+	pass
