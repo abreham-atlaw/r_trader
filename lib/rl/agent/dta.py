@@ -16,7 +16,7 @@ TRANSITION_MODEL_FILE_NAME = "transition_model.h5"
 
 class DNNTransitionAgent(ModelBasedAgent, ABC):
 
-	def __init__(self, *args, batch_update=True, update_batch_size=100, fit_params=None, **kwargs):
+	def __init__(self, *args, batch_update=True, update_batch_size=100, fit_params=None, clear_update_batch=True, **kwargs):
 		super().__init__(*args, **kwargs)
 		self._enable_batch_update = batch_update
 		self._update_batch_size = update_batch_size
@@ -28,9 +28,11 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			}
 		if self._enable_batch_update:
 			self._update_batch = ([], [])
+		self._clear_update_batch = clear_update_batch
 			
 		self.__transition_model: Union[keras.Model or None] = None
 		self.__cache = {}
+		self._validation_dataset = ([], [])
 
 	@abstractmethod
 	def _prepare_dta_input(self, state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> np.ndarray:
@@ -87,6 +89,9 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def _fit_model(self, X: np.ndarray, y: np.ndarray, fit_params: Dict):
 		self._get_transition_model().fit(X, y, **fit_params)
 
+	def _evaluate_model(self, X: np.ndarray, y: np.ndarray):
+		self._get_transition_model().evaluate(X, y)
+
 	def _update_model(self, batch=None):
 		if batch is None:
 			batch = self._update_batch
@@ -95,6 +100,16 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			np.array(batch[1]),
 			self.__fit_params
 		)
+		if len(self._validation_dataset[0]) == 0:
+			return
+		self._evaluate_model(
+			np.array(self._validation_dataset[0]),
+			np.array(self._validation_dataset[1])
+		)
+
+	def __add_validation_set(self, X, y):
+		self._validation_dataset[0].extend(X)
+		self._validation_dataset[1].extend(y)
 
 	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
 		new_batch = (
@@ -109,9 +124,11 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		self._update_batch[0].extend(new_batch[0])
 		self._update_batch[1].extend(new_batch[1])
 
-		if len(self._update_batch[0]) == self._update_batch_size:
+		if len(self._update_batch[0]) >= self._update_batch_size:
 			self._update_model()
-			self._update_batch = ([], [])
+			self.__add_validation_set(*self._update_batch)
+			if self._clear_update_batch:
+				self._update_batch = ([], [])
 
 	def get_configs(self):
 		configs = super().get_configs()

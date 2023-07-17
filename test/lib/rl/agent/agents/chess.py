@@ -144,10 +144,10 @@ class ChessMonteCarloAgent(MonteCarloAgent, ABC):
 class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.__model = self._load_model()
+		self.__model: models.Model = self._load_model()
 
 	def _load_model(self):
-		model = models.load_model("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/chesstpm.h5", compile=False)
+		model = models.load_model("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/chesstpms/transition_model(8).h5", compile=False)
 		model.compile(optimizer="adam", loss=["categorical_crossentropy" for _ in range(2)],
 					  metrics=[["accuracy"], ["accuracy"]])
 		return model
@@ -210,7 +210,10 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 		])
 
 	def _fit_model(self, X: np.ndarray, y: np.ndarray, fit_params: typing.Dict):
-		self.__model.fit(X, [y[:, :64], y[:, 64:]], epochs=100)
+		self.__model.fit(X, [y[:, :64], y[:, 64:]], epochs=10, batch_size=1)
+
+	def _evaluate_model(self, X: np.ndarray, y: np.ndarray):
+		self.__model.evaluate(X, [y[:, :64], y[:, 64:]])
 
 	def _predict(self, model: models.Model, inputs: np.array) -> np.ndarray:
 		return np.concatenate(super()._predict(model, inputs), axis=1)

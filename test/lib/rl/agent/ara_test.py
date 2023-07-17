@@ -7,7 +7,7 @@ from test.lib.rl.environment.environments.chess import ChessEnvironment, ChessGa
 from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent, ChessDNNTransitionAgent, ChessActionChoiceAgent
 
 
-class ChessAgent(ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent):
+class ChessAgent(ChessMonteCarloAgent, ChessDNNTransitionAgent, ChessModelBasedAgent, ChessActionChoiceAgent):
 
 	def perform_timestep(self):
 		while self._get_environment().get_state().get_current_player() != self._get_environment().get_state().get_player_side():
@@ -21,8 +21,8 @@ class ActionRecommendationAgent(unittest.TestCase):
 
 	def test_functionality(self):
 
-		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, num_actions=10, ara_tries=10, batch_size=1)
-		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, num_actions=10, ara_tries=10, batch_size=1)
+		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, update_batch_size=1, clear_update_batch=False, use_stm=False, step_time=5)
+		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, update_batch_size=1, clear_update_batch=False, use_stm=False, step_time=5)
 
 		game = ChessGame(agent0, agent1)
 		game.start()
