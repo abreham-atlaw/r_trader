@@ -41,7 +41,10 @@ class GranularDataProcessor:
     def __forecast(self, sequence, depth, initial_depth=0) -> np.ndarray:
 
         for i in range(initial_depth, depth):
-            probs = self.__model.predict(sequence)
+            inputs = sequence
+            if self.__depth_input:
+                inputs = np.concatenate((inputs, i), axis=1)
+            probs = self.__model.predict(inputs)
             next_bound = np.array([np.random.choice(self.__bounds, p=prob) for prob in probs])
             values = sequence[:, -1] + next_bound
             sequence = np.concatenate((sequence[:, 1:], np.expand_dims(values, axis=1)), axis=1)
