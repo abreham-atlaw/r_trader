@@ -41,7 +41,7 @@ class WrapperGenerator(KerasSequence):
 		return np.concatenate(data, axis=1)
 
 	def __separate_values(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-		X, y = data[:, :self.__slice_point], data[:, self.__slice_point:].reshape((-1,))
+		X, y = data[:, :self.__slice_point], data[:, self.__slice_point:]
 		if self.__y_reshape:
 			y = y.reshape((-1,))
 		return X, y

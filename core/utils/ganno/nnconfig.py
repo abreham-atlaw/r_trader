@@ -57,6 +57,7 @@ class ModelConfig:
 	float_embedding: Optional[int] = None
 	positional_encoding: bool = False
 	transformer_config: Optional[TransformerConfig] = None
+	out_shape: int = 1
 
 	def validate(self) -> bool:
 

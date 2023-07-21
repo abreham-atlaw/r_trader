@@ -151,7 +151,7 @@ class ModelBuilder(ABC):
 		pass
 
 	def _get_output_shape(self, config: ModelConfig) -> int:
-		return 1
+		return config.out_shape
 
 	def _finalize_output_layer(self, output_layer: KerasTensor, config: ModelConfig):
 		return output_layer

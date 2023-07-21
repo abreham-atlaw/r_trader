@@ -8,7 +8,7 @@ import hashlib
 import gc
 
 from core.utils.training.datapreparation.generators import WrapperGenerator
-from .cache import Cache
+from core.utils.training.datapreparation.cache import Cache
 
 
 class BatchDepthCache(Cache):
