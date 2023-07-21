@@ -63,7 +63,7 @@ class DataProcessor:
 
 			core_input = sequence
 			if self.__depth_input:
-				core_input = np.concatenate((core_input, i), axis=1)
+				core_input = np.concatenate((core_input, depth), axis=1)
 
 			directions = self.__core_model.predict(core_input)
 
@@ -75,7 +75,7 @@ class DataProcessor:
 
 			delta_input = np.concatenate((sequence, delta_direction), axis=1)
 			if self.__depth_input:
-				delta_input = np.concatenate((delta_input, i), axis=1)
+				delta_input = np.concatenate((delta_input, depth), axis=1)
 
 			deltas = self.__delta_model.predict(delta_input)
 			values = sequence[:, -1:] + (2 * round_directions - 1) * deltas
