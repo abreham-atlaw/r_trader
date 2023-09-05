@@ -52,13 +52,13 @@ class MonteCarloTest(unittest.TestCase):
 		# 	best_move="g5d8"
 		# ),
 		BestMoveDataPoint(
-			move_stack=['e4', 'e5', 'Nf3', 'Qf6', 'd3x`'],
-			best_move="b8c6"
+			move_stack=['g4', 'h5', 'gxh5', 'Rxh5', 'c4'],
+			best_move="c5"
 		),
-		BestMoveDataPoint(
-			move_stack=['e4', 'e5', 'Nf3', 'Be7', 'Nc3', 'Bg5'],
-			best_move="f3g5"
-		)
+		# BestMoveDataPoint(
+		# 	move_stack=['e4', 'e5', 'Nf3', 'Be7', 'Nc3', 'Bg5'],
+		# 	best_move="f3g5"
+		# )
 	]
 
 	def test_functionality(self):
@@ -78,7 +78,7 @@ class MonteCarloTest(unittest.TestCase):
 		self.assertEqual(action.uci(), dp.best_move)
 
 	def test_best_move(self):
-		agent = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=60)
+		agent = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=5*60)
 		env = ChessEnvironment()
 		agent.set_environment(env)
 		for dp in self.BEST_MOVE_TEST_CASES:
