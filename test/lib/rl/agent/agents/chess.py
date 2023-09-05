@@ -116,9 +116,9 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 
 class ChessStockfishModelBasedAgent(ModelBasedAgent, ABC):
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, stockfish_path=None, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.__stockfish = Stockfish()
+		self.__stockfish = Stockfish(stockfish_path)
 		self.__cache: typing.Dict[str, str] = {}
 
 	def __get_single_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState ) -> float:
