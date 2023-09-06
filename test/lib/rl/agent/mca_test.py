@@ -23,14 +23,17 @@ from lib.utils.stm import ExactCueMemoryMatcher
 
 
 from test.lib.rl.environment.environments.chess import ChessEnvironment, ChessGame, ChessState
-from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent, ChessDNNTransitionAgent, ChessActionChoiceAgent
+from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent, \
+	ChessActionChoiceAgent, ChessStockfishModelBasedAgent
 
 
-class ChessAgent(ChessMonteCarloAgent, ChessDNNTransitionAgent, ChessModelBasedAgent, ChessActionChoiceAgent):
+class ChessAgent(ChessMonteCarloAgent, ChessStockfishModelBasedAgent, ChessModelBasedAgent, ChessActionChoiceAgent):
 
 	def perform_timestep(self):
 		while self._get_environment().get_state().get_current_player() != self._get_environment().get_state().get_player_side():
 			time.sleep(1)
+		if self._get_environment().is_episode_over():
+			return
 		super().perform_timestep()
 
 

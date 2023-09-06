@@ -4,7 +4,7 @@ import unittest
 import time
 
 from test.lib.rl.environment.environments.chess import ChessEnvironment, ChessGame
-from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent, ChessDNNTransitionAgent, ChessActionChoiceAgent, ChessStockfishModelBasedAgent
+from .agents.chess import ChessMonteCarloAgent, ChessModelBasedAgent, ChessActionChoiceAgent, ChessStockfishModelBasedAgent
 
 
 class ChessAgent(ChessMonteCarloAgent, ChessStockfishModelBasedAgent, ChessModelBasedAgent, ChessActionChoiceAgent):
@@ -17,7 +17,7 @@ class ChessAgent(ChessMonteCarloAgent, ChessStockfishModelBasedAgent, ChessModel
 		super().perform_timestep()
 
 
-class ActionRecommendationAgent(unittest.TestCase):
+class ActionRecommendationAgentTest(unittest.TestCase):
 
 	def test_functionality(self):
 

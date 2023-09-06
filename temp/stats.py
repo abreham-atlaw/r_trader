@@ -1,6 +1,9 @@
+import chess
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+
+from test.lib.rl.environment.environments.chess import ChessState
 
 durations = {
 	phase: 0
@@ -147,27 +150,18 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
 	return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
 
 
-def draw_graph(root_node, depth=None):
+def draw_graph(root_node, repository, depth=None):
 	def get_node_label(node):
 		if node.parent is None:
 			return "Root"
 
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"
-			if node.parent.get_children().index(node) % 2 == 1:
-				return "Inc"+total_value
-			return "Dec"+total_value
+			state: ChessState = repository.retrieve(node.id)
+			return f"{state.get_board().move_stack[-1]}"
 
-		action = node.action
-		label = ""
-		if action is None:
-			label = "None"
-		elif action.action == 0:
-			label = "Sell"
-		elif action.action == 1:
-			label = "Buy"
-		elif action.action == 2:
-			label = "Close"
+		action: chess.Move = node.action
+		label = str(action)
 
 		return f"{label}\n{node.total_value: .4f}"
 
