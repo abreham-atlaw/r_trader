@@ -55,7 +55,7 @@ class MonteCarloTest(unittest.TestCase):
 		# 	best_move="g5d8"
 		# ),
 		BestMoveDataPoint(
-			move_stack=['g4', 'h5', 'gxh5', 'Rxh5', 'c4'],
+			move_stack=['e4', 'c5', 'Nc3', 'e6', 'g3', 'a6', 'a4', 'b6', 'Bg2', 'Bb7', 'Nge2', 'd6', 'O-O', 'Qc7', 'd3', 'Nc6', 'Be3', 'Nf6', 'Bg5', 'Be7', 'Bh4', 'h6', 'f4', 'g5', 'fxg5', 'hxg5', 'Bxg5', 'Ng4', 'Bxe7', 'Qxe7', 'h3'],
 			best_move="c5"
 		),
 		# BestMoveDataPoint(
@@ -64,12 +64,18 @@ class MonteCarloTest(unittest.TestCase):
 		# )
 	]
 
+	MOVE_STACK = ['e4', 'c5', 'Nc3', 'e6', 'g3', 'a6', 'a4', 'b6', 'Bg2', 'Bb7', 'Nge2', 'd6', 'O-O', 'Qc7', 'd3', 'Nc6', 'Be3', 'Nf6']
+
 	def test_functionality(self):
 
-		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=30)
-		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=30)
+		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=10*60)
+		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=10*60)
 
-		game = ChessGame(agent0, agent1)
+		board = chess.Board()
+		for move in self.MOVE_STACK:
+			board.push_san(move)
+
+		game = ChessGame(agent0, agent1, board=board)
 		game.start()
 
 	def __single_test_case(self, agent: ChessAgent, dp: BestMoveDataPoint):

@@ -18,12 +18,28 @@ from tensorflow.keras import models
 
 from lib.utils.logger import Logger
 from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, \
-	ActionRecommendationBalancerAgent, DNNTransitionAgent
+	ActionRecommendationBalancerAgent, DNNTransitionAgent, Agent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 from lib.network.rest_interface import NetworkApiClient, Request
 from lib.utils.stm import CueMemoryMatcher
 
+
+class StockfishAgent(Agent):
+
+	def __init__(self, elo=3000):
+		super().__init__()
+		self.__stockfish = Stockfish()
+		self.__stockfish.set_elo_rating(elo)
+
+	def __get_move(self, state: ChessState, san: str) -> chess.Move :
+		board = deepcopy(state.get_board())
+		board.push_san(san)
+		return board.move_stack[-1]
+
+	def _policy(self, state: ChessState) -> chess.Move:
+		self.__stockfish.set_fen_position(state.get_board().fen())
+		return self.__get_move(self.__stockfish.get_best_move())
 
 class ChessActionChoiceAgent(ActionChoiceAgent, ABC):
 
@@ -116,9 +132,9 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 
 class ChessStockfishModelBasedAgent(ModelBasedAgent, ABC):
 
-	def __init__(self, *args, stockfish_path=None, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.__stockfish = Stockfish(stockfish_path)
+		self.__stockfish = Stockfish()
 		self.__cache: typing.Dict[str, str] = {}
 
 	def __get_single_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState ) -> float:
@@ -129,7 +145,7 @@ class ChessStockfishModelBasedAgent(ModelBasedAgent, ABC):
 		best_move = self.__cache.get(fen)
 		if best_move is None:
 			self.__stockfish.set_fen_position(mid_state.fen())
-			best_move = self.__stockfish.get_best_move_time(time=500)
+			best_move = self.__stockfish.get_best_move_time(time=1)
 			self.__cache[fen] = best_move
 		mid_state.push_san(best_move)
 		return float(mid_state.move_stack[-1].uci() == final_state.get_board().move_stack[-1].uci())
