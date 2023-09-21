@@ -111,8 +111,6 @@ class ChessEnvironment(Environment):
 	def is_episode_over(self, state=None) -> bool:
 		if state is None:
 			state = self.get_state()
-		if len(state.get_board().move_stack) > 10:
-			return True
 		return state.get_board().is_checkmate() or state.get_board().is_stalemate()
 
 
@@ -127,10 +125,10 @@ class ChessGame:
 		def run(self) -> None:
 			self.__agent.perform_episode()
 
-	def __init__(self, player0: Agent, player1: Agent):
+	def __init__(self, player0: Agent, player1: Agent, board: typing.Optional[chess.Board] = None):
 		self.__players = player0, player1
-
-		board = chess.Board()
+		if board is None:
+			board = chess.Board()
 		self.__players[0].set_environment(
 			ChessEnvironment(state=ChessState(chess.WHITE, board))
 		)
