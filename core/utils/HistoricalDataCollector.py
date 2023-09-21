@@ -121,7 +121,6 @@ class OandaDataFetcher(DataFetcher):
 		]
 
 	def __fetch_candlestick(self, instrument, length, from_) -> List[CandleStick]:
-		print(f"Fetching {length} {instrument} from={from_}")
 		try:
 			candlesticks = self.__trader.get_candlestick(instrument, count=length, from_=from_, granularity="M1")
 			if candlesticks is None:
