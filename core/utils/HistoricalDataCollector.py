@@ -52,10 +52,10 @@ class DataFetcher(ABC):
 				datapoints = self._fetch_max(start_time, instrument)
 			except DatasetNotFoundException:
 				break
-			df = df.append(pd.DataFrame([
+			df = pd.concat([df, pd.DataFrame([
 				dp.__dict__
 				for dp in datapoints
-			]))
+			])], ignore_index=True)
 			previous_start_time = start_time
 			start_time = datapoints[-1].time.replace(tzinfo=None)
 			del datapoints
@@ -121,10 +121,11 @@ class OandaDataFetcher(DataFetcher):
 		]
 
 	def __fetch_candlestick(self, instrument, length, from_) -> List[CandleStick]:
+		print(f"Fetching {length} {instrument} from={from_}")
 		try:
 			candlesticks = self.__trader.get_candlestick(instrument, count=length, from_=from_, granularity="M1")
 			if candlesticks is None:
-				raise ValueError("Candlestick is None")
+							raise ValueError("Candlestick is None")
 			return candlesticks
 		except (ValueError, HTTPError) as ex:
 			print(f"Error {ex}. \nRetrying...", )
@@ -154,7 +155,10 @@ class DataCollector:
 			if df is None:
 				df = pair_df
 				continue
-			df = df.append(pair_df)
+			df = pd.concat([
+				df,
+				pair_df
+			], ignore_index=True)
 
 		return df
 
@@ -202,5 +206,5 @@ if __name__ == "__main__":
 	instruments = trader.get_instruments()
 
 	fetcher = OandaDataFetcher(trader)
-	data_collector = DataCollector(fetcher, "../../Temp/Data", resume=True)
-	data_collector.collect_data(instruments)
+	data_collector = DataCollector(fetcher, "../../temp/Data", resume=True)
+	data_collector.collect_data(instruments, from_=datetime.datetime(year=2022, month=11, day=11), to=datetime.datetime(year=2022, month=11, day=12))
