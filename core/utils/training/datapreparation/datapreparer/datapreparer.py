@@ -123,7 +123,7 @@ class CombinedDataPreparer:
 		if len(df) + len(new_data) < self.__max_rows:
 			return pd.concat([df, new_data])
 		bound = self.__max_rows - len(df)
-		df = df.append(new_data.iloc[:bound])
+		df = pd.concat([df, new_data.iloc[:bound]])
 		self.__save_df(df, path)
 
 		return self.__append_df(self.__create_df(), new_data.iloc[bound:], path)
