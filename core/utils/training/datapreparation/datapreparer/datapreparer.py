@@ -8,7 +8,7 @@ from datetime import datetime
 import os
 import gc
 
-from .filters import Filter
+from core.utils.training.datapreparation.filters import Filter
 
 
 class CombinedDataPreparer:
@@ -68,26 +68,32 @@ class CombinedDataPreparer:
 			X = filter_.filter(X)
 		return X
 
-	def __prepare_sequence(self, sequence: np.ndarray, seq_len: int) -> np.ndarray:
+	def _prepare_sequence(self, sequence: np.ndarray, seq_len: int) -> np.ndarray:
 		if sequence.shape[0] < seq_len:
 			raise DataSetTooSmall()
 		X = np.zeros((sequence.shape[0] - seq_len + 1, seq_len))
 		for i in range(X.shape[0]):
 			X[i] = sequence[i: i + seq_len]
 		return X
+	def _finalize_sequence(self, sequences: np.ndarray) -> np.ndarray:
+		return sequences
 
 	def __prepare_df(self, df: pd.DataFrame) -> np.ndarray:
 		instruments = self.__get_currency_pairs(df)
 
-		X = np.zeros((0, self.__seq_len))
+		X = None
 		pre_filter_size = self.__calc_filters_input_shape((0, self.__seq_len))[1]
 
 		for base_currency, quote_currency in instruments:
 			instrument_sequence = self.__filter_instrument(df, (base_currency, quote_currency))["c"].to_numpy()
 			for i in range(self.__granularity):
-				Xi = self.__prepare_sequence(instrument_sequence[i::self.__granularity], pre_filter_size)
+				Xi = self._prepare_sequence(instrument_sequence[i::self.__granularity], pre_filter_size)
 				X_filtered = self.__apply_filters(Xi)
-				X = np.concatenate((X, X_filtered))
+				X_filtered = self._finalize_sequence(X_filtered)
+				if X is None:
+					X = X_filtered
+				else:
+					X = np.concatenate((X, X_filtered))
 				del Xi, X_filtered
 
 		return X
@@ -115,7 +121,7 @@ class CombinedDataPreparer:
 
 	def __append_df(self, df: pd.DataFrame, new_data: pd.DataFrame, path: str) -> pd.DataFrame:
 		if len(df) + len(new_data) < self.__max_rows:
-			return df.append(new_data)
+			return pd.concat([df, new_data])
 		bound = self.__max_rows - len(df)
 		df = df.append(new_data.iloc[:bound])
 		self.__save_df(df, path)
@@ -133,7 +139,7 @@ class CombinedDataPreparer:
 					new_data = self.__process_file(file, batch_idx)
 				except DataSetTooSmall:
 					continue
-				temp_df = temp_df.append(new_data)
+				temp_df = pd.concat([temp_df, new_data])
 				gc.collect()
 				print(
 					f"Processing Batch: {batch_idx + 1}\t\tDone:{100 * (i + 1) / len(self.__files) :.2f}%\t\tFinished: {file}",
