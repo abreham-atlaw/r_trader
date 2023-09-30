@@ -1,3 +1,4 @@
+import typing
 from typing import *
 from abc import abstractmethod, ABC
 import tensorflow as tf
@@ -129,16 +130,16 @@ class MultipleMovingAverages(Layer):
 
 class OverlaysCombiner(Layer):
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, shapes: typing.List[typing.Tuple[int, ...]], *args, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.__out_size = min([shape[1] for shape in shapes])
 
 	@tf.function
 	def call(self, inputs, *args, **kwargs):
 		if isinstance(inputs, tf.Tensor) and len(inputs.shape) < 3:
 			return tf.expand_dims(inputs, axis=2)
-		out_size = min([overlay.shape[1] for overlay in inputs])
 		return tf.stack([
-			overlay[:, -out_size:]
+			overlay[:, -self.__out_size:]
 			for overlay in inputs
 		], axis=2)
 

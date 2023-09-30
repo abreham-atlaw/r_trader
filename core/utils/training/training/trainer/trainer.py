@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from core.utils.training.datapreparation.dataprocessor import DataProcessor
 from core.utils.training.datapreparation.generators import WrapperGenerator
-from .callbacks import Callback, CallbackException
+from core.utils.training.training.callbacks import Callback, CallbackException
 
 
 class Trainer:
@@ -155,6 +155,8 @@ class Trainer:
 			)
 			core_metrics, delta_metrics = [
 				model.evaluate(generator, verbose=self.__verbose)
+				if model is not None
+				else 0.0
 				for model, generator in zip(self.__models, (core_generator, delta_generator))
 			]
 			core_generator.destroy()

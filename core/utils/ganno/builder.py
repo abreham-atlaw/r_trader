@@ -187,7 +187,7 @@ class ModelBuilder(ABC):
 		if len(config.kalman_filters.percentages) > 0:
 			overlays.extend(self._add_kalman_filters(prep_layer, config.kalman_filters))
 
-		combined = OverlaysCombiner()(overlays)
+		combined = OverlaysCombiner([overlay.shape for overlay in overlays])(overlays)
 
 		ff_conv = self._add_conv_block(combined, config.ff_conv_pool_layers, config.conv_activation)
 
@@ -270,3 +270,19 @@ class DeltaBuilder(ModelBuilder):
 
 class BuildException(Exception):
 	pass
+
+
+class GranModelBuilder(ModelBuilder):
+
+	def __init__(self, grans_len: int,  *args, **kwargs):
+		super().__init__(*args, output_activation="softmax", **kwargs)
+		self.__grans_len = grans_len
+
+	def _get_output_shape(self, config: ModelConfig) -> int:
+		return self.__grans_len + 1
+
+	def _get_input_shape(self, config: ModelConfig) -> int:
+		return config.seq_len + 1
+
+	def _compile(self, model: Model, optimizer: keras.optimizers.Optimizer, loss: Callable):
+		model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
