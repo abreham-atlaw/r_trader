@@ -64,7 +64,7 @@ class FilesGenerator(KerasSequence):
 		if end_file_index > len(self.__files) - 1:
 			return batch_start
 		batch_end = self.__load_file(end_file_index).iloc[:end_row_index]
-		return batch_start.append(batch_end)
+		return pd.concat([batch_start, batch_end])
 
 	def __getitem__(self, index):
 		cached = self.__batch_cache.retrieve(index)
