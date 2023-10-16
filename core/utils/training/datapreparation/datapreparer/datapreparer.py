@@ -75,6 +75,7 @@ class CombinedDataPreparer:
 		for i in range(X.shape[0]):
 			X[i] = sequence[i: i + seq_len]
 		return X
+
 	def _finalize_sequence(self, sequences: np.ndarray) -> np.ndarray:
 		return sequences
 
