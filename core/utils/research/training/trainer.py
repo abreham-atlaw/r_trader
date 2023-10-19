@@ -13,7 +13,24 @@ class Trainer:
         self.loss_function = loss_function
         self.optimizer = optimizer
 
+    def summary(self):
+        print("Model Summary")
+        print("Layer Name" + "\t" * 7 + "Number of Parameters")
+        print("=" * 100)
+        total_params = 0
+        for name, parameter in self.model.named_parameters():
+            if not parameter.requires_grad:
+                continue
+            param = parameter.numel()
+            total_params += param
+            print(name + "\t" * 3 + str(param))
+        print("=" * 100)
+        print(f"Total Params:{total_params}")
+
     def train(self, dataloader, val_dataloader=None, epochs: int = 1, progress: bool = False):
+
+        self.summary()
+
         train_losses = []
         val_losses = []
         for epoch in range(epochs):
