@@ -18,13 +18,16 @@ class Decoder(nn.Module):
 	):
 		super().__init__()
 		self.emb_size = emb_size
+		self.block_size = block_size
 		self.dtype = dtype
 		self.conv = nn.Sequential(
-			nn.Conv1d(1, emb_size, kernel_size, padding="same")
+			nn.Conv1d(1, emb_size, kernel_size, padding="same"),
+			nn.Tanh(),
+			nn.Conv1d(emb_size, emb_size, kernel_size, padding="same"),
+			nn.Tanh(),
 		)
 		self.pos_encoding = PositionalEncoding1D(emb_size)
 		self.self_attn_layer_norm = nn.LayerNorm([block_size, emb_size], dtype=dtype)
-		self.enc_attn_layer_norm = nn.LayerNorm([block_size, emb_size], dtype=dtype)
 		self.ff_layer_norm = nn.LayerNorm([block_size, emb_size], dtype=dtype)
 		self.self_attention = nn.MultiheadAttention(emb_size, num_heads, batch_first=True, dtype=dtype)
 		self.encoder_attention = nn.MultiheadAttention(emb_size, num_heads, batch_first=True, dtype=dtype)
