@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.model.decoder import Decoder
+from core.utils.research.model.model.transformer import Decoder
 
 
 class Transformer(nn.Module):
@@ -19,5 +19,4 @@ class Transformer(nn.Module):
 		y = self.decoder(X)
 		y = y[:, -1]
 		y = self.linear(y)
-		y = self.softmax(y)
 		return y

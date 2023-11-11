@@ -8,23 +8,58 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.model.model.decoder import Decoder
-from core.utils.research.model.model.model import Transformer
+from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.transformer import Decoder
+from core.utils.research.model.model.transformer import Transformer
 from core.utils.research.training.trainer import Trainer
 
 
 class TrainerTest(unittest.TestCase):
 
+	def test_cnn_model(self):
+
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/actual_cnn_model.pth"
+
+		VOCAB_SIZE = 449
+		BATCH_SIZE = 4
+
+		model = CNN(
+			VOCAB_SIZE
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+
+		test_dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
+			],
+		)
+		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		loss_function = nn.CrossEntropyLoss()
+		optimizer = Adam(model.parameters(), lr=1e-3)
+
+		trainer = Trainer(model, loss_function=loss_function, optimizer=optimizer)
+		trainer.train(dataloader, epochs=2, progress=True, val_dataloader=test_dataloader)
+		torch.save(model.state_dict(), SAVE_PATH)
+
 	def test_functionality(self):
+
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/actual_model.pth"
 
 		KERNEL_SIZE = 3
 		BLOCK_SIZE = 1024
-		EMB_SIZE = 64
-		NUM_HEADS = 8
-		FF_SIZE = 1024
+		EMB_SIZE = 8
+		NUM_HEADS = 2
+		FF_SIZE = 128
 
 		VOCAB_SIZE = 449
-		BATCH_SIZE = 16
+		BATCH_SIZE = 4
 
 		model = Transformer(
 			Decoder(
@@ -36,24 +71,29 @@ class TrainerTest(unittest.TestCase):
 			),
 			vocab_size=VOCAB_SIZE
 		)
+		# model.load_state_dict(
+		# 	torch.load('/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/sin_model.pth',
+		# 	map_location=torch.device('cpu'))
+		# )
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/test"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
 			],
 		)
-		dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
 		loss_function = nn.CrossEntropyLoss()
-		optimizer = Adam(model.parameters(), lr=0.001)
+		optimizer = Adam(model.parameters(), lr=1e-3)
 
 		trainer = Trainer(model, loss_function=loss_function, optimizer=optimizer)
-		trainer.train(dataloader, epochs=3, progress=True)
+		trainer.train(dataloader, epochs=2, progress=True, val_dataloader=test_dataloader)
+		torch.save(model.state_dict(), SAVE_PATH)
 

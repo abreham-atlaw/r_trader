@@ -168,6 +168,8 @@ class DataPreparer:
 
 		sequence = df[header_close].to_numpy()
 
+		print("[+]Preparing...")
+
 		for i in range(self.__granularity):
 			gran_sequence = sequence[i::self.__granularity]
 			if self.__ma_window_size not in [0, 1, None]:
