@@ -1,3 +1,4 @@
+import time
 import typing
 
 import chess
@@ -47,22 +48,13 @@ class ChessEnvironment(Environment):
 
 	def __get_game_end_reward(self, state: ChessState) -> float:
 		if state.get_board().is_checkmate():
-			if state.get_current_player() != state.get_player_side():
+			if state.get_current_player() == state.get_player_side():
 				return 1
 			else:
 				return -1
 		if state.get_board().is_stalemate():
 			return 0
 		return 0
-
-	def __get_pieces_difference(self, board, color):
-		if len(board.move_stack) < 2:
-			return 0
-		previous_board = deepcopy(board)
-		previous_board.pop()
-		previous_board.pop()
-
-		return self.__get_pieces_value(board, color) - self.__get_pieces_value(previous_board, color)
 
 	def __get_pieces_value(self, board, color) -> int:
 		return sum([
@@ -77,25 +69,29 @@ class ChessEnvironment(Environment):
 			state = self.get_state()
 
 		game_end_reward = self.__get_game_end_reward(state)
-		pieces_reward = self.__get_pieces_difference(state.get_board(), state.get_player_side()) - self.__get_pieces_difference(state.get_board(), not state.get_player_side())
-		total_reward = 1e5*game_end_reward + 1e3*pieces_reward
-		return total_reward
+		pieces_reward = self.__get_pieces_value(state.get_board(), state.get_player_side()) - self.__get_pieces_value(state.get_board(), not state.get_player_side())
+		return 10 * game_end_reward + pieces_reward
 
 	def perform_action(self, action: chess.Move):
 		self.get_state().get_board().push(action)
 		self.get_state().switch_current_player()
+		print(
+			f"[+](Player: {['Black', 'White'][int(self.get_state().get_player_side())]}): Waiting for {['Black', 'White'][int(self.get_state().get_current_player())]}...")
+		while self.get_state().get_current_player() != self.get_state().get_player_side() and not self.is_episode_over():
+			time.sleep(1)
+		print(f"[+](Player: {['Black', 'White'][int(self.get_state().get_player_side())]}): Continuing...")
 
 	def __print_board(self, board: chess.Board):
 		for i in range(7, -1, -1):
 			for j in range(8):
 				if j == 0:
 					print("|", end="")
-				piece = board.piece_at(i*8 + j)
+				piece = board.piece_at(i * 8 + j)
 				char = f"{' ': ^15}"
 				if piece is not None:
 					char = f"{piece.unicode_symbol(): ^14}"
 				print(char, end="|")
-			print("\n"+"".join(["_" for i in range(127)]))
+			print("\n" + "".join(["_" for i in range(127)]))
 
 	def render(self):
 		self.__print_board(self.get_state().get_board())
@@ -129,10 +125,10 @@ class ChessGame:
 		def run(self) -> None:
 			self.__agent.perform_episode()
 
-	def __init__(self, player0: Agent, player1: Agent):
+	def __init__(self, player0: Agent, player1: Agent, board: typing.Optional[chess.Board] = None):
 		self.__players = player0, player1
-
-		board = chess.Board()
+		if board is None:
+			board = chess.Board()
 		self.__players[0].set_environment(
 			ChessEnvironment(state=ChessState(chess.WHITE, board))
 		)

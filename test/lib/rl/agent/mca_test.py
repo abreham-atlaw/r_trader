@@ -23,14 +23,17 @@ from lib.utils.stm import ExactCueMemoryMatcher
 
 
 from test.lib.rl.environment.environments.chess import ChessEnvironment, ChessGame, ChessState
-from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent, ChessDNNTransitionAgent, ChessActionChoiceAgent
+from .agents.chess import ChessActionRecommendationBalancerAgent, ChessMonteCarloAgent, ChessModelBasedAgent, \
+	ChessActionChoiceAgent, ChessStockfishModelBasedAgent
 
 
-class ChessAgent(ChessMonteCarloAgent, ChessDNNTransitionAgent, ChessModelBasedAgent, ChessActionChoiceAgent):
+class ChessAgent(ChessMonteCarloAgent, ChessStockfishModelBasedAgent, ChessModelBasedAgent, ChessActionChoiceAgent):
 
 	def perform_timestep(self):
 		while self._get_environment().get_state().get_current_player() != self._get_environment().get_state().get_player_side():
 			time.sleep(1)
+		if self._get_environment().is_episode_over():
+			return
 		super().perform_timestep()
 
 
@@ -47,18 +50,32 @@ class MonteCarloTest(unittest.TestCase):
 		# 	move_stack=['e4', 'e5', 'Qh5', 'd6', 'Bc4', 'a6'],
 		# 	best_move="h5f7"
 		# ),
+		# BestMoveDataPoint(
+		# 	move_stack=['d4', 'd5', 'e4', 'e6', 'Bg5', 'Nh6'],
+		# 	best_move="g5d8"
+		# ),
 		BestMoveDataPoint(
-			move_stack=['d4', 'd5', 'e4', 'e6', 'Bg5', 'Nh6'],
-			best_move="g5d8"
-		)
+			move_stack=['e4', 'c5', 'Nc3', 'e6', 'g3', 'a6', 'a4', 'b6', 'Bg2', 'Bb7', 'Nge2', 'd6', 'O-O', 'Qc7', 'd3', 'Nc6', 'Be3', 'Nf6', 'Bg5', 'Be7', 'Bh4', 'h6', 'f4', 'g5', 'fxg5', 'hxg5', 'Bxg5', 'Ng4', 'Bxe7', 'Qxe7', 'h3'],
+			best_move="c5"
+		),
+		# BestMoveDataPoint(
+		# 	move_stack=['e4', 'e5', 'Nf3', 'Be7', 'Nc3', 'Bg5'],
+		# 	best_move="f3g5"
+		# )
 	]
+
+	MOVE_STACK = ['e4', 'c5', 'Nc3', 'e6', 'g3', 'a6', 'a4', 'b6', 'Bg2', 'Bb7', 'Nge2', 'd6', 'O-O', 'Qc7', 'd3', 'Nc6', 'Be3', 'Nf6']
 
 	def test_functionality(self):
 
-		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=30)
-		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=30)
+		agent0 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=10*60)
+		agent1 = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=10*60)
 
-		game = ChessGame(agent0, agent1)
+		board = chess.Board()
+		for move in self.MOVE_STACK:
+			board.push_san(move)
+
+		game = ChessGame(agent0, agent1, board=board)
 		game.start()
 
 	def __single_test_case(self, agent: ChessAgent, dp: BestMoveDataPoint):
@@ -67,10 +84,10 @@ class MonteCarloTest(unittest.TestCase):
 			board.push_san(move)
 		state = ChessState(board.turn, board)
 		action: chess.Move = agent._policy(state)
-		self.assertEquals(action.uci(), dp.best_move)
+		self.assertEqual(action.uci(), dp.best_move)
 
 	def test_best_move(self):
-		agent = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=30)
+		agent = ChessAgent(explore_exploit_tradeoff=1.0, discount=1, step_time=5*60)
 		env = ChessEnvironment()
 		agent.set_environment(env)
 		for dp in self.BEST_MOVE_TEST_CASES:

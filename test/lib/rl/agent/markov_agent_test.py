@@ -126,12 +126,12 @@ class AgentTest(unittest.TestCase):
 
 	class HanoiTowerAgent(MarkovAgent):
 
-		def _get_expected_transition_probability(self, initial_state: List[List[int]], action: Tuple[int, int],
-												final_state: List[List[int]]) -> float:
+		def _get_expected_transition_probability_distribution(self, initial_state: List[List[int]], action: Tuple[int, int],
+															  final_state: List[List[int]]) -> float:
 			return 1.0
 
-		def _update_transition_probability(self, initial_state: List[List[int]], action: Tuple[int, int],
-											final_state: List[List[int]]):
+		def _update_transition_probability(self, initial_states: List[List[int]], action: Tuple[int, int],
+										   final_state: List[List[int]]):
 			pass
 
 		def _get_expected_instant_reward(self, state: List[List[int]]) -> float:

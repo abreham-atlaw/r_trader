@@ -29,9 +29,14 @@ class MarkovAgent(ModelBasedAgent, ABC):
 		if depth is None:
 			depth = self._depth
 
-		for destination in states:
+		probability_distribution = self._get_expected_transition_probability_distribution(
+			[state for _ in range(len(states))],
+			[action for _ in range(len(action))],
+			states
+		)
+
+		for destination, transition_probability in zip(states, probability_distribution):
 			destination_value = self._get_state_value(destination, depth-1)
-			transition_probability = self._get_expected_transition_probability(state, action, destination)
 			weighted_value = destination_value * transition_probability
 			value += weighted_value
 

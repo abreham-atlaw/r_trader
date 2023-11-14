@@ -1,13 +1,14 @@
 import random
 import time
 import typing
-from typing import List
+from typing import List, Any
 from abc import ABC
 
 from copy import deepcopy
 import datetime as dt
 import attr
 
+from stockfish import Stockfish
 import chess
 import numpy as np
 import tensorflow as tf
@@ -17,12 +18,28 @@ from tensorflow.keras import models
 
 from lib.utils.logger import Logger
 from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, \
-	ActionRecommendationBalancerAgent, DNNTransitionAgent
+	ActionRecommendationBalancerAgent, DNNTransitionAgent, Agent
 from lib.rl.environment import ModelBasedState
 from test.lib.rl.environment.environments.chess import ChessState
 from lib.network.rest_interface import NetworkApiClient, Request
 from lib.utils.stm import CueMemoryMatcher
 
+
+class StockfishAgent(Agent):
+
+	def __init__(self, elo=3000):
+		super().__init__()
+		self.__stockfish = Stockfish()
+		self.__stockfish.set_elo_rating(elo)
+
+	def __get_move(self, state: ChessState, san: str) -> chess.Move :
+		board = deepcopy(state.get_board())
+		board.push_san(san)
+		return board.move_stack[-1]
+
+	def _policy(self, state: ChessState) -> chess.Move:
+		self.__stockfish.set_fen_position(state.get_board().fen())
+		return self.__get_move(self.__stockfish.get_best_move())
 
 class ChessActionChoiceAgent(ActionChoiceAgent, ABC):
 
@@ -85,11 +102,11 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 				time.sleep(2*60)
 				return self.__get_num_games(board)
 
-	def _get_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState) -> float:
+	def _get_expected_transition_probability_distribution(self, initial_states: List[ChessState], actions: List[chess.Move], final_states: List[ChessState]) -> List[float]:
 		# return self.__get_num_games(final_state.get_board())/self.__get_num_games(initial_state.get_board())
-		return 0.2
+		return [0.2 for _ in range(len(initial_states))]
 
-	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state):
+	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state):
 		pass
 
 	def _get_expected_instant_reward(self, state: ChessState) -> float:
@@ -111,6 +128,37 @@ class ChessModelBasedAgent(ModelBasedAgent, ABC):
 			del possible_state
 
 		return states
+
+
+class ChessStockfishModelBasedAgent(ModelBasedAgent, ABC):
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__stockfish = Stockfish()
+		self.__cache: typing.Dict[str, str] = {}
+
+	def __get_single_expected_transition_probability(self, initial_state: ChessState, action: chess.Move, final_state: ChessState ) -> float:
+		mid_state = deepcopy(final_state.get_board())
+		mid_state.pop()
+		fen = mid_state.fen()
+
+		best_move = self.__cache.get(fen)
+		if best_move is None:
+			self.__stockfish.set_fen_position(mid_state.fen())
+			best_move = self.__stockfish.get_best_move_time(time=1)
+			self.__cache[fen] = best_move
+		mid_state.push_san(best_move)
+		return float(mid_state.move_stack[-1].uci() == final_state.get_board().move_stack[-1].uci())
+
+	def _get_expected_transition_probability_distribution(self, initial_states: List[ChessState], actions: List[chess.Move], final_states: List[ChessState]) -> List[float]:
+
+		return [
+			self.__get_single_expected_transition_probability(initial_state, action, final_state)
+			for initial_state, action, final_state in zip(initial_states, actions, final_states)
+		]
+
+	def _update_transition_probability(self, initial_states: ModelBasedState, action, final_state):
+		pass
 
 
 class ChessMonteCarloAgent(MonteCarloAgent, ABC):
@@ -142,12 +190,20 @@ class ChessMonteCarloAgent(MonteCarloAgent, ABC):
 
 
 class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
+
+	TRANSITION_MODEL = None
+
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.__model = self._load_model()
+		self.__model: models.Model = self._load_model()
 
-	def _load_model(self):
-		return models.load_model("dta_model.h5")
+	@staticmethod
+	def _load_model():
+		if (ChessDNNTransitionAgent.TRANSITION_MODEL == None):
+			model = models.load_model("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/chessModel/out/model", compile=False)
+			model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+			ChessDNNTransitionAgent.TRANSITION_MODEL = model
+		return ChessDNNTransitionAgent.TRANSITION_MODEL
 
 	def _transition_model(self) -> models.Model:
 		return self.__model
@@ -155,40 +211,70 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __one_hot_encoding(self, classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:
 		return [1 if class_ == c else 0 for c in classes]
 
-	def _state_action_to_model_input(self, state: ChessState, action, final_state: ChessState) -> np.ndarray:
-		board = deepcopy(state.get_board())
-		board.push(action)
+	@staticmethod
+	def __encode_board(board):
+		encoding = np.zeros((14, 8, 8), dtype=int)
+		for i in range(64):
+			piece = board.piece_at(i)
+			if piece is not None:
+				encoding[piece.piece_type + int(piece.color) * 6][i // 8][i % 8] = 1
+		encoding[13] = 1 if board.turn == chess.BLACK else 0
+		return encoding.reshape(-1)
+
+	def __prepare_single_dta_input(self, state: ChessState, action: chess.Move, final_state: ChessState) -> np.ndarray:
+		mid_board = deepcopy(final_state.get_board())
+		mid_board.pop()
+		return np.array([self.__encode_board(mid_board)])
+
+	def __prepare_single_dta_output(
+			self,
+			initial_state: ChessState,
+			output: np.ndarray,
+			final_state: ChessState
+	) -> float:
 		move = final_state.get_board().move_stack[-1]
-		return np.expand_dims(
-			np.concatenate([
-				self.__one_hot_encoding(list(range(-6, 7)), piece)
-				for piece in [
-					board.piece_at(i).piece_type * 2 * (int(board.piece_at(i).color) - 0.5)
-					if board.piece_at(i) is not None
-					else 0
-					for i in range(64)
-				]
-			] + [self.__one_hot_encoding(
-				list(range(64)),
-				move.from_square
-			)] + [self.__one_hot_encoding(
-					list(range(64)),
-					move.to_square
-				)],
-				axis=0
-			),
-			axis=0
-		)
+		output = output.flatten()
+		return output[move.from_square * 64 + move.to_square]
 
-	def _prediction_to_transition_probability(self, initial_state: ModelBasedState, output: np.ndarray,
-											  final_state: ModelBasedState) -> float:
-		return max(1e-5, float(tf.reshape(output, (-1,))[0]))
+	def _prepare_dta_input(self, states: typing.List[ChessState], actions: List[typing.Any], final_states: typing.List[ChessState]) -> np.ndarray:
+		return np.concatenate([
+			self.__prepare_single_dta_input(state, action, final_state)
+			for state, action, final_state in zip(states, actions, final_states)
+		])
 
-	def _get_train_output(self, initial_state: ModelBasedState, action, final_state: ModelBasedState) -> np.ndarray:
-		return None
+	def _prepare_dta_output(self, initial_states: typing.List[ModelBasedState], outputs: typing.List[np.ndarray],
+							final_states: typing.List[ModelBasedState]) -> List[float]:
+		return [
+			self.__prepare_single_dta_output(initial_state, output, final_state)
+			for initial_state, output, final_state in zip(initial_states, outputs, final_states)
+		]
 
-	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
-		return
+	def __encode_action(self, action):
+		start_square = action.from_square
+		end_square = action.to_square
+		encoding = np.zeros(4096, dtype=int)
+		encoding[start_square*64 + end_square] = 1
+		return encoding
+
+	def __prepare_single_dta_train_output(self, initial_state: ChessState, action: chess.Move, final_state: ChessState) -> np.ndarray:
+		return self.__encode_action(final_state.get_board().move_stack[-1])
+
+	def _prepare_dta_train_output(self, initial_states: typing.List[ChessState], actions: typing.List[chess.Move], final_states: typing.List[ChessState]) -> np.ndarray:
+		return np.stack([
+			self.__prepare_single_dta_train_output(initial_state, action, final_state)
+			for initial_state, action, final_state in zip(initial_states, actions, final_states)
+		])
+
+	def _fit_model(self, X: np.ndarray, y: np.ndarray, fit_params: typing.Dict):
+		print(f"[+]Fitting({self._get_environment().get_state().get_player_side()})...")
+		self.__model.fit(X, y, epochs=5, verbose=1, batch_size=1)
+
+	def _evaluate_model(self, X: np.ndarray, y: np.ndarray):
+		self.__model.evaluate(X, [y[:, :64], y[:, 64:]])
+
+	def _predict(self, model: models.Model, inputs: np.array) -> np.ndarray:
+		out = model(inputs).numpy()
+		return out
 
 
 class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
