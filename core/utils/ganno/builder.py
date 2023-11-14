@@ -6,7 +6,7 @@ from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Dense, Conv1D, MaxPooling1D, Input, Reshape, Concatenate, Flatten, Dropout, \
 	Add, Subtract, AveragePooling1D, UpSampling1D, MultiHeadAttention, LayerNormalization
-from tensorflow.keras.activations import sigmoid
+from tensorflow.keras.activations import sigmoid, softmax
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
 from lib.utils.logger import Logger
@@ -151,7 +151,7 @@ class ModelBuilder(ABC):
 		pass
 
 	def _get_output_shape(self, config: ModelConfig) -> int:
-		return 1
+		return config.out_shape
 
 	def _finalize_output_layer(self, output_layer: KerasTensor, config: ModelConfig):
 		return output_layer
@@ -266,6 +266,18 @@ class DeltaBuilder(ModelBuilder):
 
 	def _get_input_shape(self, config: ModelConfig) -> int:
 		return config.seq_len + 2
+
+
+class GranBuilder(ModelBuilder):
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, output_activation=softmax, **kwargs)
+
+	def _get_input_shape(self, config: ModelConfig) -> int:
+		return config.seq_len + 1
+
+	def _compile(self, model: Model, optimizer: keras.optimizers.Optimizer, loss: Callable):
+		model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
 
 
 class BuildException(Exception):

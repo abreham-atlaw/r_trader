@@ -1,85 +1,103 @@
-import typing
+from typing import *
 
-from tensorflow import keras
 import numpy as np
+from tensorflow.keras.models import Model
+from tensorflow.keras.utils import Sequence as KerasSequence
 
-from .dataprocessor import DataProcessor
+import hashlib
+import gc
+
+from core.utils.training.datapreparation.generators import WrapperGenerator
+from core.utils.training.datapreparation.cache import Cache
+from .combined_dataprocessor import BatchDepthCache
 
 
-class GranDataProcessor(DataProcessor):
+class GranularDataProcessor:
 
-	def __init__(
-			self,
-			grans: typing.List[float],
-			model: keras.Model,
-			*args, **kwargs
-	):
-		super().__init__(model, None, *args, **kwargs)
-		self.__percentages = grans
-		self.__classes = self.__get_classes(grans)
+    def __init__(
+            self,
+            generator: KerasSequence,
+            model: Model,
+            bounds: List[float],
+            mini_batch_size: int,
+            process_batch_size: int,
+            cache_size: int = 5,
+            depth_input: bool = True
+    ):
+        self.__generator = generator
+        self.__model = model
+        self.__bounds = np.array(bounds)
+        self.__mini_batch_size = mini_batch_size
+        self.__process_batch_size = process_batch_size
+        self.__cache = BatchDepthCache(cache_size)
+        self.__depth_input = depth_input
+        self.__seq_len = self.__model.input_shape[1]
+        if depth_input:
+            self.__seq_len -= 1
 
-	@staticmethod
-	def __get_classes(percentages):
-		averages = [percentages[0]]
-		for i in range(len(percentages) - 1):
-			average = (percentages[i] + percentages[i + 1]) / 2.0
-			averages.append(average)
-		averages.append(percentages[-1])
-		return np.array(averages)
+    def set_model(self, model: Model):
+        self.__model = model
 
-	def __one_hot_encoding(self, value: int) -> np.ndarray:
-		encoded = np.zeros((len(self.__percentages) + 1))
-		encoded[value] = 1
-		return encoded
+    def __forecast(self, sequence, depth, initial_depth=0) -> np.ndarray:
 
-	def __find_gap_index(self, number) -> int:
-		for i in range(len(self.__percentages)):
-			if number < self.__percentages[i]:
-				return i
-		return len(self.__percentages)
+        for i in range(initial_depth, depth):
+            depth = np.ones((sequence.shape[0], 1)) * i
+            inputs = sequence
+            if self.__depth_input:
+                inputs = np.concatenate((inputs, depth), axis=1)
+            probs = self.__model.predict(inputs)
+            next_bound = np.array([np.random.choice(self.__bounds, p=prob) for prob in probs])
+            values = sequence[:, -1] + next_bound
+            sequence = np.concatenate((sequence[:, 1:], np.expand_dims(values, axis=1)), axis=1)
 
-	def __encode_gap_indexes(self, array: np.ndarray) -> np.ndarray:
-		indexes = np.zeros((array.shape[0], len(self.__classes)))
-		for i in range(indexes.shape[0]):
-			indexes[i] = self.__one_hot_encoding(self.__find_gap_index(array[i]))
-		return indexes
+        return sequence
 
-	def _forecast(self, sequence, depth, initial_depth=0) -> np.ndarray:
+    def __apply_depth(self, sequence: np.ndarray, depth) -> np.ndarray:
+        start_depth = 0
+        input_sequence = sequence
+        cached = self.__cache.retrieve(sequence, depth - 1)
+        if cached is not None:
+            input_sequence = cached
+            start_depth = depth - 1
+        forecast = self.__forecast(input_sequence, depth, initial_depth=start_depth)
+        self.__cache.store(sequence, depth, forecast)
+        return forecast
 
-		for i in range(initial_depth, depth):
-			depth = np.ones((sequence.shape[0], 1)) * i
+    def __process_batch(self, batch: np.ndarray, depth) -> Tuple[np.ndarray, np.ndarray]:
 
-			core_input = sequence
-			if self._depth_input:
-				core_input = np.concatenate((core_input, depth), axis=1)
+        input_sequence = batch[:, :self.__seq_len]
+        if depth > 0:
+            input_sequence = self.__apply_depth(input_sequence, depth)
 
-			grans = self._core_model.predict(core_input, verbose=0)
-			classes = np.argmax(grans, axis=1)
-			percentages = self.__classes[classes]
-			values = sequence[:, -1] * percentages
-			sequence = np.concatenate((sequence[:, 1:], np.expand_dims(values, axis=1)), axis=1)
+        core_input_size = self.__seq_len
+        if self.__depth_input:
+            core_input_size += 1
 
-		return sequence
+        x = np.zeros((batch.shape[0], core_input_size))
+        y = np.zeros((batch.shape[0], len(self.__bounds)))
 
-	def _process_batch(self, batch: np.ndarray, depth) -> typing.Tuple[typing.Tuple[np.ndarray, np.ndarray], typing.Tuple[np.ndarray, np.ndarray]]:
+        x[:, :self.__seq_len] = input_sequence
 
-		input_sequence = batch[:, :self._seq_len]
-		if depth > 0:
-			input_sequence = self._apply_depth(input_sequence, depth)
+        if self.__depth_input:
+            x[:, -1] = depth
 
-		core_input_size = self._seq_len
-		if self._depth_input:
-			core_input_size += 1
+        delta = batch[:, self.__seq_len + depth] - input_sequence[:, -1]
+        y = np.eye(len(self.__bounds))[(np.abs(self.__bounds - delta[:, None])).argmin(axis=1)]
 
-		core_x, core_y = np.zeros((batch.shape[0], core_input_size)), np.zeros((batch.shape[0],))
+        return x, y
 
-		core_x[:, :self._seq_len] = input_sequence
+    def get_data(self, idx, depth) -> WrapperGenerator:
+        generator = WrapperGenerator(self.__mini_batch_size)
 
-		if self._depth_input:
-			core_x[:, -1] = depth
+        batch = self.__generator[idx]
+        rounds = int(np.ceil(len(batch) / self.__process_batch_size))
+        for i in range(rounds):
+            batch_data = self.__process_batch(
+                batch[i * self.__process_batch_size: (i + 1) * self.__process_batch_size], depth)
+            generator.add_data(batch_data)
+            gc.collect()
 
-		core_y = self.__encode_gap_indexes(
-			batch[:, self._seq_len + depth] / input_sequence[:, -1]
-		)
+        return generator
 
-		return (core_x, core_y), (np.zeros((1, 1)), np.zeros((1,)))
+    def __len__(self):
+        return len(self.__generator)

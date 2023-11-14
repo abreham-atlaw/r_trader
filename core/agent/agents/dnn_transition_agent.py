@@ -8,6 +8,7 @@ import copy
 
 from core import Config
 from lib.rl.agent import DNNTransitionAgent
+from lib.rl.agent.dta import TorchModel
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
@@ -21,7 +22,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			self,
 			*args,
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
-			state_change_delta=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			state_change_delta_bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
@@ -37,13 +38,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			**kwargs
 		)
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
-		self.__state_change_delta = state_change_delta
+		self.__state_change_delta_bounds = state_change_delta_bounds
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
 
 		if core_model is None:
 			Logger.info("Loading Core Model")
-			core_model = KerasModelHandler.load_model(Config.CORE_MODEL_CONFIG.path)
+			core_model = TorchModel.load(Config.CORE_MODEL_CONFIG.path)
 		self.set_transition_model(core_model)
 
 		self.__delta_model = None
@@ -55,6 +56,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		self.__state_change_delta_cache = {}
 		self.__discount_function = discount_function
+
+	def __find_gap_index(self, number: float) -> int:
+		boundaries = self.__state_change_delta_bounds
+		for i in range(len(boundaries)):
+			if number < boundaries[i]:
+				return i
+		return len(boundaries)
 
 	def __check_and_add_depth(self, input_: np.ndarray, depth: int) -> np.ndarray:
 		if self.__depth_mode:
@@ -100,10 +108,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			).flatten()[0]
 
 		else:
-			if isinstance(self.__state_change_delta, float):
-				percentage = self.__state_change_delta
+			if isinstance(self.__state_change_delta_bounds, float):
+				percentage = self.__state_change_delta_bounds
 			else:
-				percentage = np.random.uniform(self.__state_change_delta[0], self.__state_change_delta[1])
+				percentage = np.random.uniform(self.__state_change_delta_bounds[0], self.__state_change_delta_bounds[1])
 
 			return_value = sequence[-1] * percentage
 
@@ -111,12 +119,39 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return return_value
 
+	def __prediction_to_transition_probability_bound_mode(
+			self,
+			initial_state: TradeState,
+			output: np.ndarray,
+			final_state: TradeState
+	) -> float:
+		probabilities = output.flatten()
+
+		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
+
+			if np.all(
+					final_state.get_market_state().get_state_of(
+						base_currency,
+						quote_currency
+					) == initial_state.get_market_state().get_state_of(
+						base_currency,
+						quote_currency)
+			):
+				continue
+
+			percentage = final_state.get_market_state().get_current_price(base_currency, quote_currency) / initial_state.get_market_state().get_current_price(base_currency, quote_currency)
+			return probabilities[self.__find_gap_index(percentage)]
+
 	def _prediction_to_transition_probability(
 			self,
 			initial_state: TradeState,
 			output: np.ndarray,
 			final_state: TradeState
 	) -> float:
+
+		if not self.__state_change_delta_model_mode:
+			return self.__prediction_to_transition_probability_bound_mode(initial_state, output, final_state)
+
 		predicted_value: float = float(tf.reshape(output, (-1,))[0])
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
@@ -182,7 +217,27 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
+	def __simulate_instrument_change_bound_mode(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
+		states = []
+
+		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
+
+		for j in self.__state_change_delta_bounds:
+			new_state = state.__deepcopy__()
+			new_state.recent_balance = state.get_agent_state().get_balance()
+			new_state.get_market_state().update_state_of(
+				base_currency,
+				quote_currency,
+				np.ndarray(original_value[-1]*j).reshape(1)
+			)
+			states.append(new_state)
+
+		return states
+
 	def __simulate_instrument_change(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
+		if not self.__state_change_delta_model_mode:
+			return self.__simulate_instrument_change_bound_mode(state, base_currency, quote_currency)
+
 		states = []
 
 		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
