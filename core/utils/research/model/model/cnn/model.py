@@ -3,25 +3,27 @@ import torch.nn as nn
 
 
 class CNN(nn.Module):
-    def __init__(self, num_classes, conv_channels, kernel_sizes):
+
+    def __init__(self, num_classes, conv_channels, kernel_sizes, pool_sizes, dropout_rate):
         super(CNN, self).__init__()
-        self.layer1 = nn.Sequential(
-            nn.Conv1d(in_channels=conv_channels[0], out_channels=conv_channels[1], kernel_size=kernel_sizes[0], stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2)
-        )
-        self.layer2 = nn.Sequential(
-            nn.Conv1d(in_channels=conv_channels[1], out_channels=conv_channels[2], kernel_size=kernel_sizes[1], stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2)
-        )
-        self.avgpool = nn.AdaptiveAvgPool1d((1))
-        self.fc = nn.Linear(conv_channels[2], num_classes)
+        self.layers = nn.ModuleList()
+        for i in range(len(conv_channels) - 1):
+            self.layers.append(nn.Sequential(
+                nn.Conv1d(in_channels=conv_channels[i], out_channels=conv_channels[i+1], kernel_size=kernel_sizes[i], stride=1, padding=1),
+                nn.ReLU(),
+                nn.MaxPool1d(kernel_size=pool_sizes[i], stride=2),
+                nn.Dropout(dropout_rate)
+            ))
+        self.avg_pool = nn.AdaptiveAvgPool1d((1,))
+        self.fc = nn.Linear(conv_channels[-1], num_classes)
+        self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
-        out = self.layer1(torch.unsqueeze(x, dim=1))
-        out = self.layer2(out)
-        out = self.avgpool(out)
+        out = torch.unsqueeze(x, dim=1)
+        for layer in self.layers:
+            out = layer(out)
+        out = self.avg_pool(out)
         out = out.reshape(out.size(0), -1)
+        out = self.dropout(out)
         out = self.fc(out)
         return out
