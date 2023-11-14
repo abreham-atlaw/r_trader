@@ -149,7 +149,7 @@ class ChessDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _load_model(self):
 		return models.load_model("dta_model.h5")
 
-	def _get_transition_model(self) -> models.Model:
+	def _transition_model(self) -> models.Model:
 		return self.__model
 
 	def __one_hot_encoding(self, classes: typing.List[typing.Any], class_: typing.Any) -> typing.List[float]:

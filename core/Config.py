@@ -1,3 +1,4 @@
+import numpy as np
 from pytz import timezone
 import os
 import random
@@ -6,7 +7,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ModelConfig:
-
 	id: str
 	download: bool
 	url: str
@@ -32,7 +32,7 @@ RECURSION_DEPTH = 10000
 NESTED_PROCESS = False
 MAIN_PID = os.getpid()
 
-MONGODB_URL ="mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.net/?retryWrites=true&w=majority"
+MONGODB_URL = "mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.net/?retryWrites=true&w=majority"
 
 OPTIMIZER_PG_CONFIG = {
 	"dsn": "postgres://ontiwpwwgbtgwp:8702c0dec88af3c49473d464bf44e8ad17419facfce764c8684ed540839fb8cb@ec2-34-194-100-156.compute-1.amazonaws.com:5432/dcs4e3sfc908fi",
@@ -89,7 +89,6 @@ DEFAULT_PG_CONFIG = {
 	"password": "4U7z7KJM"  # TODO
 }
 
-
 # LIVE ENVIRONMENT
 OANDA_TOKEN = "4e3bc058fee3b2005e2a651081da881e-1cc2b5245cda5e61beb340aaf217c704"
 OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
@@ -104,22 +103,30 @@ MARKET_STATE_MEMORY = 73
 MARKET_STATE_GRANULARITY = "M1"
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
-AGENT_DEPTH = 30    # TODO: DEPRECATED
-AGENT_STATE_CHANGE_DELTA_MODEL_MODE = True
-AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = (0.00001, 0.0001)
+AGENT_DEPTH = 30  # TODO: DEPRECATED
+AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(np.concatenate([
+	1 + bound * np.linspace(-1, 1, size) ** pow
+	for bound, size, pow in [
+		(4e-3, 64, 3),
+		(1e-4, 128, 3),
+		(2e-4, 128, 3),
+		(3e-4, 128, 3)
+	]
+])))
 AGENT_DISCOUNT_FACTOR = 1
 AGENT_DISCOUNT_FUNCTION = None
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_UCT_EXPLORE_WEIGHT = 0.1
 AGENT_LOGICAL_MCA = True
-AGENT_STEP_TIME = 1*60
+AGENT_STEP_TIME = 1 * 60
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = False
 AGENT_STATIC_INSTRUMENTS = [
-			("AUD", "USD"),
-			("USD", "CHF"),
-			("USD", "SEK")
-		]
+	("AUD", "USD"),
+	("USD", "CHF"),
+	("USD", "SEK")
+]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -140,7 +147,7 @@ AGENT_MAX_OPEN_TRADES = 20
 AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 
-MC_WORKER_STEP_TIME = 0.05*60
+MC_WORKER_STEP_TIME = 0.05 * 60
 MC_WORKERS = 4
 CURRENCIES = [
 	"AUD",
