@@ -4,19 +4,21 @@ import numpy as np
 import torch
 
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.transformer import Decoder
-from core.utils.research.model.model.transformer import Transformer
 
 
 class CNNTest(unittest.TestCase):
 
 	def test_functionality(self):
+
+		CHANNELS = [1, 64, 128]
+		KERNEL_SIZES = [3, 3]
+		BLOCK_SIZE = 1024
 		VOCAB_SIZE = 449
 
 		model = CNN(
 			VOCAB_SIZE,
-			conv_channels=[1, 64, 128], 
-			kernel_sizes=[3, 3]
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES
 		)
 		model.load_state_dict(
 			torch.load(

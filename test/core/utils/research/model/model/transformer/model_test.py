@@ -41,17 +41,16 @@ class TransformerTest(unittest.TestCase):
 	def test_load_and_run(self):
 		KERNEL_SIZE = 3
 		BLOCK_SIZE = 1024
-		EMB_SIZE = 8
-		NUM_HEADS = 2
-		FF_SIZE = 128
-
+		EMB_SIZE = 128
+		NUM_HEADS = 64
+		FF_SIZE = 254
 		VOCAB_SIZE = 449
 
 		DTYPE = torch.float32
 		NP_DTYPE = np.float32
 
-		X = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train/X/1699605237.250606.npy").astype(NP_DTYPE)[:]
-		y = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train/y/1699605237.250606.npy").astype(NP_DTYPE)[:]
+		X = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train/X/1699605237.250606.npy").astype(NP_DTYPE)[:20]
+		y = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train/y/1699605237.250606.npy").astype(NP_DTYPE)[:20]
 
 		model = Transformer(
 			Decoder(

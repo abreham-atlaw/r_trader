@@ -22,9 +22,17 @@ class TrainerTest(unittest.TestCase):
 
 		VOCAB_SIZE = 449
 		BATCH_SIZE = 4
+		CHANNELS = [1, 128, 256]
+		KERNEL_SIZES = [3, 3]
+		POOL_SIZES = [1, 1]
+		DROPOOUTS = 0.1
 
 		model = CNN(
-			VOCAB_SIZE
+			VOCAB_SIZE,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			pool_sizes=POOL_SIZES,
+			dropout_rate=DROPOOUTS
 		)
 
 		dataset = BaseDataset(
