@@ -30,7 +30,6 @@ class Decoder(nn.Module):
 		self.self_attn_layer_norm = nn.LayerNorm([block_size, emb_size], dtype=dtype)
 		self.ff_layer_norm = nn.LayerNorm([block_size, emb_size], dtype=dtype)
 		self.self_attention = nn.MultiheadAttention(emb_size, num_heads, batch_first=True, dtype=dtype)
-		self.encoder_attention = nn.MultiheadAttention(emb_size, num_heads, batch_first=True, dtype=dtype)
 		self.ffn = FeedForwardNetwork(emb_size, ff_size, dtype=dtype)
 
 	def forward(self, X: torch.Tensor):
