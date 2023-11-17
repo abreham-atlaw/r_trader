@@ -54,7 +54,7 @@ class DataPreparerTest(unittest.TestCase):
 		)
 
 	def test_actual(self):
-		path = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-5k.csv"
+		path = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-10k.csv"
 		# self.__generate_data(path, int(5e4))
 		df = pd.read_csv(path)
 		GRAN = 5
