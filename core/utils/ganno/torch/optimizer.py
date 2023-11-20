@@ -61,11 +61,11 @@ class CNNOptimizer(Optimizer):
 
 	@staticmethod
 	def __generate_random_cnn_config(vocab_size: int) -> CNNConfig:
-		num_layers = random.randint(1, 5)
+		num_layers = random.randint(1, 12)
 		layers = []
 		for i in range(num_layers):
 			kernel_size = random.randint(1, 7)
-			features = random.randint(1, 16)
+			features = random.randint(1, 128)
 			padding = random.randint(0, 3)
 			pooling = random.randint(0, 2)
 			layer = ConvLayer(kernel_size, features, padding, pooling)
