@@ -50,7 +50,7 @@ PCLOUD_TOKENS = [
 	"MA3J4kZfKQB7ZTMaCcXUrulHNijLMvLOYoQeOP8jX",  # abrishatlaw@gmail.com +
 	"V54tVXZ6O9B7Z4F2uFmGJ8L8SHQu0DxWPLBdFHV4V",  # abrishatlaw@yahoo.com +
 	# "GU8eIXZIO9B7ZEVhCm0i5B5y3Tzzc0uhSM4cTlQW7",  # abreham.atlaw@yahoo.com -
-	"nQPjjkZPays7ZLH1sLOxheqpKqnD5knEQJyI1MC27",  # hiwotahab12@gmail.com +
+	"RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
 	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
 	# "rovCjXZxDks7ZMIgIx87TJgyWQot0hgSheRobnQMk",  # abrehamatlaw@outlook.com -
 	"dfD12XZHDks7ZU7Uicr7HefmO3gUUPpjT8FXkz4wX",  # abreham.atlaw@outlook.com +
@@ -61,7 +61,7 @@ PCLOUD_TOKENS = [
 	"aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
 ]
 
-PCLOUD_API_TOKEN = "nQPjjkZPays7ZLH1sLOxheqpKqnD5knEQJyI1MC27"
+PCLOUD_API_TOKEN = "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y"
 
 PCLOUD_FOLDER = "/Apps/RTrader"
 MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")

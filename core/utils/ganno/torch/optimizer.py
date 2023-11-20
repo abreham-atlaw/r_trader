@@ -1,4 +1,5 @@
 import random
+import typing
 from abc import ABC
 from typing import List
 
@@ -8,6 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from core.utils.ganno.torch.builder import ModelBuilder
 from core.utils.ganno.torch.nnconfig import CNNConfig, ConvLayer, TransformerConfig, ModelConfig
+from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.trainer import Trainer
 from lib.ga import GeneticAlgorithm, Species
 
@@ -23,6 +25,7 @@ class Optimizer(GeneticAlgorithm, ABC):
 			population_size=100,
 			batch_size=32,
 			epochs=10,
+			trainer_callbacks: typing.Optional[typing.List[Callback]] = None,
 			**kwargs,
 
 	):
@@ -35,13 +38,15 @@ class Optimizer(GeneticAlgorithm, ABC):
 			DataLoader(ds, batch_size=batch_size)
 			for ds in [dataset, test_dataset]
 		]
+		self.__trainer_callback = trainer_callbacks
 
 	def _evaluate_species(self, species: ModelConfig) -> float:
 		model = self.__builder.build(species)
 		trainer = Trainer(
 			model,
 			loss_function=nn.CrossEntropyLoss(),
-			optimizer=Adam(model.parameters(), lr=1e-3)
+			optimizer=Adam(model.parameters(), lr=1e-3),
+			callbacks=self.__trainer_callback
 		)
 		trainer.train(
 			dataloader=self.__dataloader,
@@ -60,7 +65,7 @@ class CNNOptimizer(Optimizer):
 		layers = []
 		for i in range(num_layers):
 			kernel_size = random.randint(1, 7)
-			features = random.randint(1, 64)
+			features = random.randint(1, 16)
 			padding = random.randint(0, 3)
 			pooling = random.randint(0, 2)
 			layer = ConvLayer(kernel_size, features, padding, pooling)
