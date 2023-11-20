@@ -5,6 +5,7 @@ import torch
 
 from core.utils.research.training.callbacks import Callback
 from lib.utils.file_storage import FileStorage
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class CheckpointCallback(Callback):
@@ -13,13 +14,13 @@ class CheckpointCallback(Callback):
 
 	@staticmethod
 	def __generate_name() -> str:
-		return f"{datetime.now().timestamp()}.pth"
+		return f"{datetime.now().timestamp()}.pt"
 
 	def on_epoch_end(self, model, epoch, logs=None):
 		path = self.path
 		if os.path.isdir(self.path):
 			path = os.path.join(self.path, self.__generate_name())
-		torch.save(model.state_dict(), path)
+		ModelHandler.save(model, path)
 		return path
 
 

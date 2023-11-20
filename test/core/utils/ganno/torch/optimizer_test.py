@@ -26,7 +26,7 @@ class OptimizerTest(unittest.TestCase):
 		trainer_callbacks = [
 			StoreCheckpointCallback(
 				path="/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/",
-				fs=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader/Models")
+				fs=PCloudClient(Config.PCLOUD_API_TOKEN, "/Apps/RTrader/Models/Collected/")
 			)
 		]
 
