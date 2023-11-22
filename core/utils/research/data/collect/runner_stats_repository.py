@@ -46,3 +46,8 @@ class RunnerStatsRepository:
 			return RunnerStats(**doc)
 		else:
 			return None
+
+	def retrieve_all(self) -> typing.List[RunnerStats]:
+		docs = self._collection.find()
+		return [RunnerStats(**{k: v for k, v in doc.items() if k != '_id'}) for doc in docs]
+
