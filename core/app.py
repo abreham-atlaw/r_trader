@@ -1,6 +1,8 @@
 import os
 import sys
 
+from core import Config
+
 
 class RTraderApplication:
 
@@ -31,10 +33,7 @@ class RTraderApplication:
 		os.system(f"wget '{url}' -O {path}")
 
 	def __import_config(self):
-		path = os.path.abspath(os.path.dirname(__file__))
-		sys.path.append(path)
-		import Config
-		sys.path.remove(path)
+		from core import Config
 		return Config
 
 	def __init_db(self):
