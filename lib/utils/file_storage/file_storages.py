@@ -1,3 +1,4 @@
+import typing
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -20,6 +21,10 @@ class FileStorage(ABC):
 
 	@abstractmethod
 	def upload_file(self, file_path: str, upload_path: Union[str, None] = None):
+		pass
+
+	@abstractmethod
+	def listdir(self, path: str) -> typing.List[str]:
 		pass
 
 	def download(self, path, download_path: Union[str, None] = None):
@@ -45,7 +50,17 @@ class DropboxClient(FileStorage):
 			return meta
 
 	def get_url(self, path) -> str:
-		raise Exception("UnImplemented")
+		path = os.path.join(self.__folder, path)
+		links = self.__client.sharing_list_shared_links(path).links
+		if len(links) > 0:
+			url = links[0].url
+		else:
+			url = self.__client.sharing_create_shared_link_with_settings(path).url
+		return f"{url.replace('www.dropbox.com', 'dl.dropboxusercontent.com')}&raw=1"
+
+	def listdir(self, path: str) -> typing.List[str]:
+		res = self.__client.files_list_folder(path)
+		return [entry.name for entry in res.entries]
 
 
 class PCloudClient(FileStorage):
@@ -110,6 +125,27 @@ class PCloudClient(FileStorage):
 				raise FileNotFoundException()
 			return f"{response.get('hosts')[0]}{response.get('path')}".replace('\/', '/')
 
+	class ListDirRequest(Request):
+
+		def __init__(self, path: str):
+			super().__init__(
+				"/listfolder",
+				method=Request.Method.GET,
+				get_params={
+					"path": path
+				},
+				output_class=typing.List[str]
+			)
+
+		def _filter_response(self, response):
+			return response["metadata"]["contents"]
+
+		def deserialize_object(self, response) -> object:
+			return [
+				content["path"]
+				for content in self._filter_response(response)
+			]
+
 	def __init__(self, token, folder, pcloud_base_url="https://api.pcloud.com/"):
 		self.__base_path = folder
 		self.__client = PCloudClient.PCloudNetworkClient(token=token, url=pcloud_base_url)
@@ -139,6 +175,14 @@ class PCloudClient(FileStorage):
 				self.__get_complete_path(upload_path)
 			)
 		)
+
+	def listdir(self, path: str) -> typing.List[str]:
+		return self.__client.execute(
+			PCloudClient.ListDirRequest(
+				path
+			)
+		)
+
 
 
 class LocalStorage(FileStorage):

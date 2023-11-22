@@ -4,8 +4,8 @@ import torch
 class ModelHandler:
 
 	@staticmethod
-	def load(path: str) -> torch.nn.Module:
-		model = torch.jit.load(path)
+	def load(path: str, device=None) -> torch.nn.Module:
+		model = torch.jit.load(path, map_location=device)
 		return model
 
 	@staticmethod

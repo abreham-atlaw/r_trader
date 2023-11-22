@@ -8,9 +8,9 @@ from pymongo import MongoClient
 class RunnerStats:
 	id: str
 	model_url: str
-	value: float = 0.0
+	profit: float = 0.0
 	duration: float = 0.0
-	accuracy: float = 0.0
+	model_loss: float = 0.0
 
 
 class RunnerStatsRepository:
@@ -32,7 +32,7 @@ class RunnerStatsRepository:
 			)
 			return
 		old_stats += stats.duration
-		old_stats.value = stats.value
+		old_stats.profit = stats.profit
 		self._collection.update_one(
 			{"id": old_stats.id},
 			{"$set": old_stats.__dict__},
