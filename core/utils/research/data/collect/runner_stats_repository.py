@@ -41,4 +41,8 @@ class RunnerStatsRepository:
 
 	def retrieve(self, id: str) -> typing.Optional[RunnerStats]:
 		doc = self._collection.find_one({"id": id})
-		return RunnerStats(**doc) if doc else None
+		if doc:
+			doc.pop('_id')
+			return RunnerStats(**doc)
+		else:
+			return None
