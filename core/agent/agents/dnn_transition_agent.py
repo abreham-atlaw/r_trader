@@ -1,3 +1,4 @@
+import typing
 from typing import *
 from abc import ABC
 
@@ -69,7 +70,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			input_ = np.append(input_, depth)
 		return input_
 
-	def _prepare_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
+	def __prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
@@ -77,9 +78,15 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				return self.__check_and_add_depth(
 					state.get_market_state().get_state_of(base_currency, quote_currency),
 					state.get_depth()
-				)
+				).astype(np.float32)
 
 		raise ValueError("Initial State and Final state are the same.")  # TODO: FIND ANOTHER WAY TO HANDLE THIS.
+
+	def _prepare_dta_input(self, states: typing.List[TradeState], actions: typing.List[TraderAction], final_states: typing.List[TradeState]) -> np.ndarray:
+		return np.array([
+			self.__prepare_single_dta_input(state, action, final_state)
+			for state, action, final_state in zip(states, actions, final_states)
+		])
 
 	def _get_discount_factor(self, depth) -> float:
 		if self.__discount_function is None:
@@ -119,7 +126,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return return_value
 
-	def __prediction_to_transition_probability_bound_mode(
+	def __single_prediction_to_transition_probability_bound_mode(
 			self,
 			initial_state: TradeState,
 			output: np.ndarray,
@@ -139,26 +146,41 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			):
 				continue
 
-			percentage = final_state.get_market_state().get_current_price(base_currency, quote_currency) / initial_state.get_market_state().get_current_price(base_currency, quote_currency)
+			percentage = final_state.get_market_state().get_current_price(base_currency,
+			                                                              quote_currency) / initial_state.get_market_state().get_current_price(
+				base_currency, quote_currency)
 			return probabilities[self.__find_gap_index(percentage)]
+
+	def __prediction_to_transition_probability_bound_mode(
+			self,
+			initial_states: typing.List[TradeState],
+			outputs: np.ndarray,
+			final_states: typing.List[TradeState]
+	) -> typing.List[float]:
+		return [
+			self.__single_prediction_to_transition_probability_bound_mode(
+				initial_state, output, final_state
+			)
+			for initial_state, output, final_state in zip(initial_states, outputs, final_states)
+		]
 
 	def _prepare_dta_output(
 			self,
-			initial_state: TradeState,
+			initial_states: typing.List[TradeState],
 			output: np.ndarray,
-			final_state: TradeState
-	) -> float:
+			final_states: typing.List[TradeState]
+	) -> typing.List[float]:
 
 		if not self.__state_change_delta_model_mode:
-			return self.__prediction_to_transition_probability_bound_mode(initial_state, output, final_state)
+			return self.__prediction_to_transition_probability_bound_mode(initial_states, output, final_states)
 
 		predicted_value: float = float(tf.reshape(output, (-1,))[0])
-		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
+		for base_currency, quote_currency in final_states.get_market_state().get_tradable_pairs():
 
-			if np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == initial_state.get_market_state().get_state_of(base_currency, quote_currency)):
+			if np.all(final_states.get_market_state().get_state_of(base_currency, quote_currency) == initial_states.get_market_state().get_state_of(base_currency, quote_currency)):
 				continue
 
-			if final_state.get_market_state().get_current_price(base_currency, quote_currency) > initial_state.get_market_state().get_current_price(base_currency, quote_currency):
+			if final_states.get_market_state().get_current_price(base_currency, quote_currency) > initial_states.get_market_state().get_current_price(base_currency, quote_currency):
 				return predicted_value
 
 			return 1-predicted_value
@@ -228,7 +250,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				np.ndarray(original_value[-1]*j).reshape(1)
+				np.array(original_value[-1]*j).reshape(1)
 			)
 			states.append(new_state)
 

@@ -66,7 +66,7 @@ class MarketState:
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
 		return self.__state[bci, qci]
 
-	def get_current_price(self, base_currency, quote_currency) -> np.float:
+	def get_current_price(self, base_currency, quote_currency) -> np.float32:
 		return self.get_state_of(base_currency, quote_currency)[-1]
 
 	def get_spread_state_of(self, base_currency, quote_currency) -> float:

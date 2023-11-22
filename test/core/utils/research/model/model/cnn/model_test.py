@@ -10,7 +10,7 @@ class CNNTest(unittest.TestCase):
 
 	def test_functionality(self):
 
-		model = torch.jit.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/1700499869.628733.pt")
+		model = torch.jit.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/1700508499.667843.pt")
 		model.eval()
 
 		DTYPE = torch.float32

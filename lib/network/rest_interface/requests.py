@@ -66,7 +66,6 @@ class Request:
 		return response
 
 	def deserialize_object(self, response) -> object:
-		print(response)
 		return self.__serializer.deserialize(
 			self._filter_response(
 				response

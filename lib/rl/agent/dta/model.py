@@ -5,6 +5,8 @@ from tensorflow.python import keras
 import torch
 import torch.nn as nn
 
+from lib.utils.torch_utils.model_handler import ModelHandler
+
 
 class Model(ABC):
 
@@ -54,7 +56,7 @@ class TorchModel(Model):
 		self.__model = model
 
 	def predict(self, inputs: np.ndarray) -> np.ndarray:
-		return self.__model(torch.from_numpy(inputs)).numpy()
+		return self.__model(torch.from_numpy(inputs)).detach().numpy()
 
 	def fit(self, X: np.ndarray, y: np.ndarray):
 		pass
@@ -64,5 +66,5 @@ class TorchModel(Model):
 
 	@classmethod
 	def load(cls, path: str) -> 'Model':
-		pass
+		return TorchModel(ModelHandler.load(path))
 

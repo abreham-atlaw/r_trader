@@ -212,6 +212,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	@staticmethod
 	def __squash_probabilities(probs: np.ndarray) -> np.ndarray:
+		probs = probs + np.min(probs)
 		return probs / probs.sum()
 
 	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):

@@ -72,7 +72,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		if np.any(not_cached_indexes):
 			prediction[not_cached_indexes] = self._prepare_dta_output(
 				initial_states,
-				self._predict(self._get_transition_model(), prediction_input[not_cached_indexes]),
+				self._predict(self._transition_model, prediction_input[not_cached_indexes]),
 				final_states
 			)
 			self.__cache_predictions(prediction_input[not_cached_indexes], prediction[not_cached_indexes])
