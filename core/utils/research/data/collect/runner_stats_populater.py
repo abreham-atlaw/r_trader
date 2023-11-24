@@ -78,5 +78,8 @@ class RunnerStatsPopulater:
 	def start(self):
 		files = self.__in_filestorage.listdir(self.__in_path)
 		for i, file in enumerate(files):
-			self._process_model(file)
+			try:
+				self._process_model(file)
+			except Exception as ex:
+				print(f"[-]Error Occurred processing {file}\n{ex}")
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
