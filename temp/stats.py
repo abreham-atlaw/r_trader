@@ -155,9 +155,7 @@ def draw_graph(root_node, depth=None):
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"
 			instant_value = f"\n{node.instant_value: .4f}"
-			if node.parent.get_children().index(node) % 2 == 1:
-				return f"Inc{total_value}{instant_value}"
-			return f"Dec{total_value}{instant_value}"
+			return f"{total_value}{instant_value}\n{node.weight: .5f}"
 
 		action = node.action
 		label = ""
@@ -208,5 +206,5 @@ def draw_graph(root_node, depth=None):
 		font_size=7,
 		font_color="black",
 	)
-	nx.draw(graph, pos=positions, node_size=1500, node_color="navy", edge_color="silver")
+	nx.draw(graph, pos=positions, node_size=2500, node_color="navy", edge_color="silver")
 	plt.show()

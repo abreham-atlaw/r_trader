@@ -1,3 +1,5 @@
+import typing
+from datetime import datetime
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -135,6 +137,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			use_stm: bool = True,
 			short_term_memory: 'MonteCarloAgent.NodeShortTermMemory' = None,
 			probability_correction: bool = False,
+			min_probability: typing.Optional[float] = None,
 			**kwargs
 	):
 
@@ -143,6 +146,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__logical = logical
 		self.__uct_exploration_weight = uct_exploration_weight
 		self.__set_mode(logical)
+		self.__min_probability = min_probability
 		self.__use_stm: bool = use_stm
 		self.__short_term_memory = short_term_memory
 		if short_term_memory is None and use_stm:
@@ -200,6 +204,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if self.__probability_correction:
 			probabilities = self.__correct_probabilities(probabilities, counts)
 		else:
+			probabilities = self.__squash_probabilities(probabilities)
+
+		if self.__min_probability is not None:
+			probabilities[probabilities < self.__min_probability] = 0.0
 			probabilities = self.__squash_probabilities(probabilities)
 
 		choice = np.random.choice(
@@ -376,30 +384,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			final_states[i].set_depth(node.depth)
 
 
-		# for action in self._get_available_actions(state):
-		#
-		# 	action_node = MonteCarloAgent.Node(state_node, action, MonteCarloAgent.Node.NodeType.ACTION)
-		# 	possible_states = self._get_possible_states(self._state_repository.retrieve(state_node.id), action)
-		# 	probability_distribution = self._get_expected_transition_probability_distribution(
-		# 		[state for _ in range(len(possible_states))],
-		# 		[action for _ in range(len(possible_states))],
-		# 		possible_states
-		# 	)
-		# 	for possible_state, weight in zip(possible_states, probability_distribution):
-		# 		value = self._get_expected_instant_reward(possible_state)
-		# 		possible_state_node = MonteCarloAgent.Node(
-		# 			action_node,
-		# 			None,
-		# 			MonteCarloAgent.Node.NodeType.STATE,
-		# 			weight=weight,
-		# 			instant_value=value,
-		# 			depth=state_node.depth+1
-		# 		)
-		# 		possible_state.set_depth(possible_state_node.depth)
-		# 		self._state_repository.store(possible_state_node.id, possible_state)
-		# 		action_node.add_child(possible_state_node)
-		# 	state_node.add_child(action_node)
-
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
 		if not state_node.has_children():
@@ -452,10 +436,23 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		stats.iterations["main_loop"] = 0
 		while self._has_resource(resources):
+			# start_time = datetime.now()
 			leaf_node = self._select(root_node)
+			# stats.durations["select"] += (datetime.now() - start_time).total_seconds()
+
+			# start_time = datetime.now()
 			self._expand(leaf_node, stm=False)
+			# stats.durations["expand"] += (datetime.now() - start_time).total_seconds()
+
+
+			# start_time = datetime.now()
 			final_node = self.__simulate(leaf_node)
+			# stats.durations["simulate"] += (datetime.now() - start_time).total_seconds()
+
+			# start_time = datetime.now()
 			self._backpropagate(final_node)
+			# stats.durations["backpropagate"] += (datetime.now() - start_time).total_seconds()
+
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
 

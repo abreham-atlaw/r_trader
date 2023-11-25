@@ -25,6 +25,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			stm_average_window=Config.AGENT_STM_AVERAGE_WINDOW_SIZE,
 			stm_attention_mode=Config.AGENT_STM_ATTENTION_MODE,
 			probability_correction=Config.AGENT_PROBABILITY_CORRECTION,
+			min_probability=Config.AGENT_MIN_PROBABILITY,
 			**kwargs
 	):
 		super(TraderMonteCarloAgent, self).__init__(
@@ -42,6 +43,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 				attention_mode=stm_attention_mode
 			),
 			probability_correction=probability_correction,
+			min_probability=min_probability,
 			**kwargs
 		)
 		self.__step_time = step_time

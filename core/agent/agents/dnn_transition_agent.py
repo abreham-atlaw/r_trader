@@ -58,6 +58,11 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta_cache = {}
 		self.__discount_function = discount_function
 
+	@staticmethod
+	def __softmax(x):
+		e_x = np.exp(x - np.max(x))
+		return e_x / e_x.sum()
+
 	def __find_gap_index(self, number: float) -> int:
 		boundaries = self.__state_change_delta_bounds
 		for i in range(len(boundaries)):
@@ -126,6 +131,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return return_value
 
+
 	def __single_prediction_to_transition_probability_bound_mode(
 			self,
 			initial_state: TradeState,
@@ -146,9 +152,14 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			):
 				continue
 
-			percentage = final_state.get_market_state().get_current_price(base_currency,
-			                                                              quote_currency) / initial_state.get_market_state().get_current_price(
-				base_currency, quote_currency)
+			percentage = final_state.get_market_state().get_current_price(
+				base_currency,
+				quote_currency
+			) / initial_state.get_market_state().get_current_price(
+				base_currency,
+				quote_currency
+			)
+			probabilities = self.__softmax(probabilities)
 			return probabilities[self.__find_gap_index(percentage)]
 
 	def __prediction_to_transition_probability_bound_mode(
