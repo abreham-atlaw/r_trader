@@ -66,5 +66,5 @@ class TorchModel(Model):
 
 	@classmethod
 	def load(cls, path: str) -> 'Model':
-		return TorchModel(ModelHandler.load(path))
+		return TorchModel(ModelHandler.load(path, device="cpu"),)
 
