@@ -10,7 +10,9 @@ class WrappedModel(nn.Module):
 		super().__init__(*args, **kwargs)
 		self.model = model
 		self.ma = MovingAverage(window_size)
+		self.softmax = nn.Softmax()
 
 	def forward(self, inputs: torch.Tensor):
 		inputs = self.ma(inputs)
-		return self.model(inputs)
+		outputs = self.model(inputs)
+		return self.softmax(outputs)

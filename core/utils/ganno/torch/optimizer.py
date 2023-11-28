@@ -90,7 +90,7 @@ class TransformerOptimizer(Optimizer):
 	def __generate_random_transformer_config(self, vocab_size: int) -> TransformerConfig:
 		kernel_size = random.randint(1, 7)
 		num_heads = random.randint(1, 16)
-		emb_size = num_heads * random.randint(2, 32)  # Ensure emb_size is divisible by num_heads
+		emb_size = num_heads * random.randint(2, 32)
 		block_size = self.__block_size
 		ff_size = random.randint(64, 1024)
 		config = TransformerConfig(vocab_size, kernel_size, emb_size, block_size, num_heads, ff_size)
