@@ -12,6 +12,8 @@ class Trainer:
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
             model = torch.nn.DataParallel(model)
+        if callbacks is None:
+            callbacks = []
         self.model = model.to(self.device)
         self.loss_function = loss_function
         self.optimizer = optimizer
