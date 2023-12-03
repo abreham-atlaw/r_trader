@@ -65,6 +65,9 @@ class CNNOptimizer(Optimizer):
 		layers = []
 		input_size = vocab_size
 		for i in range(num_layers):
+			kernel_floor, kernel_ceil = 3, min(7, input_size)
+			if kernel_ceil <= kernel_floor:
+				break
 			kernel_size = random.randint(3, min(7, input_size))
 			features = random.randint(32, 2024)
 			padding = random.randint(0, min(3, input_size - kernel_size))
