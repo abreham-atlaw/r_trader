@@ -72,7 +72,7 @@ class CNNOptimizer(Optimizer):
 			layer = ConvLayer(kernel_size, features, padding, pooling)
 			layers.append(layer)
 			# Update input size for next layer
-			input_size = (input_size - kernel_size + 2 * padding) // pooling + 1
+			input_size = (input_size - kernel_size + 2 * padding) //(pooling + 1)
 		dropout = random.uniform(0, 0.5)
 		config = CNNConfig(vocab_size, layers, dropout)
 		return config
