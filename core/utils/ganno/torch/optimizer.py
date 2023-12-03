@@ -63,13 +63,16 @@ class CNNOptimizer(Optimizer):
 	def __generate_random_cnn_config(vocab_size: int) -> CNNConfig:
 		num_layers = random.randint(3, 18)
 		layers = []
+		input_size = vocab_size
 		for i in range(num_layers):
-			kernel_size = random.randint(3, 7)
+			kernel_size = random.randint(3, min(7, input_size))
 			features = random.randint(32, 2024)
-			padding = random.randint(0, 3)
-			pooling = random.randint(0, 2)
+			padding = random.randint(0, min(3, input_size - kernel_size))
+			pooling = random.randint(0, min(2, input_size - kernel_size - 2 * padding))
 			layer = ConvLayer(kernel_size, features, padding, pooling)
 			layers.append(layer)
+			# Update input size for next layer
+			input_size = (input_size - kernel_size + 2 * padding) // pooling + 1
 		dropout = random.uniform(0, 0.5)
 		config = CNNConfig(vocab_size, layers, dropout)
 		return config
