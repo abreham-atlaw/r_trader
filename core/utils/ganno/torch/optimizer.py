@@ -70,8 +70,12 @@ class CNNOptimizer(Optimizer):
 				break
 			kernel_size = random.randint(3, min(7, input_size))
 			features = random.randint(32, 2024)
-			padding = random.randint(0, min(3, input_size - kernel_size))
-			pooling = random.randint(0, min(2, input_size - kernel_size - 2 * padding))
+			padding = 0
+			if input_size - kernel_size > 0:
+				padding = random.randint(0, min(3, input_size - kernel_size))
+			pooling = 0
+			if input_size - kernel_size - 2 * padding > 0:
+				pooling = random.randint(0, min(2, input_size - kernel_size - 2 * padding))
 			layer = ConvLayer(kernel_size, features, padding, pooling)
 			layers.append(layer)
 			# Update input size for next layer
