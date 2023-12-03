@@ -61,7 +61,7 @@ class CNNOptimizer(Optimizer):
 
 	@staticmethod
 	def __generate_random_cnn_config(vocab_size: int) -> CNNConfig:
-		num_layers = random.randint(3, 24)
+		num_layers = random.randint(3, 18)
 		layers = []
 		for i in range(num_layers):
 			kernel_size = random.randint(3, 7)
