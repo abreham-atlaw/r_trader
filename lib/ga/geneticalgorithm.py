@@ -47,6 +47,9 @@ class GeneticAlgorithm(ABC):
 
 	def _match_spouses(self, population: List[Species]) -> List[Tuple[Species, Species]]:
 
+		if len(population) == 0:
+			return []
+
 		if len(population) == 2:
 			return [(population[0], population[1])]
 

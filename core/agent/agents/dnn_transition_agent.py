@@ -29,6 +29,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			core_model=None,
 			delta_model=None,
+			use_softmax=Config.AGENT_USE_SOFTMAX,
 			**kwargs
 	):
 		super().__init__(
@@ -57,6 +58,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		self.__state_change_delta_cache = {}
 		self.__discount_function = discount_function
+		self.__use_softmax = use_softmax
 
 	@staticmethod
 	def __softmax(x):
@@ -159,7 +161,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				base_currency,
 				quote_currency
 			)
-			probabilities = self.__softmax(probabilities)
+			if self.__use_softmax:
+				probabilities = self.__softmax(probabilities)
 			return probabilities[self.__find_gap_index(percentage)]
 
 	def __prediction_to_transition_probability_bound_mode(

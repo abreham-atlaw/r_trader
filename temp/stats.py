@@ -46,10 +46,20 @@ def get_percentages(total):
 	return percentages
 
 
-def get_nodes(parent_node, depth=None):
+def get_nodes(parent_node, depth=None, top=None):
 	children = parent_node.get_children()
+
+	if top is None:
+		top = len(children)
+
 	if len(children) == 0:
 		return []
+
+	top = min(top, len(children))
+
+	threshold = sorted([node.weight for node in children], reverse=True)[top-1]
+	print(top)
+	print(threshold)
 
 	if depth == 0:
 		return children
@@ -57,7 +67,9 @@ def get_nodes(parent_node, depth=None):
 		depth -= 1
 	nodes = []
 	for node in children:
-		nodes += get_nodes(node, depth)
+		if node.node_type == 0 and node.weight < threshold:
+			continue
+		nodes += get_nodes(node, depth, top=top)
 		nodes.append(node)
 	return nodes
 
@@ -147,7 +159,7 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
 	return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
 
 
-def draw_graph(root_node, depth=None):
+def draw_graph(root_node, depth=None, top=None):
 	def get_node_label(node):
 		if node.parent is None:
 			return "Root"
@@ -186,7 +198,7 @@ def draw_graph(root_node, depth=None):
 		depth = get_max_depth(root_node)
 
 	graph = nx.Graph()
-	nodes = get_nodes(root_node, depth=depth) + [root_node]
+	nodes = get_nodes(root_node, depth=depth, top=top) + [root_node]
 	print(f"About to draw {len(nodes)}")
 	for i, node in enumerate(nodes):
 		if node is not root_node:
