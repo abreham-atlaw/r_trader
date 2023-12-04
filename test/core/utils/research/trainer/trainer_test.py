@@ -9,6 +9,7 @@ from torch.optim import Adam
 
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
 from core.utils.research.training.trainer import Trainer
@@ -27,12 +28,21 @@ class TrainerTest(unittest.TestCase):
 		POOL_SIZES = [1, 1]
 		DROPOOUTS = 0.1
 
-		model = CNN(
-			VOCAB_SIZE,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOOUTS
+		# model = CNN(
+		# 	VOCAB_SIZE,
+		# 	conv_channels=CHANNELS,
+		# 	kernel_sizes=KERNEL_SIZES,
+		# 	pool_sizes=POOL_SIZES,
+		# 	dropout_rate=DROPOOUTS
+		# )
+		model = LinearModel(
+			block_size=1024,
+			vocab_size=449,
+			dropout_rate=0.1,
+			layer_sizes=[
+				128,
+				256,
+			]
 		)
 
 		dataset = BaseDataset(

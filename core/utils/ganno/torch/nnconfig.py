@@ -74,3 +74,31 @@ class TransformerConfig(ModelConfig):
 			)
 			configs.append(new_config)
 		return configs
+
+
+@dataclass
+class LinearConfig(ModelConfig):
+	layers: typing.List[int]
+	dropout: float
+	block_size: int
+
+	def __generate_offspring(self: 'LinearConfig', spouse: 'LinearConfig') -> 'LinearConfig':
+		min_len = min(len(self.layers), len(spouse.layers))
+		max_len = max(len(self.layers), len(spouse.layers))
+		new_len = random.randint(min_len, max_len)
+
+		pool = self.layers + spouse.layers
+		random.shuffle(pool)
+
+		new_layers = pool[:new_len]
+
+		new_dropout = random.choice([self.dropout, spouse.dropout])
+		return LinearConfig(
+			vocab_size=self.vocab_size,
+			layers=new_layers,
+			dropout=new_dropout,
+			block_size=self.block_size
+		)
+
+	def reproduce(self, spouse: 'LinearConfig', preferred_offsprings: int) -> typing.List['LinearConfig']:
+		return [self.__generate_offspring(spouse) for _ in range(preferred_offsprings)]

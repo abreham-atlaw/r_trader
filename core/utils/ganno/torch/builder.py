@@ -1,7 +1,8 @@
 from torch import nn
 
-from core.utils.ganno.torch.nnconfig import ModelConfig, CNNConfig, TransformerConfig
+from core.utils.ganno.torch.nnconfig import ModelConfig, CNNConfig, TransformerConfig, LinearConfig
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, Decoder
 
 
@@ -28,12 +29,22 @@ class ModelBuilder:
 			vocab_size=config.vocab_size
 		)
 
+	def __build_linear(self, config: LinearConfig) -> nn.Module:
+		return LinearModel(
+			block_size=config.block_size,
+			vocab_size=config.vocab_size,
+			layer_sizes=config.layers,
+			dropout_rate=config.dropout
+		)
+
 	def build(self, config: ModelConfig) -> nn.Module:
 
 		if isinstance(config, CNNConfig):
 			model = self.__build_conv(config)
 		elif isinstance(config, TransformerConfig):
 			model = self.__build_transformer(config)
+		elif isinstance(config, LinearConfig):
+			model = self.__build_linear(config)
 		else:
 			raise Exception(f"Unknown Config Type {config.__class__.__name__}")
 
