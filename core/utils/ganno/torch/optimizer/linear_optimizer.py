@@ -10,7 +10,7 @@ class LinearOptimizer(Optimizer):
 	def __init__(
 			self,
 			*args,
-			layers_range: typing.Tuple[int, int] = (3, 128),
+			layers_range: typing.Tuple[int, int] = (3, 32),
 			layer_size_range: typing.Tuple[int, int] = (32, 2048),
 			dropout_range: typing.Tuple[int, int] = (0, 0.5),
 			block_size: int = 1024,
