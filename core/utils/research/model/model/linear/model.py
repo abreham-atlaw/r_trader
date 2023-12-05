@@ -17,8 +17,8 @@ class LinearModel(nn.Module):
 			self.dropout = nn.Identity()
 
 	def forward(self, x):
-		for i in range(len(self.layers)):
-			x = self.layers[i](x)
+		for layer in self.layers:
+			x = layer(x)
 			x = torch.relu(x)
 			x = self.dropout(x)
 		return x
