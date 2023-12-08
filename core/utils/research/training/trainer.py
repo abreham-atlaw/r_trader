@@ -35,7 +35,7 @@ class Trainer:
         print("=" * 100)
         print(f"Total Params:{total_params}")
 
-    def train(self, dataloader: DataLoader, val_dataloader=None, epochs: int = 1, progress: bool = False):
+    def train(self, dataloader: DataLoader, val_dataloader=None, epochs: int = 1, progress: bool = False, shuffle=True):
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
@@ -43,6 +43,8 @@ class Trainer:
         train_losses = []
         val_losses = []
         for epoch in range(epochs):
+            if shuffle:
+                dataloader.dataset.shuffle()
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
@@ -63,7 +65,6 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
                 i += 1
-            dataloader.dataset.shuffle()
             epoch_loss = running_loss / len(dataloader)
             print(f"Epoch {epoch + 1} completed, loss: {epoch_loss}")
             train_losses.append(epoch_loss)

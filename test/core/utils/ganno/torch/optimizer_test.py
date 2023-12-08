@@ -6,7 +6,7 @@ from core import Config
 from core.utils.ganno.torch.concurrent.data.serializers import CNNConfigSerializer
 from core.utils.ganno.torch.optimizer import Optimizer, CNNOptimizer, TransformerOptimizer, LinearOptimizer
 from core.utils.research.data.load.dataset import BaseDataset
-from lib.ga.callbacks import CheckpointCallback, StoreCheckpointCallback
+from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
 from lib.utils.file_storage import PCloudClient, DropboxClient
 
 
@@ -22,6 +22,10 @@ class OptimizerTest(unittest.TestCase):
 			[
 				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
 			],
+		)
+
+		CheckpointCallback(
+			path=""
 		)
 
 		trainer_callbacks = [
@@ -72,7 +76,7 @@ class OptimizerTest(unittest.TestCase):
 		optimizer.start(epochs=10)
 
 
-	def test_cnn_optimizer(self):
+	def test_linear_optimizer(self):
 		dataset = BaseDataset(
 			[
 				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"

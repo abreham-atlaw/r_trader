@@ -13,6 +13,7 @@ from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
 from core.utils.research.training.trainer import Trainer
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class TrainerTest(unittest.TestCase):
@@ -64,6 +65,7 @@ class TrainerTest(unittest.TestCase):
 
 		trainer = Trainer(model, loss_function=loss_function, optimizer=optimizer)
 		trainer.train(dataloader, epochs=2, progress=True, val_dataloader=test_dataloader)
+		ModelHandler.ave()
 		torch.save(model.state_dict(), SAVE_PATH)
 
 	def test_functionality(self):
