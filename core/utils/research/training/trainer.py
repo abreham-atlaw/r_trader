@@ -1,5 +1,7 @@
 import torch
 import typing
+
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from core.utils.research.training.callbacks import Callback
@@ -33,7 +35,7 @@ class Trainer:
         print("=" * 100)
         print(f"Total Params:{total_params}")
 
-    def train(self, dataloader, val_dataloader=None, epochs: int = 1, progress: bool = False):
+    def train(self, dataloader: DataLoader, val_dataloader=None, epochs: int = 1, progress: bool = False):
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
@@ -61,6 +63,7 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
                 i += 1
+            dataloader.dataset.shuffle()
             epoch_loss = running_loss / len(dataloader)
             print(f"Epoch {epoch + 1} completed, loss: {epoch_loss}")
             train_losses.append(epoch_loss)
