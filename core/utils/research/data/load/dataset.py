@@ -22,15 +22,23 @@ class BaseDataset(Dataset):
 		self.root_dirs = root_dirs
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
+		self.random_state = None
 
 		self.__files, self.__root_dir_map = self.__get_files()
 		self.cache = OrderedDict()
 		self.cache_size = cache_size
 		self.data_points_per_file = self.__get_dp_per_file()
 
+	@property
+	def random(self):
+		if self.random_state is None:
+			return None
+		return np.random.default_rng(self.random_state)
+
 	def shuffle(self):
 		random.shuffle(self.__files)
 		self.cache = OrderedDict()
+		self.random_state = random.randint(0, 1000)
 
 	def __get_dp_per_file(self) -> int:
 		first_file_name = self.__files[0]
@@ -53,7 +61,11 @@ class BaseDataset(Dataset):
 		return len(self.__files) * self.data_points_per_file
 
 	def __load_array(self, path: str) -> np.ndarray:
-		return np.load(path).astype(self.__dtype)
+		out = np.load(path).astype(self.__dtype)
+		indexes = np.arange(out.shape[0])
+		if self.random is not None:
+			self.random.shuffle(indexes)
+		return out[indexes]
 
 	def __getitem__(self, idx):
 		file_idx = idx // self.data_points_per_file
