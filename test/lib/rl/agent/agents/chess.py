@@ -12,14 +12,15 @@ from stockfish import Stockfish
 import chess
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import Model
-from tensorflow.keras import layers
-from tensorflow.keras import models
 
+
+from lib.rl.agent.dra.dra import DeepReinforcementAgent
+from lib.rl.agent.dta import Model, TorchModel
 from lib.utils.logger import Logger
 from lib.rl.agent import ActionChoiceAgent, ModelBasedAgent, MonteCarloAgent, ActionRecommendationAgent, \
 	ActionRecommendationBalancerAgent, DNNTransitionAgent, Agent
 from lib.rl.environment import ModelBasedState
+from lib.utils.torch_utils.model_handler import ModelHandler
 from test.lib.rl.environment.environments.chess import ChessState
 from lib.network.rest_interface import NetworkApiClient, Request
 from lib.utils.stm import CueMemoryMatcher
@@ -422,6 +423,7 @@ class ChessActionRecommenderAgent(ActionRecommendationAgent, ABC):
 				outputs[i].append(out)
 
 		return [np.array(out) for out in outputs]
+
 
 
 class ChessActionRecommendationBalancerAgent(
