@@ -36,6 +36,7 @@ class BaseDataset(Dataset):
 		return np.random.default_rng(self.random_state)
 
 	def shuffle(self):
+		print("[+]Shuffling dataset...")
 		random.shuffle(self.__files)
 		self.cache = OrderedDict()
 		self.random_state = random.randint(0, 1000)
