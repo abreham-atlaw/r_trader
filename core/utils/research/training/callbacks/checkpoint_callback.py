@@ -9,18 +9,27 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class CheckpointCallback(Callback):
-	def __init__(self, path):
+	def __init__(self, path, save_state=False):
 		self.path = path
+		self.save_state = save_state
 
-	@staticmethod
-	def __generate_name() -> str:
-		return f"{datetime.now().timestamp()}.pt"
+	def _generate_name(self) -> str:
+		ext = "pt"
+		if self.save_state:
+			ext = "pth"
+		return f"{datetime.now().timestamp()}.{ext}"
+
+	def _save(self, model, path):
+		if self.save_state:
+			torch.save(model.state_dict(), path)
+		else:
+			ModelHandler.save(model, path)
 
 	def on_epoch_end(self, model, epoch, logs=None):
 		path = self.path
 		if os.path.isdir(self.path):
-			path = os.path.join(self.path, self.__generate_name())
-		ModelHandler.save(model, path)
+			path = os.path.join(self.path, self._generate_name())
+		self._save(model, path)
 		return path
 
 
