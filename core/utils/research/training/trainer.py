@@ -61,7 +61,7 @@ class Trainer:
                 self.optimizer.step()
                 running_loss += loss.item()
                 if progress:
-                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss}")
+                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss/(i+1)}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
                 i += 1
