@@ -35,7 +35,15 @@ class Trainer:
         print("=" * 100)
         print(f"Total Params:{total_params}")
 
-    def train(self, dataloader: DataLoader, val_dataloader=None, epochs: int = 1, progress: bool = False, shuffle=True):
+    def train(
+            self,
+            dataloader: DataLoader,
+            val_dataloader=None,
+            epochs: int = 1,
+            progress: bool = False,
+            shuffle=True,
+            progress_interval=100
+    ):
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
@@ -60,8 +68,8 @@ class Trainer:
                 loss.backward()
                 self.optimizer.step()
                 running_loss += loss.item()
-                if progress:
-                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss/(i+1)}")
+                if progress and i % progress_interval == 0:
+                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss / (i + 1)}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
                 i += 1
