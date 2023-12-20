@@ -9,7 +9,7 @@ from core.utils.research.training.callbacks import Callback
 
 class Trainer:
 
-    def __init__(self, model, loss_function, optimizer, callbacks: typing.List[Callback]=None):
+    def __init__(self, model, loss_function=None, optimizer=None, callbacks: typing.List[Callback]=None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
@@ -44,6 +44,8 @@ class Trainer:
             shuffle=True,
             progress_interval=100
     ):
+        if self.optimizer is None or self.loss_function is None:
+            raise ValueError("Model not setup(optimizer or loss function missing")
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
