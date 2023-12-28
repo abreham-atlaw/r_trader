@@ -10,7 +10,7 @@ class LinearModel(nn.Module):
 			vocab_size: int,
 			layer_sizes: typing.List[int],
 			dropout_rate: float = 0,
-			activation: typing.Optional[nn.Module] = None,
+			hidden_activation: typing.Optional[nn.Module] = None,
 			init_fn: typing.Optional[typing.Callable] = None,
 			norm: typing.Union[bool, typing.List[bool]] = False
 	):
@@ -29,9 +29,9 @@ class LinearModel(nn.Module):
 			self.layers.append(nn.Linear(layer_sizes[i], layer_sizes[i+1]))
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
-		if activation is None:
-			activation = nn.Identity()
-		self.activation = activation
+		if hidden_activation is None:
+			hidden_activation = nn.Identity()
+		self.hidden_activation = hidden_activation
 
 		if dropout_rate > 0:
 			self.dropout = nn.Dropout(dropout_rate)
@@ -39,8 +39,9 @@ class LinearModel(nn.Module):
 			self.dropout = nn.Identity()
 
 	def forward(self, x):
-		for layer in self.layers:
+		for layer in self.layers[:-1]:
 			x = layer(x)
-			x = self.activation(x)
+			x = self.hidden_activation(x)
 			x = self.dropout(x)
+		x = self.layers[-1](x)
 		return x
