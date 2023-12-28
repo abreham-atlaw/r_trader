@@ -1,6 +1,15 @@
 import typing
+from dataclasses import dataclass
 
 import torch.nn as nn
+
+
+@dataclass
+class LayerConfig:
+	unit: int
+	dropout: float = 0
+	activation: typing.Optional[nn.Module] = None
+	norm: bool = False
 
 
 class LinearModel(nn.Module):
@@ -8,39 +17,36 @@ class LinearModel(nn.Module):
 			self,
 			block_size: int,
 			vocab_size: int,
-			layer_sizes: typing.List[int],
-			dropout_rate: float = 0,
-			activation: typing.Optional[nn.Module] = None,
+			layers: typing.List[LayerConfig],
 			init_fn: typing.Optional[typing.Callable] = None,
-			norm: typing.Union[bool, typing.List[bool]] = False
 	):
 		super(LinearModel, self).__init__()
-		layer_sizes = [block_size] + layer_sizes + [vocab_size]
 
-		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(layer_sizes))]
-		if len(norm) != len(layer_sizes)-1:
-			raise ValueError("Norm size doesn't match layers size")
+		layers = [
+			LayerConfig(
+				block_size
+			)
+		] + layers + [
+			LayerConfig(
+				vocab_size
+			)
+		]
+
 		self.layers = nn.ModuleList()
 
-		for i in range(len(layer_sizes) - 1):
-			if norm[i]:
-				self.layers.append(nn.LayerNorm(layer_sizes[i]))
-			self.layers.append(nn.Linear(layer_sizes[i], layer_sizes[i+1]))
+		for i, p_layer_config in enumerate(layers[:-1]):
+			layer_config = layers[i+1]
+			if layer_config.norm:
+				self.layers.append(nn.LayerNorm(p_layer_config.unit))
+			self.layers.append(nn.Linear(p_layer_config.unit, layer_config.unit))
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
-		if activation is None:
-			activation = nn.Identity()
-		self.activation = activation
-
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
+			if layer_config.activation is not None:
+				self.layers.append(layer_config.activation)
+			if layer_config.dropout not in [None, 0]:
+				self.layers.append(nn.Dropout(layer_config.dropout))
 
 	def forward(self, x):
 		for layer in self.layers:
 			x = layer(x)
-			x = self.activation(x)
-			x = self.dropout(x)
 		return x
