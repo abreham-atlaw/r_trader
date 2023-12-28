@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
 from core.utils.research.data.load.dataset import BaseDataset
 
@@ -14,6 +15,7 @@ class BaseDatasetTest(unittest.TestCase):
 			[
 				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
+			num_files=3
 		)
 
 		X, y = dataset[1500]
@@ -41,5 +43,23 @@ class BaseDatasetTest(unittest.TestCase):
 					continue
 				self.assertFalse(torch.all(X == X_o))
 				self.assertFalse(torch.all(y == y_o))
+
+	def test_dataloader(self):
+		dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+
+		dataloader = DataLoader(
+			dataset=dataset,
+			batch_size=6
+		)
+
+		dataset.shuffle()
+
+		for X, y in dataloader:
+			self.assertIsNotNone(X)
+
 
 

@@ -1,5 +1,7 @@
+import os
 import unittest
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -86,3 +88,47 @@ class DataPreparerTest(unittest.TestCase):
 			save_path="/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual",
 			export_remaining=False
 		)
+
+	def test_plot_frequencies(self):
+
+		path = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/preprared(plot)"
+
+		BOUNDS = sorted(list(np.concatenate([
+			1 + bound * np.linspace(-1, 1, size) ** pow
+			for bound, size, pow in [
+				(4e-3, 64, 3),
+				(1e-4, 128, 3),
+				(2e-4, 128, 3),
+				(3e-4, 128, 3)
+			]
+		])))
+		BOUNDS = np.linspace(BOUNDS[100], BOUNDS[250], 2)
+
+		datapreparer = DataPreparer(
+			boundaries=BOUNDS,
+			block_size=20,
+			ma_window_size=10,
+			test_split_size=0.1,
+			granularity=5,
+			batch_size=int(1e9),
+		)
+		df = pd.read_csv("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-50k.csv")
+
+		datapreparer.start(
+			df=df,
+			save_path=path,
+			export_remaining=True
+		)
+
+		file = os.path.join(path, "train/y", sorted(os.listdir(os.path.join(path, "train/y")))[-1])
+		y = np.load(file)
+		y_classes = np.argmax(y, axis=1)
+
+		classes, frequencies = np.unique(y_classes, return_counts=True)
+
+		print(f"Classes: {len(classes)}")
+		print(f"Efficiency: {len(classes)/(len(BOUNDS)+1)}")
+
+		plt.scatter(classes, frequencies)
+		plt.show()
+		x = 1
