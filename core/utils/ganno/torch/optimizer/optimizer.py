@@ -26,6 +26,7 @@ class Optimizer(GeneticAlgorithm, ABC):
 			batch_size=32,
 			epochs=10,
 			trainer_callbacks: typing.Optional[typing.List[Callback]] = None,
+			loader_workers: int = 4,
 			**kwargs,
 
 	):
@@ -35,7 +36,7 @@ class Optimizer(GeneticAlgorithm, ABC):
 		self.__builder = ModelBuilder()
 		self.__epochs = epochs
 		self.__dataloader, self.__test_dataloader = [
-			DataLoader(ds, batch_size=batch_size, num_workers=8)
+			DataLoader(ds, batch_size=batch_size, num_workers=loader_workers)
 			for ds in [dataset, test_dataset]
 		]
 		self.__trainer_callback = trainer_callbacks
