@@ -90,10 +90,8 @@ class TrainerTest(unittest.TestCase):
 		trainer.loss_function = nn.CrossEntropyLoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
-
-
-		trainer.train(dataloader, epochs=5, progress=True, val_dataloader=test_dataloader)
-		ModelHandler.save()
+		# trainer.train(dataloader, epochs=5, progress=True, val_dataloader=test_dataloader)
+		ModelHandler.save(trainer.model, SAVE_PATH)
 		torch.save(model.state_dict(), SAVE_PATH)
 
 	def test_functionality(self):

@@ -75,7 +75,6 @@ class OptimizerTest(unittest.TestCase):
 
 		optimizer.start(epochs=10)
 
-
 	def test_linear_optimizer(self):
 		dataset = BaseDataset(
 			[

@@ -3,8 +3,9 @@ import unittest
 from torch import nn
 
 from core.utils.ganno.torch.builder import ModelBuilder
-from core.utils.ganno.torch.nnconfig import CNNConfig, ConvLayer, TransformerConfig
+from core.utils.ganno.torch.nnconfig import CNNConfig, ConvLayer, TransformerConfig, LinearConfig
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer
 
 
@@ -47,3 +48,17 @@ class BuilderTest(unittest.TestCase):
 		model = builder.build(config)
 
 		self.assertIsInstance(model, Transformer)
+
+	def test_linear_build(self):
+
+		builder = ModelBuilder()
+		config = LinearConfig(
+			449,
+			layers=[256, 512],
+			block_size=1024,
+			dropout=0.1
+		)
+
+		model = builder.build(config)
+
+		self.assertIsInstance(model, LinearModel)
