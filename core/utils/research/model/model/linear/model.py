@@ -18,7 +18,7 @@ class LinearModel(nn.Module):
 		layer_sizes = [block_size] + layer_sizes + [vocab_size]
 
 		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(layer_sizes))]
+			norm = [norm for _ in range(len(layer_sizes)-1)]
 		if len(norm) != len(layer_sizes)-1:
 			raise ValueError("Norm size doesn't match layers size")
 		self.layers = nn.ModuleList()
@@ -40,7 +40,7 @@ class LinearModel(nn.Module):
 
 	def forward(self, x):
 		for layer in self.layers[:-1]:
-			x = layer(x)
+			x = layer.forward(x)
 			x = self.hidden_activation(x)
 			x = self.dropout(x)
 		x = self.layers[-1](x)
