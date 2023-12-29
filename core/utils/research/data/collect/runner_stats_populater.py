@@ -48,12 +48,13 @@ class RunnerStatsPopulater:
 		print("[+]Preparing Model")
 		return WrappedModel(model, window_size=self.__ma_window)
 
-	def __get_url(self, model: nn.Module) -> str:
+	def _upload_model(self, model: nn.Module) -> str:
 		print("[+]Exporting Model")
 		path = self.__generate_tmp_path()
 		ModelHandler.save(model, path)
 		self.__out_filestorage.upload_file(path)
-		return self.__out_filestorage.get_url(os.path.basename(path))
+		# return self.__out_filestorage.get_url(os.path.basename(path))
+		return os.path.basename(path)
 
 	def __generate_id(self) -> str:
 		return uuid.uuid4().hex
@@ -65,12 +66,12 @@ class RunnerStatsPopulater:
 
 		loss = self.__evaluate_model(model)
 		model = self.__prepare_model(model)
-		url = self.__get_url(model)
+		upload_path = self._upload_model(model)
 		id = self.__generate_id()
 
 		stats = RunnerStats(
 			id=id,
-			model_url=url,
+			model_name=upload_path,
 			model_loss=loss
 		)
 		self.__repository.store(stats)

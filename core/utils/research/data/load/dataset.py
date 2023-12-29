@@ -17,6 +17,7 @@ class BaseDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			out_dtypes: typing.Type = np.float32,
+			num_files: typing.Optional[int] = None
 	):
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
@@ -24,7 +25,8 @@ class BaseDataset(Dataset):
 		self.__y_dir = y_dir
 		self.random_state = None
 
-		self.__files, self.__root_dir_map = self.__get_files()
+		self.__files, self.__root_dir_map = self.__get_files(size=num_files)
+
 		self.cache = OrderedDict()
 		self.cache_size = cache_size
 		self.data_points_per_file = self.__get_dp_per_file()
@@ -36,6 +38,7 @@ class BaseDataset(Dataset):
 		return np.random.default_rng(self.random_state)
 
 	def shuffle(self):
+		print("[+]Shuffling dataset...")
 		random.shuffle(self.__files)
 		self.cache = OrderedDict()
 		self.random_state = random.randint(0, 1000)
@@ -45,13 +48,17 @@ class BaseDataset(Dataset):
 		first_file_data = self.__load_array(os.path.join(self.root_dirs[0], self.__X_dir, first_file_name))
 		return first_file_data.shape[0]
 
-	def __get_files(self):
+	def __get_files(self, size=None):
 		files_map = {}
 		files = []
 		for root_dir in self.root_dirs:
+			if size is not None and len(files) >= size:
+				break
 			X_encoder_path = os.path.join(root_dir, self.__X_dir)
 
 			dir_files = sorted(os.listdir(X_encoder_path))
+			if size is not None:
+				dir_files = dir_files[:size - len(files)]
 			files += dir_files
 			for file in dir_files:
 				files_map[file] = root_dir

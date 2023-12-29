@@ -9,7 +9,7 @@ from core.utils.research.training.callbacks import Callback
 
 class Trainer:
 
-    def __init__(self, model, loss_function, optimizer, callbacks: typing.List[Callback]=None):
+    def __init__(self, model, loss_function=None, optimizer=None, callbacks: typing.List[Callback]=None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
@@ -35,7 +35,17 @@ class Trainer:
         print("=" * 100)
         print(f"Total Params:{total_params}")
 
-    def train(self, dataloader: DataLoader, val_dataloader=None, epochs: int = 1, progress: bool = False):
+    def train(
+            self,
+            dataloader: DataLoader,
+            val_dataloader=None,
+            epochs: int = 1,
+            progress: bool = False,
+            shuffle=True,
+            progress_interval=100
+    ):
+        if self.optimizer is None or self.loss_function is None:
+            raise ValueError("Model not setup(optimizer or loss function missing")
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
@@ -43,6 +53,8 @@ class Trainer:
         train_losses = []
         val_losses = []
         for epoch in range(epochs):
+            if shuffle:
+                dataloader.dataset.shuffle()
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
@@ -58,12 +70,11 @@ class Trainer:
                 loss.backward()
                 self.optimizer.step()
                 running_loss += loss.item()
-                if progress:
-                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss}")
+                if progress and i % progress_interval == 0:
+                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss / (i + 1)}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
                 i += 1
-            dataloader.dataset.shuffle()
             epoch_loss = running_loss / len(dataloader)
             print(f"Epoch {epoch + 1} completed, loss: {epoch_loss}")
             train_losses.append(epoch_loss)

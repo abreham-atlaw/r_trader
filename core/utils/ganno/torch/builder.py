@@ -34,7 +34,8 @@ class ModelBuilder:
 			block_size=config.block_size,
 			vocab_size=config.vocab_size,
 			layer_sizes=config.layers,
-			dropout_rate=config.dropout
+			dropout_rate=config.dropout,
+			hidden_activation=nn.ReLU()
 		)
 
 	def build(self, config: ModelConfig) -> nn.Module:
