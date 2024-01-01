@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -69,7 +70,7 @@ class ActionChoiceAgent(Agent):
 		return method(state)
 
 	def perform_timestep(self):
-		state = self._get_environment().get_state()
+		state = deepcopy(self._get_environment().get_state())
 		action = self._get_action(state)
 		value = self._get_environment().do(action)
 		if self._update_agent:
