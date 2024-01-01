@@ -12,7 +12,7 @@ from stockfish import Stockfish
 import chess
 import numpy as np
 import tensorflow as tf
-
+from tensorflow.python.keras import models, layers
 
 from lib.rl.agent.dra.dra import DeepReinforcementAgent
 from lib.rl.agent.dta import Model, TorchModel
