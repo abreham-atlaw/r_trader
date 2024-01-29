@@ -383,7 +383,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._state_repository.store(node.id, final_states[i])
 			final_states[i].set_depth(node.depth)
 
-
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
 		if not state_node.has_children():
@@ -392,6 +391,14 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		action_node: MonteCarloAgent.Node = np.random.choice(state_node.get_children(), 1)[0]
 
 		return self._get_random_state_node(action_node)
+
+	def _get_action_node_value(self, node: 'MonteCarloAgent.Node'):
+		total_weight = np.sum([state_node.weight for state_node in node.get_children()])
+		return np.sum([
+			state_node.get_total_value() * state_node.weight / total_weight
+			for state_node in node.get_children()
+		])
+
 
 	def __legacy_backpropagate(self, node: 'MonteCarloAgent.Node', reward=None) -> None:
 		node.increment_visits()
@@ -416,12 +423,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 				node.add_value(self._get_discount_factor(node.depth) * max([action_node.get_total_value() for action_node in node.get_children()]))
 
 		else:
-			total_weight = np.sum([state_node.weight for state_node in node.get_children()])
 			node.set_total_value(
-				np.sum([
-					state_node.get_total_value()*state_node.weight/total_weight
-					for state_node in node.get_children()
-				])
+				self._get_action_node_value(node)
 			)
 
 		if node.parent is None:
@@ -443,7 +446,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			# start_time = datetime.now()
 			self._expand(leaf_node, stm=False)
 			# stats.durations["expand"] += (datetime.now() - start_time).total_seconds()
-
 
 			# start_time = datetime.now()
 			final_node = self.__simulate(leaf_node)
