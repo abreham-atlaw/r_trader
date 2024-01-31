@@ -47,13 +47,14 @@ class CNN(nn.Module):
 
 	def forward(self, x):
 		out = torch.unsqueeze(x, dim=1)
-		for i in range(len(self.layers)):
-			out = self.layers[i].forward(out)
+		for layer, pool_layer in zip(self.layers, self.pool_layers):
+			out = layer.forward(out)
 			out = self.hidden_activation(out)
-			out = self.pool_layers[i](out)
+			out = pool_layer(out)
 			out = self.dropout(out)
 		out = self.avg_pool(out)
 		out = out.reshape(out.size(0), -1)
 		out = self.dropout(out)
 		out = self.fc(out)
 		return out
+
