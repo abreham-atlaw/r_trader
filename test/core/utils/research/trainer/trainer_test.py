@@ -7,12 +7,15 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import Adam
 
+from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
 from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
+from core.utils.research.training.callbacks.metric_callback import MetricCallback
+from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
 from core.utils.research.training.data.state import TrainingState
 from core.utils.research.training.trainer import Trainer
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -179,12 +182,22 @@ class TrainerTest(unittest.TestCase):
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
-		trainer = Trainer(model)
+		trainer = Trainer(
+			model,
+			callbacks=[
+				MetricCallback(
+					MongoDBMetricRepository(
+						Config.MONGODB_URL,
+						state.id
+					)
+				)
+			]
+		)
 
 		trainer.loss_function = nn.CrossEntropyLoss()
 		trainer.optimizer = Adam(model.parameters(), lr=1e-3)
 
-		trainer.train(dataloader, epochs=10, progress=True, state=state)
+		trainer.train(dataloader, epochs=10, progress=True, state=state, val_dataloader=dataloader)
 
 		new_state = trainer.state
 		self.assertIsNotNone(new_state)

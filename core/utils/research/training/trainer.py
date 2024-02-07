@@ -105,13 +105,16 @@ class Trainer:
             epoch_loss = running_loss / len(dataloader)
             print(f"Epoch {epoch + 1} completed, loss: {epoch_loss}")
             train_losses.append(epoch_loss)
-            for callback in self.callbacks:
-                callback.on_epoch_end(self.model, epoch)
+            losses = (epoch_loss,)
 
             if val_dataloader is not None:
                 val_loss = self.validate(val_dataloader)
                 val_losses.append(val_loss)
                 print(f"Validation loss: {val_loss}")
+                losses = (epoch_loss, val_loss)
+
+            for callback in self.callbacks:
+                callback.on_epoch_end(self.model, epoch, losses)
         for callback in self.callbacks:
             callback.on_train_end(self.model)
         return train_losses, val_losses
