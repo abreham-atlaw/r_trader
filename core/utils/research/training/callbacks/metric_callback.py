@@ -11,7 +11,6 @@ class MetricCallback(Callback):
 
 	def on_epoch_end(self, model, epoch, losses, logs=None):
 		for i, loss in enumerate(losses):
-			print("Uploading Metrics")
 			self.__repository.write_metric(
 				Metric(
 					source=i,
