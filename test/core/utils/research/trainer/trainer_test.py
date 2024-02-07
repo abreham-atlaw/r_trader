@@ -13,6 +13,7 @@ from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
 from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
+from core.utils.research.training.data.state import TrainingState
 from core.utils.research.training.trainer import Trainer
 from lib.utils.torch_utils.model_handler import ModelHandler
 
@@ -44,40 +45,43 @@ class TrainerTest(unittest.TestCase):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/actual_cnn_model.pth"
 
-		VOCAB_SIZE = 449
-		BATCH_SIZE = 4
-		CHANNELS = [1, 128, 256]
-		KERNEL_SIZES = [3, 3]
-		POOL_SIZES = [1, 1]
-		DROPOOUTS = 0.1
+		CHANNELS = [128, 128]
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		BLOCK_SIZE = 64
+		VOCAB_SIZE = 51
+		POOL_SIZES = [0 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.ReLU()
+		BATCH_SIZE = 64
 
-		# model = CNN(
-		# 	VOCAB_SIZE,
-		# 	conv_channels=CHANNELS,
-		# 	kernel_sizes=KERNEL_SIZES,
-		# 	pool_sizes=POOL_SIZES,
-		# 	dropout_rate=DROPOOUTS
-		# )
-		model = LinearModel(
-			block_size=1024,
-			vocab_size=449,
-			dropout_rate=0.1,
-			layer_sizes=[
-				128,
-				256,
-			]
+		model = CNN(
+			num_classes=VOCAB_SIZE,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			hidden_activation=ACTIVATION,
+			pool_sizes=POOL_SIZES,
+			dropout_rate=DROPOUT_RATE
 		)
+		# model = LinearModel(
+		# 	block_size=1024,
+		# 	vocab_size=449,
+		# 	dropout_rate=0.1,
+		# 	layer_sizes=[
+		# 		128,
+		# 		256,
+		# 	]
+		# )
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared(64)/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared(64)/test"
 			],
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
@@ -90,7 +94,7 @@ class TrainerTest(unittest.TestCase):
 		trainer.loss_function = nn.CrossEntropyLoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
-		# trainer.train(dataloader, epochs=5, progress=True, val_dataloader=test_dataloader)
+		trainer.train(dataloader, epochs=5, progress=True, val_dataloader=test_dataloader)
 		ModelHandler.save(trainer.model, SAVE_PATH)
 		torch.save(model.state_dict(), SAVE_PATH)
 
@@ -140,8 +144,51 @@ class TrainerTest(unittest.TestCase):
 		optimizer = Adam(model.parameters(), lr=1e-3)
 
 		trainer = Trainer(model, loss_function=loss_function, optimizer=optimizer)
-		trainer.train(dataloader, epochs=2, progress=True, val_dataloader=test_dataloader)
+		trainer.train(dataloader, epochs=2, progress=True)
 		torch.save(model.state_dict(), SAVE_PATH)
+
+	def test_resume(self):
+
+		CHANNELS = [128, 128]
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 51
+		POOL_SIZES = [0 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.ReLU()
+		BATCH_SIZE = 64
+
+		state = TrainingState(
+			id="test_id",
+			epoch=5,
+			batch=0
+		)
+
+		model = CNN(
+			num_classes=VOCAB_SIZE,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			hidden_activation=ACTIVATION,
+			pool_sizes=POOL_SIZES,
+			dropout_rate=DROPOUT_RATE
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared(64)/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+
+		trainer = Trainer(model)
+
+		trainer.loss_function = nn.CrossEntropyLoss()
+		trainer.optimizer = Adam(model.parameters(), lr=1e-3)
+
+		trainer.train(dataloader, epochs=10, progress=True, state=state)
+
+		new_state = trainer.state
+		self.assertIsNotNone(new_state)
+
 
 	def test_sinwave_prediction(self):
 

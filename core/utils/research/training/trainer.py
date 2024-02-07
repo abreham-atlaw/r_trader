@@ -1,3 +1,5 @@
+import uuid
+
 import torch
 import typing
 
@@ -5,6 +7,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from core.utils.research.training.callbacks import Callback
+from core.utils.research.training.data.state import TrainingState
 
 
 class Trainer:
@@ -20,6 +23,11 @@ class Trainer:
         self.loss_function = loss_function
         self.optimizer = optimizer
         self.callbacks = callbacks
+        self.__state: typing.Optional[TrainingState] = None
+
+    @property
+    def state(self) -> typing.Optional[TrainingState]:
+        return self.__state
 
     def summary(self):
         print("Model Summary")
@@ -35,6 +43,14 @@ class Trainer:
         print("=" * 100)
         print(f"Total Params:{total_params}")
 
+    @staticmethod
+    def __get_default_state() -> TrainingState:
+        return TrainingState(
+            id=uuid.uuid4().hex,
+            epoch=0,
+            batch=0
+        )
+
     def train(
             self,
             dataloader: DataLoader,
@@ -42,17 +58,25 @@ class Trainer:
             epochs: int = 1,
             progress: bool = False,
             shuffle=True,
-            progress_interval=100
+            progress_interval=100,
+            state: typing.Optional[TrainingState] = None
     ):
         if self.optimizer is None or self.loss_function is None:
             raise ValueError("Model not setup(optimizer or loss function missing")
+
+        if state is None:
+            state = self.__get_default_state()
+
+        self.__state = state
+
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
 
         train_losses = []
         val_losses = []
-        for epoch in range(epochs):
+        for epoch in range(state.epoch, epochs):
+            state.epoch = epoch
             if shuffle:
                 dataloader.dataset.shuffle()
             for callback in self.callbacks:
@@ -61,6 +85,9 @@ class Trainer:
             running_loss = 0.0
             pbar = tqdm(dataloader) if progress else dataloader
             for i, (X, y) in enumerate(pbar):
+                if i < state.batch:
+                    continue
+                state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
                 X, y = X.to(self.device), y.to(self.device)
@@ -74,7 +101,7 @@ class Trainer:
                     pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss / (i + 1)}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
-                i += 1
+            state.batch = 0
             epoch_loss = running_loss / len(dataloader)
             print(f"Epoch {epoch + 1} completed, loss: {epoch_loss}")
             train_losses.append(epoch_loss)
