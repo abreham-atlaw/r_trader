@@ -54,7 +54,7 @@ class ModelHandler:
         model = ModelClass(**model_config)
 
         # Load the state dict
-        model.load_state_dict(torch.load('model_state.pth'), map_location=torch.device('cpu'))
+        model.load_state_dict(torch.load('model_state.pth', map_location=torch.device('cpu')))
 
         # Remove the temporary files
         os.remove('model_config.json')
