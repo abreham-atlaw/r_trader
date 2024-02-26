@@ -40,7 +40,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			**kwargs
 		)
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
-		self.__state_change_delta_bounds = state_change_delta_bounds
+		self._state_change_delta_bounds = state_change_delta_bounds
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
 
@@ -65,8 +65,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		e_x = np.exp(x - np.max(x))
 		return e_x / e_x.sum()
 
-	def __find_gap_index(self, number: float) -> int:
-		boundaries = self.__state_change_delta_bounds
+	def _find_gap_index(self, number: float) -> int:
+		boundaries = self._state_change_delta_bounds
 		for i in range(len(boundaries)):
 			if number < boundaries[i]:
 				return i
@@ -77,21 +77,26 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			input_ = np.append(input_, depth)
 		return input_
 
-	def __prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
+	@staticmethod
+	def _get_target_instrument(state, action, final_state) -> typing.Tuple[str, str]:
+		if action is not None:
+			return action.base_currency, action.quote_currency
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
-
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
-
-				return self.__check_and_add_depth(
-					state.get_market_state().get_state_of(base_currency, quote_currency),
-					state.get_depth()
-				).astype(np.float32)
-
+				return base_currency, quote_currency
 		raise ValueError("Initial State and Final state are the same.")  # TODO: FIND ANOTHER WAY TO HANDLE THIS.
+
+	def _prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
+
+		base_currency, quote_currency = self._get_target_instrument(state, action, final_state)
+		return self.__check_and_add_depth(
+			state.get_market_state().get_state_of(base_currency, quote_currency),
+			state.get_depth()
+		).astype(np.float32)
 
 	def _prepare_dta_input(self, states: typing.List[TradeState], actions: typing.List[TraderAction], final_states: typing.List[TradeState]) -> np.ndarray:
 		return np.array([
-			self.__prepare_single_dta_input(state, action, final_state)
+			self._prepare_single_dta_input(state, action, final_state)
 			for state, action, final_state in zip(states, actions, final_states)
 		])
 
@@ -122,10 +127,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			).flatten()[0]
 
 		else:
-			if isinstance(self.__state_change_delta_bounds, float):
-				percentage = self.__state_change_delta_bounds
+			if isinstance(self._state_change_delta_bounds, float):
+				percentage = self._state_change_delta_bounds
 			else:
-				percentage = np.random.uniform(self.__state_change_delta_bounds[0], self.__state_change_delta_bounds[1])
+				percentage = np.random.uniform(self._state_change_delta_bounds[0], self._state_change_delta_bounds[1])
 
 			return_value = sequence[-1] * percentage
 
@@ -134,7 +139,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		return return_value
 
 
-	def __single_prediction_to_transition_probability_bound_mode(
+	def _single_prediction_to_transition_probability_bound_mode(
 			self,
 			initial_state: TradeState,
 			output: np.ndarray,
@@ -163,7 +168,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			)
 			if self.__use_softmax:
 				probabilities = self.__softmax(probabilities)
-			return probabilities[self.__find_gap_index(percentage)]
+			return probabilities[self._find_gap_index(percentage)]
 
 	def __prediction_to_transition_probability_bound_mode(
 			self,
@@ -172,7 +177,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			final_states: typing.List[TradeState]
 	) -> typing.List[float]:
 		return [
-			self.__single_prediction_to_transition_probability_bound_mode(
+			self._single_prediction_to_transition_probability_bound_mode(
 				initial_state, output, final_state
 			)
 			for initial_state, output, final_state in zip(initial_states, outputs, final_states)
@@ -258,7 +263,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
 
-		for j in self.__state_change_delta_bounds:
+		for j in self._state_change_delta_bounds:
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
 			new_state.get_market_state().update_state_of(

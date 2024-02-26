@@ -2,7 +2,7 @@ class Callback:
     def on_epoch_start(self, model, epoch, logs=None):
         pass
 
-    def on_epoch_end(self, model, epoch, logs=None):
+    def on_epoch_end(self, model, epoch, losses, logs=None):
         pass
 
     def on_batch_start(self, model, batch, logs=None):

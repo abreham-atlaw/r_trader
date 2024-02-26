@@ -11,10 +11,10 @@ class DeepReinforcementMonteCarloAgent(MonteCarloAgent, DeepReinforcementAgent, 
 		self.__wp = wp
 
 	def _get_action_node_value(self, node: 'MonteCarloAgent.Node'):
-		calculated_value = super()._get_action_node_value(node)
 		predicted_value = super(DeepReinforcementAgent, self)._get_state_action_value(
 			self._state_repository.retrieve(node.parent.id),
 			node.action
 		)
+		calculated_value = super()._get_action_node_value(node)
 		value = ((self.__wp - node.visits)*predicted_value + node.visits*calculated_value)/self.__wp
 		return value

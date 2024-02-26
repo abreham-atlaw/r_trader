@@ -25,7 +25,7 @@ class CheckpointCallback(Callback):
 		else:
 			ModelHandler.save(model, path)
 
-	def on_epoch_end(self, model, epoch, logs=None):
+	def on_epoch_end(self, model, epoch, losses, logs=None):
 		path = self.path
 		if os.path.isdir(self.path):
 			path = os.path.join(self.path, self._generate_name())
@@ -39,6 +39,6 @@ class StoreCheckpointCallback(CheckpointCallback):
 		super().__init__(*args, **kwargs)
 		self.__file_storage = fs
 
-	def on_epoch_end(self, model, epoch, logs=None):
+	def on_epoch_end(self, model, epoch, loss, logs=None):
 		path = super().on_epoch_end(model, epoch, logs)
 		self.__file_storage.upload_file(path)

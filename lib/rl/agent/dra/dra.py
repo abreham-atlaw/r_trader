@@ -36,11 +36,14 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 		pass
 
 	@abstractmethod
-	def _prepare_dra_train_output(self, state: typing.Any, action: typing.Any, value: float) -> np.ndarray:
+	def _prepare_dra_train_output(self, state: typing.Any, action: typing.Any, final_state: typing.Any, value: float) -> np.ndarray:
 		pass
 
 	def _fit_model(self, model: Model, X: np.ndarray, y: np.ndarray):
-		self.__model.fit(X, y)
+		return model.fit(X, y)
+
+	def _predict(self, model: Model, inputs: np.ndarray) -> np.ndarray:
+		return model.predict(inputs)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		return self._prepare_dra_output(
@@ -62,7 +65,7 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 	def _update_state_action_value(self, initial_state, action, final_state, value):
 		self.__generator.append(
 			self._prepare_dra_input(initial_state, action),
-			self._prepare_dra_train_output(initial_state, action, value)
+			self._prepare_dra_train_output(initial_state, action, final_state, value)
 		)
 		if len(self.__generator) == 2:
 			X, y = self.__generator[0]

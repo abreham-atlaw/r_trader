@@ -399,7 +399,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			for state_node in node.get_children()
 		])
 
-
 	def __legacy_backpropagate(self, node: 'MonteCarloAgent.Node', reward=None) -> None:
 		node.increment_visits()
 		if node.parent is None:
