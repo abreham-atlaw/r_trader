@@ -9,6 +9,7 @@ from torch.optim import Adam
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
+from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
@@ -94,7 +95,7 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		trainer = Trainer(model, callbacks=callbacks)
-		trainer.loss_function = nn.CrossEntropyLoss()
+		trainer.loss_function = WeightedMSELoss(VOCAB_SIZE)
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
 		trainer.train(dataloader, epochs=5, progress=True, val_dataloader=test_dataloader)
