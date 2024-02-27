@@ -4,12 +4,17 @@ import torch.nn.functional as F
 
 
 class WeightedMSELoss(nn.Module):
-    def __init__(self, size, softmax=False, device='cpu', a=0.1):
+    def __init__(self, size, softmax=True, device='cpu', a=0.15):
         super(WeightedMSELoss, self).__init__()
         self.size = size
-        self.w = (1/a) ** (size - torch.abs(torch.arange(size).unsqueeze(0) - torch.arange(size).unsqueeze(1))) * a**size
-        self.w = self.w.to(device)  # move w to the correct device
+        self.w = self.__initialize_weights(size, a)
+        self.w = self.w.to(device)
         self.softmax = softmax
+
+    @staticmethod
+    def __initialize_weights(size, a):
+        x = ((size - torch.abs(torch.arange(size).unsqueeze(0) - torch.arange(size).unsqueeze(1)))/size)
+        return torch.exp(-(((1 - x) ** 2) / (a)))
 
     def forward(self, y_hat, y):
         if self.softmax:
