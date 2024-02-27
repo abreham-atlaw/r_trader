@@ -19,7 +19,7 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
-		self.__model = self._init_model()
+		self._model = self._init_model()
 		self.__generator = AgentDataGenerator(batch_size, export_path=save_path)
 		self.__save, self.__train = save_path is not None, train
 
@@ -50,7 +50,7 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 			state,
 			action,
 			np.squeeze(
-				self.__model.predict(
+				self._model.predict(
 					np.expand_dims(
 						self._prepare_dra_input(
 							state,
@@ -70,7 +70,7 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 		if len(self.__generator) == 2:
 			X, y = self.__generator[0]
 			if self.__train:
-				self._fit_model(self.__model, X, y)
+				self._fit_model(self._model, X, y)
 			if self.__save:
 				self.__generator.save()
 			self.__generator.remove(0)

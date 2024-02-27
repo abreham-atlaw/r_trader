@@ -218,7 +218,7 @@ class AgentState:
 				)
 			)
 
-	def __margin_required_for(self, units: int, base_currency: str, quote_currency: str) -> float:
+	def calc_required_margin(self, units: int, base_currency: str, quote_currency: str) -> float:
 		price = self.__market_state.get_current_price(base_currency, quote_currency)
 		in_quote = price*self.__margin_rate*units
 		return in_quote * self.__market_state.get_current_price(quote_currency, self.__currency)
@@ -265,7 +265,7 @@ class AgentState:
 		if current_value is None:
 			current_value = self.__market_state.get_current_price(action.base_currency, action.quote_currency)
 		if action.margin_used is None:
-			action.margin_used = self.__margin_required_for(action.units, action.base_currency, action.quote_currency)
+			action.margin_used = self.calc_required_margin(action.units, action.base_currency, action.quote_currency)
 		elif action.units is None:
 			action.units = self.__units_for(action.margin_used, action.base_currency, action.quote_currency)
 		if action.margin_used > self.get_margin_available():

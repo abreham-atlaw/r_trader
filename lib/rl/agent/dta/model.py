@@ -56,7 +56,7 @@ class TorchModel(Model):
 		self.__model = model
 
 	def predict(self, inputs: np.ndarray) -> np.ndarray:
-		return self.__model(torch.from_numpy(inputs)).detach().numpy()
+		return self.__model(torch.from_numpy(inputs.astype(np.float32))).detach().numpy()
 
 	def fit(self, X: np.ndarray, y: np.ndarray):
 		pass
@@ -66,5 +66,5 @@ class TorchModel(Model):
 
 	@classmethod
 	def load(cls, path: str) -> 'Model':
-		return TorchModel(ModelHandler.load(path, device="cpu"),)
+		return TorchModel(ModelHandler.load(path))
 

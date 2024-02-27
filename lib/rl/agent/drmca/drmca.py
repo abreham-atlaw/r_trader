@@ -11,7 +11,9 @@ class DeepReinforcementMonteCarloAgent(MonteCarloAgent, DeepReinforcementAgent, 
 		self.__wp = wp
 
 	def _get_action_node_value(self, node: 'MonteCarloAgent.Node'):
-		predicted_value = super(DeepReinforcementAgent, self)._get_state_action_value(
+
+		predicted_value = DeepReinforcementAgent._get_state_action_value(
+			self,
 			self._state_repository.retrieve(node.parent.id),
 			node.action
 		)

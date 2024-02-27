@@ -19,7 +19,6 @@ class CNN(SavableModel):
 			init_fn: typing.Optional[nn.Module] = None
 	):
 		super(CNN, self).__init__()
-		# Save the arguments
 		self.args = {
 			'num_classes': num_classes,
 			'conv_channels': conv_channels,
@@ -42,8 +41,7 @@ class CNN(SavableModel):
 
 		for i in range(len(conv_channels) - 1):
 			self.layers.append(
-				nn.Conv1d(in_channels=conv_channels[i], out_channels=conv_channels[i + 1], kernel_size=kernel_sizes[i],
-				          stride=1, padding=1)
+				nn.Conv1d(in_channels=conv_channels[i], out_channels=conv_channels[i + 1], kernel_size=kernel_sizes[i], stride=1, padding=1)
 			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
