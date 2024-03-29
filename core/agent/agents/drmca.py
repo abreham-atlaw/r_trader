@@ -15,8 +15,21 @@ from lib.rl.environment import ModelBasedState
 
 class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, TraderDNNTransitionAgent, ABC):
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+	def __init__(
+			self,
+			*args,
+			batch_size=Config.UPDATE_EXPORT_BATCH_SIZE,
+			train=Config.UPDATE_TRAIN,
+			save_path=Config.UPDATE_SAVE_PATH,
+			**kwargs
+	):
+		super().__init__(
+			*args,
+			batch_size=batch_size,
+			train=train,
+			save_path=save_path,
+			**kwargs
+		)
 
 	def _init_model(self) -> Model:
 		return TorchModel.load(Config.CORE_MODEL_CONFIG.path)
@@ -90,4 +103,4 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		return output
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
-		super(DeepReinforcementMonteCarloAgent, self)._update_state_action_value(initial_state, action, final_state, value)
+		DeepReinforcementMonteCarloAgent._update_state_action_value(self, initial_state, action, final_state, value)

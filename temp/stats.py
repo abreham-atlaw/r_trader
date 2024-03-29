@@ -19,6 +19,14 @@ durations = {
 		'random_choice',
 		'expected_transition_probability_norm',
 
+		'get_expected_transition_probability_distribution',
+		'DeepReinforcementAgent._get_state_action_value',
+		'super()._get_action_node_value',
+		'for i in range(len(probability_distribution))',
+
+		'state.get_agent_state().close_trades',
+		'state.get_market_state().get_current_price',
+
 		'select',
 		'expand',
 		'simulate',
@@ -49,16 +57,17 @@ def get_percentages(total):
 def get_nodes(parent_node, depth=None, top=None):
 	children = parent_node.get_children()
 
+	inner_top = top
 	if top is None:
-		top = len(children)
+		inner_top = len(children)
 
 	if len(children) == 0:
 		return []
 
-	top = min(top, len(children))
+	inner_top = min(inner_top, len(children))
 
-	threshold = sorted([node.weight for node in children], reverse=True)[top-1]
-	print(top)
+	threshold = sorted([node.weight for node in children], reverse=True)[inner_top-1]
+	print(inner_top)
 	print(threshold)
 
 	if depth == 0:

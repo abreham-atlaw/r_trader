@@ -42,7 +42,8 @@ class AgentDataGenerator:
 
 	def __setup_dirs(self):
 		for path in [self.__X_path, self.__y_path]:
-			os.mkdir(path)
+			if not os.path.exists(path):
+				os.mkdir(path)
 		self.__save_setup = True
 
 	def __save_array(self, arr: np.ndarray, path: str):

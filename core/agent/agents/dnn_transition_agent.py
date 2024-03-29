@@ -1,4 +1,5 @@
 import typing
+from datetime import datetime
 from typing import *
 from abc import ABC
 
@@ -15,7 +16,7 @@ from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from core.agent.trader_action import TraderAction
 from core.agent.utils.dnn_models import KerasModelHandler
-
+from temp import stats
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
@@ -204,7 +205,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 			return 1-predicted_value
 
-	def _prepare_dta_train_output(self, initial_state: TradeState, action, final_state: TradeState) -> np.ndarray:
+	def _prepare_single_dta_train_output(self, initial_state: TradeState, action, final_state: TradeState) -> np.ndarray:
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 			if final_state.get_market_state().get_current_price(base_currency, quote_currency) == initial_state.get_market_state().get_current_price(base_currency, quote_currency):
@@ -216,6 +217,9 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			return np.array([0])
 
 		return np.array([0.5])
+
+	def _prepare_dta_train_output(self, initial_state: TradeState, action, final_state: TradeState) -> np.ndarray:
+		return np.stack([self._prepare_single_dta_train_output(initial_state, action, final_state)])
 
 	def _get_expected_instant_reward(self, state) -> float:
 		return self._get_environment().get_reward(state)
@@ -247,7 +251,9 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		else:
 			states += self.__simulate_instrument_change(state, action.base_currency, action.quote_currency)
 
-		states = [self.__simulate_action(mid_state, action) for mid_state in states]
+		# states = [self.__simulate_action(mid_state, action) for mid_state in states]
+		for mid_state in states:
+			self.__simulate_action(mid_state, action)
 
 		return states
 
@@ -295,19 +301,22 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
-	def __simulate_action(self, state: TradeState, action: TraderAction) -> TradeState:  # TODO: SETUP CACHER
-		new_state = copy.deepcopy(state)
+	def __simulate_action(self, state: TradeState, action: TraderAction):  # TODO: SETUP CACHER
+		# state = copy.deepcopy(state)
 
 		if action is None:
-			return new_state
+			return
 
 		if action.action == TraderAction.Action.CLOSE:
-			new_state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
-			return new_state
+			start_time = datetime.now()
+			state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
+			stats.durations['state.get_agent_state().close_trades'] += (
+						datetime.now() - start_time).total_seconds()
+			return
 
-		new_state.get_agent_state().open_trade(
+		start_time = datetime.now()
+		state.get_agent_state().open_trade(
 			action,
 			state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
 		)
-
-		return new_state
+		stats.durations['state.get_market_state().get_current_price'] += (datetime.now() - start_time).total_seconds()

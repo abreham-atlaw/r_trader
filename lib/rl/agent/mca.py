@@ -373,15 +373,19 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		states, actions, final_states, possible_state_nodes = self.__collect_transition_inputs(state_node)
 
+		start_time = datetime.now()
 		probability_distribution = self._get_expected_transition_probability_distribution(states, actions, final_states)
+		stats.durations["get_expected_transition_probability_distribution"] += (datetime.now() - start_time).total_seconds()
 
+		start_time = datetime.now()
 		for i in range(len(probability_distribution)):
-			node = possible_state_nodes[i]
-			node.instant_value = self._get_expected_instant_reward(final_states[i])
-			node.weight = probability_distribution[i]
-			node.depth = state_node.depth + 1
-			self._state_repository.store(node.id, final_states[i])
-			final_states[i].set_depth(node.depth)
+			possible_state_nodes[i].instant_value = self._get_expected_instant_reward(final_states[i])
+			possible_state_nodes[i].weight = probability_distribution[i]
+			possible_state_nodes[i].depth = state_node.depth + 1
+			self._state_repository.store(possible_state_nodes[i].id, final_states[i])
+			final_states[i].set_depth(possible_state_nodes[i].depth)
+		stats.durations["for i in range(len(probability_distribution))"] += (
+						datetime.now() - start_time).total_seconds()
 
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -438,21 +442,21 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		stats.iterations["main_loop"] = 0
 		while self._has_resource(resources):
-			# start_time = datetime.now()
+			start_time = datetime.now()
 			leaf_node = self._select(root_node)
-			# stats.durations["select"] += (datetime.now() - start_time).total_seconds()
+			stats.durations["select"] += (datetime.now() - start_time).total_seconds()
 
-			# start_time = datetime.now()
+			start_time = datetime.now()
 			self._expand(leaf_node, stm=False)
-			# stats.durations["expand"] += (datetime.now() - start_time).total_seconds()
+			stats.durations["expand"] += (datetime.now() - start_time).total_seconds()
 
-			# start_time = datetime.now()
+			start_time = datetime.now()
 			final_node = self.__simulate(leaf_node)
-			# stats.durations["simulate"] += (datetime.now() - start_time).total_seconds()
+			stats.durations["simulate"] += (datetime.now() - start_time).total_seconds()
 
-			# start_time = datetime.now()
+			start_time = datetime.now()
 			self._backpropagate(final_node)
-			# stats.durations["backpropagate"] += (datetime.now() - start_time).total_seconds()
+			stats.durations["backpropagate"] += (datetime.now() - start_time).total_seconds()
 
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1
