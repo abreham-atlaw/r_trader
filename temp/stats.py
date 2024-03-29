@@ -67,8 +67,6 @@ def get_nodes(parent_node, depth=None, top=None):
 	inner_top = min(inner_top, len(children))
 
 	threshold = sorted([node.weight for node in children], reverse=True)[inner_top-1]
-	print(inner_top)
-	print(threshold)
 
 	if depth == 0:
 		return children
