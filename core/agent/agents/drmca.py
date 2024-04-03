@@ -8,9 +8,11 @@ from core import Config
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from core.agent.trader_action import TraderAction
 from core.environment.trade_state import TradeState
+from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
 from lib.rl.agent.dta import Model, TorchModel
 from lib.rl.environment import ModelBasedState
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, TraderDNNTransitionAgent, ABC):
@@ -32,7 +34,13 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		)
 
 	def _init_model(self) -> Model:
-		return TorchModel.load(Config.CORE_MODEL_CONFIG.path)
+		return TorchModel(
+				WrappedModel(
+					ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
+					seq_len=Config.MARKET_STATE_MEMORY,
+					window_size=Config.AGENT_MA_WINDOW_SIZE
+				)
+			)
 
 	@property
 	def _transition_model(self) -> Model:
@@ -97,7 +105,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		instrument = self._get_target_instrument(state, action, final_state)
 		percentage = final_state.market_state.get_current_price(*instrument)/state.market_state.get_current_price(*instrument)
 		bound_idx = self._find_gap_index(percentage)
-		output = np.zeros(len(self._state_change_delta_bounds)+1)
+		output = np.zeros(len(self._state_change_delta_bounds)+2)
 		output[bound_idx] = 1
 		output[-1] = value
 		return output

@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn import MSELoss
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import Adam
 
@@ -47,45 +48,45 @@ class TrainerTest(unittest.TestCase):
 
 	def test_cnn_model(self):
 
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/actual_cnn_model.pth"
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/drl_linear_model.zip"
 
 		CHANNELS = [128, 128]
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		BLOCK_SIZE = 64
-		VOCAB_SIZE = 51
+		VOCAB_SIZE = 449
 		POOL_SIZES = [0 for _ in CHANNELS]
 		DROPOUT_RATE = 0
 		ACTIVATION = nn.ReLU()
 		BATCH_SIZE = 64
 
-		model = CNN(
-			num_classes=VOCAB_SIZE,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE
-		)
-		# model = LinearModel(
-		# 	block_size=1024,
-		# 	vocab_size=449,
-		# 	dropout_rate=0.1,
-		# 	layer_sizes=[
-		# 		128,
-		# 		256,
-		# 	]
+		# model = CNN(
+		# 	num_classes=VOCAB_SIZE,
+		# 	conv_channels=CHANNELS,
+		# 	kernel_sizes=KERNEL_SIZES,
+		# 	hidden_activation=ACTIVATION,
+		# 	pool_sizes=POOL_SIZES,
+		# 	dropout_rate=DROPOUT_RATE
 		# )
+		model = LinearModel(
+			block_size=1028,
+			vocab_size=450,
+			dropout_rate=0.1,
+			layer_sizes=[
+				64,
+				64,
+			]
+		)
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared(64)/train"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drmca_export_prepared/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared(64)/test"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drmca_export_prepared/test"
 			],
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
@@ -95,12 +96,13 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		trainer = Trainer(model, callbacks=callbacks)
-		trainer.loss_function = WeightedMSELoss(VOCAB_SIZE)
+		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
-		trainer.train(dataloader, epochs=5, progress=True, val_dataloader=test_dataloader)
+		trainer.train(dataloader, epochs=50, progress=True, val_dataloader=test_dataloader)
 		ModelHandler.save(trainer.model, SAVE_PATH)
-		torch.save(model.state_dict(), SAVE_PATH)
 
 	def test_functionality(self):
 
@@ -147,7 +149,7 @@ class TrainerTest(unittest.TestCase):
 		loss_function = nn.CrossEntropyLoss()
 		optimizer = Adam(model.parameters(), lr=1e-3)
 
-		trainer = Trainer(model, loss_function=loss_function, optimizer=optimizer)
+		trainer = Trainer(model, cls_loss_function=loss_function, optimizer=optimizer)
 		trainer.train(dataloader, epochs=2, progress=True)
 		torch.save(model.state_dict(), SAVE_PATH)
 
@@ -195,7 +197,7 @@ class TrainerTest(unittest.TestCase):
 			]
 		)
 
-		trainer.loss_function = nn.CrossEntropyLoss()
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.optimizer = Adam(model.parameters(), lr=1e-3)
 
 		trainer.train(dataloader, epochs=10, progress=True, state=state, val_dataloader=dataloader)
@@ -220,7 +222,7 @@ class TrainerTest(unittest.TestCase):
 		)
 
 		trainer = Trainer(model)
-		trainer.loss_function = nn.MSELoss()
+		trainer.cls_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters())
 
 		trainer.train(

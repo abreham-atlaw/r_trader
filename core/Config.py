@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 from pytz import timezone
 import os
@@ -112,15 +114,6 @@ TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 90
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
-AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(np.concatenate([
-	1 + bound * np.linspace(-1, 1, size) ** pow
-	for bound, size, pow in [
-		(4e-3, 64, 3),
-		(1e-4, 128, 3),
-		(2e-4, 128, 3),
-		(3e-4, 128, 3)
-	]
-])))
 AGENT_MIN_PROBABILITY = 1e-6
 AGENT_DISCOUNT_FACTOR = 1
 AGENT_DISCOUNT_FUNCTION = None
@@ -154,6 +147,9 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
+AGENT_MA_WINDOW_SIZE = 10
+with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
+	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 
 MC_WORKER_STEP_TIME = 0.05 * 60
 MC_WORKERS = 4
@@ -182,7 +178,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/dra.zip"),
+	path=os.path.join(BASE_DIR, "temp/models/drl_linear_model.zip"),
 	download=False
 )
 

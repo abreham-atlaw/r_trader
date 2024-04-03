@@ -9,6 +9,7 @@ import numpy as np
 import copy
 
 from core import Config
+from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent import DNNTransitionAgent
 from lib.rl.agent.dta import TorchModel
 from lib.utils.logger import Logger
@@ -17,6 +18,9 @@ from core.environment.trade_environment import TradeEnvironment
 from core.agent.trader_action import TraderAction
 from core.agent.utils.dnn_models import KerasModelHandler
 from temp import stats
+
+from lib.utils.torch_utils.model_handler import ModelHandler
+
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
@@ -47,7 +51,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		if core_model is None:
 			Logger.info("Loading Core Model")
-			core_model = TorchModel.load(Config.CORE_MODEL_CONFIG.path)
+			core_model = TorchModel(
+				WrappedModel(
+					ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
+					seq_len=Config.MARKET_STATE_MEMORY,
+					window_size=Config.AGENT_MA_WINDOW_SIZE
+				)
+			)
 		self.set_transition_model(core_model)
 
 		self.__delta_model = None
@@ -138,7 +148,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta_cache[cache_key] = return_value
 
 		return return_value
-
 
 	def _single_prediction_to_transition_probability_bound_mode(
 			self,

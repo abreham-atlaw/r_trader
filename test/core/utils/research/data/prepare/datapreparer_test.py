@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 
@@ -93,6 +94,15 @@ class DataPreparerTest(unittest.TestCase):
 
 		path = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/preprared(plot)"
 
+		# BOUNDS = sorted(list(np.concatenate([
+		# 	1 + bound * np.linspace(-1, 1, size) ** pow
+		# 	for bound, size, pow in [
+		# 		(4e-3, 64, 3),
+		# 		(1e-4, 128, 3),
+		# 		(2e-4, 128, 3),
+		# 		(3e-4, 128, 3)
+		# 	]
+		# ])))
 		BOUNDS = sorted(list(np.concatenate([
 			1 + bound * np.linspace(-1, 1, size) ** pow
 			for bound, size, pow in [
@@ -102,7 +112,11 @@ class DataPreparerTest(unittest.TestCase):
 				(3e-4, 128, 3)
 			]
 		])))
-		BOUNDS = np.linspace(BOUNDS[100], BOUNDS[250], 2)
+		BOUNDS += sorted(list(np.linspace(0.9724920650187554, 1.0328659854109465, 1000)))
+
+		BOUNDS = sorted(list(BOUNDS))
+		# BOUNDS = np.linspace(BOUNDS[100], BOUNDS[250], 2)
+		# BOUNDS = np.linspace(0.9724920650187554, 1.0328659854109465, 100)
 
 		datapreparer = DataPreparer(
 			boundaries=BOUNDS,
@@ -112,7 +126,7 @@ class DataPreparerTest(unittest.TestCase):
 			granularity=5,
 			batch_size=int(1e9),
 		)
-		df = pd.read_csv("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-50k.csv")
+		df = pd.read_csv("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD.csv")
 
 		datapreparer.start(
 			df=df,
@@ -129,6 +143,13 @@ class DataPreparerTest(unittest.TestCase):
 		print(f"Classes: {len(classes)}")
 		print(f"Efficiency: {len(classes)/(len(BOUNDS)+1)}")
 
+		valid_bounds = [BOUNDS[idx] for idx in classes if idx < len(BOUNDS)]
+		with open("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/bounds/01.json", "w") as file:
+			json.dump(valid_bounds, file)
+
 		plt.scatter(classes, frequencies)
+
+		plt.figure()
+		plt.scatter(list(range(len(valid_bounds))), valid_bounds)
+
 		plt.show()
-		x = 1

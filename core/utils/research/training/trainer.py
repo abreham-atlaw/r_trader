@@ -12,7 +12,14 @@ from core.utils.research.training.data.state import TrainingState
 
 class Trainer:
 
-    def __init__(self, model, loss_function=None, optimizer=None, callbacks: typing.List[Callback]=None):
+    def __init__(
+            self,
+            model,
+            cls_loss_function=None,
+            reg_loss_function=None,
+            optimizer=None,
+            callbacks: typing.List[Callback]=None
+    ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
@@ -20,7 +27,8 @@ class Trainer:
         if callbacks is None:
             callbacks = []
         self.model = model.to(self.device)
-        self.loss_function = loss_function
+        self.cls_loss_function = cls_loss_function
+        self.reg_loss_function = reg_loss_function
         self.optimizer = optimizer
         self.callbacks = callbacks
         self.__state: typing.Optional[TrainingState] = None
@@ -51,6 +59,9 @@ class Trainer:
             batch=0
         )
 
+    def __split_y(self, y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
+        return y[:, :-1], y[:, -1:]
+
     def train(
             self,
             dataloader: DataLoader,
@@ -61,7 +72,7 @@ class Trainer:
             progress_interval=100,
             state: typing.Optional[TrainingState] = None
     ):
-        if self.optimizer is None or self.loss_function is None:
+        if self.optimizer is None or self.cls_loss_function is None:
             raise ValueError("Model not setup(optimizer or loss function missing")
 
         if state is None:
@@ -93,8 +104,16 @@ class Trainer:
                 X, y = X.to(self.device), y.to(self.device)
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
-                loss = self.loss_function(y_hat, y)
+
+                cls_y, reg_y = self.__split_y(y)
+                cls_y_hat, reg_y_hat = self.__split_y(y_hat)
+
+                cls_loss = self.cls_loss_function(cls_y_hat, cls_y)
+                ref_loss = self.reg_loss_function(reg_y_hat, reg_y)
+
+                loss = cls_loss + ref_loss
                 loss.backward()
+
                 self.optimizer.step()
                 running_loss += loss.item()
                 if progress and i % progress_interval == 0:
@@ -126,6 +145,6 @@ class Trainer:
             for X, y in dataloader:
                 X, y = X.to(self.device), y.to(self.device)
                 y_hat = self.model(X)
-                loss = self.loss_function(y_hat, y)
+                loss = self.cls_loss_function(y_hat, y)
                 total_loss += loss.item()
         return total_loss / len(dataloader)

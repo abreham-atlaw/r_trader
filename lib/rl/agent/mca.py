@@ -454,9 +454,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			final_node = self.__simulate(leaf_node)
 			stats.durations["simulate"] += (datetime.now() - start_time).total_seconds()
 
-			start_time = datetime.now()
 			self._backpropagate(final_node)
-			stats.durations["backpropagate"] += (datetime.now() - start_time).total_seconds()
 
 			self.__manage_resources()
 			stats.iterations["main_loop"] += 1

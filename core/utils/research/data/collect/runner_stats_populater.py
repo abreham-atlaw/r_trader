@@ -41,7 +41,7 @@ class RunnerStatsPopulater:
 
 	def __evaluate_model(self, model: nn.Module) ->float:
 		print("[+]Evaluating Model")
-		trainer = Trainer(model, loss_function=nn.CrossEntropyLoss(), optimizer=Adam(model.parameters()))
+		trainer = Trainer(model, cls_loss_function=nn.CrossEntropyLoss(), optimizer=Adam(model.parameters()))
 		return trainer.validate(self.__dataloader)
 
 	def __prepare_model(self, model: nn.Module) -> nn.Module:
