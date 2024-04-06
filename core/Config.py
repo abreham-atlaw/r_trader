@@ -63,7 +63,7 @@ PCLOUD_TOKENS = [
 	"aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
 ]
 
-PCLOUD_API_TOKEN = "mC6DCVZfKQB7ZlH4cEms3Ie4CYWd116T4iYsCkBKX"
+PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
 
 PCLOUD_FOLDER = "/Apps/RTrader"
 MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")
@@ -178,7 +178,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/drl_linear_model.zip"),
+	path=os.path.join(BASE_DIR, "temp/models/dra.zip"),
 	download=False
 )
 
