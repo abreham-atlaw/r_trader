@@ -62,6 +62,19 @@ class Trainer:
     def __split_y(self, y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         return y[:, :-1], y[:, -1:]
 
+    def __loss(self, y_hat, y):
+        cls_y, reg_y = self.__split_y(y)
+        cls_y_hat, reg_y_hat = self.__split_y(y_hat)
+
+        cls_loss = self.cls_loss_function(cls_y_hat, cls_y)
+        reg_loss = self.reg_loss_function(reg_y_hat, reg_y)
+
+        loss = cls_loss + reg_loss
+        return cls_loss, reg_loss, loss
+
+    def __format_loss(self, loss):
+        return f"loss: {loss[2]}(cls: {loss[0]}, reg: {loss[1]})"
+
     def train(
             self,
             dataloader: DataLoader,
@@ -93,7 +106,7 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
-            running_loss = 0.0
+            running_loss = torch.zeros((3,))
             pbar = tqdm(dataloader) if progress else dataloader
             for i, (X, y) in enumerate(pbar):
                 if i < state.batch:
@@ -105,31 +118,26 @@ class Trainer:
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 
-                cls_y, reg_y = self.__split_y(y)
-                cls_y_hat, reg_y_hat = self.__split_y(y_hat)
+                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
 
-                cls_loss = self.cls_loss_function(cls_y_hat, cls_y)
-                ref_loss = self.reg_loss_function(reg_y_hat, reg_y)
-
-                loss = cls_loss + ref_loss
                 loss.backward()
 
                 self.optimizer.step()
-                running_loss += loss.item()
+                running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
                 if progress and i % progress_interval == 0:
-                    pbar.set_description(f"Epoch {epoch + 1} loss: {running_loss / (i + 1)}")
+                    pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
             state.batch = 0
             epoch_loss = running_loss / len(dataloader)
-            print(f"Epoch {epoch + 1} completed, loss: {epoch_loss}")
+            print(f"Epoch {epoch + 1} completed, {self.__format_loss(epoch_loss)}")
             train_losses.append(epoch_loss)
             losses = (epoch_loss,)
 
             if val_dataloader is not None:
                 val_loss = self.validate(val_dataloader)
                 val_losses.append(val_loss)
-                print(f"Validation loss: {val_loss}")
+                print(f"Validation loss: {self.__format_loss(val_loss)}")
                 losses = (epoch_loss, val_loss)
 
             for callback in self.callbacks:
@@ -140,11 +148,12 @@ class Trainer:
 
     def validate(self, dataloader):
         self.model.eval()
-        total_loss = 0
+        total_loss = torch.zeros((3,))
         with torch.no_grad():
             for X, y in dataloader:
                 X, y = X.to(self.device), y.to(self.device)
                 y_hat = self.model(X)
-                loss = self.cls_loss_function(y_hat, y)
-                total_loss += loss.item()
+                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+
+                total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
         return total_loss / len(dataloader)

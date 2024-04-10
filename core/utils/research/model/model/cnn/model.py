@@ -11,15 +11,17 @@ class CNN(SavableModel):
 	def __init__(
 			self,
 			num_classes: int,
+			extra_len: int,
 			conv_channels: typing.List[int],
 			kernel_sizes: typing.List[int],
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			dropout_rate: float = 0,
-			init_fn: typing.Optional[nn.Module] = None
+			init_fn: typing.Optional[nn.Module] = None,
 	):
 		super(CNN, self).__init__()
 		self.args = {
+			'extra_len': extra_len,
 			'num_classes': num_classes,
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
@@ -28,7 +30,7 @@ class CNN(SavableModel):
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
 		}
-
+		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
 
@@ -51,14 +53,15 @@ class CNN(SavableModel):
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
 		self.avg_pool = nn.AdaptiveAvgPool1d((1,))
-		self.fc = nn.Linear(conv_channels[-1], num_classes)
+		self.fc = nn.Linear(conv_channels[-1] + self.extra_len, num_classes)
 		if dropout_rate > 0:
 			self.dropout = nn.Dropout(dropout_rate)
 		else:
 			self.dropout = nn.Identity()
 
 	def forward(self, x):
-		out = torch.unsqueeze(x, dim=1)
+		seq = x[:, :-self.extra_len]
+		out = torch.unsqueeze(seq, dim=1)
 		for layer, pool_layer in zip(self.layers, self.pool_layers):
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
@@ -67,6 +70,7 @@ class CNN(SavableModel):
 		out = self.avg_pool(out)
 		out = out.reshape(out.size(0), -1)
 		out = self.dropout(out)
+		out = torch.concat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.fc(out)
 		return out
 

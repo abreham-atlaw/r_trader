@@ -48,45 +48,48 @@ class TrainerTest(unittest.TestCase):
 
 	def test_cnn_model(self):
 
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/drl_linear_model.zip"
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
 		CHANNELS = [128, 128]
+		EXTRA_LEN = 4
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		BLOCK_SIZE = 64
-		VOCAB_SIZE = 449
+		VOCAB_SIZE = 431
 		POOL_SIZES = [0 for _ in CHANNELS]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.ReLU()
-		BATCH_SIZE = 64
+		ACTIVATION = nn.LeakyReLU()
+		BATCH_SIZE = 8
 
-		# model = CNN(
-		# 	num_classes=VOCAB_SIZE,
-		# 	conv_channels=CHANNELS,
-		# 	kernel_sizes=KERNEL_SIZES,
-		# 	hidden_activation=ACTIVATION,
-		# 	pool_sizes=POOL_SIZES,
-		# 	dropout_rate=DROPOUT_RATE
-		# )
-		model = LinearModel(
-			block_size=1028,
-			vocab_size=450,
-			dropout_rate=0.1,
-			layer_sizes=[
-				64,
-				64,
-			]
+		model = CNN(
+			extra_len=EXTRA_LEN,
+			num_classes=VOCAB_SIZE + 1,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			hidden_activation=ACTIVATION,
+			pool_sizes=POOL_SIZES,
+			dropout_rate=DROPOUT_RATE
 		)
+		# model = LinearModel(
+		# 	block_size=1028,
+		# 	vocab_size=432,
+		# 	dropout_rate=0.0,
+		# 	layer_sizes=[
+		# 		64,
+		# 		64,
+		# 	]
+		# )
+
+		ModelHandler.save(model, SAVE_PATH)
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drmca_export_prepared/train"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer/out/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drmca_export_prepared/test"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer/out/test"
 			],
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
