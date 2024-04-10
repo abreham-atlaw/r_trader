@@ -17,6 +17,6 @@ class MetricCallback(Callback):
 					model=0,
 					epoch=epoch,
 					depth=0,
-					value=(loss,)
+					value=loss
 				)
 			)

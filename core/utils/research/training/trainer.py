@@ -129,7 +129,7 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
             state.batch = 0
-            epoch_loss = running_loss / len(dataloader)
+            epoch_loss = (running_loss / len(dataloader)).tolist()
             print(f"Epoch {epoch + 1} completed, {self.__format_loss(epoch_loss)}")
             train_losses.append(epoch_loss)
             losses = (epoch_loss,)
@@ -156,4 +156,4 @@ class Trainer:
                 cls_loss, ref_loss, loss = self.__loss(y_hat, y)
 
                 total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
-        return total_loss / len(dataloader)
+        return (total_loss / len(dataloader)).tolist()
