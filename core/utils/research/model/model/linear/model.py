@@ -29,6 +29,8 @@ class LinearModel(SavableModel):
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'norm': norm
 		}
+		self.input_size = block_size
+		self.output_size = vocab_size
 
 		layer_sizes = [block_size] + layer_sizes + [vocab_size]
 

@@ -5,6 +5,7 @@ import torch
 from torch import nn
 
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.linear.model import LinearModel
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -20,15 +21,26 @@ class CNNTest(unittest.TestCase):
 		DROPOUT_RATE = 0
 		ACTIVATION = nn.LeakyReLU()
 
-		model = CNN(
-			extra_len=EXTRA_LEN,
-			num_classes=VOCAB_SIZE + 1,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE
-		)
+		# model = CNN(
+		# 	extra_len=EXTRA_LEN,
+		# 	num_classes=VOCAB_SIZE + 1,
+		# 	conv_channels=CHANNELS,
+		# 	kernel_sizes=KERNEL_SIZES,
+		# 	hidden_activation=ACTIVATION,
+		# 	pool_sizes=POOL_SIZES,
+		# 	dropout_rate=DROPOUT_RATE,
+		# 	ff_linear= LinearModel(
+		# 		block_size=2046,
+		# 		vocab_size=784,
+		# 		dropout_rate=DROPOUT_RATE,
+		# 		layer_sizes=[256, 256],
+		# 		hidden_activation=ACTIVATION,
+		# 		init_fn=None,
+		# 		norm=[True] + [False for _ in [256, 256]]
+		# 	)
+		# )
+
+		model = ModelHandler.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/model.zip")
 
 		X = torch.from_numpy(np.concatenate(
 			(
@@ -40,6 +52,7 @@ class CNNTest(unittest.TestCase):
 
 		y = model(X)
 
+		ModelHandler.save(model, "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/model.zip")
 
 
 	def test_functionality(self):
@@ -58,7 +71,7 @@ class CNNTest(unittest.TestCase):
 			kernel_sizes=KERNEL_SIZES,
 			hidden_activation=ACTIVATION,
 			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE
+			dropout_rate=DROPOUT_RATE,
 		)
 		# model.load_state_dict(
 		# 	torch.load("/home/abreham/Downloads/model(34).pth", map_location=torch.device('cpu'))

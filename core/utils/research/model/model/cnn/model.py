@@ -3,6 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SavableModel
 
 
@@ -14,6 +15,7 @@ class CNN(SavableModel):
 			extra_len: int,
 			conv_channels: typing.List[int],
 			kernel_sizes: typing.List[int],
+			ff_linear: LinearModel = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			dropout_rate: float = 0,
@@ -22,6 +24,7 @@ class CNN(SavableModel):
 		super(CNN, self).__init__()
 		self.args = {
 			'extra_len': extra_len,
+			'ff_linear': ff_linear,
 			'num_classes': num_classes,
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
@@ -53,7 +56,16 @@ class CNN(SavableModel):
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
 		self.avg_pool = nn.AdaptiveAvgPool1d((1,))
-		self.fc = nn.Linear(conv_channels[-1] + self.extra_len, num_classes)
+
+		if ff_linear is None:
+			self.fc = nn.Linear(conv_channels[-1]+self.extra_len, num_classes)
+		else:
+			self.fc = nn.Sequential(
+				nn.Linear(conv_channels[1] + self.extra_len, ff_linear.input_size),
+				ff_linear,
+				nn.Linear(ff_linear.output_size, num_classes)
+			)
+
 		if dropout_rate > 0:
 			self.dropout = nn.Dropout(dropout_rate)
 		else:
