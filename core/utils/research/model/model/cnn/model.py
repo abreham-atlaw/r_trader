@@ -61,7 +61,7 @@ class CNN(SavableModel):
 			self.fc = nn.Linear(conv_channels[-1]+self.extra_len, num_classes)
 		else:
 			self.fc = nn.Sequential(
-				nn.Linear(conv_channels[1] + self.extra_len, ff_linear.input_size),
+				nn.Linear(conv_channels[-1] + self.extra_len, ff_linear.input_size),
 				ff_linear,
 				nn.Linear(ff_linear.output_size, num_classes)
 			)
