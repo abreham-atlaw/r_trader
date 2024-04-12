@@ -81,7 +81,7 @@ class ModelHandler:
         for key, value in model_config.items():
             if key.startswith(ModelHandler.__MODEL_PREFIX):
                 model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value))
-                os.remove(value)
+                os.remove(os.path.join(dirname, value))
             else:
                 model_config_copy[key] = value
         model_config = model_config_copy
