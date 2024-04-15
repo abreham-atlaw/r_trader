@@ -20,6 +20,7 @@ class CNN(SavableModel):
 			hidden_activation: typing.Optional[nn.Module] = None,
 			dropout_rate: float = 0,
 			init_fn: typing.Optional[nn.Module] = None,
+			padding: int = 1,
 	):
 		super(CNN, self).__init__()
 		self.args = {
@@ -32,6 +33,7 @@ class CNN(SavableModel):
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
+			'padding': padding
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -46,7 +48,7 @@ class CNN(SavableModel):
 
 		for i in range(len(conv_channels) - 1):
 			self.layers.append(
-				nn.Conv1d(in_channels=conv_channels[i], out_channels=conv_channels[i + 1], kernel_size=kernel_sizes[i], stride=1, padding=1)
+				nn.Conv1d(in_channels=conv_channels[i], out_channels=conv_channels[i + 1], kernel_size=kernel_sizes[i], stride=1, padding=padding)
 			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
