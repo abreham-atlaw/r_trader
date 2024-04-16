@@ -21,6 +21,7 @@ class CNN(SavableModel):
 			dropout_rate: float = 0,
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
+			avg_pool=False
 	):
 		super(CNN, self).__init__()
 		self.args = {
@@ -33,7 +34,8 @@ class CNN(SavableModel):
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
-			'padding': padding
+			'padding': padding,
+			'avg_pool': avg_pool
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -53,7 +55,11 @@ class CNN(SavableModel):
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
 			if pool_sizes[i] > 0:
-				self.pool_layers.append(nn.MaxPool1d(kernel_size=pool_sizes[i], stride=2))
+				if avg_pool:
+					pool = nn.AvgPool1d(kernel_size=pool_sizes[i], stride=2)
+				else:
+					pool = nn.MaxPool1d(kernel_size=pool_sizes[i], stride=2)
+				self.pool_layers.append(pool)
 			else:
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
