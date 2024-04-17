@@ -23,7 +23,8 @@ class CNN(SavableModel):
 			padding: int = 1,
 			avg_pool=True,
 			linear_collapse=False,
-			input_size: int = 1028
+			input_size: int = 1028,
+			norm: typing.Union[bool, typing.List[bool]] = False,
 	):
 		super(CNN, self).__init__()
 		self.args = {
@@ -39,7 +40,8 @@ class CNN(SavableModel):
 			'padding': padding,
 			'avg_pool': avg_pool,
 			'linear_collapse': linear_collapse,
-			'input_size': input_size
+			'input_size': input_size,
+			'norm': norm
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -53,7 +55,14 @@ class CNN(SavableModel):
 			]
 		conv_channels = [1] + conv_channels
 
+		if isinstance(norm, bool):
+			norm = [norm for _ in range(len(conv_channels) - 1)]
+		if len(norm) != len(conv_channels) - 1:
+			raise ValueError("Norm size doesn't match layers size")
+
 		for i in range(len(conv_channels) - 1):
+			if norm[i]:
+				self.layers.append(nn.BatchNorm1d(conv_channels[i]))
 			self.layers.append(
 				nn.Conv1d(
 					in_channels=conv_channels[i],
