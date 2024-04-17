@@ -21,7 +21,8 @@ class CNN(SavableModel):
 			dropout_rate: float = 0,
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
-			avg_pool=False
+			avg_pool=True,
+			linear_collapse=False
 	):
 		super(CNN, self).__init__()
 		self.args = {
@@ -35,7 +36,8 @@ class CNN(SavableModel):
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
 			'padding': padding,
-			'avg_pool': avg_pool
+			'avg_pool': avg_pool,
+			'linear_collapse': linear_collapse  # Add the new argument here
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -50,7 +52,13 @@ class CNN(SavableModel):
 
 		for i in range(len(conv_channels) - 1):
 			self.layers.append(
-				nn.Conv1d(in_channels=conv_channels[i], out_channels=conv_channels[i + 1], kernel_size=kernel_sizes[i], stride=1, padding=padding)
+				nn.Conv1d(
+					in_channels=conv_channels[i],
+					out_channels=conv_channels[i + 1],
+					kernel_size=kernel_sizes[i],
+					stride=1,
+					padding=padding
+				)
 			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
@@ -63,8 +71,6 @@ class CNN(SavableModel):
 			else:
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
-		self.avg_pool = nn.AdaptiveAvgPool1d((1,))
-
 		if ff_linear is None:
 			self.fc = nn.Linear(conv_channels[-1]+self.extra_len, num_classes)
 		else:
@@ -79,6 +85,13 @@ class CNN(SavableModel):
 		else:
 			self.dropout = nn.Identity()
 
+		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
+
+	def collapse(self, out: torch.Tensor) -> torch.Tensor:
+		if self.collapse_layer is None:
+			self.collapse_layer = nn.Linear(out.shape[-1], 1)
+		return self.collapse_layer(out)
+
 	def forward(self, x):
 		seq = x[:, :-self.extra_len]
 		out = torch.unsqueeze(seq, dim=1)
@@ -87,10 +100,10 @@ class CNN(SavableModel):
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
 			out = self.dropout(out)
-		out = self.avg_pool(out)
+		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
 		out = self.dropout(out)
-		out = torch.concat((out, x[:, -self.extra_len:]), dim=1)
+		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.fc(out)
 		return out
 
