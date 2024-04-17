@@ -16,7 +16,7 @@ class LinearModel(SavableModel):
 			dropout_rate: float = 0,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			init_fn: typing.Optional[typing.Callable] = None,
-			norm: typing.Union[bool, typing.List[bool]] = False
+			norm: typing.Union[bool, typing.List[bool]] = False,
 	):
 		super(LinearModel, self).__init__()
 		# Save the arguments
@@ -27,7 +27,7 @@ class LinearModel(SavableModel):
 			'dropout_rate': dropout_rate,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
-			'norm': norm
+			'norm': norm,
 		}
 		self.input_size = block_size
 		self.output_size = vocab_size

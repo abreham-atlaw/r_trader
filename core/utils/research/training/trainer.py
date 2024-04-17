@@ -3,6 +3,7 @@ import uuid
 import torch
 import typing
 
+from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -26,7 +27,7 @@ class Trainer:
             model = torch.nn.DataParallel(model)
         if callbacks is None:
             callbacks = []
-        self.model = model.to(self.device)
+        self.model = self.__initialize_model(model)
         self.cls_loss_function = cls_loss_function
         self.reg_loss_function = reg_loss_function
         self.optimizer = optimizer
@@ -58,6 +59,11 @@ class Trainer:
             epoch=0,
             batch=0
         )
+
+    def __initialize_model(self, model: nn.Module) -> nn.Module:
+        init_data = torch.rand((1, model.input_size))
+        model(init_data)
+        return model.to(self.device)
 
     def __split_y(self, y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         return y[:, :-1], y[:, -1:]

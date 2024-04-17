@@ -22,7 +22,8 @@ class CNN(SavableModel):
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
 			avg_pool=True,
-			linear_collapse=False
+			linear_collapse=False,
+			input_size: int = 1028
 	):
 		super(CNN, self).__init__()
 		self.args = {
@@ -37,11 +38,13 @@ class CNN(SavableModel):
 			'dropout_rate': dropout_rate,
 			'padding': padding,
 			'avg_pool': avg_pool,
-			'linear_collapse': linear_collapse  # Add the new argument here
+			'linear_collapse': linear_collapse,
+			'input_size': input_size
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
+		self.input_size = input_size
 
 		if pool_sizes is None:
 			pool_sizes = [
