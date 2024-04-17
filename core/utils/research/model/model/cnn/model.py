@@ -46,6 +46,7 @@ class CNN(SavableModel):
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
+		self.norm_layers = nn.ModuleList()
 		self.input_size = input_size
 
 		if pool_sizes is None:
@@ -62,7 +63,9 @@ class CNN(SavableModel):
 
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
-				self.layers.append(nn.BatchNorm1d(conv_channels[i]))
+				self.norm_layers.append(nn.BatchNorm1d(conv_channels[i]))
+			else:
+				self.norm_layers.append(nn.Identity())
 			self.layers.append(
 				nn.Conv1d(
 					in_channels=conv_channels[i],
@@ -107,7 +110,8 @@ class CNN(SavableModel):
 	def forward(self, x):
 		seq = x[:, :-self.extra_len]
 		out = torch.unsqueeze(seq, dim=1)
-		for layer, pool_layer in zip(self.layers, self.pool_layers):
+		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
+			out = norm(out)
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
