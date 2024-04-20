@@ -101,6 +101,11 @@ class CNN(SavableModel):
 			self.dropout = nn.Identity()
 
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
+		self.__init()
+
+	def __init(self):
+		init_data = torch.rand((1, self.input_size))
+		self(init_data)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
 		if self.collapse_layer is None:
