@@ -1,3 +1,4 @@
+import time
 import typing
 from datetime import datetime
 from typing import *
@@ -485,3 +486,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	def _get_optimal_action(self, state, **kwargs):
 		self._monte_carlo_tree_search(state)
 		return super()._get_optimal_action(state, **kwargs)
+
+	def _explore(self, state):
+		resource = self._init_resources()
+		while self._has_resource(resource):
+			time.sleep(0.5)
+		return super()._explore(state)
