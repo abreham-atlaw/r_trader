@@ -109,7 +109,7 @@ UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1033
-MARKET_STATE_GRANULARITY = "M1"
+MARKET_STATE_GRANULARITY = "M5"
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 90
 AGENT_DEPTH = 30  # TODO: DEPRECATED
@@ -148,6 +148,8 @@ AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 10
+AGENT_CRA_SIZE = 3
+AGENT_CRA_DISCOUNT = 1.0
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 
@@ -178,7 +180,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/dra.zip"),
+	path=os.path.join(BASE_DIR, "temp/models/bemnetatlaw-drmca-linear-0.zip"),
 	download=False
 )
 
