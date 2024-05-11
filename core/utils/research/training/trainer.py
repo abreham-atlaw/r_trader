@@ -19,7 +19,9 @@ class Trainer:
             cls_loss_function=None,
             reg_loss_function=None,
             optimizer=None,
-            callbacks: typing.List[Callback]=None
+            callbacks: typing.List[Callback]=None,
+            max_norm: typing.Optional[float] = None,
+            clip_value: typing.Optional[float] = None
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
@@ -33,6 +35,8 @@ class Trainer:
         self.optimizer = optimizer
         self.callbacks = callbacks
         self.__state: typing.Optional[TrainingState] = None
+        self.__max_norm = max_norm
+        self.__clip_value = clip_value
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -127,6 +131,12 @@ class Trainer:
                 cls_loss, ref_loss, loss = self.__loss(y_hat, y)
 
                 loss.backward()
+
+                if self.__max_norm is not None:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
+
+                if self.__clip_value is not None:
+                    torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=self.__clip_value)
 
                 self.optimizer.step()
                 running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
