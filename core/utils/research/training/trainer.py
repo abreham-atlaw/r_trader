@@ -1,11 +1,14 @@
-import uuid
 
 import torch
-import typing
-
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+
+import uuid
+import typing
+import os
+import pickle
+
 
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
@@ -21,7 +24,8 @@ class Trainer:
             optimizer=None,
             callbacks: typing.List[Callback]=None,
             max_norm: typing.Optional[float] = None,
-            clip_value: typing.Optional[float] = None
+            clip_value: typing.Optional[float] = None,
+            gradient_export: typing.Optional[str] = None
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
@@ -37,6 +41,9 @@ class Trainer:
         self.__state: typing.Optional[TrainingState] = None
         self.__max_norm = max_norm
         self.__clip_value = clip_value
+        self.__gradient_export_path = gradient_export
+        if self.__gradient_export_path is not None:
+            self.__gradient_storage = []
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -132,6 +139,12 @@ class Trainer:
 
                 loss.backward()
 
+                if self.__gradient_export_path is not None:
+                    gradients = []
+                    for param in self.model.parameters():
+                        gradients.append(param.grad.clone())
+                    self.__gradient_storage.append(gradients)
+
                 if self.__max_norm is not None:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
 
@@ -158,6 +171,11 @@ class Trainer:
 
             for callback in self.callbacks:
                 callback.on_epoch_end(self.model, epoch, losses)
+
+        if self.__gradient_export_path is not None:
+            with open(self.__gradient_export_path, 'wb') as f:
+                pickle.dump(self.__gradient_storage, f)
+
         for callback in self.callbacks:
             callback.on_train_end(self.model)
         return train_losses, val_losses

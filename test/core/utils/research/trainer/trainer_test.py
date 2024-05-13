@@ -15,6 +15,7 @@ from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
+from core.utils.research.training.callbacks import WeightStatsCallback
 from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
 from core.utils.research.training.callbacks.metric_callback import MetricCallback
 from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
@@ -50,22 +51,25 @@ class TrainerTest(unittest.TestCase):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
-		CHANNELS = [128 for i in range(5)]
+		BATCH_SIZE = 8
+
+		CHANNELS = [432]
 		EXTRA_LEN = 4
-		KERNEL_SIZES = [3 for _ in CHANNELS]
+		KERNEL_SIZES = [3]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [0]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
-		INIT = None
+		ACTIVATION = nn.Identity()
 		BLOCK_SIZE = 1028
 		PADDING = 0
-		BATCH_SIZE = 10
+		LINEAR_COLLAPSE = True
+		AVG_POOL = True
+		NORM = [True] + [False for _ in CHANNELS[1:]]
 
 		USE_FF = False
 		FF_LINEAR_BLOCK_SIZE = 256
 		FF_LINEAR_OUTPUT_SIZE = 256
-		FF_LINEAR_LAYERS = [256, 256]
+		FF_LINEAR_LAYERS = []
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
@@ -82,7 +86,6 @@ class TrainerTest(unittest.TestCase):
 			)
 		else:
 			ff = None
-
 		model = CNN(
 			extra_len=EXTRA_LEN,
 			num_classes=VOCAB_SIZE + 1,
@@ -92,8 +95,10 @@ class TrainerTest(unittest.TestCase):
 			pool_sizes=POOL_SIZES,
 			dropout_rate=DROPOUT_RATE,
 			padding=PADDING,
-			ff_linear=ff,
-			linear_collapse=True
+			avg_pool=AVG_POOL,
+			norm=NORM,
+			linear_collapse=LINEAR_COLLAPSE,
+			ff_linear=ff
 		)
 		# model = LinearModel(
 		# 	block_size=1028,
@@ -105,7 +110,7 @@ class TrainerTest(unittest.TestCase):
 		# 	]
 		# )
 
-		ModelHandler.save(model, SAVE_PATH)
+		# ModelHandler.save(model, SAVE_PATH)
 
 		dataset = BaseDataset(
 			[
@@ -122,16 +127,23 @@ class TrainerTest(unittest.TestCase):
 		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
 		callbacks = [
-			CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True)
+			CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			WeightStatsCallback()
 		]
 
-		trainer = Trainer(model, callbacks=callbacks)
+		trainer = Trainer(
+			model,
+			callbacks=callbacks,
+			max_norm=1,
+			clip_value=1,
+			gradient_export="/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/gradients/out.grad"
+		)
 		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
 		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
-		trainer.train(dataloader, epochs=50, progress=True, val_dataloader=test_dataloader)
+		trainer.train(dataloader, epochs=1, progress=True, val_dataloader=test_dataloader)
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
 	def test_functionality(self):
@@ -179,7 +191,10 @@ class TrainerTest(unittest.TestCase):
 		loss_function = nn.CrossEntropyLoss()
 		optimizer = Adam(model.parameters(), lr=1e-3)
 
-		trainer = Trainer(model, cls_loss_function=loss_function, optimizer=optimizer)
+		trainer = Trainer(
+			model,
+			cls_loss_function=loss_function,
+			optimizer=optimizer)
 		trainer.train(dataloader, epochs=2, progress=True)
 		torch.save(model.state_dict(), SAVE_PATH)
 

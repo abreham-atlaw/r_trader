@@ -63,7 +63,6 @@ class CNNTest(unittest.TestCase):
 
 		ModelHandler.save(model, "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/model.zip")
 
-
 	def test_functionality(self):
 		# CHANNELS = [128 for i in range(5)]
 		# EXTRA_LEN = 4
@@ -109,7 +108,7 @@ class CNNTest(unittest.TestCase):
 		# 	ff_linear=ff,
 		# 	linear_collapse=True
 		# )
-		model = ModelHandler.load("/home/abreham/Downloads/Compressed/bemnetatlaw-drmca-cnn-10_2.zip")
+		model = ModelHandler.load("/home/abreham/Downloads/Compressed/bemnetatlaw-drmca-cnn-11.zip")
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32
