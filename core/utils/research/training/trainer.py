@@ -6,9 +6,6 @@ from tqdm import tqdm
 
 import uuid
 import typing
-import os
-import pickle
-
 
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
@@ -25,7 +22,7 @@ class Trainer:
             callbacks: typing.List[Callback]=None,
             max_norm: typing.Optional[float] = None,
             clip_value: typing.Optional[float] = None,
-            gradient_export: typing.Optional[str] = None
+            log_gradient_stats: bool = False
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
@@ -41,9 +38,7 @@ class Trainer:
         self.__state: typing.Optional[TrainingState] = None
         self.__max_norm = max_norm
         self.__clip_value = clip_value
-        self.__gradient_export_path = gradient_export
-        if self.__gradient_export_path is not None:
-            self.__gradient_storage = []
+        self.__log_gradient_stats = log_gradient_stats
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -117,6 +112,8 @@ class Trainer:
         train_losses = []
         val_losses = []
         for epoch in range(state.epoch, epochs):
+            min_gradient = float('inf')
+            max_gradient = float('-inf')
             state.epoch = epoch
             if shuffle:
                 dataloader.dataset.shuffle()
@@ -139,11 +136,12 @@ class Trainer:
 
                 loss.backward()
 
-                if self.__gradient_export_path is not None:
-                    gradients = []
+                if self.__log_gradient_stats is not None:
                     for param in self.model.parameters():
-                        gradients.append(param.grad.clone())
-                    self.__gradient_storage.append(gradients)
+                        if param.grad is not None:
+                            grad_data = param.grad.data
+                            min_gradient = min(min_gradient, grad_data.min().item())
+                            max_gradient = max(max_gradient, grad_data.max().item())
 
                 if self.__max_norm is not None:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
@@ -160,6 +158,9 @@ class Trainer:
             state.batch = 0
             epoch_loss = (running_loss / len(dataloader)).tolist()
             print(f"Epoch {epoch + 1} completed, {self.__format_loss(epoch_loss)}")
+            if self.__log_gradient_stats:
+                print(f"Min gradient: {min_gradient}, Max gradient: {max_gradient}")
+
             train_losses.append(epoch_loss)
             losses = (epoch_loss,)
 
@@ -171,10 +172,6 @@ class Trainer:
 
             for callback in self.callbacks:
                 callback.on_epoch_end(self.model, epoch, losses)
-
-        if self.__gradient_export_path is not None:
-            with open(self.__gradient_export_path, 'wb') as f:
-                pickle.dump(self.__gradient_storage, f)
 
         for callback in self.callbacks:
             callback.on_train_end(self.model)
