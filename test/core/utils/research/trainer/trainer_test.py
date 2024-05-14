@@ -114,14 +114,14 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer/out/train"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer/out/test"
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
 			],
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
@@ -136,14 +136,14 @@ class TrainerTest(unittest.TestCase):
 			callbacks=callbacks,
 			max_norm=1,
 			clip_value=1,
-			gradient_export="/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/gradients/out.grad"
+			log_gradient_stats=True
 		)
 		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
 		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
-		trainer.train(dataloader, epochs=1, progress=True, val_dataloader=test_dataloader)
+		trainer.train(dataloader, epochs=10, progress=True, val_dataloader=test_dataloader)
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
 	def test_functionality(self):

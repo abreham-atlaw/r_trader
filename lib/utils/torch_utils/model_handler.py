@@ -6,7 +6,7 @@ import zipfile
 import os
 import importlib
 
-from core.utils.research.model.model.savable import SavableModel
+from core.utils.research.model.model.savable import SavableModule
 
 
 class ModelHandler:
@@ -23,7 +23,7 @@ class ModelHandler:
 
         model_config_copy = {}
         for key, value in model_config.items():
-            if isinstance(value, SavableModel):
+            if isinstance(value, SavableModule):
                 filename = f"{key}.zip"
                 ModelHandler.save(value, filename)
                 model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename

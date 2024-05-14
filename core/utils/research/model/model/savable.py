@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from torch import nn
 
 
-class SavableModel(nn.Module, ABC):
+class SavableModule(nn.Module, ABC):
 
 	@abstractmethod
 	def export_config(self) -> typing.Dict[str, typing.Any]:

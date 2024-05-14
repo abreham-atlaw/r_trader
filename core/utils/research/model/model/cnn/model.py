@@ -4,10 +4,10 @@ import torch
 import torch.nn as nn
 
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.savable import SavableModel
+from core.utils.research.model.model.savable import SavableModule
 
 
-class CNN(SavableModel):
+class CNN(SavableModule):
 
 	def __init__(
 			self,
