@@ -3,6 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SavableModule
 
@@ -16,6 +17,7 @@ class CNN(SavableModule):
 			conv_channels: typing.List[int],
 			kernel_sizes: typing.List[int],
 			ff_linear: LinearModel = None,
+			indicators: typing.Optional[Indicators] = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			dropout_rate: float = 0,
@@ -41,7 +43,8 @@ class CNN(SavableModule):
 			'avg_pool': avg_pool,
 			'linear_collapse': linear_collapse,
 			'input_size': input_size,
-			'norm': norm
+			'norm': norm,
+			'indicators': indicators
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -49,12 +52,16 @@ class CNN(SavableModule):
 		self.norm_layers = nn.ModuleList()
 		self.input_size = input_size
 
+		if indicators is None:
+			indicators = Indicators()
+		self.indicators = indicators
+
 		if pool_sizes is None:
 			pool_sizes = [
 				0
 				for _ in kernel_sizes
 			]
-		conv_channels = [1] + conv_channels
+		conv_channels = [self.indicators.indicators_len] + conv_channels
 
 		if isinstance(norm, bool):
 			norm = [norm for _ in range(len(conv_channels) - 1)]
@@ -114,7 +121,7 @@ class CNN(SavableModule):
 
 	def forward(self, x):
 		seq = x[:, :-self.extra_len]
-		out = torch.unsqueeze(seq, dim=1)
+		out = self.indicators(seq)
 		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
 			out = norm(out)
 			out = layer.forward(out)

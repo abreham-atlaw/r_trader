@@ -16,5 +16,5 @@ class OverlaysCombiner(nn.Module):
         return torch.stack([
             overlay[:, -min_size:]
             for overlay in inputs
-        ], dim=2)
+        ], dim=1)
 

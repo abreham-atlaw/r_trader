@@ -11,6 +11,7 @@ from torch.optim import Adam
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
+from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
@@ -74,6 +75,10 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
 
+		INDICATOR = Indicators(
+			delta=True
+		)
+
 		if USE_FF:
 			ff = LinearModel(
 				block_size=FF_LINEAR_BLOCK_SIZE,
@@ -98,7 +103,8 @@ class TrainerTest(unittest.TestCase):
 			avg_pool=AVG_POOL,
 			norm=NORM,
 			linear_collapse=LINEAR_COLLAPSE,
-			ff_linear=ff
+			ff_linear=ff,
+			indicators=INDICATOR
 		)
 		# model = LinearModel(
 		# 	block_size=1028,

@@ -36,8 +36,27 @@ class Indicators(SavableModule):
         self.so = [StochasticOscillator(size) for size in so] if so else None
         self.combiner = OverlaysCombiner()
 
+    @property
+    def indicators_len(self):
+        count = 1
+        if self.delta:
+            count += 1
+        if self.ksf:
+            count += len(self.ksf)
+        if self.mma:
+            count += 1
+        if self.msa:
+            count += len(self.msa)
+        if self.msd:
+            count += len(self.msd)
+        if self.rsi:
+            count += len(self.rsi)
+        if self.so:
+            count += len(self.so)
+        return count
+
     def forward(self, inputs):
-        outputs = []
+        outputs = [inputs]
         if self.delta:
             outputs.append(self.delta(inputs))
         if self.ksf:
@@ -58,3 +77,6 @@ class Indicators(SavableModule):
             for so in self.so:
                 outputs.append(so(inputs))
         return self.combiner(outputs)
+
+    def export_config(self) -> typing.Dict[str, typing.Any]:
+        return self.__args
