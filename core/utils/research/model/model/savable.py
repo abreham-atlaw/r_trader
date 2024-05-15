@@ -13,10 +13,10 @@ class SavableModule(nn.Module, ABC):
 
 	@classmethod
 	def import_config(cls, config) -> typing.Dict[str, typing.Any]:
-		if config['hidden_activation']:
+		if config.get('hidden_activation'):
 			hidden_activation_module = importlib.import_module('torch.nn')  # replace with the actual module
 			config['hidden_activation'] = getattr(hidden_activation_module, config['hidden_activation'])()
-		if config['init_fn']:
+		if config.get('init_fn'):
 			init_fn_module = importlib.import_module('torch.nn.init')  # replace with the actual module
 			config['init_fn'] = getattr(init_fn_module, config['init_fn'])
 		return config
