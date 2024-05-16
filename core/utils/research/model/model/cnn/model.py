@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 
 from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers.cnn_block import CNNBlock
+from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SavableModule
 
@@ -47,92 +49,39 @@ class CNN(SavableModule):
 			'indicators': indicators
 		}
 		self.extra_len = extra_len
-		self.layers = nn.ModuleList()
-		self.pool_layers = nn.ModuleList()
-		self.norm_layers = nn.ModuleList()
 		self.input_size = input_size
 
-		if indicators is None:
-			indicators = Indicators()
-		self.indicators = indicators
+		self.cnn_block = CNNBlock(
+			conv_channels,
+			kernel_sizes,
+			indicators,
+			pool_sizes,
+			hidden_activation,
+			dropout_rate,
+			init_fn,
+			padding,
+			avg_pool,
+			input_size,
+			norm,
+		)
 
-		if pool_sizes is None:
-			pool_sizes = [
-				0
-				for _ in kernel_sizes
-			]
-		conv_channels = [self.indicators.indicators_len] + conv_channels
-
-		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(conv_channels) - 1)]
-		if len(norm) != len(conv_channels) - 1:
-			raise ValueError("Norm size doesn't match layers size")
-
-		for i in range(len(conv_channels) - 1):
-			if norm[i]:
-				self.norm_layers.append(nn.BatchNorm1d(conv_channels[i]))
-			else:
-				self.norm_layers.append(nn.Identity())
-			self.layers.append(
-				nn.Conv1d(
-					in_channels=conv_channels[i],
-					out_channels=conv_channels[i + 1],
-					kernel_size=kernel_sizes[i],
-					stride=1,
-					padding=padding
-				)
-			)
-			if init_fn is not None:
-				init_fn(self.layers[-1].weight)
-			if pool_sizes[i] > 0:
-				if avg_pool:
-					pool = nn.AvgPool1d(kernel_size=pool_sizes[i], stride=2)
-				else:
-					pool = nn.MaxPool1d(kernel_size=pool_sizes[i], stride=2)
-				self.pool_layers.append(pool)
-			else:
-				self.pool_layers.append(nn.Identity())
-		self.hidden_activation = hidden_activation
-		if ff_linear is None:
-			self.fc = nn.Linear(conv_channels[-1]+self.extra_len, num_classes)
-		else:
-			self.fc = nn.Sequential(
-				nn.Linear(conv_channels[-1] + self.extra_len, ff_linear.input_size),
-				ff_linear,
-				nn.Linear(ff_linear.output_size, num_classes)
-			)
-
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
-
-		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
+		self.collapse_block = CollapseFFBlock(
+			num_classes,
+			conv_channels[-1],
+			extra_len,
+			ff_linear,
+			linear_collapse,
+		)
 		self.__init()
 
 	def __init(self):
 		init_data = torch.rand((1, self.input_size))
 		self(init_data)
 
-	def collapse(self, out: torch.Tensor) -> torch.Tensor:
-		if self.collapse_layer is None:
-			self.collapse_layer = nn.Linear(out.shape[-1], 1)
-		return self.collapse_layer(out)
-
 	def forward(self, x):
 		seq = x[:, :-self.extra_len]
-		out = self.indicators(seq)
-		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
-			out = norm(out)
-			out = layer.forward(out)
-			out = self.hidden_activation(out)
-			out = pool_layer(out)
-			out = self.dropout(out)
-		out = self.collapse(out)
-		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
-		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
-		out = self.fc(out)
+		out = self.cnn_block(seq)
+		out = self.collapse_block(out, x[:, -self.extra_len:])
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
