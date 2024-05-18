@@ -12,6 +12,10 @@ from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
 from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers.cnn_block import CNNBlock
+from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
+# from core.utils.research.model.layers.cnn_block import CNNBlock
+# from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
@@ -26,24 +30,24 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class SineWaveDataset(Dataset):
-    def __init__(self, total_samples, sequence_length, resolution=500):
-        self.total_samples = total_samples
-        self.sequence_length = sequence_length
-        self.resolution = resolution
-        self.data = np.sin(np.linspace(0, 2 * np.pi * resolution, total_samples + sequence_length))
+	def __init__(self, total_samples, sequence_length, resolution=500):
+		self.total_samples = total_samples
+		self.sequence_length = sequence_length
+		self.resolution = resolution
+		self.data = np.sin(np.linspace(0, 2 * np.pi * resolution, total_samples + sequence_length))
 
-    def __len__(self):
-        return self.total_samples
+	def __len__(self):
+		return self.total_samples
 
-    def shuffle(self):
-        np.random.shuffle(self.data)
+	def shuffle(self):
+		np.random.shuffle(self.data)
 
-    def __getitem__(self, idx):
-        start = idx
-        end = start + self.sequence_length
-        sequence = self.data[start:end]
-        next_value = np.expand_dims(self.data[end], axis=0)
-        return torch.tensor(sequence, dtype=torch.float32), torch.tensor(next_value, dtype=torch.float32)
+	def __getitem__(self, idx):
+		start = idx
+		end = start + self.sequence_length
+		sequence = self.data[start:end]
+		next_value = np.expand_dims(self.data[end], axis=0)
+		return torch.tensor(sequence, dtype=torch.float32), torch.tensor(next_value, dtype=torch.float32)
 
 
 class TrainerTest(unittest.TestCase):
@@ -51,6 +55,112 @@ class TrainerTest(unittest.TestCase):
 	def test_cnn_model(self):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
+
+		CHANNELS = [32 for _ in range(7)]
+		EXTRA_LEN = 4
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 431
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.LeakyReLU()
+		BLOCK_SIZE = 1028
+		PADDING = 0
+		LINEAR_COLLAPSE = True
+		AVG_POOL = True
+		NORM = [True] + [False for _ in CHANNELS[1:]]
+		GRAD_MAX_NORM = 1.0
+		GRAD_CLIP_VALUE = None
+		LR = 1e-4
+
+		INDICATORS_DELTA = False
+		INDICATORS_SO = None
+		INDICATORS_RSI = [14]
+
+		USE_FF = True
+		FF_LINEAR_BLOCK_SIZE = 256
+		FF_LINEAR_OUTPUT_SIZE = 256
+		FF_LINEAR_LAYERS = []
+		FF_LINEAR_ACTIVATION = nn.ReLU()
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+
+		BATCH_SIZE = 64
+		if USE_FF:
+			ff = LinearModel(
+				block_size=FF_LINEAR_BLOCK_SIZE,
+				vocab_size=FF_LINEAR_OUTPUT_SIZE,
+				dropout_rate=DROPOUT_RATE,
+				layer_sizes=FF_LINEAR_LAYERS,
+				hidden_activation=FF_LINEAR_ACTIVATION,
+				init_fn=FF_LINEAR_INIT,
+				norm=FF_LINEAR_NORM
+			)
+		else:
+			ff = None
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI
+		)
+
+		model = CNN(
+			extra_len=EXTRA_LEN,
+			num_classes=VOCAB_SIZE + 1,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			hidden_activation=ACTIVATION,
+			pool_sizes=POOL_SIZES,
+			dropout_rate=DROPOUT_RATE,
+			padding=PADDING,
+			avg_pool=AVG_POOL,
+			linear_collapse=LINEAR_COLLAPSE,
+			norm=NORM,
+			ff_linear=ff,
+			indicators=indicators
+		)
+
+
+		# ModelHandler.save(model, SAVE_PATH)
+
+		dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/inputs/drmca-datapreparer/out/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+
+		test_dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/inputs/drmca-datapreparer/out/test"
+			],
+		)
+		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			WeightStatsCallback()
+		]
+
+		trainer = Trainer(
+			model,
+			max_norm=GRAD_MAX_NORM,
+			clip_value=GRAD_CLIP_VALUE,
+			log_gradient_stats=True
+		)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(
+			trainer.model.parameters(),
+			lr=LR
+		)
+
+		trainer.train(dataloader, val_dataloader=test_dataloader, epochs=5, progress=True)
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+	def test_transformer_model(self):
+
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra-transformer.zip"
 
 		BATCH_SIZE = 8
 
@@ -76,48 +186,46 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
 
 		INDICATOR = Indicators(
-			delta=True
+			delta=True,
+			so=[4, 5]
 		)
 
-		if USE_FF:
-			ff = LinearModel(
-				block_size=FF_LINEAR_BLOCK_SIZE,
-				vocab_size=FF_LINEAR_OUTPUT_SIZE,
-				dropout_rate=DROPOUT_RATE,
-				layer_sizes=FF_LINEAR_LAYERS,
-				hidden_activation=FF_LINEAR_ACTIVATION,
-				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
-			)
-		else:
-			ff = None
-		model = CNN(
-			extra_len=EXTRA_LEN,
-			num_classes=VOCAB_SIZE + 1,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
+		ff = LinearModel(
+			block_size=FF_LINEAR_BLOCK_SIZE,
+			vocab_size=FF_LINEAR_OUTPUT_SIZE,
 			dropout_rate=DROPOUT_RATE,
-			padding=PADDING,
-			avg_pool=AVG_POOL,
-			norm=NORM,
-			linear_collapse=LINEAR_COLLAPSE,
-			ff_linear=ff,
-			indicators=INDICATOR
+			layer_sizes=FF_LINEAR_LAYERS,
+			hidden_activation=FF_LINEAR_ACTIVATION,
+			init_fn=FF_LINEAR_INIT,
+			norm=FF_LINEAR_NORM
+			)
+
+		model = Transformer(
+			decoder=Decoder(
+				embedding=CNNBlock(
+					conv_channels=CHANNELS,
+					kernel_sizes=KERNEL_SIZES,
+					hidden_activation=ACTIVATION,
+					pool_sizes=POOL_SIZES,
+					dropout_rate=DROPOUT_RATE,
+					padding=PADDING,
+					avg_pool=AVG_POOL,
+					norm=NORM,
+					indicators=INDICATOR,
+				),
+				input_size=BLOCK_SIZE - EXTRA_LEN,
+				emb_size=CHANNELS[-1],
+				ff_size=256,
+				num_heads=2
+			),
+			collapse=CollapseFFBlock(
+				extra_len=EXTRA_LEN,
+				input_channels=CHANNELS[-1],
+				num_classes=VOCAB_SIZE+1,
+				linear_collapse=True,
+				ff_linear=ff
+			)
 		)
-		# model = LinearModel(
-		# 	block_size=1028,
-		# 	vocab_size=432,
-		# 	dropout_rate=0.0,
-		# 	layer_sizes=[
-		# 		64,
-		# 		64,
-		# 	]
-		# )
-
-		# ModelHandler.save(model, SAVE_PATH)
-
 		dataset = BaseDataset(
 			[
 				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
@@ -149,8 +257,9 @@ class TrainerTest(unittest.TestCase):
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 
-		trainer.train(dataloader, epochs=10, progress=True, val_dataloader=test_dataloader)
+		trainer.train(dataloader, epochs=1, progress=True)
 		ModelHandler.save(trainer.model, SAVE_PATH)
+
 
 	def test_functionality(self):
 
@@ -169,7 +278,7 @@ class TrainerTest(unittest.TestCase):
 			Decoder(
 				kernel_size=KERNEL_SIZE,
 				emb_size=EMB_SIZE,
-				block_size=BLOCK_SIZE,
+				input_size=BLOCK_SIZE,
 				num_heads=NUM_HEADS,
 				ff_size=FF_SIZE
 			),

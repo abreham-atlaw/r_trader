@@ -16,8 +16,7 @@ class CollapseFFBlock(SavableModule):
 			extra_len: int,
 			ff_linear: LinearModel = None,
 			linear_collapse=False,
-			input_size: int = 1028,
-
+			input_shape: typing.Optional[typing.Tuple[int, int]] = None,
 	):
 		super(CollapseFFBlock, self).__init__()
 		self.args = {
@@ -25,15 +24,15 @@ class CollapseFFBlock(SavableModule):
 			'num_classes': num_classes,
 			'linear_collapse': linear_collapse,
 			'extra_len': extra_len,
-			'input_size': input_size,
+			'input_shape': input_shape,
+			'input_channels': input_channels
 		}
+		self.input_shape = input_shape
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
 		self.norm_layers = nn.ModuleList()
-		self.input_size = input_size
 		self.extra_len = extra_len
 		self.input_channels = input_channels
-
 		if ff_linear is None:
 			self.fc = nn.Linear(input_channels+self.extra_len, num_classes)
 		else:
@@ -44,8 +43,17 @@ class CollapseFFBlock(SavableModule):
 			)
 
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
+		if input_shape is not None:
+			self.__init()
+
+	def __init(self):
+		init_data = torch.rand((1, *self.input_shape))
+		extra = torch.rand((1, self.extra_len))
+		self(init_data, extra)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
+		if self.input_shape is None:
+			self.input_shape = (out.shape[1], out.shape[2])
 		if self.collapse_layer is None:
 			self.collapse_layer = nn.Linear(out.shape[-1], 1)
 		return self.collapse_layer(out)
@@ -58,4 +66,5 @@ class CollapseFFBlock(SavableModule):
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
+		self.args["input_shape"] = self.input_shape
 		return self.args

@@ -1,15 +1,15 @@
+import typing
 
 import torch
 import torch.nn as nn
 
 from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
 from core.utils.research.model.model.linear.model import LinearModel
+from core.utils.research.model.model.savable import SavableModule
 from core.utils.research.model.model.transformer import Decoder
 
-import matplotlib.pyplot as plt
 
-
-class Transformer(nn.Module):
+class Transformer(SavableModule):
 
 	def __init__(
 			self,
@@ -19,6 +19,11 @@ class Transformer(nn.Module):
 			*args,
 			**kwargs
 	):
+		self.args = {
+			"decoder": decoder,
+			"collapse": collapse,
+			"input_size": input_size
+		}
 		super().__init__(*args, **kwargs)
 		self.decoder = decoder
 		self.softmax = nn.Softmax(-1)
@@ -36,3 +41,6 @@ class Transformer(nn.Module):
 		y = self.decoder(seq)
 		y = self.collapse_block(y, X[:, -self.extra_len:])
 		return y
+
+	def export_config(self) -> typing.Dict[str, typing.Any]:
+		return self.args

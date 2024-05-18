@@ -106,9 +106,10 @@ class CNNTest(unittest.TestCase):
 			dropout_rate=DROPOUT_RATE,
 			padding=PADDING,
 			ff_linear=ff,
-			linear_collapse=True
+			linear_collapse=True,
+
 		)
-		# model = ModelHandler.load("/home/abreham/Downloads/Compressed/bemnetatlaw-drmca-cnn-11.zip")
+		# model = ModelHandler.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip")
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32
