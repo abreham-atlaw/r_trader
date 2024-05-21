@@ -21,7 +21,7 @@ class ResourcesRepository(ABC):
 
 class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 
-	def __init__(self, sessions_repository: SessionsRepository, allowed_gpu_instances=2, allowed_cpu_instances=10):
+	def __init__(self, sessions_repository: SessionsRepository, allowed_gpu_instances=2, allowed_cpu_instances=5):
 		self.__sessions_repository = sessions_repository
 		self.__allowed_gpu_instances = allowed_gpu_instances
 		self.__allowed_cpu_instances = allowed_cpu_instances

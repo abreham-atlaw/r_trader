@@ -59,7 +59,7 @@ class ResourcesManager:
 		resource.remaining_instances += 1
 		self.__resources_repository.save_resources(resources)
 
-	def reset_resources(self, accounts: typing.List[Account] = None, gpu_amount=30, gpu_instances=2, cpu_instances=10):
+	def reset_resources(self, accounts: typing.List[Account] = None, gpu_amount=30, gpu_instances=2, cpu_instances=5):
 		if accounts is None:
 			accounts = self.__accounts_repository.get_accounts()
 
