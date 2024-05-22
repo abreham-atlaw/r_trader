@@ -1,4 +1,5 @@
 import typing
+from multiprocessing import Process
 
 from threading import Thread
 
@@ -6,28 +7,28 @@ from .data.trainer_config import TrainConfig
 from .trainer import Trainer
 
 
-class TrainingProcess(Thread):
+class TrainingProcess(Process):
 
-	def __init__(self, config: TrainConfig):
+	def __init__(self, create_config: typing.Callable):
 		super().__init__()
-		self.__config = config
+		self.__create_config = create_config
 
 	def run(self) -> None:
-
+		config = self.__create_config()
 		print("Running Trainer")
 		trainer = Trainer(
-			model=self.__config.model,
-			callbacks=self.__config.callbacks,
+			model=config.model,
+			callbacks=config.callbacks,
 		)
-		self.__config.compile(trainer)
+		config.compile(trainer)
 		print("Starting Training")
 		trainer.train(
-			self.__config.dataloader,
-			val_dataloader=self.__config.val_dataloader,
-			epochs=self.__config.epoch,
+			config.dataloader,
+			val_dataloader=config.val_dataloader,
+			epochs=config.epoch,
 			progress=True,
 			progress_interval=100,
-			state=self.__config.state
+			state=config.state
 		)
 
 
@@ -35,7 +36,7 @@ class PoolTrainer:
 
 	def train(
 		self,
-		configs: typing.List[TrainConfig]
+		configs: typing.List[typing.Callable]
 	):
 
 		processes = []
