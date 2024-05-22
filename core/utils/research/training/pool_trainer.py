@@ -26,6 +26,7 @@ class TrainingProcess(Thread):
 			val_dataloader=self.__config.val_dataloader,
 			epochs=self.__config.epoch,
 			progress=True,
+			progress_interval=100,
 			state=self.__config.state
 		)
 
