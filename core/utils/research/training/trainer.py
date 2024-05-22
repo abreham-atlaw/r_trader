@@ -30,7 +30,8 @@ class Trainer:
             model = torch.nn.DataParallel(model)
         if callbacks is None:
             callbacks = []
-        self.model = self.__initialize_model(model)
+
+        # self.model = self.__initialize_model(model)
         self.cls_loss_function = cls_loss_function
         self.reg_loss_function = reg_loss_function
         self.optimizer = optimizer
