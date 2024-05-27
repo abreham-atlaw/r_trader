@@ -64,6 +64,8 @@ class CNNTest(unittest.TestCase):
 		ModelHandler.save(model, "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/model.zip")
 
 	def test_functionality(self):
+
+
 		CHANNELS = [128 for i in range(5)]
 		EXTRA_LEN = 4
 		KERNEL_SIZES = [3 for _ in CHANNELS]
