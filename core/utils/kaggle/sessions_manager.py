@@ -4,7 +4,7 @@ import os
 import json
 from datetime import datetime
 
-from .data.repositories import SessionsRepository
+from .data.repositories import SessionsRepository, AccountsRepository
 from .data.models import Account, Session
 
 
@@ -13,8 +13,10 @@ class SessionsManager:
 	def __init__(
 			self,
 			sessions_repository: SessionsRepository,
+			account_repository: AccountsRepository
 	):
 		self.__session_repository = sessions_repository
+		self.__account_repository = account_repository
 
 	def __register_session(self, kernel: str, account: Account, gpu: bool):
 		self.__session_repository.add_session(Session(
@@ -93,6 +95,7 @@ class SessionsManager:
 			gpu: bool = True,
 			close_others: bool = True
 	):
+		self.sync_notebooks()
 		print(f"Running {kernel} on {account.username}(gpu={gpu})...")
 		self.__prepare_for_run(kernel)
 		self.__run_notebook(kernel, account, meta_data, gpu)
@@ -105,3 +108,22 @@ class SessionsManager:
 			active_sessions = active_sessions[:1]
 		for session in active_sessions:
 			self.__session_repository.finish_session(session)
+
+	def is_notebook_running(self, notebook_id):
+		print(f"Checking {notebook_id}")
+		username, slug = notebook_id.split("/")
+		api = self.__create_api(self.__account_repository.get_accounts()[0])
+		status = api.kernel_status(username, slug)
+		return status.get("status") == "running"
+
+	def sync_notebooks(self):
+		sessions = self.__session_repository.filter(active=True)
+		print(f"Sycing {len(sessions)} sessions")
+		for session in sessions:
+			print(f"Syncing {session.kernel}...")
+			if session.account is None:
+				print(f"Invalid session skipping...")
+				continue
+			if not self.is_notebook_running(session.kernel):
+				print(f"Finishing session")
+				self.finish_session(session.kernel, multiple=True)

@@ -36,11 +36,13 @@ class KaggleContainer(containers.DeclarativeContainer):
 
 	sessions_manager = providers.Singleton(
 		SessionsManager,
-		sessions_repository
+		sessions_repository,
+		accounts_repository
 	)
 
 	fused_manager = providers.Singleton(
 		FusedManager,
 		resources_manager,
-		sessions_repository
+		sessions_repository,
+		accounts_repository
 	)
