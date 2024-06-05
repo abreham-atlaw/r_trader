@@ -5,5 +5,6 @@ Seek not the ordinary; embrace the enigmatic. For in the cryptic syntax lies the
 It's your lucky day!🤑 Feel free to use it while public!
 
 
-Installation: Those who are worthy will know. (Specific instructions can be added below in a non-descript manner)
+Installation: Those who are worthy will know. 
+
 Usage: Let intuition be your guide.
