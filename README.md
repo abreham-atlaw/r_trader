@@ -2,4 +2,4 @@ In the shadowed alleys of code, where bits whisper secrets and algorithms dance 
 
 Seek not the ordinary; embrace the enigmatic. For in the cryptic syntax lies the key to unraveling the universe's most arcane riddles. 🌙✨
 
-It's your lucky day! Feel free to use it while public!
+It's your lucky day!🤑 Feel free to use it while public!
