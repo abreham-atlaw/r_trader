@@ -58,7 +58,7 @@ class TradeEnvironment(Environment, ABC):
 		else:
 			self._open_trade(action)
 		recent_balance = self.get_state().get_agent_state().get_balance()
-		self._state = self._refresh_state()
+		# self._state = self._refresh_state()
 		self._state.recent_balance = recent_balance
 
 	def render(self):
