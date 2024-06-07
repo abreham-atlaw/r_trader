@@ -84,7 +84,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 
 	def _prepare_dra_output(self, state: TradeState, action: TraderAction, output: np.ndarray) -> float:
 		_, value = self._parse_model_output(output)
-		return value
+		return value * state.get_agent_state().get_balance()
 
 	def _single_prediction_to_transition_probability_bound_mode(
 			self,
@@ -107,7 +107,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		bound_idx = self._find_gap_index(percentage)
 		output = np.zeros(len(self._state_change_delta_bounds)+2)
 		output[bound_idx] = 1
-		output[-1] = value
+		output[-1] = value/state.agent_state.get_balance()
 		return output
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
