@@ -118,7 +118,7 @@ class SessionsManager:
 
 	def sync_notebooks(self):
 		sessions = self.__session_repository.filter(active=True)
-		print(f"Sycing {len(sessions)} sessions")
+		print(f"Syncing {len(sessions)} sessions")
 		for session in sessions:
 			print(f"Syncing {session.kernel}...")
 			if session.account is None:

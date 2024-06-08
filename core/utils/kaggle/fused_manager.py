@@ -29,6 +29,7 @@ class FusedManager(SessionsManager):
 			except ResourceUnavailableException:
 				if raise_exception:
 					raise ResourceUnavailableException()
+				print("[-]Resource Unavailable. Exiting...")
 				return
 
 		super().start_session(kernel, account, meta_data, gpu)
