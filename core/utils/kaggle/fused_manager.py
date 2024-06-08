@@ -17,7 +17,7 @@ class FusedManager(SessionsManager):
 			gpu=True,
 			raise_exception=False
 	):
-
+		self.sync_notebooks()
 		try:
 			account = self.__resources_manager.allocate_notebook(gpu)
 		except ResourceUnavailableException:
