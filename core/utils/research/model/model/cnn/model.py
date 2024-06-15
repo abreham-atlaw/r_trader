@@ -20,7 +20,8 @@ class CNN(SavableModule):
 			indicators: typing.Optional[Indicators] = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
-			dropout_rate: float = 0,
+			dropout_rates: typing.Union[typing.List[float], float] = 0,
+			ff_dropout: float = 0,
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
 			avg_pool=True,
@@ -38,7 +39,7 @@ class CNN(SavableModule):
 			'pool_sizes': pool_sizes,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
-			'dropout_rate': dropout_rate,
+			'dropout_rate': dropout_rates,
 			'padding': padding,
 			'avg_pool': avg_pool,
 			'linear_collapse': linear_collapse,
@@ -50,7 +51,14 @@ class CNN(SavableModule):
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
 		self.norm_layers = nn.ModuleList()
+		self.dropout_layers = nn.ModuleList()
 		self.input_size = input_size
+
+		if isinstance(dropout_rates, int):
+			dropout_rates = [dropout_rates for _ in conv_channels]
+
+		if len(dropout_rates) != len(conv_channels):
+			raise ValueError("Dropout size doesn't match layers size")
 
 		if indicators is None:
 			indicators = Indicators()
@@ -92,6 +100,12 @@ class CNN(SavableModule):
 				self.pool_layers.append(pool)
 			else:
 				self.pool_layers.append(nn.Identity())
+
+			if dropout_rates[i] > 0:
+				self.dropout_layers.append(nn.Dropout(dropout_rates[i]))
+			else:
+				self.dropout_layers.append(nn.Identity())
+
 		self.hidden_activation = hidden_activation
 		if ff_linear is None:
 			self.fc = nn.Linear(conv_channels[-1]+self.extra_len, num_classes)
@@ -102,10 +116,11 @@ class CNN(SavableModule):
 				nn.Linear(ff_linear.output_size, num_classes)
 			)
 
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
+		if ff_dropout > 0:
+			self.ff_dropout = nn.Dropout(ff_dropout)
 		else:
-			self.dropout = nn.Identity()
+			self.ff_dropout = nn.Identity()
+
 		self.ff_linear = ff_linear
 		self.fc_layer = None
 		self.num_classes = num_classes
@@ -134,15 +149,15 @@ class CNN(SavableModule):
 	def forward(self, x):
 		seq = x[:, :-self.extra_len]
 		out = self.indicators(seq)
-		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
+		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropout_layers):
 			out = norm(out)
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
-			out = self.dropout(out)
+			out = dropout(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		out = self.ff_dropout(out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.fc(out)
 		return out
