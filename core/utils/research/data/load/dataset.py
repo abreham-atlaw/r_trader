@@ -20,6 +20,10 @@ class BaseDataset(Dataset):
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
 	):
+
+		self.__start_times = {}
+		self.__durations = {}
+
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
 		self.__X_dir = X_dir
@@ -31,8 +35,7 @@ class BaseDataset(Dataset):
 		self.cache = OrderedDict()
 		self.cache_size = cache_size
 		self.data_points_per_file = self.__get_dp_per_file()
-		self.__start_times = {}
-		self.__durations = {}
+
 
 	def __start_task(self, name):
 		self.__start_times[name] = datetime.now()
@@ -40,7 +43,7 @@ class BaseDataset(Dataset):
 	def __pause_task(self, name):
 		if self.__durations.get(name, None) is None:
 			self.__durations[name] = 0
-		self.__durations[name] += datetime.now() - self.__start_times[name]
+		self.__durations[name] += (datetime.now() - self.__start_times[name]).total_seconds()
 
 	def get_durations(self):
 		return self.__durations
