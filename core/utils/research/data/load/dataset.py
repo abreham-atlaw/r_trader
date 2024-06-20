@@ -1,5 +1,6 @@
 import random
 from collections import OrderedDict
+from datetime import datetime
 
 import numpy as np
 import torch
@@ -17,7 +18,7 @@ class BaseDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			out_dtypes: typing.Type = np.float32,
-			num_files: typing.Optional[int] = None
+			num_files: typing.Optional[int] = None,
 	):
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
@@ -30,6 +31,19 @@ class BaseDataset(Dataset):
 		self.cache = OrderedDict()
 		self.cache_size = cache_size
 		self.data_points_per_file = self.__get_dp_per_file()
+		self.__start_times = {}
+		self.__durations = {}
+
+	def __start_task(self, name):
+		self.__start_times[name] = datetime.now()
+
+	def __pause_task(self, name):
+		if self.__durations.get(name, None) is None:
+			self.__durations[name] = 0
+		self.__durations[name] += datetime.now() - self.__start_times[name]
+
+	def get_durations(self):
+		return self.__durations
 
 	@property
 	def random(self):
@@ -49,6 +63,7 @@ class BaseDataset(Dataset):
 		return first_file_data.shape[0]
 
 	def __get_files(self, size=None):
+		self.__start_task("__get_files")
 		files_map = {}
 		files = []
 		for root_dir in self.root_dirs:
@@ -62,19 +77,25 @@ class BaseDataset(Dataset):
 			files += dir_files
 			for file in dir_files:
 				files_map[file] = root_dir
-		return files, files_map
+		response = files, files_map
+		self.__pause_task("__get_files")
+		return response
 
 	def __len__(self):
 		return len(self.__files) * self.data_points_per_file
 
 	def __load_array(self, path: str) -> np.ndarray:
+		self.__start_task("__load_array")
 		out = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
 		if self.random is not None:
 			self.random.shuffle(indexes)
-		return out[indexes]
+		response = out[indexes]
+		self.__pause_task("__load_array")
+		return response
 
 	def __getitem__(self, idx):
+		self.__start_task("__getitem__")
 		file_idx = idx // self.data_points_per_file
 		data_idx = idx % self.data_points_per_file
 
@@ -90,4 +111,6 @@ class BaseDataset(Dataset):
 
 			self.cache[file_idx] = (X, y)
 
-		return tuple([torch.from_numpy(dp[data_idx]) for dp in self.cache[file_idx]])
+		response = tuple([torch.from_numpy(dp[data_idx]) for dp in self.cache[file_idx]])
+		self.__pause_task("__getitem__")
+		return response
