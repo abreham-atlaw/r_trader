@@ -13,6 +13,7 @@ from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.cnn.resnet import ResNet
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
@@ -26,24 +27,24 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class SineWaveDataset(Dataset):
-    def __init__(self, total_samples, sequence_length, resolution=500):
-        self.total_samples = total_samples
-        self.sequence_length = sequence_length
-        self.resolution = resolution
-        self.data = np.sin(np.linspace(0, 2 * np.pi * resolution, total_samples + sequence_length))
+	def __init__(self, total_samples, sequence_length, resolution=500):
+		self.total_samples = total_samples
+		self.sequence_length = sequence_length
+		self.resolution = resolution
+		self.data = np.sin(np.linspace(0, 2 * np.pi * resolution, total_samples + sequence_length))
 
-    def __len__(self):
-        return self.total_samples
+	def __len__(self):
+		return self.total_samples
 
-    def shuffle(self):
-        np.random.shuffle(self.data)
+	def shuffle(self):
+		np.random.shuffle(self.data)
 
-    def __getitem__(self, idx):
-        start = idx
-        end = start + self.sequence_length
-        sequence = self.data[start:end]
-        next_value = np.expand_dims(self.data[end], axis=0)
-        return torch.tensor(sequence, dtype=torch.float32), torch.tensor(next_value, dtype=torch.float32)
+	def __getitem__(self, idx):
+		start = idx
+		end = start + self.sequence_length
+		sequence = self.data[start:end]
+		next_value = np.expand_dims(self.data[end], axis=0)
+		return torch.tensor(sequence, dtype=torch.float32), torch.tensor(next_value, dtype=torch.float32)
 
 
 class TrainerTest(unittest.TestCase):
@@ -54,18 +55,20 @@ class TrainerTest(unittest.TestCase):
 
 		BATCH_SIZE = 8
 
-		CHANNELS = [432]
+		CHANNELS = [32 for _ in range(5)]
 		EXTRA_LEN = 4
-		KERNEL_SIZES = [3]
+		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [0]
-		DROPOUT_RATE = 0
+		POOL_SIZES = [0 for _ in CHANNELS]
+		DROPOUT_RATES = [0.5, 0.2, 0.2, 0.2, 0.2]
 		ACTIVATION = nn.Identity()
 		BLOCK_SIZE = 1028
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [True] + [False for _ in CHANNELS[1:]]
+
+		FF_DROPOUT = 0.2
 
 		USE_FF = False
 		FF_LINEAR_BLOCK_SIZE = 256
@@ -83,7 +86,7 @@ class TrainerTest(unittest.TestCase):
 			ff = LinearModel(
 				block_size=FF_LINEAR_BLOCK_SIZE,
 				vocab_size=FF_LINEAR_OUTPUT_SIZE,
-				dropout_rate=DROPOUT_RATE,
+				dropout_rate=DROPOUT_RATES,
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
 				init_fn=FF_LINEAR_INIT,
@@ -98,13 +101,110 @@ class TrainerTest(unittest.TestCase):
 			kernel_sizes=KERNEL_SIZES,
 			hidden_activation=ACTIVATION,
 			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE,
+			dropout_rates=DROPOUT_RATES,
 			padding=PADDING,
 			avg_pool=AVG_POOL,
 			norm=NORM,
 			linear_collapse=LINEAR_COLLAPSE,
 			ff_linear=ff,
-			indicators=INDICATOR
+			indicators=INDICATOR,
+			ff_dropout=FF_DROPOUT
+		)
+		# model = LinearModel(
+		# 	block_size=1028,
+		# 	vocab_size=432,
+		# 	dropout_rate=0.0,
+		# 	layer_sizes=[
+		# 		64,
+		# 		64,
+		# 	]
+		# )
+
+		# ModelHandler.save(model, SAVE_PATH)
+
+		dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+
+		test_dataset = BaseDataset(
+			[
+				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+			],
+		)
+		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			WeightStatsCallback()
+		]
+
+		trainer = Trainer(
+			model,
+			callbacks=callbacks,
+			max_norm=1,
+			clip_value=1,
+			log_gradient_stats=True
+		)
+		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
+
+		trainer.train(dataloader, epochs=10, progress=True, val_dataloader=test_dataloader)
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+	def test_resnet_model(self):
+
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra-resnet.zip"
+
+		BATCH_SIZE = 16
+
+		CHANNELS = [128 for i in range(5)]
+		EXTRA_LEN = 4
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 431
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.LeakyReLU()
+		INIT = None
+		BLOCK_SIZE = 1028
+		PADDING = 1
+
+		USE_FF = False
+		FF_LINEAR_BLOCK_SIZE = 256
+		FF_LINEAR_OUTPUT_SIZE = 256
+		FF_LINEAR_LAYERS = [256, 256]
+		FF_LINEAR_ACTIVATION = nn.ReLU()
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+
+		if USE_FF:
+			ff = LinearModel(
+				block_size=FF_LINEAR_BLOCK_SIZE,
+				vocab_size=FF_LINEAR_OUTPUT_SIZE,
+				dropout_rate=DROPOUT_RATE,
+				layer_sizes=FF_LINEAR_LAYERS,
+				hidden_activation=FF_LINEAR_ACTIVATION,
+				init_fn=FF_LINEAR_INIT,
+				norm=FF_LINEAR_NORM
+			)
+		else:
+			ff = None
+
+		model = ResNet(
+			extra_len=EXTRA_LEN,
+			num_classes=VOCAB_SIZE + 1,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			hidden_activation=ACTIVATION,
+			pool_sizes=POOL_SIZES,
+			dropout_rates=DROPOUT_RATE,
+			padding=PADDING,
+			ff_linear=ff,
+			linear_collapse=True
 		)
 		# model = LinearModel(
 		# 	block_size=1028,
@@ -226,7 +326,7 @@ class TrainerTest(unittest.TestCase):
 			kernel_sizes=KERNEL_SIZES,
 			hidden_activation=ACTIVATION,
 			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE
+			dropout_rates=DROPOUT_RATE
 		)
 
 		dataset = BaseDataset(
