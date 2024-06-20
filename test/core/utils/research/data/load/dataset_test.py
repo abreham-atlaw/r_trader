@@ -62,4 +62,20 @@ class BaseDatasetTest(unittest.TestCase):
 			self.assertIsNotNone(X)
 
 
+	def test_logging(self):
 
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
+			],
+		)
+
+		dataloader = DataLoader(
+			dataset=dataset,
+			batch_size=6
+		)
+
+		for X, y in dataloader:
+			self.assertIsNotNone(X)
+
+		print(dataset.get_durations())
