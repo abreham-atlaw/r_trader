@@ -3,6 +3,8 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from torch.cuda.amp import GradScaler, autocast
+
 
 import uuid
 import typing
@@ -39,6 +41,8 @@ class Trainer:
         self.__max_norm = max_norm
         self.__clip_value = clip_value
         self.__log_gradient_stats = log_gradient_stats
+        self.scaler = GradScaler()
+
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -138,33 +142,33 @@ class Trainer:
                     callback.on_batch_start(self.model, i)
                 X, y = X.to(self.device), y.to(self.device)
                 self.optimizer.zero_grad()
-                y_hat = self.model(X)
 
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
-                if cls_loss_only:
-                    cls_loss.backward()
-                elif reg_loss_only:
-                    ref_loss.backward()
-                else:
-                    loss.backward()
+                with autocast():  # Enable mixed precision
+                    y_hat = self.model(X)
+                    cls_loss, reg_loss, loss = self.__loss(y_hat, y)
+                    if cls_loss_only:
+                        total_loss = cls_loss
+                    elif reg_loss_only:
+                        total_loss = reg_loss
+                    else:
+                        total_loss = loss
 
-                if self.__log_gradient_stats is not None:
-                    for param in self.model.parameters():
-                        if param.grad is not None:
-                            grad_data = param.grad.data
-                            min_gradient = min(min_gradient, grad_data.min().item())
-                            max_gradient = max(max_gradient, grad_data.max().item())
+                self.scaler.scale(total_loss).backward()  # Scale the loss before backward pass
 
                 if self.__max_norm is not None:
+                    self.scaler.unscale_(self.optimizer)  # Unscale gradients before clipping
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
 
                 if self.__clip_value is not None:
+                    self.scaler.unscale_(self.optimizer)  # Unscale gradients before clipping
                     torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=self.__clip_value)
 
-                self.optimizer.step()
-                running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
+                self.scaler.step(self.optimizer)  # Update weights
+                self.scaler.update()  # Update the scale for the next iteration
+
+                running_loss += torch.FloatTensor([l.item() for l in [cls_loss, reg_loss, total_loss]])
                 if progress and i % progress_interval == 0:
-                    pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")
+                    pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss / (i + 1))}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
             state.batch = 0
@@ -195,8 +199,10 @@ class Trainer:
         with torch.no_grad():
             for X, y in dataloader:
                 X, y = X.to(self.device), y.to(self.device)
-                y_hat = self.model(X)
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+                with autocast():  # Enable mixed precision
+                    y_hat = self.model(X)
+                    cls_loss, ref_loss, loss = self.__loss(y_hat, y)
 
                 total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
         return (total_loss / len(dataloader)).tolist()
+
