@@ -39,7 +39,7 @@ class CNN(SavableModule):
 			'pool_sizes': pool_sizes,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
-			'dropout_rate': dropout_rates,
+			'dropout_rates': dropout_rates,
 			'padding': padding,
 			'avg_pool': avg_pool,
 			'linear_collapse': linear_collapse,
