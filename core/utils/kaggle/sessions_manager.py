@@ -96,11 +96,11 @@ class SessionsManager:
 			gpu: bool = True,
 			close_others: bool = True
 	):
-		# self.sync_notebooks()
+		self.sync_notebooks()
 		print(f"Running {kernel} on {account.username}(gpu={gpu})...")
-		# self.__prepare_for_run(kernel)
+		self.__prepare_for_run(kernel)
 		self.__run_notebook(kernel, account, meta_data, gpu)
-		# self.__register_session(kernel, account, gpu)
+		self.__register_session(kernel, account, gpu)
 
 	def finish_session(self, kernel: str, multiple=False):
 		print(f"Finishing {kernel} with multiple={multiple}")
