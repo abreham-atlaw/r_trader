@@ -1,4 +1,5 @@
 import typing
+import random
 
 from core.utils.kaggle.data.models import Account, Resources
 from core.utils.kaggle.data.repositories import ResourcesRepository, AccountsRepository
@@ -13,6 +14,7 @@ class ResourcesManager:
 	):
 		self.__accounts_repository, self.__resources_repository = (
 			accounts_repository, resources_repository)
+		self.__random_coefficient = 100
 
 	def __get_resources(self) -> typing.List[Resources]:
 		return [
@@ -28,7 +30,7 @@ class ResourcesManager:
 
 		return sorted(
 			resources,
-			key=lambda res: key(res.get_resource(device)),
+			key=lambda res: key(res.get_resource(device)) + self.__random_coefficient * random.random(),
 			reverse=True
 		)
 

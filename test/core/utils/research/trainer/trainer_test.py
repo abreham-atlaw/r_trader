@@ -76,7 +76,8 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
 
 		INDICATOR = Indicators(
-			delta=True
+			delta=True,
+			msd=[14, 50],
 		)
 
 		if USE_FF:

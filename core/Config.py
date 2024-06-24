@@ -180,7 +180,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/bemnetatlaw-drmca-cnn-111-experiment.zip"),
+	path=os.path.join(BASE_DIR, "temp/models/bemnetatlaw-drmca-linear-0.zip"),
 	download=False
 )
 
