@@ -3,13 +3,14 @@ import torch.nn as nn
 
 
 class ResidualBlock(nn.Module):
-	def __init__(self, in_channels, out_channels, kernel_size, padding, hidden_activation, init_fn=None, norm=True):
+	def __init__(self, in_channels, out_channels, kernel_size, padding, hidden_activation, init_fn=None, norm=True, res_norm=True):
 		super(ResidualBlock, self).__init__()
 		self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
 		self.norm1 = nn.BatchNorm1d(out_channels) if norm else nn.Identity()
 		self.activation = hidden_activation
 		self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=kernel_size, padding=padding)
 		self.norm2 = nn.BatchNorm1d(out_channels) if norm else nn.Identity()
+		self.res_norm = nn.BatchNorm1d(out_channels) if res_norm else nn.Identity()
 		self.init_fn = init_fn
 
 		if in_channels != out_channels:
@@ -26,19 +27,21 @@ class ResidualBlock(nn.Module):
 	def residual(self, identity, out):
 		start = (identity.size(2) - out.size(2)) // 2
 		end = identity.size(2) - start
-		return out + identity[:, :, start:end]
+		out = out + identity[:, :, start:end]
+		out = self.res_norm(out)
+		return out
 
 	def forward(self, x):
 		identity = self.shortcut(x)
 
-		out = self.conv1(x)
-		out = self.norm1(out)
+		out = self.norm1(x)
+		out = self.conv1(out)
 		out = self.activation(out)
 
-		out = self.conv2(out)
 		out = self.norm2(out)
+		out = self.conv2(out)
+		out = self.activation(out)
 
 		out = self.residual(identity, out)
-		out = self.activation(out)
 
 		return out
