@@ -3,7 +3,18 @@ import torch.nn as nn
 
 
 class ResidualBlock(nn.Module):
-	def __init__(self, in_channels, out_channels, kernel_size, padding, hidden_activation, init_fn=None, norm=True, res_norm=True):
+	def __init__(
+			self,
+			in_channels,
+			out_channels,
+			kernel_size,
+			padding,
+			hidden_activation,
+			init_fn=None,
+			norm=True,
+			res_norm=True,
+			dropout=0
+	):
 		super(ResidualBlock, self).__init__()
 		self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
 		self.norm1 = nn.BatchNorm1d(out_channels) if norm else nn.Identity()
@@ -12,6 +23,7 @@ class ResidualBlock(nn.Module):
 		self.norm2 = nn.BatchNorm1d(out_channels) if norm else nn.Identity()
 		self.res_norm = nn.BatchNorm1d(out_channels) if res_norm else nn.Identity()
 		self.init_fn = init_fn
+		self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 
 		if in_channels != out_channels:
 			self.shortcut = nn.Conv1d(in_channels, out_channels, kernel_size=1)
@@ -37,6 +49,8 @@ class ResidualBlock(nn.Module):
 		out = self.norm1(x)
 		out = self.conv1(out)
 		out = self.activation(out)
+
+		out = self.dropout(out)
 
 		out = self.norm2(out)
 		out = self.conv2(out)

@@ -80,6 +80,7 @@ class ResNet(SavableModule):
                     padding=padding,
                     hidden_activation=hidden_activation,
                     init_fn=init_fn,
+                    dropout=dropout_rates[i],
                     norm=norm[i]
                 )
             )
