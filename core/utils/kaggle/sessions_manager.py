@@ -75,6 +75,7 @@ class SessionsManager:
 	):
 		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
 		meta_data["enable_gpu"] = gpu
+		meta_data["enable_internet"] = True
 		api = self.__create_api(account)
 		path = self.__pull_notebook(api, kernel)
 		try:
