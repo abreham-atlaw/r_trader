@@ -81,7 +81,8 @@ class ResNet(SavableModule):
                     hidden_activation=hidden_activation,
                     init_fn=init_fn,
                     dropout=dropout_rates[i],
-                    norm=norm[i]
+                    norm=norm[i],
+                    pool_size=pool_sizes[i]
                 )
             )
             if pool_sizes[i] > 0:

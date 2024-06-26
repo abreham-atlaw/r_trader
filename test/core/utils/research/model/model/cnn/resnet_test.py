@@ -73,7 +73,7 @@ class ResNetTest(unittest.TestCase):
         #     ff_linear=ff,
         #     linear_collapse=True
         # )
-        model = ModelHandler.load("/home/abrehamatlaw/Downloads/bemnetatlaw-drmca-cnn-87-experiment.zip")
+        model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/bemnetatlaw-drmca-cnn-119-experiment.zip")
 
         NP_DTYPE = np.float32
         X = np.load(

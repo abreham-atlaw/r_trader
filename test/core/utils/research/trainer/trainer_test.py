@@ -162,7 +162,7 @@ class TrainerTest(unittest.TestCase):
 
 		BATCH_SIZE = 16
 
-		CHANNELS = [128 for i in range(5)]
+		CHANNELS = [64 for i in range(2)]
 		EXTRA_LEN = 4
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
