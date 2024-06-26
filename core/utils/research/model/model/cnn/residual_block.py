@@ -1,4 +1,4 @@
-
+import torch
 import torch.nn as nn
 
 class ResidualBlock(nn.Module):
@@ -37,12 +37,15 @@ class ResidualBlock(nn.Module):
             if isinstance(self.shortcut, nn.Conv1d):
                 init_fn(self.shortcut.weight)
 
+    def adjust_identity(self, identity: torch.Tensor, out: torch.Tensor) -> torch.Tensor:
+        start = (identity.size(2) - out.size(2)) // 2
+        end = start + out.size(2)
+        return identity[:, :, start:end]
+
     def residual(self, identity, out):
         identity = self.pool1(identity)  # Apply the same pooling operation to the identity tensor
-        start = (identity.size(2) - out.size(2)) // 2
-        end = identity.size(2) - start
-        out = out + identity[:, :, start:end]
-        out = self.res_norm(out)
+        identity = self.adjust_identity(identity, out)
+        out = self.res_norm(out + identity)
         return out
 
     def forward(self, x):
@@ -50,9 +53,12 @@ class ResidualBlock(nn.Module):
         out = self.norm1(x)
         out = self.conv1(out)
         out = self.activation(out)
-        out = self.pool1(out)  # Apply the pooling operation to the output tensor
 
+        identity = self.adjust_identity(identity, out)
+
+        out = self.pool1(out)
         out = self.dropout(out)
+
         out = self.norm2(out)
         out = self.conv2(out)
         out = self.activation(out)

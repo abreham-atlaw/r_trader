@@ -162,21 +162,26 @@ class TrainerTest(unittest.TestCase):
 
 		BATCH_SIZE = 16
 
-		CHANNELS = [64 for i in range(2)]
+		CHANNELS = [64 for _ in range(2)]
 		EXTRA_LEN = 4
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0
+		DROPOUT_RATE = [0.2 for _ in CHANNELS]
 		ACTIVATION = nn.LeakyReLU()
-		INIT = None
 		BLOCK_SIZE = 1028
-		PADDING = 1
+		PADDING = 0
+		LINEAR_COLLAPSE = True
+		FLATTEN_COLLAPSE = True
+		AVG_POOL = True
+		NORM = [True] + [False for _ in CHANNELS[1:]]
+		LR = 1e-3
+		FF_DROPOUT = 0.2
 
-		USE_FF = False
+		USE_FF = True
 		FF_LINEAR_BLOCK_SIZE = 256
 		FF_LINEAR_OUTPUT_SIZE = 256
-		FF_LINEAR_LAYERS = [256, 256]
+		FF_LINEAR_LAYERS = []
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
@@ -185,7 +190,7 @@ class TrainerTest(unittest.TestCase):
 			ff = LinearModel(
 				block_size=FF_LINEAR_BLOCK_SIZE,
 				vocab_size=FF_LINEAR_OUTPUT_SIZE,
-				dropout_rate=DROPOUT_RATE,
+				dropout_rate=FF_DROPOUT,
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
 				init_fn=FF_LINEAR_INIT,
@@ -193,7 +198,6 @@ class TrainerTest(unittest.TestCase):
 			)
 		else:
 			ff = None
-
 		model = ResNet(
 			extra_len=EXTRA_LEN,
 			num_classes=VOCAB_SIZE + 1,
@@ -204,6 +208,7 @@ class TrainerTest(unittest.TestCase):
 			dropout_rates=DROPOUT_RATE,
 			padding=PADDING,
 			ff_linear=ff,
+			ff_dropout=FF_DROPOUT,
 			linear_collapse=True
 		)
 		# model = LinearModel(
