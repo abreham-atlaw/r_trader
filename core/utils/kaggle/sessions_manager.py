@@ -94,9 +94,11 @@ class SessionsManager:
 			account: Account,
 			meta_data: typing.Dict[str, typing.Any],
 			gpu: bool = True,
-			close_others: bool = True
+			close_others: bool = True,
+			sync_notebooks: bool = True
 	):
-		self.sync_notebooks()
+		if sync_notebooks:
+			self.sync_notebooks()
 		print(f"Running {kernel} on {account.username}(gpu={gpu})...")
 		self.__prepare_for_run(kernel)
 		self.__run_notebook(kernel, account, meta_data, gpu)
