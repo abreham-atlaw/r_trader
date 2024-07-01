@@ -54,30 +54,32 @@ class TrainerTest(unittest.TestCase):
 
 		BATCH_SIZE = 8
 
-		CHANNELS = [432]
-		EXTRA_LEN = 4
-		KERNEL_SIZES = [3]
+		CHANNELS = [128, 128] + [64 for _ in range(2)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [0]
-		DROPOUT_RATE = 0
-		ACTIVATION = nn.Identity()
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0.3
+		ACTIVATION = nn.LeakyReLU()
 		BLOCK_SIZE = 1028
 		PADDING = 0
 		LINEAR_COLLAPSE = True
+		FLATTEN_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [True] + [False for _ in CHANNELS[1:]]
+		LR = 1e-4
 
-		USE_FF = False
+		INDICATORS_DELTA = True
+		INDICATORS_SO = [14]
+		INDICATORS_RSI = [14]
+
+		USE_FF = True
 		FF_LINEAR_BLOCK_SIZE = 256
 		FF_LINEAR_OUTPUT_SIZE = 256
 		FF_LINEAR_LAYERS = []
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
-
-		INDICATOR = Indicators(
-			delta=True
-		)
 
 		if USE_FF:
 			ff = LinearModel(
@@ -91,6 +93,13 @@ class TrainerTest(unittest.TestCase):
 			)
 		else:
 			ff = None
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI
+		)
+
 		model = CNN(
 			extra_len=EXTRA_LEN,
 			num_classes=VOCAB_SIZE + 1,
@@ -101,10 +110,10 @@ class TrainerTest(unittest.TestCase):
 			dropout_rate=DROPOUT_RATE,
 			padding=PADDING,
 			avg_pool=AVG_POOL,
-			norm=NORM,
 			linear_collapse=LINEAR_COLLAPSE,
+			norm=NORM,
 			ff_linear=ff,
-			indicators=INDICATOR
+			indicators=indicators
 		)
 		# model = LinearModel(
 		# 	block_size=1028,
