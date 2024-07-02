@@ -7,7 +7,7 @@ class Sign(nn.Module):
         super().__init__(*args, **kwargs)
 
     def forward(self, inputs, *args, **kwargs):
-        return inputs / torch.abs(inputs)
+        return torch.sign(inputs)
 
 
 class SignFilter(nn.Module):

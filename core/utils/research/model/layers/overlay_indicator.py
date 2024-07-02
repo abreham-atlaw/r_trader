@@ -5,6 +5,7 @@ import torch.nn as nn
 
 
 class OverlayIndicator(nn.Module, ABC):
+
     def __init__(self, window_size: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__window_size = window_size
@@ -17,9 +18,6 @@ class OverlayIndicator(nn.Module, ABC):
         pass
 
     def forward(self, inputs, *args, **kwargs):
-        output = []
-        for i in range(inputs.shape[1] - self.__window_size+1):
-            output.append(
-                self._on_time_point(inputs[:, i:self.__window_size+i])
-            )
-        return torch.stack(output, dim=1)
+        windows = inputs.unfold(dimension=1, size=self.__window_size, step=1)
+        output = self._on_time_point(windows)
+        return output

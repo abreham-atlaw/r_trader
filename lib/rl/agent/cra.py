@@ -4,6 +4,7 @@ from abc import ABC
 from dataclasses import dataclass
 
 from .action_choice_agent import ActionChoiceAgent
+from ...utils.logger import Logger
 
 
 class CumulativeRewardAgent(ActionChoiceAgent, ABC):
@@ -35,6 +36,7 @@ class CumulativeRewardAgent(ActionChoiceAgent, ABC):
 	def _update_state_action_value(self, initial_state, action, final_state, reward):
 		self.__add_to_queue(initial_state, action, final_state, reward)
 		if len(self.__queue) > self.__size:
+			Logger.info(f"CRA: Updating State Action Value(CUM={self.__size})")
 			reward = self.__queue.pop(0)
 			super()._update_state_action_value(
 				reward.initial_state,
