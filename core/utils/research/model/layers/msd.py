@@ -11,9 +11,9 @@ class MovingStandardDeviation(OverlayIndicator):
         return torch.sqrt(
             torch.sum(
                 torch.pow(
-                    inputs - torch.mean(inputs, dim=1, keepdim=True),
+                    inputs - torch.mean(inputs, dim=2, keepdim=True),
                     2
                 )/inputs.shape[1],
-                dim=1
+                dim=2
             )
         )

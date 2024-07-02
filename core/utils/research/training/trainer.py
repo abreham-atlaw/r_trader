@@ -95,7 +95,7 @@ class Trainer:
             progress: bool = False,
             shuffle=True,
             progress_interval=100,
-            cls_loss_only=True,
+            cls_loss_only=False,
             reg_loss_only=False,
             state: typing.Optional[TrainingState] = None
     ):
