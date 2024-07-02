@@ -7,7 +7,7 @@ import numpy as np
 from core import Config
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from core.agent.trader_action import TraderAction
-from core.environment.trade_state import TradeState
+from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
 from lib.rl.agent.dta import Model, TorchModel
@@ -17,12 +17,15 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, TraderDNNTransitionAgent, ABC):
 
+	__OPEN_TRADE_ENCODE_SIZE = 6
+
 	def __init__(
 			self,
 			*args,
 			batch_size=Config.UPDATE_EXPORT_BATCH_SIZE,
 			train=Config.UPDATE_TRAIN,
 			save_path=Config.UPDATE_SAVE_PATH,
+			encode_max_open_trade=Config.AGENT_MAX_OPEN_TRADES,
 			**kwargs
 	):
 		super().__init__(
@@ -32,6 +35,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			save_path=save_path,
 			**kwargs
 		)
+		self.__encode_max_open_trades = encode_max_open_trade
 
 	def _init_model(self) -> Model:
 		return TorchModel(
@@ -56,6 +60,23 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			encoded[3] = state.agent_state.calc_required_margin(action.units, action.base_currency, action.quote_currency)/state.agent_state.get_margin_available()
 		return encoded
 
+	def __encode_open_trade(self, trade: AgentState.OpenTrade, state: TradeState) -> np.ndarray:
+		encoded = np.zeros((self.__OPEN_TRADE_ENCODE_SIZE,))
+		encoded[:2] = [trade.get_enter_value(), trade.get_current_value()]
+		encoded[trade.get_trade().action + 2] = 1
+		encoded[4] = trade.get_trade().margin_used / state.agent_state.get_balance()
+		encoded[5] = state.agent_state.to_agent_currency(trade.get_unrealized_profit(), trade.get_trade().quote_currency) / state.get_agent_state().get_balance()
+		return encoded
+
+	def __encode_open_trades(self, state: TradeState):
+		open_trades = state.agent_state.get_open_trades()
+		if len(open_trades) > self.__encode_max_open_trades:
+			raise ValueError("Found more open trades than `encode_max_open_trades`")
+		encoded = np.zeros((self.__OPEN_TRADE_ENCODE_SIZE * self.__encode_max_open_trades))
+		for i, trade in enumerate(open_trades):
+			encoded[i*self.__OPEN_TRADE_ENCODE_SIZE: (i+1)*self.__OPEN_TRADE_ENCODE_SIZE] = self.__encode_open_trade(trade, state)
+		return encoded
+
 	def __prepare_model_input(
 			self,
 			state: TradeState,
@@ -64,7 +85,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	) -> np.ndarray:
 		time_series = state.get_market_state().get_state_of(target_instrument[0], target_instrument[1])
 		encoded_action = self.__encode_action(state, action)
-		return np.concatenate((time_series, encoded_action), axis=0)
+		open_trades = self.__encode_open_trades(state)
+		return np.concatenate((time_series, encoded_action, open_trades), axis=0)
 
 	def _prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		return self.__prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
@@ -84,7 +106,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 
 	def _prepare_dra_output(self, state: TradeState, action: TraderAction, output: np.ndarray) -> float:
 		_, value = self._parse_model_output(output)
-		return value
+		return value * state.get_agent_state().get_balance()
 
 	def _single_prediction_to_transition_probability_bound_mode(
 			self,
@@ -107,7 +129,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		bound_idx = self._find_gap_index(percentage)
 		output = np.zeros(len(self._state_change_delta_bounds)+2)
 		output[bound_idx] = 1
-		output[-1] = value
+		output[-1] = value/state.agent_state.get_balance()
 		return output
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):

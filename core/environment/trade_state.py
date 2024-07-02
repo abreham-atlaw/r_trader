@@ -233,7 +233,7 @@ class AgentState:
 			return self.__balance
 		self.__update_open_trades()
 		return self.__balance + sum([
-			self.__to_agent_currency(
+			self.to_agent_currency(
 				value=trade.get_unrealized_profit(),
 				from_currency=trade.get_trade().quote_currency
 			)
@@ -285,7 +285,7 @@ class AgentState:
 			AgentState.OpenTrade(action, enter_value)
 		)
 
-	def __to_agent_currency(self, value, from_currency) -> float:
+	def to_agent_currency(self, value, from_currency) -> float:
 		return self.__market_state.convert(value, to=self.__currency, from_=from_currency)
 
 	def add_open_trade(self, trade: OpenTrade):
@@ -297,7 +297,7 @@ class AgentState:
 		if modify_balance:
 			self.update_balance(
 				sum([
-					self.__to_agent_currency(
+					self.to_agent_currency(
 						value=trade.get_unrealized_profit(),
 						from_currency=trade.get_trade().quote_currency
 					)

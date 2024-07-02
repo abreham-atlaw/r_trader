@@ -96,6 +96,8 @@ class Trainer:
             progress: bool = False,
             shuffle=True,
             progress_interval=100,
+            cls_loss_only=False,
+            reg_loss_only=False,
             state: typing.Optional[TrainingState] = None
     ):
         if self.optimizer is None or self.cls_loss_function is None:
@@ -109,6 +111,12 @@ class Trainer:
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
+
+        if cls_loss_only:
+            print("Training Classifier")
+
+        if reg_loss_only:
+            print("Training Regressor")
 
         train_losses = []
         val_losses = []
@@ -134,8 +142,12 @@ class Trainer:
                 y_hat = self.model(X)
 
                 cls_loss, ref_loss, loss = self.__loss(y_hat, y)
-
-                loss.backward()
+                if cls_loss_only:
+                    cls_loss.backward()
+                elif reg_loss_only:
+                    ref_loss.backward()
+                else:
+                    loss.backward()
 
                 if self.__log_gradient_stats is not None:
                     for param in self.model.parameters():

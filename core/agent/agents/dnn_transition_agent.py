@@ -95,7 +95,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
 				return base_currency, quote_currency
-		raise ValueError("Initial State and Final state are the same.")  # TODO: FIND ANOTHER WAY TO HANDLE THIS.
+		return final_state.get_market_state().get_tradable_pairs()[0]
+		# raise ValueError("Initial State and Final state are the same.")  # TODO: FIND ANOTHER WAY TO HANDLE THIS.
 
 	def _prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 

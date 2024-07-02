@@ -48,7 +48,7 @@ class TradeEnvironment(Environment, ABC):
 		return state.get_recent_balance_change() + self.__time_penalty
 
 	def perform_action(self, action: TraderAction):
-
+		recent_balance = self.get_state().get_agent_state().get_balance()
 		if action is None:
 			pass
 
@@ -57,7 +57,6 @@ class TradeEnvironment(Environment, ABC):
 
 		else:
 			self._open_trade(action)
-		recent_balance = self.get_state().get_agent_state().get_balance()
 		self._state = self._refresh_state()
 		self._state.recent_balance = recent_balance
 
