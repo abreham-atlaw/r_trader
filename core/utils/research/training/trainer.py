@@ -111,6 +111,12 @@ class Trainer:
             callback.on_train_start(self.model)
         self.summary()
 
+        if cls_loss_only:
+            print("Training Classifier")
+
+        if reg_loss_only:
+            print("Training Regressor")
+
         train_losses = []
         val_losses = []
         for epoch in range(state.epoch, epochs):
