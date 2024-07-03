@@ -219,3 +219,4 @@ UPDATE_EXPORT_BATCH_SIZE = 64
 UPDATE_SAVE_PATH = "/kaggle/working/out"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 1
+MODEL_ID = "bemnetatlaw-drmca-linear-0"
