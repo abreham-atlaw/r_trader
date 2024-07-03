@@ -150,7 +150,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 10
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
-AGENT_DRMCA_WP = 1
+AGENT_DRMCA_WP = 100
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 
