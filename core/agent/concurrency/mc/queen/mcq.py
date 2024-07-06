@@ -2,12 +2,12 @@
 
 from lib.concurrency.mc.queen import MonteCarloQueen
 from lib.network.rest_interface import Serializer
-from core.agent.agents import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent, TraderAgent
 from core.agent.concurrency.mc.data.serializer import TraderActionSerializer, TradeStateSerializer
 from core import Config
 
 
-class TraderMonteCarloQueen(MonteCarloQueen, TraderMonteCarloAgent):
+class TraderMonteCarloQueen(MonteCarloQueen, TraderAgent):
 
 	def __init__(self, *args, server_url=Config.MC_SERVER_URL,**kwargs):
 		super().__init__(server_url=server_url, *args, **kwargs)
