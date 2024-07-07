@@ -27,6 +27,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			save_path=Config.UPDATE_SAVE_PATH,
 			encode_max_open_trade=Config.AGENT_MAX_OPEN_TRADES,
 			wp=Config.AGENT_DRMCA_WP,
+			top_k_nodes=Config.AGENT_TOP_K_NODES,
 			**kwargs
 	):
 		super().__init__(
@@ -35,6 +36,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			train=train,
 			save_path=save_path,
 			wp=wp,
+			top_k_nodes=top_k_nodes,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
