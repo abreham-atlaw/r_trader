@@ -1,3 +1,5 @@
+import typing
+from datetime import datetime
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -7,6 +9,7 @@ from tensorflow import keras
 import os
 
 from lib.rl.environment import ModelBasedState
+from temp import stats
 from . import Model
 from .. import ModelBasedAgent
 
@@ -63,22 +66,57 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def _predict(self, model: Model, inputs: np.array) -> np.ndarray:
 		return model.predict(inputs)
 
-	def _get_expected_transition_probability_distribution(self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]) -> List[float]:
-		prediction_input = self._prepare_dta_input(initial_states, action, final_states)
+	def __get_unique_rows(self, array: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+		start_time = datetime.now()
+		hashes = np.array([hash(x.tobytes()) for x in array])
+		stats.durations["hash"] += (datetime.now() - start_time).total_seconds()
 
+		start_time = datetime.now()
+		hashes, indices, inverse = np.unique(hashes, axis=0, return_inverse=True, return_index=True)
+		stats.durations["unique"] += (datetime.now() - start_time).total_seconds()
+		return array[indices], inverse
+
+	def _get_expected_transition_probability_distribution(self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]) -> List[float]:
+
+		_start_time = datetime.now()
+
+		start_time = datetime.now()
+		prediction_input = self._prepare_dta_input(initial_states, action, final_states)
+		stats.durations["prepare_dta_input"] += (datetime.now() - start_time).total_seconds()
+
+		start_time = datetime.now()
 		prediction = self.__get_cached(prediction_input)
+		stats.durations["get_cached"] += (datetime.now() - start_time).total_seconds()
 
 		not_cached_indexes = np.isnan(prediction)
 		if np.any(not_cached_indexes):
-			model_inputs, indices = np.unique(prediction_input[not_cached_indexes], axis=0, return_inverse=True)
+
+			start_time = datetime.now()
+			# model_inputs, indices = np.unique(prediction_input[not_cached_indexes], axis=0, return_inverse=True)
+			model_inputs, indices = self.__get_unique_rows(prediction_input[not_cached_indexes])
+			stats.durations["__get_unique_rows"] += (datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.now()
 			model_predictions = self._predict(self._transition_model, model_inputs)
+			stats.durations["predict"] += (datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.now()
 			model_predictions = model_predictions[indices]
+			stats.durations["model_predictions"] += (datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.now()
 			prediction[not_cached_indexes] = self._prepare_dta_output(
 				initial_states,
 				model_predictions,
 				final_states
 			)
+			stats.durations["prepare_dta_output"] += (datetime.now() - start_time).total_seconds()
+
+			start_time = datetime.now()
 			self.__cache_predictions(prediction_input[not_cached_indexes], prediction[not_cached_indexes])
+			stats.durations["cache_predictions"] += (datetime.now() - start_time).total_seconds()
+
+		stats.durations["get_expected_transition_probability_distribution__"] += (datetime.now() - _start_time).total_seconds()
 
 		return list(prediction)
 

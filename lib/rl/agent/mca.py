@@ -139,6 +139,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			short_term_memory: 'MonteCarloAgent.NodeShortTermMemory' = None,
 			probability_correction: bool = False,
 			min_probability: typing.Optional[float] = None,
+			top_k_nodes: typing.Optional[int] = None,
 			**kwargs
 	):
 
@@ -161,6 +162,11 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
 		self.__probability_correction = probability_correction
 		self.__current_graph_: Optional[MonteCarloAgent.Node] = None
+		self.__top_k_nodes = top_k_nodes
+
+	@property
+	def trim_mode(self) -> bool:
+		return self.__top_k_nodes is not None
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -363,6 +369,11 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
 
+
+
+	def __trim_node(self, node: 'MonteCarloAgent.Node'):
+		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:self.__top_k_nodes]
+
 	def _expand(self, state_node: 'MonteCarloAgent.Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
 			return
@@ -387,6 +398,12 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			final_states[i].set_depth(possible_state_nodes[i].depth)
 		stats.durations["for i in range(len(probability_distribution))"] += (
 						datetime.now() - start_time).total_seconds()
+
+		start_time = datetime.now()
+		if self.trim_mode:
+			for action_node in state_node.children:
+				self.__trim_node(action_node)
+		stats.durations["trim"] += (datetime.now() - start_time).total_seconds()
 
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -458,6 +475,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
+			stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:

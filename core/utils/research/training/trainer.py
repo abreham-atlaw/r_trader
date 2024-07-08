@@ -95,7 +95,7 @@ class Trainer:
             progress: bool = False,
             shuffle=True,
             progress_interval=100,
-            cls_loss_only=True,
+            cls_loss_only=False,
             reg_loss_only=False,
             state: typing.Optional[TrainingState] = None
     ):
@@ -110,6 +110,12 @@ class Trainer:
         for callback in self.callbacks:
             callback.on_train_start(self.model)
         self.summary()
+
+        if cls_loss_only:
+            print("Training Classifier")
+
+        if reg_loss_only:
+            print("Training Regressor")
 
         train_losses = []
         val_losses = []
