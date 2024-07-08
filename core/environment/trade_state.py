@@ -130,6 +130,8 @@ class MarketState:
 			spread_state=self.__spread_state.copy()
 		)
 
+	def __hash__(self):
+		return hash((tuple(self.__currencies), tuple(self.__tradable_pairs), self.__state.tobytes(), self.__spread_state.tobytes()))
 
 
 	def __eq__(self, other):
@@ -182,6 +184,9 @@ class AgentState:
 				enter_value=self.__enter_value,
 				current_value=self.__current_value
 			)
+
+		def __hash__(self):
+			return hash((self.__trade, self.__enter_value, self.__current_value))
 
 		def __eq__(self, other):
 			return isinstance(other, AgentState.OpenTrade) and \
@@ -324,6 +329,9 @@ class AgentState:
 			open_trades=open_trades
 		)
 
+	def __hash__(self):
+		return hash((self.__balance, tuple(self.__open_trades)))
+
 
 class TradeState(ModelBasedState):
 
@@ -371,6 +379,9 @@ class TradeState(ModelBasedState):
 		agent_state = self.agent_state.__deepcopy__(memo={'market_state': market_state})
 
 		return TradeState(market_state, agent_state, self.get_recent_balance())
+
+	def __hash__(self):
+		return hash((self.market_state, self.agent_state, self.get_recent_balance()))
 
 	def __eq__(self, other):
 		if not isinstance(other, TraderAction):

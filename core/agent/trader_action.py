@@ -34,3 +34,6 @@ class TraderAction:
 			margin_used=self.margin_used,
 			units=self.units
 		)
+
+	def __hash__(self):
+		return hash((self.base_currency, self.quote_currency, self.action, self.margin_used, self.units))

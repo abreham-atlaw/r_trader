@@ -33,6 +33,9 @@ durations = {
 		'__get_unique_rows',
 		'hash',
 
+		'state_comparison',
+		'find_gap_index',
+
 		'DeepReinforcementAgent._get_state_action_value',
 		'super()._get_action_node_value',
 		'for i in range(len(probability_distribution))',
