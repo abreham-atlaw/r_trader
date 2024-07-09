@@ -41,6 +41,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.id = id
 			if id is None:
 				self.id = self.__generate_id()
+			self.predicted_value = None
 
 		def increment_visits(self):
 			self.visits += 1
@@ -167,6 +168,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	@property
 	def trim_mode(self) -> bool:
 		return self.__top_k_nodes is not None
+
+	def set_repository(self, repository: StateRepository):
+		self._state_repository = repository
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -475,7 +479,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
-			stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
+			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
@@ -495,7 +499,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__finalize_step(root_node)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
-		for action_node in self.__current_graph.get_children():
+		for action_node in self.__get_current_graph().get_children():
 			if action_node.action == action:
 				return action_node.get_total_value()
 
