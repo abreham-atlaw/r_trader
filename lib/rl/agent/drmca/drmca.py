@@ -25,19 +25,20 @@ class DeepReinforcementMonteCarloAgent(MonteCarloAgent, DeepReinforcementAgent, 
 		return predicted + self.weighted_sigmoid(visits, self.__wp)*(calculated - predicted)
 
 	def _get_action_node_value(self, node: 'MonteCarloAgent.Node'):
-		start_time = datetime.now()
-		predicted_value = DeepReinforcementAgent._get_state_action_value(
-			self,
-			self._state_repository.retrieve(node.parent.id),
-			node.action
-		)
-		stats.durations["DeepReinforcementAgent._get_state_action_value"] += (datetime.now() - start_time).total_seconds()
+		if node.predicted_value is None:
+			start_time = datetime.now()
+			node.predicted_value = DeepReinforcementAgent._get_state_action_value(
+				self,
+				self._state_repository.retrieve(node.parent.id),
+				node.action
+			)
+			stats.durations["DeepReinforcementAgent._get_state_action_value"] += (datetime.now() - start_time).total_seconds()
 
 		start_time = datetime.now()
 		calculated_value = super()._get_action_node_value(node)
 		stats.durations["super()._get_action_node_value"] += (datetime.now() - start_time).total_seconds()
 
-		value = self.__calc_value(calculated_value, predicted_value, node.get_visits())
+		value = self.__calc_value(calculated_value, node.predicted_value, node.get_visits())
 		return value
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
