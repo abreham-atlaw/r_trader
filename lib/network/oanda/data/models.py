@@ -132,18 +132,24 @@ class CandleStick:
 	def get_low(self) -> float:
 		return float(self.mid.get("l"))
 
+@attr.define
+class PriceBucket:
+	price: float = attr.ib()
+	liquidity: int = attr.ib()
 
 @attr.define
 class SpreadPrice:
 
+	asks: List[PriceBucket] = attr.ib()
+	bids: List[PriceBucket] = attr.ib()
 	closeoutBid: float = attr.ib()
 	closeoutAsk: float = attr.ib()
 
 	def get_buy(self) -> float:
-		return self.closeoutAsk
+		return sorted(self.asks, key=lambda p: p.liquidity)[0].price
 
 	def get_sell(self) -> float:
-		return self.closeoutBid
+		return sorted(self.bids, key=lambda p: p.liquidity)[0].price
 
 	def get_spread_cost(self) -> float:
 		return (self.get_buy() - self.get_sell())/2

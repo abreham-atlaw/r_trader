@@ -1,11 +1,11 @@
 from lib.concurrency.mc.worker import MonteCarloWorkerAgent
 from lib.network.rest_interface import Serializer
-from core.agent.agents import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent, TraderAgent
 from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer, TradeStateSerializer
 from core import Config
 
 
-class TraderMonteCarloWorkerAgent(TraderMonteCarloAgent, MonteCarloWorkerAgent):
+class TraderMonteCarloWorkerAgent(TraderAgent, MonteCarloWorkerAgent):
 
 	def __init__(self, *args, step_time=Config.MC_WORKER_STEP_TIME, **kwargs):
 		super().__init__(server_url=Config.MC_SERVER_URL, step_time=step_time)

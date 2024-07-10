@@ -1,4 +1,5 @@
 import shutil
+from uuid import uuid4
 
 import torch
 import json
@@ -55,7 +56,7 @@ class ModelHandler:
 
     @staticmethod
     def load(path):
-        dirname = os.path.basename(path).replace(".", "_")
+        dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
         try:
             os.makedirs(dirname)
