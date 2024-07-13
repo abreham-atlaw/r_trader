@@ -117,7 +117,7 @@ AGENT_DISCOUNT_FUNCTION = None
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_UCT_EXPLORE_WEIGHT = 0.01
 AGENT_LOGICAL_MCA = True
-AGENT_STEP_TIME = 5 * 60
+AGENT_STEP_TIME = 2 * 60
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -149,6 +149,8 @@ AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = 10
+AGENT_DUMP_NODES = True
+AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 
@@ -179,7 +181,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/bemnetatlaw-drmca-linear-0.zip"),
+	path="/home/abrehamatlaw/Downloads/abrehamatlaw0-drmca-cnn-111-tot-cum-0.zip",
 	download=False
 )
 

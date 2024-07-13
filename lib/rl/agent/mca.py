@@ -1,3 +1,5 @@
+import json
+import os
 import time
 import typing
 from datetime import datetime
@@ -141,6 +143,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			probability_correction: bool = False,
 			min_probability: typing.Optional[float] = None,
 			top_k_nodes: typing.Optional[int] = None,
+			dump_nodes: bool = False,
+			dump_path: str = "./",
+			node_serializer: typing.Optional['NodeSerializer'] = None,
 			**kwargs
 	):
 
@@ -164,6 +169,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__probability_correction = probability_correction
 		self.__current_graph_: Optional[MonteCarloAgent.Node] = None
 		self.__top_k_nodes = top_k_nodes
+		self.__dump_nodes = dump_nodes
+		self.__dump_path = dump_path
+		self.__serializer = node_serializer
 
 	@property
 	def trim_mode(self) -> bool:
@@ -327,7 +335,18 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self._state_repository.clear()
 		self.__restore_backups(backup)
 
+	def __dump_node(self, node):
+
+		json_ = self.__serializer.serialize(node)
+
+		with open(os.path.join(self.__dump_path, f"{datetime.now().timestamp()}.json"), "w") as file:
+			json.dump(json_, file)
+
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
+
+		if self.__dump_nodes:
+			self.__dump_node(root)
+
 		if self.__use_stm:
 			self.__store_to_stm(root)
 			self.__backup_and_clear_repository()
@@ -372,7 +391,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			state_node.add_child(action_node)
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
-
 
 
 	def __trim_node(self, node: 'MonteCarloAgent.Node'):
