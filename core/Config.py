@@ -218,6 +218,7 @@ MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
 UPDATE_SAVE_PATH = "/kaggle/working/out"
+AGENT_DUMP_NODES_PATH = "/kaggle/working/out/graph_dumps"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
