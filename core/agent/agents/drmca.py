@@ -6,6 +6,7 @@ import numpy as np
 
 from core import Config
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
+from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.trader_action import TraderAction
 from core.agent.utils.cache import Cache
 from core.environment.trade_state import TradeState, AgentState
@@ -29,6 +30,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			encode_max_open_trade=Config.AGENT_MAX_OPEN_TRADES,
 			wp=Config.AGENT_DRMCA_WP,
 			top_k_nodes=Config.AGENT_TOP_K_NODES,
+			dump_nodes=Config.AGENT_DUMP_NODES,
+			dump_path=Config.AGENT_DUMP_NODES_PATH,
 			**kwargs
 	):
 		super().__init__(
@@ -38,6 +41,9 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			save_path=save_path,
 			wp=wp,
 			top_k_nodes=top_k_nodes,
+			dump_nodes=dump_nodes,
+			dump_path=dump_path,
+			node_serializer=TraderNodeSerializer(),
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade

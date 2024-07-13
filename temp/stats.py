@@ -1,3 +1,6 @@
+import json
+import os.path
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
@@ -258,16 +261,16 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 	plt.ion()  # Turn on interactive mode
 
 	def get_node_label(node):
-		if node.parent is None:
-			return "Root"
 
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"
 			instant_value = f"\n{node.instant_value: .4f}"
-			delta = f"\n{format(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[node.parent.children.index(node)] - 1, '.1e')}"
-			label = f"{total_value}{instant_value}{delta}"
+			label = f"{total_value}{instant_value}"
 			if state_repository is not None:
 				current_price = state_repository.retrieve(node.id).market_state.get_current_price('AUD', 'USD')
+				if node.parent is not None:
+					previous_price = state_repository.retrieve(node.parent.id).market_state.get_current_price('AUD', 'USD')
+					label += f"\n{(current_price - previous_price): .4f}"
 				label += f"\n{current_price: .4f}"
 			return label
 
@@ -333,3 +336,14 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 	plt.pause(0.1)  # Pause to allow for plot update
 
 	plt.ioff()  # Turn off interactive mode after drawing
+
+def load_node(filename: str):
+	from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
+
+	serializer = TraderNodeSerializer()
+
+	with open(filename, "r") as file:
+		json_ = json.load(file)
+
+	return serializer.deserialize(json_)
+
