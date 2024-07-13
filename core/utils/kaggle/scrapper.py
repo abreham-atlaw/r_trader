@@ -17,7 +17,9 @@ class KaggleScraper:
 		self.driver = self._configure_driver()
 		if cookies_path is not None:
 			self.load_cookies(cookies_path)
-	def _configure_driver(self):
+
+	@staticmethod
+	def _configure_driver():
 		return webdriver.Firefox()
 
 	def load_cookies(self, path):
@@ -29,6 +31,32 @@ class KaggleScraper:
 
 	def _scroll_down(self):
 		self.driver.execute_script("window.scrollTo(0, window.innerHeight);")
+
+	@staticmethod
+	def _scroll_to(element):
+		element.location_once_scrolled_into_view
+
+	def _scroll_and_click(self, element):
+		self._scroll_to(element)
+		element.click()
+
+	def __enable_edit(self):
+		buttons = [button for button in self.driver.find_elements(By.TAG_NAME, value="button")]
+		dropdown_button = [
+			button for button in buttons
+			if button.text == "Can view\narrow_drop_down"
+		]
+		if len(dropdown_button) == 0:
+			return
+		self._scroll_and_click(dropdown_button[0])
+
+		elements = self.driver.find_elements(by=By.XPATH, value="//*[contains(text(), 'Can edit')]")
+		clickable_elements = [element for element in elements if element.is_enabled() and element.is_displayed()]
+		self._scroll_and_click(clickable_elements[0])
+		time.sleep(2)
+
+		if len(dropdown_button) > 1:
+			self.__enable_edit()
 
 	def share_notebook(self, notebook_url, username):
 		self.driver.get(os.path.join(notebook_url, "settings"))
@@ -43,31 +71,38 @@ class KaggleScraper:
 		)
 		user_result.click()
 
-		share_action = self.driver.find_element(By.XPATH, "//*[contains(text(),'Save Changes')]")
-		share_action.click()
-		time.sleep(5)
+		self.__enable_edit()
 
+		share_action = self.driver.find_element(By.XPATH, "//*[contains(text(),'Save Changes')]")
+		self._scroll_and_click(share_action)
+		time.sleep(5)
 
 
 # Usage
 def main():
-	cookies_path = '/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/cookies.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/cookies.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abreham/chess-transitionprobability-collector-1-{i}'
-		for i in range(20, 49)
+		f'https://www.kaggle.com/code/inkoops/rtrader-runlive-sim-cum-0-it-0-{i}'
+		for i in range(3, 20)
 	]
 	usernames = [
-		'abrehama',
-		'abrehamatlaw',
+		'bemnetatlaw',
+		'abrehamatlaw0',
+		'yosephmezemer',
+		'napoleonbonaparte0',
+		'biruk-ay'
 	]
 
-	scraper = KaggleScraper(cookies_path)
+	scrapper = KaggleScraper(
+		cookies_path=cookies_path
+	)
 
 	for i, notebook_url in enumerate(notebook_urls):
 		for username in usernames:
 			try:
-				scraper.share_notebook(notebook_url, username)
-			except:
+				scrapper.share_notebook(notebook_url, username)
+			except Exception as ex:
+				print(f"Failed to share {notebook_url} to {username}")
 				pass
 		print(f"Progress{(i+1)*100/len(notebook_urls): .2f}%...")
 
