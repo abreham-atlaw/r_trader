@@ -1,3 +1,4 @@
+import time
 import typing
 
 import os
@@ -112,11 +113,23 @@ class SessionsManager:
 		for session in active_sessions:
 			self.__session_repository.finish_session(session)
 
+	def __get_notebook_status(self, api, username, slug):
+		from kaggle.rest import ApiException
+		try:
+			return api.kernel_status(username, slug)
+		except ApiException as ex:
+			if ex.status == 429:
+				print("Rate limited. Waiting 30 seconds...")
+				time.sleep(30)
+				return self.__get_notebook_status(username, slug)
+			else:
+				raise ex
+
 	def is_notebook_running(self, notebook_id):
 		print(f"Checking {notebook_id}")
 		username, slug = notebook_id.split("/")
 		api = self.__create_api(self.__account_repository.get_accounts()[0])
-		status = api.kernel_status(username, slug)
+		status = self.__get_notebook_status(api, username, slug)
 		return status.get("status") == "running"
 
 	def sync_notebooks(self):
