@@ -151,7 +151,7 @@ AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = 10
 AGENT_DUMP_NODES = False
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
-with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/g60/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 
 MC_WORKER_STEP_TIME = 1 * 60
@@ -213,7 +213,7 @@ AGENT_STATIC_INSTRUMENTS = [
     ("AUD", "USD"),
 ]
 AGENT_STEP_TIME = 1 * 60
-MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_GRANULARITY = "H1"
 MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
@@ -221,4 +221,4 @@ UPDATE_SAVE_PATH = "/kaggle/working/out"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "abrehamatlaw0-drmca-cnn-111-tot-cum-0"
+MODEL_ID = "bemnetatlaw-drmca-cnn-0-initial"
