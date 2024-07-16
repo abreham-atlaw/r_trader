@@ -6,9 +6,11 @@ from abc import ABC
 import tensorflow as tf
 import numpy as np
 
-import copy
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 from core import Config
+from core.agent.utils.cache import Cache
 from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent import DNNTransitionAgent
 from lib.rl.agent.dta import TorchModel
@@ -70,6 +72,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta_cache = {}
 		self.__discount_function = discount_function
 		self.__use_softmax = use_softmax
+		self.__dta_output_cache = Cache()
 
 	@staticmethod
 	def __softmax(x):
@@ -156,30 +159,45 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			output: np.ndarray,
 			final_state: TradeState
 	) -> float:
-		probabilities = output.flatten()
 
-		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
+		def compute(initial_state: TradeState,
+			output: np.ndarray,
+			final_state: TradeState) -> float:
 
-			if np.all(
-					final_state.get_market_state().get_state_of(
-						base_currency,
-						quote_currency
-					) == initial_state.get_market_state().get_state_of(
-						base_currency,
-						quote_currency)
-			):
-				continue
+			probabilities = output.flatten()
 
-			percentage = final_state.get_market_state().get_current_price(
-				base_currency,
-				quote_currency
-			) / initial_state.get_market_state().get_current_price(
-				base_currency,
-				quote_currency
-			)
-			if self.__use_softmax:
-				probabilities = self.__softmax(probabilities)
-			return probabilities[self._find_gap_index(percentage)]
+			start_time = datetime.now()
+
+			for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
+
+				if np.all(
+						final_state.get_market_state().get_state_of(
+							base_currency,
+							quote_currency
+						) == initial_state.get_market_state().get_state_of(
+							base_currency,
+							quote_currency)
+				):
+					continue
+
+				stats.durations['state_comparison'] += (datetime.now() - start_time).total_seconds()
+
+				percentage = final_state.get_market_state().get_current_price(
+					base_currency,
+					quote_currency
+				) / initial_state.get_market_state().get_current_price(
+					base_currency,
+					quote_currency
+				)
+				if self.__use_softmax:
+					probabilities = self.__softmax(probabilities)
+
+				start_time = datetime.now()
+				idx = self._find_gap_index(percentage)
+				stats.durations["find_gap_index"] += (datetime.now() - start_time).total_seconds()
+
+				return probabilities[idx]
+		return self.__dta_output_cache.cached_or_execute((initial_state, output.tobytes(), final_state), lambda: compute(initial_state, output, final_state))
 
 	def __prediction_to_transition_probability_bound_mode(
 			self,

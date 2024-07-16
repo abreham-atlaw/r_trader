@@ -1,3 +1,5 @@
+import json
+import os
 import time
 import typing
 from datetime import datetime
@@ -41,6 +43,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.id = id
 			if id is None:
 				self.id = self.__generate_id()
+			self.predicted_value = None
 
 		def increment_visits(self):
 			self.visits += 1
@@ -139,6 +142,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			short_term_memory: 'MonteCarloAgent.NodeShortTermMemory' = None,
 			probability_correction: bool = False,
 			min_probability: typing.Optional[float] = None,
+			top_k_nodes: typing.Optional[int] = None,
+			dump_nodes: bool = False,
+			dump_path: str = "./",
+			node_serializer: typing.Optional['NodeSerializer'] = None,
 			**kwargs
 	):
 
@@ -161,6 +168,17 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
 		self.__probability_correction = probability_correction
 		self.__current_graph_: Optional[MonteCarloAgent.Node] = None
+		self.__top_k_nodes = top_k_nodes
+		self.__dump_nodes = dump_nodes
+		self.__dump_path = dump_path
+		self.__serializer = node_serializer
+
+	@property
+	def trim_mode(self) -> bool:
+		return self.__top_k_nodes is not None
+
+	def set_repository(self, repository: StateRepository):
+		self._state_repository = repository
 
 	def __set_mode(self, logical: bool):
 		if logical:
@@ -317,7 +335,18 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self._state_repository.clear()
 		self.__restore_backups(backup)
 
+	def __dump_node(self, node):
+
+		json_ = self.__serializer.serialize(node)
+
+		with open(os.path.join(self.__dump_path, f"{datetime.now().timestamp()}.json"), "w") as file:
+			json.dump(json_, file)
+
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
+
+		if self.__dump_nodes:
+			self.__dump_node(root)
+
 		if self.__use_stm:
 			self.__store_to_stm(root)
 			self.__backup_and_clear_repository()
@@ -363,6 +392,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
 
+
+	def __trim_node(self, node: 'MonteCarloAgent.Node'):
+		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:self.__top_k_nodes]
+
 	def _expand(self, state_node: 'MonteCarloAgent.Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
 			return
@@ -387,6 +420,12 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			final_states[i].set_depth(possible_state_nodes[i].depth)
 		stats.durations["for i in range(len(probability_distribution))"] += (
 						datetime.now() - start_time).total_seconds()
+
+		start_time = datetime.now()
+		if self.trim_mode:
+			for action_node in state_node.children:
+				self.__trim_node(action_node)
+		stats.durations["trim"] += (datetime.now() - start_time).total_seconds()
 
 	def __simulate(self, state_node: 'MonteCarloAgent.Node') -> 'MonteCarloAgent.Node':
 
@@ -458,6 +497,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
+			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
@@ -477,7 +517,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__finalize_step(root_node)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
-		for action_node in self.__current_graph.get_children():
+		for action_node in self.__get_current_graph().get_children():
 			if action_node.action == action:
 				return action_node.get_total_value()
 

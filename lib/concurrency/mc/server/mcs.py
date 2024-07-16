@@ -1,3 +1,4 @@
+import threading
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -56,12 +57,13 @@ class MonteCarloServer(ABC):
 
 	def __init__(self, sleep_time=0.01, host="127.0.0.1", port=8000):
 		self.__app = Flask(__name__)
-		self.__socketio = SocketIO(self.__app)
+		self._socketio = SocketIO(self.__app)
 		self.__agent = self._init_agent()
 		self.__current_graph = None
 		self.__graph_serializer = self._init_graph_serializer()
 		self.__state_serializer = self._init_state_serializer()
 		self.__repository = self._init_state_repository()
+		self.__agent.set_repository(self.__repository)
 		self.__locked_nodes: List[str] = []
 		self.__active = False
 		self.__sleep_time = sleep_time
@@ -80,7 +82,7 @@ class MonteCarloServer(ABC):
 	def _init_state_repository(self) -> StateRepository:
 		return DistributedStateRepository(
 			FlaskSocketIOChannel(
-				self.__socketio
+				self._socketio
 			),
 			self.__state_serializer,
 			is_server=True
@@ -117,7 +119,7 @@ class MonteCarloServer(ABC):
 
 	def __map_events(self):
 		for event, handler in self._map_events():
-			self.__socketio.on_event(event, handler)
+			self._socketio.on_event(event, handler)
 
 	def __is_locked(self, node: MonteCarloAgent.Node):
 		return node.id in self.__locked_nodes
@@ -160,7 +162,7 @@ class MonteCarloServer(ABC):
 	def __handle_new(self, state):
 		print("Received New Request")
 		self._set_graph(MonteCarloAgent.Node(None, None, MonteCarloAgent.Node.NodeType.STATE))
-		self.__repository.store(self._get_graph().id, state)
+		self.__repository.store(self._get_graph().id, self.__state_serializer.deserialize(state))
 		self._set_active(True)
 
 	def __handle_select(self):
@@ -204,4 +206,4 @@ class MonteCarloServer(ABC):
 
 	def start(self):
 		self.__map_events()
-		self.__socketio.run(self.__app, host=self.__host, port=self.__port)
+		self._socketio.run(self.__app, host=self.__host, port=self.__port)

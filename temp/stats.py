@@ -1,6 +1,11 @@
+import json
+import os.path
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+
+from core import Config
 
 durations = {
 	phase: 0
@@ -20,9 +25,24 @@ durations = {
 		'expected_transition_probability_norm',
 
 		'get_expected_transition_probability_distribution',
+		'prepare_dta_input',
+		'predict',
+		'prepare_dta_output',
+		'get_cached',
+		'cache_predictions',
+		'get_expected_transition_probability_distribution__',
+		'unique',
+		'model_predictions',
+		'__get_unique_rows',
+		'hash',
+
+		'state_comparison',
+		'find_gap_index',
+
 		'DeepReinforcementAgent._get_state_action_value',
 		'super()._get_action_node_value',
 		'for i in range(len(probability_distribution))',
+		'trim',
 
 		'state.get_agent_state().close_trades',
 		'state.get_market_state().get_current_price',
@@ -54,8 +74,10 @@ def get_percentages(total):
 	return percentages
 
 
-def get_nodes(parent_node, depth=None, top=None):
+def get_nodes(parent_node, depth=None, top=None, visited=False):
 	children = parent_node.get_children()
+	if visited:
+		children = [node for node in children if node.visits > 0]
 
 	inner_top = top
 	if top is None:
@@ -76,7 +98,7 @@ def get_nodes(parent_node, depth=None, top=None):
 	for node in children:
 		if node.node_type == 0 and node.weight < threshold:
 			continue
-		nodes += get_nodes(node, depth, top=top)
+		nodes += get_nodes(node, depth, top=top, visited=visited)
 		nodes.append(node)
 	return nodes
 
@@ -166,7 +188,7 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
 	return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
 
 
-def draw_graph(root_node, depth=None, top=None):
+def draw_graph(root_node, depth=None, top=None, visited=False, state_repository=None):
 	def get_node_label(node):
 		if node.parent is None:
 			return "Root"
@@ -174,7 +196,13 @@ def draw_graph(root_node, depth=None, top=None):
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"
 			instant_value = f"\n{node.instant_value: .4f}"
-			return f"{total_value}{instant_value}\n{node.weight: .5f}"
+			delta = f"\n{format(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[node.parent.children.index(node)] - 1, '.1e')}"
+			label = f"{total_value}{instant_value}{delta}"
+			if state_repository is not None:
+				current_price = state_repository.retrieve(node.id).market_state.get_current_price('AUD', 'USD')
+				# previous_price = state_repository.retrieve(node.parent.id).market_state.get_current_price('AUD', 'USD')
+				label += f"\n{current_price: .4f}"
+				# label += f"\n{(current_price - previous_price): .4f}"
 
 		action = node.action
 		label = ""
@@ -191,7 +219,7 @@ def draw_graph(root_node, depth=None, top=None):
 
 	def get_edge_label(node):
 		if node.node_type == 0:
-			return f"{node.weight: .5f}"
+			return format(node.weight, '.2e')
 		return ""
 
 	def get_node_color(node):
@@ -205,7 +233,7 @@ def draw_graph(root_node, depth=None, top=None):
 		depth = get_max_depth(root_node)
 
 	graph = nx.Graph()
-	nodes = get_nodes(root_node, depth=depth, top=top) + [root_node]
+	nodes = get_nodes(root_node, depth=depth, top=top, visited=visited) + [root_node]
 	print(f"About to draw {len(nodes)}")
 	for i, node in enumerate(nodes):
 		if node is not root_node:
@@ -227,3 +255,95 @@ def draw_graph(root_node, depth=None, top=None):
 	)
 	nx.draw(graph, pos=positions, node_size=2500, node_color="navy", edge_color="silver")
 	plt.show()
+
+
+def draw_graph_live(root_node, depth=None, top=None, visited=False, state_repository=None, uct_fn=None):
+	plt.ion()  # Turn on interactive mode
+
+	def get_node_label(node):
+
+		if node.node_type == 0:
+			total_value = f"\n{node.get_total_value(): .4f}"
+			instant_value = f"\n{node.instant_value: .4f}"
+			label = f"{total_value}{instant_value}"
+			if state_repository is not None:
+				current_price = state_repository.retrieve(node.id).market_state.get_current_price('AUD', 'USD')
+				if node.parent is not None:
+					previous_price = state_repository.retrieve(node.parent.id).market_state.get_current_price('AUD', 'USD')
+					label += f"\n{(current_price - previous_price): .4f}"
+				label += f"\n{current_price: .4f}"
+			return label
+
+		action = node.action
+		label = ""
+		if action is None:
+			label = "None"
+		elif action.action == 0:
+			label = "Sell"
+		elif action.action == 1:
+			label = "Buy"
+		elif action.action == 2:
+			label = "Close"
+
+		label = f"{label}\n{node.total_value: .4f}\n{node.visits}"
+		if uct_fn is not None:
+			label += f"\n{uct_fn(node): 4f}"
+		return label
+
+	def get_edge_label(node):
+		if node.node_type == 0:
+			return format(node.weight, '.2e')
+		return ""
+
+	def get_node_color(node):
+		if node.node_type == 0:
+			return "darkred"
+		return "navy"
+
+	if depth is None:
+		depth = get_max_depth(root_node)
+
+	graph = nx.Graph()
+	nodes = get_nodes(root_node, depth=depth, top=top, visited=visited) + [root_node]
+	print(f"About to draw {len(nodes)}")
+	for i, node in enumerate(nodes):
+		if node is not root_node:
+			graph.add_edge(i, nodes.index(node.parent))
+	positions = hierarchy_pos(graph, nodes.index(root_node))
+
+	# Clear previous plot
+	plt.clf()
+
+	nx.draw_networkx_labels(
+		graph,
+		pos=positions,
+		labels={i: str(f"{get_node_label(node)}") for i, node in enumerate(nodes) if node is not root_node},
+		font_size=7,
+		font_color="whitesmoke"
+	)
+	nx.draw_networkx_edge_labels(
+		graph,
+		pos=positions,
+		edge_labels={(i, nodes.index(node.parent)): get_edge_label(node) for i, node in enumerate(nodes) if
+					 node is not root_node},
+		font_size=7,
+		font_color="black",
+	)
+	nx.draw(graph, pos=positions, node_size=2500, node_color="navy", edge_color="silver")
+
+	# Show plot
+	plt.draw()
+	plt.pause(0.1)  # Pause to allow for plot update
+
+	plt.ioff()  # Turn off interactive mode after drawing
+
+def load_node(filename: str):
+	from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
+
+	serializer = TraderNodeSerializer()
+
+	with open(filename, "r") as file:
+		json_ = json.load(file)
+
+	return serializer.deserialize(json_)
+

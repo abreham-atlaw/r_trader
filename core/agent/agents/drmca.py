@@ -6,7 +6,9 @@ import numpy as np
 
 from core import Config
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
+from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.trader_action import TraderAction
+from core.agent.utils.cache import Cache
 from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
@@ -26,6 +28,10 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			train=Config.UPDATE_TRAIN,
 			save_path=Config.UPDATE_SAVE_PATH,
 			encode_max_open_trade=Config.AGENT_MAX_OPEN_TRADES,
+			wp=Config.AGENT_DRMCA_WP,
+			top_k_nodes=Config.AGENT_TOP_K_NODES,
+			dump_nodes=Config.AGENT_DUMP_NODES,
+			dump_path=Config.AGENT_DUMP_NODES_PATH,
 			**kwargs
 	):
 		super().__init__(
@@ -33,9 +39,15 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			batch_size=batch_size,
 			train=train,
 			save_path=save_path,
+			wp=wp,
+			top_k_nodes=top_k_nodes,
+			dump_nodes=dump_nodes,
+			dump_path=dump_path,
+			node_serializer=TraderNodeSerializer(),
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
+		self.__dra_input_cache = Cache()
 
 	def _init_model(self) -> Model:
 		return TorchModel(
@@ -83,10 +95,15 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			action: typing.Optional[TraderAction],
 			target_instrument: typing.Tuple[str, str]
 	) -> np.ndarray:
-		time_series = state.get_market_state().get_state_of(target_instrument[0], target_instrument[1])
-		encoded_action = self.__encode_action(state, action)
-		open_trades = self.__encode_open_trades(state)
-		return np.concatenate((time_series, encoded_action, open_trades), axis=0)
+
+		def prepare_model_input(state: TradeState, action: typing.Optional[TraderAction], target_instrument: typing.Tuple[str, str]) -> np.ndarray:
+			time_series = state.get_market_state().get_state_of(target_instrument[0], target_instrument[1])
+			encoded_action = self.__encode_action(state, action)
+			open_trades = self.__encode_open_trades(state)
+			return np.concatenate((time_series, encoded_action, open_trades), axis=0)
+
+		return self.__dra_input_cache.cached_or_execute((state, action, target_instrument), lambda: prepare_model_input(state, action, target_instrument))
+
 
 	def _prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
 		return self.__prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))

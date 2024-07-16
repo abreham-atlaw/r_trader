@@ -1,13 +1,15 @@
 
-from core.agent.agents import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent, TraderAgent
+from lib.concurrency.mc.data.staterepository import DistributedStateRepository, FlaskSocketIOChannel
 
 from lib.concurrency.mc.server import MonteCarloServer, MonteCarloServerAgent
 from lib.network.rest_interface import Serializer
-from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
+from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer, TradeStateSerializer
 from core import Config
+from lib.utils.staterepository import StateRepository
 
 
-class TraderMonteCarloServerSimulator(MonteCarloServerAgent, TraderMonteCarloAgent):
+class TraderMonteCarloServerSimulator(MonteCarloServerAgent, TraderAgent):
 	pass
 
 
@@ -22,3 +24,6 @@ class TraderMonteCarloServer(MonteCarloServer):
 
 	def _init_graph_serializer(self) -> Serializer:
 		return TraderNodeSerializer()
+
+	def _init_state_serializer(self) -> Serializer:
+		return TradeStateSerializer()

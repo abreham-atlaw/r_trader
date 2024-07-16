@@ -114,10 +114,10 @@ AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
 AGENT_DISCOUNT_FACTOR = 1
 AGENT_DISCOUNT_FUNCTION = None
-AGENT_EXPLOIT_EXPLORE_TRADEOFF = 0.5
-AGENT_UCT_EXPLORE_WEIGHT = 0.1
+AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
+AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
-AGENT_STEP_TIME = 1 * 60
+AGENT_STEP_TIME = 2 * 60
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -147,11 +147,15 @@ AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 10
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_DRMCA_WP = 100
+AGENT_TOP_K_NODES = 5
+AGENT_DUMP_NODES = True
+AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 
-MC_WORKER_STEP_TIME = 0.05 * 60
-MC_WORKERS = 4
+MC_WORKER_STEP_TIME = 1 * 60
+MC_WORKERS = 8
 CURRENCIES = [
 	"AUD",
 	"CAD",
@@ -177,7 +181,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/bemnetatlaw-drmca-linear-0.zip"),
+	path="/home/abrehamatlaw/Downloads/abrehamatlaw0-drmca-cnn-111-tot-cum-0.zip",
 	download=False
 )
 
