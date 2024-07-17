@@ -80,7 +80,7 @@ class KaggleScraper:
 
 # Usage
 def main():
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/cookies.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/inkoops.json'
 	notebook_urls = [
 		f'https://www.kaggle.com/code/inkoops/rtrader-runlive-sim-cum-0-it-0-{i}'
 		for i in range(3, 20)
@@ -88,9 +88,11 @@ def main():
 	usernames = [
 		'bemnetatlaw',
 		'abrehamatlaw0',
+		'inkoops',
 		'yosephmezemer',
 		'napoleonbonaparte0',
-		'biruk-ay'
+		'biruk-ay',
+		'albertcamus0'
 	]
 
 	scrapper = KaggleScraper(
@@ -102,7 +104,7 @@ def main():
 			try:
 				scrapper.share_notebook(notebook_url, username)
 			except Exception as ex:
-				print(f"Failed to share {notebook_url} to {username}")
+				print(f"Failed to share {notebook_url} to {username}. Reason: {ex}")
 				pass
 		print(f"Progress{(i+1)*100/len(notebook_urls): .2f}%...")
 
