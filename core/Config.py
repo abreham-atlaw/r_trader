@@ -204,3 +204,9 @@ PREDICTION_MODELS = [
 	DELTA_MODEL_CONFIG,
 	ARA_MODEL_CONFIG
 ]
+
+POPULATION_UPLOAD_PATH = "/Apps/RTrader/maploss/ga/cnn/"
+POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
+
+MODEL_SAVE_PATH = "/kaggle/working/out/"
+MODEL_UPLOAD_PATH = "/Apps/RTrader/maploss/models/cnn/"
