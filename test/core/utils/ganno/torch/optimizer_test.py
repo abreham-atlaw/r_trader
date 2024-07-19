@@ -15,12 +15,12 @@ class OptimizerTest(unittest.TestCase):
 	def test_cnn_optimizer(self):
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
 			],
 		)
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
 			],
 		)
 
@@ -44,7 +44,7 @@ class OptimizerTest(unittest.TestCase):
 		]
 
 		optimizer = CNNOptimizer(
-			vocab_size=449,
+			vocab_size=431,
 			dataset=dataset,
 			test_dataset=test_dataset,
 			epochs=1,
