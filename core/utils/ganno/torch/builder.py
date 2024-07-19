@@ -15,7 +15,7 @@ class ModelBuilder:
 		return CNN(
 			extra_len=config.extra_len,
 			num_classes=config.vocab_size + 1,
-			conv_channels=[1]+[layer.features for layer in config.layers],
+			conv_channels=[layer.features for layer in config.layers],
 			kernel_sizes=[layer.kernel_size for layer in config.layers],
 			hidden_activation=nn.ReLU(),
 			pool_sizes=[layer.pooling for layer in config.layers],
