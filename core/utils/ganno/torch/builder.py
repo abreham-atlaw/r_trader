@@ -17,7 +17,7 @@ class ModelBuilder:
 			num_classes=config.vocab_size + 1,
 			conv_channels=[1]+[layer.features for layer in config.layers],
 			kernel_sizes=[layer.kernel_size for layer in config.layers],
-			hidden_activation=ACTIVATION,
+			hidden_activation=nn.ReLU(),
 			pool_sizes=[layer.pooling for layer in config.layers],
 			dropout_rate=config.dropout,
 			padding=0,
