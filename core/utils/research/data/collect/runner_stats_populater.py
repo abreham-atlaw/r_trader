@@ -7,6 +7,7 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
+from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.model.model.wrapped import WrappedModel
 from core.utils.research.training.trainer import Trainer
@@ -36,7 +37,7 @@ class RunnerStatsPopulater:
 		self.__ma_window = ma_window
 		self.__device = device
 
-	def __generate_tmp_path(self, ex="pt"):
+	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
 
 	def __evaluate_model(self, model: nn.Module) ->float:
