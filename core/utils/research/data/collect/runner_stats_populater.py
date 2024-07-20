@@ -42,12 +42,14 @@ class RunnerStatsPopulater:
 
 	def __evaluate_model(self, model: nn.Module) ->float:
 		print("[+]Evaluating Model")
-		trainer = Trainer(model, cls_loss_function=nn.CrossEntropyLoss(), optimizer=Adam(model.parameters()))
-		return trainer.validate(self.__dataloader)
+		trainer = Trainer(model, cls_loss_function=nn.CrossEntropyLoss(), reg_loss_function=nn.MSELoss(), optimizer=Adam(model.parameters()))
+		loss = trainer.validate(self.__dataloader)
+		if isinstance(loss, list):
+			return loss[-1]
+		return loss
 
 	def __prepare_model(self, model: nn.Module) -> nn.Module:
-		print("[+]Preparing Model")
-		return WrappedModel(model, window_size=self.__ma_window)
+		return model
 
 	def _upload_model(self, model: nn.Module) -> str:
 		print("[+]Exporting Model")
