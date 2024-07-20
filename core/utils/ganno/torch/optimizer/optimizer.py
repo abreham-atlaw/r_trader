@@ -56,4 +56,8 @@ class Optimizer(GeneticAlgorithm, ABC):
 			progress=True
 		)
 
-		return 1/trainer.validate(self.__test_dataloader)
+		loss = trainer.validate(self.__test_dataloader)
+		if isinstance(loss, typing.Iterable):
+			loss = loss[-1]
+
+		return 1/loss
