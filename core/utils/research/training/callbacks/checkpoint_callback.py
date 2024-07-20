@@ -3,21 +3,20 @@ from datetime import datetime
 
 import torch
 
+from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.training.callbacks import Callback
 from lib.utils.file_storage import FileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class CheckpointCallback(Callback):
-	def __init__(self, path, save_state=False):
+	def __init__(self, path, save_state=False, ext=MODEL_SAVE_EXTENSION):
 		self.path = path
 		self.save_state = save_state
+		self.ext = ext
 
 	def _generate_name(self) -> str:
-		ext = "pt"
-		if self.save_state:
-			ext = "pth"
-		return f"{datetime.now().timestamp()}.{ext}"
+		return f"{datetime.now().timestamp()}.{self.ext}"
 
 	def _save(self, model, path):
 		if self.save_state:
