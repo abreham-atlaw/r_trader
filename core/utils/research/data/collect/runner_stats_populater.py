@@ -62,7 +62,7 @@ class RunnerStatsPopulater:
 	def _process_model(self, path: str):
 		local_path = self.__generate_tmp_path()
 		self.__in_filestorage.download(path, local_path)
-		model = ModelHandler.load(local_path, device=self.__device)
+		model = ModelHandler.load(local_path)
 
 		loss = self.__evaluate_model(model)
 		model = self.__prepare_model(model)
