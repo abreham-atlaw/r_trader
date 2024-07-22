@@ -153,6 +153,7 @@ AGENT_DUMP_NODES = False
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+MODEL_SAVE_EXTENSION = "zip"
 
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8

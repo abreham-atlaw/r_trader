@@ -20,6 +20,7 @@ from lib.utils.staterepository import StateRepository, SectionalDictStateReposit
 from lib.utils.stm import ShortTermMemory, CueMemoryMatcher, ExactCueMemoryMatcher
 from temp import stats
 from ..environment import ModelBasedState
+from ...network.rest_interface import Serializer
 
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
@@ -146,6 +147,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			dump_nodes: bool = False,
 			dump_path: str = "./",
 			node_serializer: typing.Optional['NodeSerializer'] = None,
+			state_serializer: typing.Optional[Serializer] = None,
 			**kwargs
 	):
 
@@ -164,7 +166,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			)
 		self._state_repository = state_repository
 		if state_repository is None:
-			self._state_repository = SectionalDictStateRepository(2, 15)
+			self._state_repository = SectionalDictStateRepository(2, 15, serializer=state_serializer)
 		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
 		self.__probability_correction = probability_correction
 		self.__current_graph_: Optional[MonteCarloAgent.Node] = None
@@ -172,6 +174,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__dump_nodes = dump_nodes
 		self.__dump_path = dump_path
 		self.__serializer = node_serializer
+
 
 	@property
 	def trim_mode(self) -> bool:
@@ -336,11 +339,14 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__restore_backups(backup)
 
 	def __dump_node(self, node):
+		dump_path = os.path.abspath(os.path.join(self.__dump_path, f"{datetime.now().timestamp()}"))
+		os.mkdir(dump_path)
 
 		json_ = self.__serializer.serialize(node)
-
-		with open(os.path.join(self.__dump_path, f"{datetime.now().timestamp()}.json"), "w") as file:
+		with open(os.path.join(dump_path, "graph.json"), "w") as file:
 			json.dump(json_, file)
+
+		self._state_repository.dump(os.path.join(dump_path, "states.json"))
 
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
 
@@ -497,7 +503,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
-			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
+			stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
