@@ -222,4 +222,4 @@ UPDATE_SAVE_PATH = "/kaggle/working/out"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "abrehamatlaw0-drmca-cnn-111-tot-cum-0"
+MODEL_ID = "albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot"
