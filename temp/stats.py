@@ -268,9 +268,8 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 			label = f"{total_value}{instant_value}"
 			if state_repository is not None:
 				current_price = state_repository.retrieve(node.id).market_state.get_current_price('AUD', 'USD')
-				if node.parent is not None:
-					previous_price = state_repository.retrieve(node.parent.id).market_state.get_current_price('AUD', 'USD')
-					label += f"\n{(current_price - previous_price): .4f}"
+				previous_price = state_repository.retrieve(node.id).market_state.get_state_of("AUD", "USD")[-2]
+				label += f"\n{(current_price - previous_price): .4f}"
 				label += f"\n{current_price: .4f}"
 			return label
 
@@ -337,6 +336,7 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 
 	plt.ioff()  # Turn off interactive mode after drawing
 
+
 def load_node(filename: str):
 	from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 
@@ -347,3 +347,26 @@ def load_node(filename: str):
 
 	return serializer.deserialize(json_)
 
+
+def load_repository(filename: str):
+	# from core.agent.concurrency.mc.data.serializer import TradeStateSerializer
+	from lib.utils.staterepository import SectionalDictStateRepository
+
+	# serializer = TradeStateSerializer()
+
+	repository = SectionalDictStateRepository(
+		2,
+		15,
+		# serializer=serializer
+	)
+
+	repository.load(filename)
+
+	return repository
+
+def load_and_draw_graph(filepath):
+
+	node = load_node(os.path.join(filepath, "graph.json"))
+	repo = load_repository(os.path.join(filepath, "states.json"))
+
+	draw_graph_live(node, visited=True, state_repository=repo)
