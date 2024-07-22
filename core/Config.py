@@ -206,7 +206,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot"
+CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
 # OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
@@ -223,4 +223,4 @@ AGENT_DUMP_NODES_PATH = "/kaggle/working/out/graph_dumps"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "abrehamatlaw0-drmca-cnn-111-tot-cum-0"
+MODEL_ID = "albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot"
