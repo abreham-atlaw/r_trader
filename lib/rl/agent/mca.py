@@ -146,6 +146,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			top_k_nodes: typing.Optional[int] = None,
 			dump_nodes: bool = False,
 			dump_path: str = "./",
+			dump_visited_only: bool = False,
 			node_serializer: typing.Optional['NodeSerializer'] = None,
 			state_serializer: typing.Optional[Serializer] = None,
 			**kwargs
@@ -173,6 +174,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__top_k_nodes = top_k_nodes
 		self.__dump_nodes = dump_nodes
 		self.__dump_path = dump_path
+		self.__dump_visited_only = dump_visited_only
 		self.__serializer = node_serializer
 
 
@@ -346,7 +348,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		with open(os.path.join(dump_path, "graph.json"), "w") as file:
 			json.dump(json_, file)
 
-		self._state_repository.dump(os.path.join(dump_path, "states.json"))
+		self._state_repository.dump(
+			os.path.join(dump_path, "states.json"),
+			keys=[node.id for node in stats.get_nodes(node, visited=True) if node.node_type == MonteCarloAgent.Node.NodeType.STATE]
+		)
 
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
 

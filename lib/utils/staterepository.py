@@ -63,8 +63,15 @@ class StateRepository(ABC):
 		with open(filepath, "rb") as f:
 			return pickle.load(f)
 
-	def dump(self, filepath: str):
-		states_map = self.__get_all()
+	def dump(self, filepath: str, keys: typing.List[str] = None):
+
+		if keys is None:
+			states_map = self.__get_all()
+		else:
+			states_map = {
+				key: self.retrieve(key)
+				for key in keys
+			}
 
 		if self.__serializer is None:
 			self.__dump_file(states_map, filepath, False)

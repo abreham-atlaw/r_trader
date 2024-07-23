@@ -150,7 +150,8 @@ AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = 10
 AGENT_DUMP_NODES = True
-AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps/00/")
+AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
+AGENT_DUMP_VISITED_ONLY = True
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
