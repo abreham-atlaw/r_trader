@@ -32,6 +32,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			top_k_nodes=Config.AGENT_TOP_K_NODES,
 			dump_nodes=Config.AGENT_DUMP_NODES,
 			dump_path=Config.AGENT_DUMP_NODES_PATH,
+			dump_visited_only=Config.AGENT_DUMP_VISITED_ONLY,
 			**kwargs
 	):
 		super().__init__(
@@ -43,6 +44,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			top_k_nodes=top_k_nodes,
 			dump_nodes=dump_nodes,
 			dump_path=dump_path,
+			dump_visited_only=dump_visited_only,
 			node_serializer=TraderNodeSerializer(),
 			**kwargs
 		)
