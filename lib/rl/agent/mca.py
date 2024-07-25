@@ -244,22 +244,21 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	@staticmethod
 	def __squash_probabilities(probs: np.ndarray) -> np.ndarray:
-		probs = probs + np.min(probs)
+		probs[probs < 0] = 0
 		return probs / probs.sum()
 
 	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):
 		total_counts = counts.sum()
-		if total_counts != 0:
-			frequency_probs = counts/counts.sum()
-		else:
-			frequency_probs = counts
+
+		if total_counts == 0:
+			return self.__squash_probabilities(expected)
+
+		frequency_probs = counts/counts.sum()
 
 		corrected = self.__squash_probabilities(
 			(2*expected) - frequency_probs
 		)
-		corrected[corrected < 0] = 0
-
-		return self.__squash_probabilities(corrected)
+		return corrected
 
 	def __manage_resources(self, end=False):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory) or end:
@@ -402,7 +401,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			state_node.add_child(action_node)
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
-
 
 	def __trim_node(self, node: 'MonteCarloAgent.Node'):
 		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:self.__top_k_nodes]
