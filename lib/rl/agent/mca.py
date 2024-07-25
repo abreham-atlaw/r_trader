@@ -349,7 +349,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self._state_repository.dump(
 			os.path.join(dump_path, "states.json"),
-			keys=[node.id for node in stats.get_nodes(node, visited=True) if node.node_type == MonteCarloAgent.Node.NodeType.STATE]
+			keys=[node.id for node in stats.get_nodes(node, visited=True, include_root=True) if node.node_type == MonteCarloAgent.Node.NodeType.STATE]
 		)
 
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
