@@ -96,7 +96,7 @@ class Trainer:
             shuffle=True,
             progress_interval=100,
             cls_loss_only=False,
-            reg_loss_only=False,
+            reg_loss_only=True,
             state: typing.Optional[TrainingState] = None
     ):
         if self.optimizer is None or self.cls_loss_function is None:
