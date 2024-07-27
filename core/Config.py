@@ -107,6 +107,7 @@ UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1033
 MARKET_STATE_GRANULARITY = "M5"
+DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_DEPTH = 30  # TODO: DEPRECATED
@@ -184,7 +185,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/abrehamatlaw0-drmca-cnn-111-tot-cum-0.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot.zip",
 	download=False
 )
 
