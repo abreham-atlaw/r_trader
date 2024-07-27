@@ -1,4 +1,6 @@
+import os
 import random
+import typing
 from typing import *
 
 import numpy as np
@@ -26,6 +28,7 @@ class LiveEnvironment(TradeEnvironment):
 			agent_max_instruments: Optional[int] = Config.AGENT_MAX_INSTRUMENTS,
 			agent_use_static_instruments: bool = Config.AGENT_USE_STATIC_INSTRUMENTS,
 			market_state_granularity: str = Config.MARKET_STATE_GRANULARITY,
+			candlestick_dump_path: str = Config.DUMP_CANDLESTICKS_PATH,
 			**kwargs
 	):
 		super(LiveEnvironment, self).__init__(*args, **kwargs)
@@ -50,6 +53,7 @@ class LiveEnvironment(TradeEnvironment):
 				else:
 					self.__instruments = self.__trader.get_instruments()
 		self.__all_instruments = self.__generate_all_instruments(self.__instruments, self.__agent_currency)
+		self.__candlestick_dump_path = candlestick_dump_path
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
 		valid_instruments = self.__trader.get_instruments()
@@ -143,12 +147,18 @@ class LiveEnvironment(TradeEnvironment):
 
 		return market_state
 
+	def __dump_candlesticks(self, df: pd.DataFrame):
+		df.to_csv(
+			os.path.join(self.__candlestick_dump_path, f"{datetime.now().timestamp()}.csv")
+		)
+
 	@staticmethod
 	def __candlesticks_to_dataframe(candlesticks: List[models.CandleStick]) -> pd.DataFrame:
 		df_list = []
 		for candlestick in candlesticks:
 			candle_dict = candlestick.mid
 			candle_dict["v"] = candlestick.volume
+			candle_dict["time"] = candlestick.time
 			df_list.append(candle_dict)
 
 		return pd.DataFrame(df_list)
@@ -161,6 +171,8 @@ class LiveEnvironment(TradeEnvironment):
 			granularity=granularity
 		)
 		df = self.__candlesticks_to_dataframe(candle_sticks)
+		if self.__candlestick_dump_path is not None:
+			self.__dump_candlesticks(df)
 		return df["c"].to_numpy()
 
 	def _open_trade(self, action: TraderAction):

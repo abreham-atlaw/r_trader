@@ -74,7 +74,7 @@ def get_percentages(total):
 	return percentages
 
 
-def get_nodes(parent_node, depth=None, top=None, visited=False):
+def get_nodes(parent_node, depth=None, top=None, visited=False, include_root=False):
 	children = parent_node.get_children()
 	if visited:
 		children = [node for node in children if node.visits > 0]
@@ -100,6 +100,10 @@ def get_nodes(parent_node, depth=None, top=None, visited=False):
 			continue
 		nodes += get_nodes(node, depth, top=top, visited=visited)
 		nodes.append(node)
+
+	if include_root:
+		nodes.append(parent_node)
+
 	return nodes
 
 

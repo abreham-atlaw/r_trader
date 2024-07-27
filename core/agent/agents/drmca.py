@@ -33,6 +33,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_nodes=Config.AGENT_DUMP_NODES,
 			dump_path=Config.AGENT_DUMP_NODES_PATH,
 			dump_visited_only=Config.AGENT_DUMP_VISITED_ONLY,
+			discount=Config.AGENT_DISCOUNT_FACTOR,
 			**kwargs
 	):
 		super().__init__(
@@ -46,6 +47,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_path=dump_path,
 			dump_visited_only=dump_visited_only,
 			node_serializer=TraderNodeSerializer(),
+			discount=discount,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
