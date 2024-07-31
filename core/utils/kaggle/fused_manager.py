@@ -34,4 +34,4 @@ class FusedManager(SessionsManager):
 				print("[-]Resource Unavailable. Exiting...")
 				return
 
-		super().start_session(kernel, account, meta_data, gpu)
+		super().start_session(kernel, account, meta_data, gpu, sync_notebooks=False)
