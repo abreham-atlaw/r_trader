@@ -20,6 +20,7 @@ from lib.utils.staterepository import StateRepository, SectionalDictStateReposit
 from lib.utils.stm import ShortTermMemory, CueMemoryMatcher, ExactCueMemoryMatcher
 from temp import stats
 from ..environment import ModelBasedState
+from ...network.rest_interface import Serializer
 
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
@@ -145,7 +146,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			top_k_nodes: typing.Optional[int] = None,
 			dump_nodes: bool = False,
 			dump_path: str = "./",
+			dump_visited_only: bool = False,
 			node_serializer: typing.Optional['NodeSerializer'] = None,
+			state_serializer: typing.Optional[Serializer] = None,
 			**kwargs
 	):
 
@@ -164,14 +167,16 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			)
 		self._state_repository = state_repository
 		if state_repository is None:
-			self._state_repository = SectionalDictStateRepository(2, 15)
+			self._state_repository = SectionalDictStateRepository(2, 15, serializer=state_serializer)
 		self.__short_term_memory.get_matcher().set_repository(self._state_repository)
 		self.__probability_correction = probability_correction
 		self.__current_graph_: Optional[MonteCarloAgent.Node] = None
 		self.__top_k_nodes = top_k_nodes
 		self.__dump_nodes = dump_nodes
 		self.__dump_path = dump_path
+		self.__dump_visited_only = dump_visited_only
 		self.__serializer = node_serializer
+
 
 	@property
 	def trim_mode(self) -> bool:
@@ -239,22 +244,21 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	@staticmethod
 	def __squash_probabilities(probs: np.ndarray) -> np.ndarray:
-		probs = probs + np.min(probs)
+		probs[probs < 0] = 0
 		return probs / probs.sum()
 
 	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):
 		total_counts = counts.sum()
-		if total_counts != 0:
-			frequency_probs = counts/counts.sum()
-		else:
-			frequency_probs = counts
+
+		if total_counts == 0:
+			return self.__squash_probabilities(expected)
+
+		frequency_probs = counts/counts.sum()
 
 		corrected = self.__squash_probabilities(
 			(2*expected) - frequency_probs
 		)
-		corrected[corrected < 0] = 0
-
-		return self.__squash_probabilities(corrected)
+		return corrected
 
 	def __manage_resources(self, end=False):
 		if psutil.virtual_memory().percent > (100 - self.__min_free_memory) or end:
@@ -336,11 +340,17 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__restore_backups(backup)
 
 	def __dump_node(self, node):
+		dump_path = os.path.abspath(os.path.join(self.__dump_path, f"{datetime.now().timestamp()}"))
+		os.mkdir(dump_path)
 
 		json_ = self.__serializer.serialize(node)
-
-		with open(os.path.join(self.__dump_path, f"{datetime.now().timestamp()}.json"), "w") as file:
+		with open(os.path.join(dump_path, "graph.json"), "w") as file:
 			json.dump(json_, file)
+
+		self._state_repository.dump(
+			os.path.join(dump_path, "states.json"),
+			keys=[node.id for node in stats.get_nodes(node, visited=True, include_root=True) if node.node_type == MonteCarloAgent.Node.NodeType.STATE]
+		)
 
 	def __finalize_step(self, root: 'MonteCarloAgent.Node'):
 
@@ -391,7 +401,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			state_node.add_child(action_node)
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
-
 
 	def __trim_node(self, node: 'MonteCarloAgent.Node'):
 		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:self.__top_k_nodes]

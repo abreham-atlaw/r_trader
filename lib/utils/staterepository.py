@@ -1,11 +1,18 @@
+import json
+import typing
 from abc import ABC, abstractmethod
 
 import os
 import shutil
 import pickle
 
+from lib.network.rest_interface import Serializer
+
 
 class StateRepository(ABC):
+
+	def __init__(self, serializer: Serializer = None):
+		self.__serializer = serializer
 
 	@abstractmethod
 	def store(self, key: str, state):
@@ -26,6 +33,72 @@ class StateRepository(ABC):
 	@abstractmethod
 	def destroy(self):
 		pass
+
+	@abstractmethod
+	def get_keys(self) -> typing.List[str]:
+		pass
+
+	def __get_all(self):
+		return {
+			key: self.retrieve(key)
+			for key in self.get_keys()
+		}
+
+	@staticmethod
+	def __dump_file(content, filepath: str, use_json: bool):
+		if use_json:
+			with open(filepath, "w") as f:
+				json.dump(content, f)
+			return
+
+		with open(filepath, "wb") as f:
+			pickle.dump(content, f)
+
+	@staticmethod
+	def __load_file(filepath: str, use_json: bool):
+		if use_json:
+			with open(filepath, "r") as f:
+				return json.load(f)
+
+		with open(filepath, "rb") as f:
+			return pickle.load(f)
+
+	def dump(self, filepath: str, keys: typing.List[str] = None):
+
+		if keys is None:
+			states_map = self.__get_all()
+		else:
+			states_map = {
+				key: self.retrieve(key)
+				for key in keys
+			}
+
+		if self.__serializer is None:
+			self.__dump_file(states_map, filepath, False)
+			return
+
+		serialized = {
+			key: self.__serializer.serialize(state)
+			for key, state in states_map.items()
+		}
+
+		self.__dump_file(serialized, filepath, True)
+
+	def load(self, filepath: str):
+
+		if self.__serializer is None:
+			state_map = self.__load_file(filepath, False)
+
+		else:
+			with open(filepath, "r") as f:
+				json_ = json.load(f)
+			state_map = {
+				key: self.__serializer.deserialize(state)
+				for key, state in json_.items()
+			}
+
+		for key, state in state_map.items():
+			self.store(key, state)
 
 
 class DictStateRepository(StateRepository):
@@ -54,10 +127,12 @@ class DictStateRepository(StateRepository):
 
 class SectionalDictStateRepository(StateRepository):
 
-	def __init__(self, len_: int, depth: int = 1):
+	def __init__(self, len_: int, depth: int = 1, serializer: Serializer = None):
+		super().__init__(serializer)
 		self.__len = len_
 		self.__depth = depth
 		self.__states = {}
+		self.__keys = set()
 
 	def __store(self, key: str, state, dict_: dict, depth: int):
 		if depth == 0:
@@ -85,6 +160,7 @@ class SectionalDictStateRepository(StateRepository):
 		if len(key) <= self.__len * self.__depth:
 			raise Exception("Key Too Short. Must be more than %s characters long" % (self.__len * self.__depth, ))
 		self.__store(key, state, self.__states, self.__depth)
+		self.__keys.add(key)
 
 	def retrieve(self, key: str) -> object:
 		try:
@@ -101,9 +177,14 @@ class SectionalDictStateRepository(StateRepository):
 
 	def clear(self):
 		self.__states = {}
+		self.__keys = set()
 
 	def destroy(self):
 		del self.__states
+		self.__keys = set()
+
+	def get_keys(self) -> typing.List[str]:
+		return list(self.__keys)
 
 
 class FileSystemStateRepository(StateRepository, ABC):
