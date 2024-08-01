@@ -227,6 +227,6 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
 MODEL_ID = "abrehamatlaw0-drmca-cnn-111-tot-cum-0"
-TIMEOUT = 30*60
+TIMEOUT = 2*60*60
 NOTEBOOKS = [
 ]
