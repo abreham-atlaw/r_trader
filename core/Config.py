@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import numpy as np
 from pytz import timezone
@@ -150,7 +151,7 @@ AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = 10
-AGENT_DUMP_NODES = False
+AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
@@ -209,24 +210,30 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.path = os.path.join(BASE_DIR, "temp/models/albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot_2.zip")
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
+OANDA_TRADING_ACCOUNT_ID = "c34e7e16-307f-43a3-96d8-c42c73ed3feb"
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
-    ("AUD", "USD"),
+	("AUD", "USD"),
 ]
-AGENT_STEP_TIME = 30
+AGENT_STEP_TIME = 45
 MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 8
-UPDATE_SAVE_PATH = "/kaggle/working/out"
-DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+# UPDATE_SAVE_PATH = "/kaggle/working/out"
+DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, f"temp/candlesticks/sim/{datetime.now().strftime('%Y%m%d-%H%M%S')}")
+AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, f"temp/graph_dumps/{datetime.now().strftime('%Y%m%d-%H%M%S')}")
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
 MODEL_ID = "abrehamatlaw0-drmca-cnn-111-tot-cum-0"
-TIMEOUT = 30*60
+TIMEOUT = 30 * 60
 NOTEBOOKS = [
 ]
+
+for path in [DUMP_CANDLESTICKS_PATH, AGENT_DUMP_NODES_PATH]:
+	if not os.path.exists(path):
+		os.makedirs(path)
