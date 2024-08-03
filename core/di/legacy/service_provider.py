@@ -1,12 +1,12 @@
 from core import Config
-from lib.utils.file_storage import FileStorage, PCloudClient
+from lib.utils.file_storage import FileStorage, PCloudCombinedFileStorage
 
 
 class ServiceProvider:
 
 	@staticmethod
 	def provide_file_storage() -> FileStorage:
-		return PCloudClient(
-			token=Config.PCLOUD_API_TOKEN,
-			folder=Config.PCLOUD_FOLDER
+		return PCloudCombinedFileStorage(
+			tokens=Config.PCLOUD_TOKENS,
+			base_path=Config.PCLOUD_FOLDER
 		)
