@@ -37,6 +37,15 @@ class CombinedFileStorage(FileStorage):
 		storage = self._choose_storage(file_path, upload_path)
 		storage.upload_file(file_path, upload_path)
 
+	def listdir(self, path: str) -> typing.List[str]:
+		files = []
+		for child in self.__children:
+			try:
+				files += child.listdir(path)
+			except FileNotFoundException:
+				pass
+		return files
+
 
 class PCloudCombinedFileStorage(CombinedFileStorage):
 
