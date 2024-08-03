@@ -51,16 +51,16 @@ DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
 	"MA3J4kZfKQB7ZTMaCcXUrulHNijLMvLOYoQeOP8jX",  # abrishatlaw@gmail.com +
 	"V54tVXZ6O9B7Z4F2uFmGJ8L8SHQu0DxWPLBdFHV4V",  # abrishatlaw@yahoo.com +
-	# "GU8eIXZIO9B7ZEVhCm0i5B5y3Tzzc0uhSM4cTlQW7",  # abreham.atlaw@yahoo.com -
-	"RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
-	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
-	# "rovCjXZxDks7ZMIgIx87TJgyWQot0hgSheRobnQMk",  # abrehamatlaw@outlook.com -
+	"GU8eIXZIO9B7ZEVhCm0i5B5y3Tzzc0uhSM4cTlQW7",  # abreham.atlaw@yahoo.com -
+	"rovCjXZxDks7ZMIgIx87TJgyWQot0hgSheRobnQMk",  # abrehamatlaw@outlook.com -
 	"dfD12XZHDks7ZU7Uicr7HefmO3gUUPpjT8FXkz4wX",  # abreham.atlaw@outlook.com +
+	# "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
+	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
 	# "9zR0aZEWJs7ZM8ux6lHQWvbtaGA5DCGrz4xmECX7",  # abreham-atlaw@outlook.com -
-	"RsKwd7Znvzs7ZnTT2ztq1t848HV3M1vyIMfRel7LX",  # abreham_atlaw@outlook.com +
-	"Nbgdb7ZiyRs7Zfjnwx5t6zmf105YF4zSTozUbcdEy",  # abreham.a@outlook.com +
-	"gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
-	"aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
+	# "RsKwd7Znvzs7ZnTT2ztq1t848HV3M1vyIMfRel7LX",  # abreham_atlaw@outlook.com +
+	# "Nbgdb7ZiyRs7Zfjnwx5t6zmf105YF4zSTozUbcdEy",  # abreham.a@outlook.com +
+	# "gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
+	# "aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -107,6 +107,7 @@ UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1033
 MARKET_STATE_GRANULARITY = "M5"
+DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_DEPTH = 30  # TODO: DEPRECATED
@@ -151,6 +152,8 @@ AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = 5
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
+AGENT_DUMP_VISITED_ONLY = True
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
@@ -182,7 +185,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/abrehamatlaw0-drmca-cnn-111-tot-cum-0.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot.zip",
 	download=False
 )
 

@@ -9,9 +9,17 @@ class WeightedMSELossTest(unittest.TestCase):
 
 
 	def test_functionality(self):
-		y = torch.asarray([[0, 1, 0, 0], [0, 1, 0, 0]])
-		y_hat = torch.asarray([[0, 0.9, 0.1, 0], [0, 1, 0, 0]])
 
-		loss = WeightedMSELoss(4, a=0.001)
-		e = loss(y_hat, y)
-		self.assertIsNotNone(e)
+		true_class = 0
+		num_classes = 10
+		y = torch.asarray([[0 if i != true_class else 1 for i in range(num_classes)]])
+		y_hats = [
+			torch.asarray([[0 if i != j else 1 for i in range(num_classes)]])
+			for j in range(num_classes)
+		]
+
+		loss = WeightedMSELoss(num_classes, a=1, softmax=False)
+		losses = [loss(y_hat, y) for y_hat in y_hats]
+		self.assertIsNotNone(losses)
+
+		self.assertGreater(losses[0], losses[1])
