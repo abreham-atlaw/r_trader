@@ -227,5 +227,5 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
 MODEL_IN_PATH = "/Apps/RTrader/maploss/models/cnn"
-MODEL_OUT_PATH = "/Apps/RTrader/maploss/models(evaluated)/cnn/"
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models(evaluated)/cnn"
 MODEL_TMP_PATH = os.path.abspath("./out/")
