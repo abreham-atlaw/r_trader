@@ -177,12 +177,14 @@ class PCloudClient(FileStorage):
 		)
 
 	def listdir(self, path: str) -> typing.List[str]:
-		return self.__client.execute(
-			PCloudClient.ListDirRequest(
-				path
+		try:
+			return self.__client.execute(
+				PCloudClient.ListDirRequest(
+					path
+				)
 			)
-		)
-
+		except KeyError as ex:
+			raise FileNotFoundException()
 
 
 class LocalStorage(FileStorage):
