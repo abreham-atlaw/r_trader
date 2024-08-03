@@ -41,10 +41,11 @@ class CombinedFileStorage(FileStorage):
 		files = []
 		for child in self.__children:
 			try:
-				files += child.listdir(path)
+				child_files = child.listdir(path)
+				files.extend(child_files)
 			except FileNotFoundException:
 				pass
-		return files
+		return sorted(list(set(files)))
 
 
 class PCloudCombinedFileStorage(CombinedFileStorage):
