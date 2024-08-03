@@ -84,6 +84,7 @@ class RunnerStatsPopulater:
 		for i, file in enumerate(files):
 			try:
 				if self.__repository.exists(self.__generate_id(file)) and not replace_existing:
+					print(f"Skipping {file}. Already Evaluated")
 					continue
 				self._process_model(file)
 			except Exception as ex:
