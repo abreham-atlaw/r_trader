@@ -2,6 +2,7 @@ import os.path
 import typing
 import uuid
 from datetime import datetime
+import random
 
 from torch import nn
 from torch.optim import Adam
@@ -26,7 +27,8 @@ class RunnerStatsPopulater:
 			in_path: str,
 			tmp_path: str = "./",
 			ma_window: int = 10,
-			device: typing.Optional[str] = None
+			device: typing.Optional[str] = None,
+			shuffle_order: bool = True
 	):
 		self.__in_filestorage = in_filestorage
 		self.__out_filestorage = out_filestorage
@@ -36,6 +38,7 @@ class RunnerStatsPopulater:
 		self.__dataloader = dataloader
 		self.__ma_window = ma_window
 		self.__device = device
+		self.__shuffle_order = shuffle_order
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -81,10 +84,13 @@ class RunnerStatsPopulater:
 
 	def start(self, replace_existing: bool = False):
 		files = self.__in_filestorage.listdir(self.__in_path)
+		if self.__shuffle_order:
+			print("[+]Shuffling Files")
+			random.shuffle(files)
 		for i, file in enumerate(files):
 			try:
 				if self.__repository.exists(self.__generate_id(file)) and not replace_existing:
-					print(f"Skipping {file}. Already Evaluated")
+					print(f"[+]Skipping {file}. Already Evaluated")
 					continue
 				self._process_model(file)
 			except Exception as ex:
