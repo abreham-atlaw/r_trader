@@ -51,3 +51,5 @@ class RunnerStatsRepository:
 		docs = self._collection.find()
 		return [RunnerStats(**{k: v for k, v in doc.items() if k != '_id'}) for doc in docs]
 
+	def exists(self, id):
+		return self.retrieve(id) is not None

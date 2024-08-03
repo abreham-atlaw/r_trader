@@ -59,8 +59,8 @@ class RunnerStatsPopulater:
 		# return self.__out_filestorage.get_url(os.path.basename(path))
 		return os.path.basename(path)
 
-	def __generate_id(self) -> str:
-		return uuid.uuid4().hex
+	def __generate_id(self, file_path: str) -> str:
+		return os.path.basename(file_path).replace(MODEL_SAVE_EXTENSION, "")
 
 	def _process_model(self, path: str):
 		local_path = self.__generate_tmp_path()
@@ -70,7 +70,7 @@ class RunnerStatsPopulater:
 		loss = self.__evaluate_model(model)
 		model = self.__prepare_model(model)
 		upload_path = self._upload_model(model)
-		id = self.__generate_id()
+		id = self.__generate_id(path)
 
 		stats = RunnerStats(
 			id=id,
@@ -79,10 +79,12 @@ class RunnerStatsPopulater:
 		)
 		self.__repository.store(stats)
 
-	def start(self):
+	def start(self, replace_existing: bool = False):
 		files = self.__in_filestorage.listdir(self.__in_path)
 		for i, file in enumerate(files):
 			try:
+				if self.__repository.exists(self.__generate_id(file)) and not replace_existing:
+					continue
 				self._process_model(file)
 			except Exception as ex:
 				print(f"[-]Error Occurred processing {file}\n{ex}")
