@@ -34,7 +34,7 @@ class CheckpointCallback(Callback):
 
 class StoreCheckpointCallback(CheckpointCallback):
 
-	def __init__(self, fs: FileStorage, *args, delete_stored=False, **kwargs):
+	def __init__(self, fs: FileStorage, *args, delete_stored=True, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.__file_storage = fs
 		self.__delete_stored = delete_stored
