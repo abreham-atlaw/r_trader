@@ -34,10 +34,13 @@ class CheckpointCallback(Callback):
 
 class StoreCheckpointCallback(CheckpointCallback):
 
-	def __init__(self, fs: FileStorage, *args, **kwargs):
+	def __init__(self, fs: FileStorage, *args, delete_stored=False, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.__file_storage = fs
+		self.__delete_stored = delete_stored
 
 	def on_epoch_end(self, model, epoch, loss, logs=None):
 		path = super().on_epoch_end(model, epoch, logs)
 		self.__file_storage.upload_file(path)
+		if self.__delete_stored:
+			os.remove(path)
