@@ -233,6 +233,8 @@ MODEL_TMP_PATH = os.path.abspath("./out/")
 
 TIMEOUT = 3*60*60
 
-class ResourceCategories:
 
+class ResourceCategories:
+	
 	TEST_RESOURCE = "test"
+	OANDA_SIM_ACCOUNTS = "oanda-sim-accounts"
