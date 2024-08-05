@@ -232,3 +232,7 @@ MODEL_OUT_PATH = "/Apps/RTrader/maploss/models(evaluated)/cnn"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
 TIMEOUT = 3*60*60
+
+class ResourceCategories:
+
+	TEST_RESOURCE = "test"
