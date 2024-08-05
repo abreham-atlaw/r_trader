@@ -210,3 +210,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+
+class ResourceCategories:
+
+	TEST_RESOURCE = "test"
