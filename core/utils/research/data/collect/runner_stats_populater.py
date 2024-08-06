@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader
 
 from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.model.model.wrapped import WrappedModel
 from core.utils.research.training.trainer import Trainer
 from lib.utils.file_storage import FileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -22,7 +21,6 @@ class RunnerStatsPopulater:
 			self,
 			repository: RunnerStatsRepository,
 			in_filestorage: FileStorage,
-			out_filestorage: FileStorage,
 			dataloader: DataLoader,
 			in_path: str,
 			tmp_path: str = "./",
@@ -31,7 +29,6 @@ class RunnerStatsPopulater:
 			shuffle_order: bool = True
 	):
 		self.__in_filestorage = in_filestorage
-		self.__out_filestorage = out_filestorage
 		self.__in_path = in_path
 		self.__repository = repository
 		self.__tmp_path = tmp_path
@@ -54,14 +51,6 @@ class RunnerStatsPopulater:
 	def __prepare_model(self, model: nn.Module) -> nn.Module:
 		return model
 
-	def _upload_model(self, model: nn.Module) -> str:
-		print("[+]Exporting Model")
-		path = self.__generate_tmp_path()
-		ModelHandler.save(model, path)
-		self.__out_filestorage.upload_file(path)
-		# return self.__out_filestorage.get_url(os.path.basename(path))
-		return os.path.basename(path)
-
 	def __generate_id(self, file_path: str) -> str:
 		return os.path.basename(file_path).replace(MODEL_SAVE_EXTENSION, "")
 
@@ -71,13 +60,11 @@ class RunnerStatsPopulater:
 		model = ModelHandler.load(local_path)
 
 		loss = self.__evaluate_model(model)
-		model = self.__prepare_model(model)
-		upload_path = self._upload_model(model)
 		id = self.__generate_id(path)
 
 		stats = RunnerStats(
 			id=id,
-			model_name=upload_path,
+			model_name=os.path.basename(path),
 			model_loss=loss
 		)
 		self.__repository.store(stats)
