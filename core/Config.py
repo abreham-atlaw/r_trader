@@ -228,3 +228,7 @@ INDICATORS_SO = [14]
 INDICATORS_RSI = [14]
 
 PCLOUD_FOLDER = MODEL_UPLOAD_PATH
+
+class ResourceCategories:
+
+	TEST_RESOURCE = "test"

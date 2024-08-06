@@ -1496,3 +1496,517 @@ console.error: ({})
 DevTools listening on ws://127.0.0.1:42491/devtools/browser/7eb6c0df-76c2-4a76-b5a9-e8c40a5dc3aa
 console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
 1692732024311	Marionette	INFO	Stopped listening on port 37375
+1722941283810	geckodriver	INFO	Listening on 127.0.0.1:34339
+1722941283920	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "39145" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofilejRI4MZ"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722941284808	Marionette	INFO	Marionette enabled
+1722941285359	Marionette	INFO	Listening on port 38051
+WebDriver BiDi listening on ws://127.0.0.1:39145
+Read port: 38051
+1722941285664	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:39145/devtools/browser/8f43bd23-f976-4776-9c53-c678a3ba865f
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:158
+Rz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:560:167
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:203
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:560:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:560:111
+
+1722941307123	Marionette	INFO	Stopped listening on port 38051
+1722941307789	geckodriver::marionette	ERROR	Failed to close browser connection: Socket not connected (os error 107)
+[ERROR glean_core] Can't persist ping lifetime data: Error { kind: Rkv(IoError(Os { code: 2, kind: NotFound, message: "No such file or directory" })) }
+1722941340974	geckodriver	INFO	Listening on 127.0.0.1:59879
+1722941341083	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "38069" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofile78s5Ry"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722941342153	Marionette	INFO	Marionette enabled
+1722941342372	Marionette	INFO	Listening on port 45925
+Read port: 45925
+WebDriver BiDi listening on ws://127.0.0.1:38069
+1722941342477	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:38069/devtools/browser/86ff4cd0-3267-4074-b6da-3e5363eb99f5
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+JavaScript error: https://www.kaggle.com/static/assets/vendor.js?v=c5f94d4977c83a7669a9, line 2: FirebaseError: Firebase: Error (auth/internal-error).
+JavaScript error: https://www.kaggle.com/static/assets/vendor.js?v=c5f94d4977c83a7669a9, line 2: FirebaseError: Firebase: Error (auth/internal-error).
+JavaScript error: https://www.kaggle.com/static/assets/vendor.js?v=c5f94d4977c83a7669a9, line 2: FirebaseError: Firebase: Error (auth/internal-error).
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722941372478	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:158
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:111
+
+1722941454892	Marionette	INFO	Stopped listening on port 45925
+1722941643836	geckodriver	INFO	Listening on 127.0.0.1:53761
+1722941643909	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "42079" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofileKVt53x"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722941644584	Marionette	INFO	Marionette enabled
+1722941644755	Marionette	INFO	Listening on port 37683
+WebDriver BiDi listening on ws://127.0.0.1:42079
+Read port: 37683
+1722941645088	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:42079/devtools/browser/954710ca-acb0-4a13-95f7-0d996cd09da0
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722941674764	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:158
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:111
+
+1722941682842	Marionette	INFO	Stopped listening on port 37683
+console.warn: services.settings: main/addons-manager-settings sync interrupted by shutdown
+console.warn: services.settings: main/query-stripping sync interrupted by shutdown
+console.warn: services.settings: main/partitioning-exempt-urls sync interrupted by shutdown
+console.warn: services.settings: main/translations-wasm sync interrupted by shutdown
+console.warn: services.settings: main/search-config-overrides sync interrupted by shutdown
+console.warn: services.settings: main/search-config-overrides-v2 sync interrupted by shutdown
+console.warn: services.settings: main/search-config sync interrupted by shutdown
+console.warn: services.settings: main/fingerprinting-protection-overrides sync interrupted by shutdown
+1722941683520	geckodriver::marionette	ERROR	Failed to close browser connection: Socket not connected (os error 107)
+console.warn: services.settings: main/cookie-banner-rules-list sync interrupted by shutdown
+console.error: (new Error("IndexedDB: main/nimbus-secure-experiments getLastModified() IndexedDB:  execute() The application is shutting down", "resource://services-settings/IDBHelpers.sys.mjs", 16))
+[ERROR glean_core] Can't persist ping lifetime data: Error { kind: Rkv(IoError(Os { code: 2, kind: NotFound, message: "No such file or directory" })) }
+1722941686494	geckodriver	INFO	Listening on 127.0.0.1:58255
+1722941686638	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "55785" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofile2In1aN"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722941687818	Marionette	INFO	Marionette enabled
+1722941688203	Marionette	INFO	Listening on port 39137
+WebDriver BiDi listening on ws://127.0.0.1:55785
+Read port: 39137
+1722941688446	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:55785/devtools/browser/bce22599-2698-4243-82a3-3eb6cbdf6975
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722941718273	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+1722942100055	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942100369	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942100628	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942100835	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942101125	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942101385	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942101668	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942101932	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942102201	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942102463	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942102730	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722942102970	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'interactive'.
+1722951512691	geckodriver	INFO	Listening on 127.0.0.1:41385
+1722951512765	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "59727" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofileaw8YHr"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722951513486	Marionette	INFO	Marionette enabled
+1722951513687	Marionette	INFO	Listening on port 34071
+WebDriver BiDi listening on ws://127.0.0.1:59727
+Read port: 34071
+1722951514057	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:59727/devtools/browser/6cf366d4-cb56-4039-abe1-b3c83b17dfd0
+1722951534704	Marionette	INFO	Stopped listening on port 39137
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722951543510	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:158
+Rz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:167
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:203
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:111
+
+1722952099354	Marionette	INFO	Stopped listening on port 34071
+1722952417682	geckodriver	INFO	Listening on 127.0.0.1:33855
+1722952417877	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "35027" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofile1aRud9"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722952420257	Marionette	INFO	Marionette enabled
+1722952420802	Marionette	INFO	Listening on port 38269
+Read port: 38269
+WebDriver BiDi listening on ws://127.0.0.1:35027
+1722952421072	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:35027/devtools/browser/4947d8d7-2ffa-419f-9011-38f7e8f40eb9
+JavaScript error: https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d, line 2: Error: An error occurred when sending the error report: An application error occurred when sending the error report. HTTP status: 400, response: {
+  "error": {
+    "code": 400,
+    "message": "ReportedErrorEvent.context must contain a location unless `message` contain an exception or stacktrace.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+, report message: s@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3195661
+r@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196347
+31600/m/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3196856
+n@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3198935
+p@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3197118
+20936/ce/ce</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3755123
+20936/G/s/</<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751291
+20936/G/s/<@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3751396
+U@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748773
+i@https://www.kaggle.com/static/assets/app.js?v=c484f718e668619a3e8d:2:3748977
+
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722952450262	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:192
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:111
+
+1722952451628	Marionette	INFO	Stopped listening on port 38269
+1722952452662	geckodriver::marionette	ERROR	Failed to close browser connection: Socket not connected (os error 107)
+console.error: services.settings: 
+  Message: StorageError: Storage error: Error: IndexedDB: main/search-telemetry-v2 pruneAttachments() IndexedDB:  execute() The application is shutting down
+  Stack:
+    StorageError@resource://services-settings/RemoteSettingsClient.sys.mjs:153:5
+_adjustedError@resource://services-settings/RemoteSettingsClient.sys.mjs:929:14
+maybeSync@resource://services-settings/RemoteSettingsClient.sys.mjs:817:38
+observe@resource://gre/modules/AsyncShutdown.sys.mjs:569:17
+
+console.error: (new Error("IndexedDB: main/search-config-v2 getLastModified() IndexedDB:  execute() The application is shutting down", "resource://services-settings/IDBHelpers.sys.mjs", 16))
+[ERROR glean_core] Can't persist ping lifetime data: Error { kind: Rkv(IoError(Os { code: 2, kind: NotFound, message: "No such file or directory" })) }
+1722952467585	geckodriver	INFO	Listening on 127.0.0.1:44431
+1722952467800	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "51021" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofileQZ9MNB"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722952469815	Marionette	INFO	Marionette enabled
+1722952470289	Marionette	INFO	Listening on port 36973
+Read port: 36973
+WebDriver BiDi listening on ws://127.0.0.1:51021
+1722952470485	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:51021/devtools/browser/16703f7f-7894-48ac-9893-bf76a90b840f
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722952500635	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript error: https://www.kaggle.com/static/assets/KernelViewer.d63e15052441c9f7e458.js, line 1: Error: Something went wrong while checking notebook run status: NetworkError when attempting to fetch resource.
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:158
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:111
+
+1722952517214	Marionette	INFO	Stopped listening on port 36973
+1722952518285	geckodriver::marionette	ERROR	Failed to close browser connection: Socket not connected (os error 107)
+[ERROR glean_core] Can't persist ping lifetime data: Error { kind: Rkv(IoError(Os { code: 2, kind: NotFound, message: "No such file or directory" })) }
+1722952587144	geckodriver	INFO	Listening on 127.0.0.1:34277
+1722952587290	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "49187" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofilezT3ydV"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1722952588500	Marionette	INFO	Marionette enabled
+1722952588786	Marionette	INFO	Listening on port 34283
+Read port: 34283
+WebDriver BiDi listening on ws://127.0.0.1:49187
+1722952588924	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:49187/devtools/browser/604a4e97-6a23-4ae7-9253-90a670977bed
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1722952618760	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+JavaScript warning: https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q, line 191: Script terminated by timeout at:
+G@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:191:158
+Rz@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:134
+Sz/<@https://www.googletagmanager.com/gtag/js?id=G-T7QHS60L4Q:559:111
+
+1722953085226	Marionette	INFO	Stopped listening on port 34283
