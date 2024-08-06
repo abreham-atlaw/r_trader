@@ -23,7 +23,7 @@ class MongoResourceRepository(ResourceRepository):
 		resources = []
 		for doc in self.__collection.find():
 			resource = Resource(
-				id=str(doc['_id']),
+				id=doc['id'],
 				lock_datetime=doc['lock_datetime']
 			)
 			resources.append(resource)
@@ -31,7 +31,7 @@ class MongoResourceRepository(ResourceRepository):
 
 	def _update(self, resource: Resource):
 		self.__collection.update_one(
-			{'_id': ObjectId(resource.id)},
+			{'id': resource.id},
 			{'$set': {
 				'lock_datetime': resource.lock_datetime
 			}}
@@ -39,7 +39,7 @@ class MongoResourceRepository(ResourceRepository):
 
 	def _create(self, resource: Resource):
 		doc = {
-			'lock_datetime': resource.lock_datetime
+			'lock_datetime': resource.lock_datetime,
+			'id': resource.id
 		}
-		result = self.__collection.insert_one(doc)
-		resource.id = str(result.inserted_id)
+		self.__collection.insert_one(doc)

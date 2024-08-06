@@ -55,6 +55,7 @@ class ResourceRepository(ABC):
 		self._unlock(resource)
 
 	def create(self, id: str) -> Resource:
+		print(f"Creating {id}")
 		resource = Resource(id, lock_datetime=None)
 		self._create(resource)
 		return resource
