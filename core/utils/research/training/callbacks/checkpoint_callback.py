@@ -57,3 +57,12 @@ class RandomCheckpointStoreCallback(StoreCheckpointCallback):
 		if random.random() < self.__probability:
 			return super().on_epoch_end(model, epoch, loss, logs)
 		return
+
+
+class TrainEndCheckpointStoreCallback(StoreCheckpointCallback):
+
+	def on_train_end(self, model, logs=None):
+		super().on_epoch_end(model, 0, logs)
+
+	def on_epoch_end(self, model, epoch, loss, logs=None):
+		pass
