@@ -212,3 +212,7 @@ PREDICTION_MODELS = [
 
 MODEL_IN_PATH = "/Apps/RTrader/maploss/models/cnn"
 MODEL_TMP_PATH = os.path.abspath("./out/")
+
+class ResourceCategories:
+
+	TEST_RESOURCE = "test"

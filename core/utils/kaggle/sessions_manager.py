@@ -14,10 +14,12 @@ class SessionsManager:
 	def __init__(
 			self,
 			sessions_repository: SessionsRepository,
-			account_repository: AccountsRepository
+			account_repository: AccountsRepository,
+			dataset_key_alias: bool = False
 	):
 		self.__session_repository = sessions_repository
 		self.__account_repository = account_repository
+		self.__dataset_key_alias = dataset_key_alias
 
 	def __register_session(self, kernel: str, account: Account, gpu: bool):
 		self.__session_repository.add_session(Session(
@@ -77,6 +79,9 @@ class SessionsManager:
 		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
 		meta_data["enable_gpu"] = gpu
 		meta_data["enable_internet"] = True
+		if self.__dataset_key_alias:
+			meta_data["kernel_sources"] = meta_data["dataset_sources"]
+
 		api = self.__create_api(account)
 		path = self.__pull_notebook(api, kernel)
 		try:
@@ -121,7 +126,7 @@ class SessionsManager:
 			if ex.status == 429:
 				print("Rate limited. Waiting 30 seconds...")
 				time.sleep(30)
-				return self.__get_notebook_status(username, slug)
+				return self.__get_notebook_status(api, username, slug)
 			else:
 				raise ex
 
