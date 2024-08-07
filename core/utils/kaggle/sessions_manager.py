@@ -79,7 +79,7 @@ class SessionsManager:
 		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
 		meta_data["enable_gpu"] = gpu
 		meta_data["enable_internet"] = True
-		if self.__dataset_key_alias:
+		if self.__dataset_key_alias and meta_data.get("dataset_sources") is not None:
 			meta_data["kernel_sources"] = meta_data["dataset_sources"]
 
 		api = self.__create_api(account)
