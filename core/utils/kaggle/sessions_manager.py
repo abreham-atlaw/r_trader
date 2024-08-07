@@ -15,7 +15,7 @@ class SessionsManager:
 			self,
 			sessions_repository: SessionsRepository,
 			account_repository: AccountsRepository,
-			dataset_key_alias: bool = False
+			dataset_key_alias: bool = True
 	):
 		self.__session_repository = sessions_repository
 		self.__account_repository = account_repository
