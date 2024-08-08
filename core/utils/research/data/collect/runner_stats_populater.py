@@ -28,7 +28,8 @@ class RunnerStatsPopulater:
 			tmp_path: str = "./",
 			ma_window: int = 10,
 			device: typing.Optional[str] = None,
-			shuffle_order: bool = True
+			shuffle_order: bool = True,
+			raise_exception: bool = False
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -38,6 +39,7 @@ class RunnerStatsPopulater:
 		self.__ma_window = ma_window
 		self.__device = device
 		self.__shuffle_order = shuffle_order
+		self.__raise_exception = raise_exception
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -99,5 +101,7 @@ class RunnerStatsPopulater:
 					continue
 				self._process_model(file)
 			except Exception as ex:
+				if self.__raise_exception:
+					raise ex
 				print(f"[-]Error Occurred processing {file}\n{ex}")
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
