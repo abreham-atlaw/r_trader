@@ -45,3 +45,5 @@ class RunnerStatsRepository:
 		docs = self._collection.find()
 		return self.__serializer.deserialize_many(docs)
 
+	def exists(self, id):
+		return self.retrieve(id) is not None
