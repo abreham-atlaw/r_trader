@@ -23,6 +23,12 @@ class Serializer:
 	def deserialize_json(self, json_: str):
 		return self.deserialize(json.loads(json_))
 
+	def serialize_many(self, instances: List[object]) -> List[Dict]:
+		return [self.serialize(instance) for instance in instances]
+
+	def deserialize_many(self, jsons: List[Dict]) -> List[object]:
+		return [self.deserialize(json_) for json_ in jsons]
+
 
 class NumpySerializer(Serializer):
 

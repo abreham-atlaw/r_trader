@@ -26,7 +26,28 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.assertGreater(len(dps), 0)
 
 		plt.scatter(
-			[dp.model_loss for dp in dps],
+			[dp.model_losses[0] for dp in dps],
 			[dp.profit for dp in dps]
 		)
 		plt.show()
+
+	def test_get_all(self):
+		stats = self.repository.retrieve_all()
+		self.assertGreater(len(stats), 0)
+
+	def test_create(self):
+		ID = "test_id"
+		stat = RunnerStats(
+			id=ID,
+			model_name="test",
+			profit=0.0,
+			duration=0.0,
+			model_losses=(0.0, 0.0)
+		)
+
+		self.repository.store(stat)
+
+		retrieved_stat = self.repository.retrieve(ID)
+		self.assertEqual(stat, retrieved_stat)
+
+
