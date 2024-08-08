@@ -32,7 +32,6 @@ class RunnerStatsPopulaterTest(unittest.TestCase):
 			in_filestorage=ServiceProvider.provide_file_storage("/"),
 			in_path="/Apps/RTrader/test",
 			tmp_path="/tmp/",
-			device="cpu"
 		)
 
 		populater.start()
