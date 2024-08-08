@@ -15,7 +15,7 @@ class SessionsManager:
 			self,
 			sessions_repository: SessionsRepository,
 			account_repository: AccountsRepository,
-			dataset_key_alias: bool = False
+			dataset_key_alias: bool = True
 	):
 		self.__session_repository = sessions_repository
 		self.__account_repository = account_repository
@@ -79,7 +79,7 @@ class SessionsManager:
 		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
 		meta_data["enable_gpu"] = gpu
 		meta_data["enable_internet"] = True
-		if self.__dataset_key_alias:
+		if self.__dataset_key_alias and meta_data.get("dataset_sources") is not None:
 			meta_data["kernel_sources"] = meta_data["dataset_sources"]
 
 		api = self.__create_api(account)
