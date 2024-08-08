@@ -25,10 +25,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"Using {len(dps)} dps")
 		self.assertGreater(len(dps), 0)
 
-		plt.scatter(
-			[dp.model_losses[0] for dp in dps],
-			[dp.profit for dp in dps]
-		)
+		for i in range(2):
+			plt.figure()
+			plt.scatter(
+				[dp.model_losses[i] for dp in dps],
+				[dp.profit for dp in dps]
+			)
 		plt.show()
 
 	def test_get_all(self):
@@ -49,3 +51,5 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		retrieved_stat = self.repository.retrieve(ID)
 		self.assertEqual(stat, retrieved_stat)
+
+

@@ -77,10 +77,11 @@ class SessionsManager:
 			gpu: bool
 	):
 		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
+		meta_data = meta_data.copy()
 		meta_data["enable_gpu"] = gpu
 		meta_data["enable_internet"] = True
 		if self.__dataset_key_alias and meta_data.get("dataset_sources") is not None:
-			meta_data["kernel_sources"] = meta_data["dataset_sources"]
+			meta_data["kernel_sources"] = meta_data.pop("dataset_sources")
 
 		api = self.__create_api(account)
 		path = self.__pull_notebook(api, kernel)
