@@ -27,7 +27,6 @@ class RunnerStatsPopulater:
 			in_path: str,
 			tmp_path: str = "./",
 			ma_window: int = 10,
-			device: typing.Optional[str] = None,
 			shuffle_order: bool = True,
 			raise_exception: bool = False
 	):
@@ -37,7 +36,6 @@ class RunnerStatsPopulater:
 		self.__tmp_path = tmp_path
 		self.__dataloader = dataloader
 		self.__ma_window = ma_window
-		self.__device = device
 		self.__shuffle_order = shuffle_order
 		self.__raise_exception = raise_exception
 
