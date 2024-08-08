@@ -1,4 +1,5 @@
 import os.path
+import random
 from datetime import datetime
 
 import torch
@@ -44,3 +45,24 @@ class StoreCheckpointCallback(CheckpointCallback):
 		self.__file_storage.upload_file(path)
 		if self.__delete_stored:
 			os.remove(path)
+
+
+class RandomCheckpointStoreCallback(StoreCheckpointCallback):
+
+	def __init__(self, fs: FileStorage, probability: float, *args, **kwargs):
+		super().__init__(fs, *args, **kwargs)
+		self.__probability = probability
+
+	def on_epoch_end(self, model, epoch, loss, logs=None):
+		if random.random() < self.__probability:
+			return super().on_epoch_end(model, epoch, loss, logs)
+		return
+
+
+class TrainEndCheckpointStoreCallback(StoreCheckpointCallback):
+
+	def on_train_end(self, model, logs=None):
+		super().on_epoch_end(model, 0, logs)
+
+	def on_epoch_end(self, model, epoch, loss, logs=None):
+		pass
