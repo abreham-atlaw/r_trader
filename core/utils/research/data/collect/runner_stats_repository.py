@@ -49,3 +49,10 @@ class RunnerStatsRepository:
 
 	def exists(self, id):
 		return self.retrieve(id) is not None
+
+	def retrieve_by_loss_complete(self) -> typing.List[RunnerStats]:
+		return [
+			stat
+			for stat in self.retrieve_all()
+			if 0.0 not in stat.model_losses
+		]
