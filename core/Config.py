@@ -213,6 +213,24 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+POPULATION_UPLOAD_PATH = "/Apps/RTrader/maploss/ga/cnn/"
+POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
+
+MODEL_SAVE_PATH = "/kaggle/working/out/"
+MODEL_UPLOAD_PATH = "/Apps/RTrader/maploss/models/cnn/"
+
+
+FF_LINEAR_BLOCK_SIZE = 256
+FF_LINEAR_OUTPUT_SIZE = 256
+FF_LINEAR_LAYERS = []
+FF_LINEAR_INIT = None
+FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+
+INDICATORS_DELTA = True
+INDICATORS_SO = [14]
+INDICATORS_RSI = [14]
+
+PCLOUD_FOLDER = MODEL_UPLOAD_PATH
 
 class ResourceCategories:
 

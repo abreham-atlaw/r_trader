@@ -108,12 +108,12 @@ class CNNTest(unittest.TestCase):
 			ff_linear=ff,
 			linear_collapse=True
 		)
-		# model = ModelHandler.load("/home/abreham/Downloads/Compressed/bemnetatlaw-drmca-cnn-11.zip")
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/bemnetatlaw-drmca-cnn-136-experiment.zip")
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32
-		X = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer/out/train/X/1712734175.835725.npy").astype(NP_DTYPE)
-		y = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer/out/train/y/1712734175.835725.npy").astype(NP_DTYPE)
+		X = np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train/X/1712734175.835725.npy").astype(NP_DTYPE)
+		y = np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train/y/1712734175.835725.npy").astype(NP_DTYPE)
 		#
 		with torch.no_grad():
 			y_hat: torch.Tensor = model(torch.from_numpy(X))

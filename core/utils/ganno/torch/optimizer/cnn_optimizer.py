@@ -9,7 +9,7 @@ class CNNOptimizer(Optimizer):
 
 	@staticmethod
 	def __generate_random_cnn_config(vocab_size: int) -> CNNConfig:
-		num_layers = random.randint(3, 18)
+		num_layers = random.randint(3, 8)
 		layers = []
 		input_size = vocab_size
 		for i in range(num_layers):
