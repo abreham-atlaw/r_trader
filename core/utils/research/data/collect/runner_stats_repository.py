@@ -26,6 +26,8 @@ class RunnerStatsRepository:
 				stats.__dict__
 			)
 			return
+		if stats.profit == 0:
+			stats.profit = old_stats.profit
 		old_stats.duration += stats.duration
 		old_stats.profit = stats.profit
 		self._collection.update_one(
