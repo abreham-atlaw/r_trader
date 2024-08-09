@@ -36,6 +36,9 @@ class RunnerStatsRepository:
 			upsert=True
 		)
 
+	def remove(self, id: str):
+		self._collection.delete_one({"id": id})
+
 	def retrieve(self, id: str) -> typing.Optional[RunnerStats]:
 		doc = self._collection.find_one({"id": id})
 		if doc:
