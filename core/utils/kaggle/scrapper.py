@@ -80,17 +80,20 @@ class KaggleScraper:
 
 # Usage
 def main():
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/cookies.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/napoleonbonaparte0.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/inkoops/rtrader-runlive-sim-cum-0-it-0-{i}'
-		for i in range(3, 20)
+		f'https://www.kaggle.com/code/napoleonbonaparte0/rtrader-runlive-real-cum-0-it-0-{i}'
+		for i in range(0, 20)
 	]
 	usernames = [
-		'bemnetatlaw',
-		'abrehamatlaw0',
-		'yosephmezemer',
-		'napoleonbonaparte0',
-		'biruk-ay'
+		# 'bemnetatlaw',
+		# 'abrehamatlaw0',
+		# 'yosephmezemer',
+		# 'napoleonbonaparte0',
+		# 'biruk-ay',
+		'abrehamalemu',
+		# 'albertcamus0',
+		# 'birukay'
 	]
 
 	scrapper = KaggleScraper(
