@@ -65,6 +65,9 @@ class RunnerStatsPopulater:
 	def __prepare_model(self, model: nn.Module) -> nn.Module:
 		return model
 
+	def __clean(self, local_path: str):
+		os.system(f"rm {os.path.abspath(local_path)}")
+
 	def __generate_id(self, file_path: str) -> str:
 		return os.path.basename(file_path).replace(MODEL_SAVE_EXTENSION, "")
 
@@ -82,6 +85,7 @@ class RunnerStatsPopulater:
 			model_losses=losses
 		)
 		self.__repository.store(stats)
+		self.__clean(local_path)
 
 	def __is_processed(self, file_path: str) -> bool:
 		stat = self.__repository.retrieve(self.__generate_id(file_path))
