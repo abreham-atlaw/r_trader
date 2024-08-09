@@ -98,6 +98,9 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
+
+GANNO_SERVER_URL = "https://ga-server.vercel.app/"
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
