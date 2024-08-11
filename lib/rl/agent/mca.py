@@ -250,13 +250,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):
 		total_counts = counts.sum()
 
-		if total_counts == 0:
-			return self.__squash_probabilities(expected)
+		expected = self.__squash_probabilities(expected)
 
-		frequency_probs = counts/counts.sum()
+		if total_counts == 0:
+			return expected
+
+		frequency_probs = counts / counts.sum()
 
 		corrected = self.__squash_probabilities(
-			(2*expected) - frequency_probs
+			(2 * expected) - frequency_probs
 		)
 		return corrected
 
