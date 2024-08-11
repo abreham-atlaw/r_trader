@@ -230,7 +230,7 @@ AGENT_CRA_SIZE = 0
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
-TIMEOUT = 6*60*60
+TIMEOUT = 3*60*60
 
 
 class ResourceCategories:
