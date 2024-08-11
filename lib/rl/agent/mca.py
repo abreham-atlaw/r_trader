@@ -149,6 +149,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			dump_visited_only: bool = False,
 			node_serializer: typing.Optional['NodeSerializer'] = None,
 			state_serializer: typing.Optional[Serializer] = None,
+			squash_epsilon: float = 1e-9,
 			**kwargs
 	):
 
@@ -176,6 +177,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__dump_path = dump_path
 		self.__dump_visited_only = dump_visited_only
 		self.__serializer = node_serializer
+		self.__squash_epsilon = squash_epsilon
 
 
 	@property
@@ -242,21 +244,20 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return choice
 
-	@staticmethod
-	def __squash_probabilities(probs: np.ndarray) -> np.ndarray:
-		probs[probs < 0] = 0
+	def __squash_probabilities(self, probs: np.ndarray) -> np.ndarray:
+		probs[probs < 0] = self.__squash_epsilon
 		return probs / probs.sum()
 
 	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):
 		total_counts = counts.sum()
 
 		if total_counts == 0:
-			return self.__squash_probabilities(expected)
+			return expected
 
-		frequency_probs = counts/counts.sum()
+		frequency_probs = counts / counts.sum()
 
 		corrected = self.__squash_probabilities(
-			(2*expected) - frequency_probs
+			(2 * expected) - frequency_probs
 		)
 		return corrected
 
