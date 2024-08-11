@@ -4,6 +4,7 @@ import typing
 from torch import nn
 
 from core import Config
+from core.di import ServiceProvider
 from core.utils.research.training.data.repositories.state_repository import TrainingStateRepository
 from core.utils.research.training.data.state import TrainingState
 from lib.utils.file_storage import PCloudClient, FileStorage
@@ -12,7 +13,14 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 class CheckpointRepository:
 
-	def __init__(self, file_storage: FileStorage, tmp_path:str = "./"):
+	def __init__(
+			self,
+			file_storage: FileStorage = None,
+			tmp_path:str = "./"
+	):
+		if file_storage is None:
+			file_storage = ServiceProvider.provide_file_storage()
+
 		self.__state_repository = TrainingStateRepository()
 		if file_storage is None:
 			file_storage = PCloudClient(
