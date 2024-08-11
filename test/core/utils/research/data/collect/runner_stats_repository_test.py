@@ -17,7 +17,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		return [
 			dp
 			for dp in dps
-			if dp.profit != 0
+			if dp.profit != 0 and 0 not in dp.model_losses
 		]
 
 	def test_plot_profit_vs_loss(self):
