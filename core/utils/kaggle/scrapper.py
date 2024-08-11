@@ -91,9 +91,10 @@ def main():
 		# 'yosephmezemer',
 		# 'napoleonbonaparte0',
 		# 'biruk-ay',
-		'abrehamalemu',
+		# 'abrehamalemu',
 		# 'albertcamus0',
-		# 'birukay'
+		# 'birukay',
+		'nikolatesla0'
 	]
 
 	scrapper = KaggleScraper(
