@@ -3,14 +3,8 @@ from dataclasses import dataclass
 
 from pymongo import MongoClient
 
-
-@dataclass
-class RunnerStats:
-	id: str
-	model_name: str
-	profit: float = 0.0
-	duration: float = 0.0
-	model_loss: float = 0.0
+from core.utils.research.data.collect.runner_stats import RunnerStats
+from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
 
 
 class RunnerStatsRepository:
@@ -23,6 +17,7 @@ class RunnerStatsRepository:
 	):
 		db = client[db_name]
 		self._collection = db[collection_name]
+		self.__serializer = RunnerStatsSerializer()
 
 	def store(self, stats: RunnerStats):
 		old_stats = self.retrieve(stats.id)
@@ -31,6 +26,8 @@ class RunnerStatsRepository:
 				stats.__dict__
 			)
 			return
+		if stats.profit == 0:
+			stats.profit = old_stats.profit
 		old_stats.duration += stats.duration
 		old_stats.profit = stats.profit
 		self._collection.update_one(
@@ -39,15 +36,26 @@ class RunnerStatsRepository:
 			upsert=True
 		)
 
+	def remove(self, id: str):
+		self._collection.delete_one({"id": id})
+
 	def retrieve(self, id: str) -> typing.Optional[RunnerStats]:
 		doc = self._collection.find_one({"id": id})
 		if doc:
-			doc.pop('_id')
-			return RunnerStats(**doc)
+			return self.__serializer.deserialize(doc)
 		else:
 			return None
 
 	def retrieve_all(self) -> typing.List[RunnerStats]:
 		docs = self._collection.find()
-		return [RunnerStats(**{k: v for k, v in doc.items() if k != '_id'}) for doc in docs]
+		return self.__serializer.deserialize_many(docs)
 
+	def exists(self, id):
+		return self.retrieve(id) is not None
+
+	def retrieve_by_loss_complete(self) -> typing.List[RunnerStats]:
+		return [
+			stat
+			for stat in self.retrieve_all()
+			if 0.0 not in stat.model_losses
+		]
