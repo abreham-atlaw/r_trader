@@ -17,7 +17,7 @@ class CNNOptimizer(Optimizer):
 			if kernel_ceil <= kernel_floor:
 				break
 			kernel_size = random.randint(3, min(7, input_size))
-			features = random.randint(32, 2024)
+			features = random.randint(16, 512)
 			padding = 0
 			if input_size - kernel_size > 0:
 				padding = random.randint(0, min(3, input_size - kernel_size))
