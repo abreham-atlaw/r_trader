@@ -4,8 +4,10 @@ import torch.nn.functional as F
 
 
 class WeightedMSELoss(nn.Module):
-    def __init__(self, size, softmax=True, device='cpu', a=0.15):
+    def __init__(self, size, softmax=True, device=None, a=0.15):
         super(WeightedMSELoss, self).__init__()
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.size = size
         self.w = self.__init_weight_matrix(size, a)
         self.w = self.w.to(device)
