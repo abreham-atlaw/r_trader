@@ -222,7 +222,7 @@ CORE_MODEL_CONFIG.download = False
 OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
-    ("AUD", "USD"),
+	("AUD", "USD"),
 ]
 AGENT_STEP_TIME = 30
 MARKET_STATE_GRANULARITY = "M5"
@@ -246,3 +246,4 @@ class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stat"
+	OANDA_SIM_ACCOUNTS = 'oanda-sim-accounts'
