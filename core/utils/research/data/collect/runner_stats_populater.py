@@ -82,7 +82,8 @@ class RunnerStatsPopulater:
 		stats = RunnerStats(
 			id=id,
 			model_name=os.path.basename(path),
-			model_losses=losses
+			model_losses=losses,
+			session_timestamps=[]
 		)
 		self.__repository.store(stats)
 		self.__clean(local_path)
