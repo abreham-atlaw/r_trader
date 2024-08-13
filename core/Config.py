@@ -232,7 +232,7 @@ UPDATE_EXPORT_BATCH_SIZE = 64
 UPDATE_SAVE_PATH = "/kaggle/working/out"
 DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
-AGENT_DUMP_NODES = False
+AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
