@@ -104,7 +104,7 @@ class RunnerStatsPopulater:
 					continue
 				self._process_model(file)
 			except Exception as ex:
+				print(f"[-]Error Occurred processing {file}\n{ex}")
 				if self.__raise_exception:
 					raise ex
-				print(f"[-]Error Occurred processing {file}\n{ex}")
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
