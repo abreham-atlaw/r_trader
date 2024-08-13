@@ -221,3 +221,4 @@ PREDICTION_MODELS = [
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
+	RUNNER_STAT = "runner_stat"

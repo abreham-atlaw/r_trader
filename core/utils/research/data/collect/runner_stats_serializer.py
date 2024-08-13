@@ -16,7 +16,5 @@ class RunnerStatsSerializer(Serializer):
 		if json_.get("_id"):
 			json_.pop("_id")
 
-		if json_.get("model_loss"):
-			json_["model_losses"] = (json_.pop("model_loss"), 0.0)
-
+		json_["model_losses"] = tuple(json_["model_losses"])
 		return RunnerStats(**json_)
