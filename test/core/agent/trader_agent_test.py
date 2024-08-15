@@ -8,13 +8,14 @@ import numpy as np
 from copy import deepcopy
 
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
-from core.agent.agents import TraderMonteCarloAgent
+from core.agent.agents import TraderMonteCarloAgent, TraderAgent
+from temp import stats
 
 
 class TraderAgentTest(unittest.TestCase):
 
 	def setUp(self):
-		self.agent = TraderMonteCarloAgent(explore_exploit_tradeoff=1)
+		self.agent = TraderAgent()
 		self.environment = mock.Mock()
 		self.agent.set_environment(self.environment)
 
@@ -136,3 +137,17 @@ class TraderAgentTest(unittest.TestCase):
 		environment.start()
 		self.agent.set_environment(environment)
 		self.agent.loop()
+
+	def test_resume_mca(self):
+		environment = LiveEnvironment()
+		environment.start()
+
+		agent = TraderAgent()
+		agent.set_environment(environment)
+
+		node, repo = stats.load_and_draw_graph("/home/abrehamatlaw/Downloads/Compressed/results/graph_dumps/1723586895.457289")
+		state = repo.retrieve(node.id)
+
+		agent._monte_carlo_tree_search(state)
+
+		x = 1

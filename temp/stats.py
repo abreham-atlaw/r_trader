@@ -1,5 +1,6 @@
 import json
 import os.path
+import typing
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -377,3 +378,23 @@ def load_and_draw_graph(filepath):
 	draw_graph_live(node, visited=True, state_repository=repo)
 
 	return node, repo
+
+
+def load_and_draw_graphs(container, bounds: typing.Tuple[int, int] = None):
+
+	nodes_repos = []
+
+	files = sorted(os.listdir(container))
+	if bounds is not None:
+		files = files[bounds[0]:bounds[1]]
+
+	for i, filename in enumerate(files):
+		print(f"Plotting {filename}")
+		plt.figure()
+		path = os.path.join(container, filename)
+		if not os.path.isdir(path):
+			continue
+		nodes_repos.append(load_and_draw_graph(path))
+		plt.show()
+
+	return nodes_repos
