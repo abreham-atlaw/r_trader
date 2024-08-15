@@ -369,14 +369,16 @@ def load_repository(filename: str):
 
 	return repository
 
-
-def load_and_draw_graph(filepath):
+def load_node_repo(filepath):
 
 	node = load_node(os.path.join(filepath, "graph.json"))
 	repo = load_repository(os.path.join(filepath, "states.json"))
+	return node, repo
 
+
+def load_and_draw_graph(filepath):
+	node, repo = load_node_repo(filepath)
 	draw_graph_live(node, visited=True, state_repository=repo)
-
 	return node, repo
 
 

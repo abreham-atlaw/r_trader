@@ -3,10 +3,15 @@ import unittest
 import numpy as np
 import torch
 from torch import nn
+import matplotlib.pyplot as plt
 
+from core import Config
+from core.agent.agents import TraderAgent
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
+from lib.rl.agent.dta import TorchModel
 from lib.utils.torch_utils.model_handler import ModelHandler
+from temp import stats
 
 
 class CNNTest(unittest.TestCase):
@@ -119,3 +124,22 @@ class CNNTest(unittest.TestCase):
 			y_hat: torch.Tensor = model(torch.from_numpy(X))
 
 		self.assertEquals(y.shape, y_hat.shape)
+
+	def test_plot_probability_distribution(self):
+
+		agent = TraderAgent()
+
+		model = TorchModel(ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/1723578489.233847.zip"))
+		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results/graph_dumps/1723588040.681984")
+
+		state = repo.retrieve(node.id)
+
+		inputs = agent._prepare_dra_input(state, node.children[0].action)
+
+		out = model.predict(np.expand_dims(inputs, axis=0))
+
+		prob_distribution = out[0, :-2]
+		prob_distribution = (prob_distribution - np.min(prob_distribution)) / (np.sum(prob_distribution - np.min(prob_distribution)))
+
+		plt.scatter(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND, prob_distribution)
+		plt.show()
