@@ -3,8 +3,12 @@ import typing
 import unittest
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from datetime import datetime
+from pprint import pprint
+
+import pandas as pd
 
 from core.di import ServiceProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
@@ -41,17 +45,40 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			if dp.profit != 0 and 0 not in dp.model_losses
 		]
 
+	def __print_dps(self, dps: typing.List[RunnerStats]):
+		print(pd.DataFrame([
+			(dp.id, dp.model_name, dp.profit, dp.model_losses, dp.session_timestamps, dp.duration)
+			for dp in dps
+		], columns=["ID", "Model", "Profit", "Losses", "Sessions", "Duration"]).to_string())
+
 	def test_plot_profit_vs_loss(self):
 		dps = self.__get_valid_dps()
 		print(f"Using {len(dps)} dps")
 		self.assertGreater(len(dps), 0)
-
-		for i in range(2):
+		losses = [
+			[dp.model_losses[i] for dp in dps]
+			for i in range(2)
+		]
+		losses.append(
+			[np.prod(dp.model_losses) for dp in dps]
+		)
+		for i in range(3):
 			plt.figure()
 			plt.scatter(
-				[dp.model_losses[i] for dp in dps],
+				losses[i],
 				[dp.profit for dp in dps]
 			)
+		plt.show()
+
+	def test_plot_losses(self):
+		dps = self.repository.retrieve_by_loss_complete()
+		print(f"Using {len(dps)} dps")
+		plt.scatter(
+			*[
+				[dp.model_losses[i] for dp in dps]
+				for i in range(2)
+			]
+		)
 		plt.show()
 
 	def test_get_all(self):
@@ -95,4 +122,29 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			retrieved = self.repository.retrieve(stat.id)
 			self.assertNotEqual(retrieved.profit, 0)
 
+	def test_get_completed_loss_percentage(self):
+		all = self.repository.retrieve_all()
+		completed = [stat for stat in all if stat.model_losses[1] != 0]
+
+		print(f"All: {len(all)}")
+		print(f"Completed: {len(completed)}")
+		print(f"Percentage: {len(completed) / len(all)}")
+
+	def test_get_least_loss_losing_stats(self):
+		dps = sorted([
+			dp
+			for dp in self.__get_valid_dps()
+			if dp.profit < 0
+		], key=lambda dp: dp.model_losses[1]
+		)
+
+		self.__print_dps(dps)
+
+	def test_get_sessions(self):
+		dps = sorted(
+			self.__get_valid_dps(),
+			key=lambda dp: dp.session_timestamps[-1]
+		)
+
+		self.__print_dps(dps)
 
