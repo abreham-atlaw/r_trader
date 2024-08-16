@@ -220,6 +220,9 @@ PREDICTION_MODELS = [
 MODEL_IN_PATH = "/Apps/RTrader/maploss/models/cnn"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
+MAX_LOSS = 1.5
+
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
