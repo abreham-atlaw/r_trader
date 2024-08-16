@@ -27,6 +27,9 @@ class RunnerStatsRepository:
 		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
 		self.__select_weight = select_weight
 
+	def __get_select_sort_field(self, stat: RunnerStats) -> float:
+		return stat.model_losses[0]
+
 	def store(self, stats: RunnerStats):
 		old_stats = self.retrieve(stats.id)
 		if old_stats is None:
@@ -79,7 +82,7 @@ class RunnerStatsRepository:
 
 		sorted_pool = sorted(
 			pool,
-			key=lambda stat: stat.duration + (self.__select_weight * np.mean([stat.duration for stat in pool]) * random.random())
+			key=lambda stat: self.__get_select_sort_field(stat) + (self.__select_weight * np.mean([self.__get_select_sort_field(stat) for stat in pool]) * random.random())
 		)
 		if len(sorted_pool) == 0:
 			if allow_locked:
