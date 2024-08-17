@@ -41,10 +41,10 @@ class KaggleScraper:
 		element.click()
 
 	def __enable_edit(self):
-		buttons = [button for button in self.driver.find_elements(By.TAG_NAME, value="button")]
+		divs = [div for div in self.driver.find_elements(By.TAG_NAME, value="div")]
 		dropdown_button = [
-			button for button in buttons
-			if button.text == "Can view\narrow_drop_down"
+			div for div in divs
+			if div.text == "Can view"
 		]
 		if len(dropdown_button) == 0:
 			return
@@ -80,10 +80,10 @@ class KaggleScraper:
 
 # Usage
 def main():
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/napoleonbonaparte0.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/napoleonbonaparte0/rtrader-runlive-real-cum-0-it-0-{i}'
-		for i in range(0, 20)
+		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-0-cum-{i}-it-1-tot'
+		for i in range(2, 4)
 	]
 	usernames = [
 		# 'bemnetatlaw',
