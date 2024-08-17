@@ -5,7 +5,7 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pprint import pprint
 
 import pandas as pd
@@ -51,8 +51,49 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			for dp in dps
 		], columns=["ID", "Model", "Profit", "Losses", "Sessions", "Duration"]).to_string())
 
+	def __filter_stats(
+			self,
+			dps: typing.List[RunnerStats],
+			time: datetime = None,
+			model_losses: typing.Tuple[float, float] = None,
+			min_profit: float = None,
+			max_profit: float = None
+	) -> typing.List[RunnerStats]:
+
+		if time is not None:
+			dps = [
+				dp
+				for dp in dps
+				if dp.session_timestamps[-1] > time
+			]
+		if model_losses is not None:
+
+			for i in range(len(model_losses)):
+				if model_losses[i] is not None:
+					dps = list(filter(
+						lambda dp: dp.model_losses[i] < model_losses[i],
+						dps
+					))
+
+		if min_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.profit > min_profit,
+				dps
+			))
+		if max_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.profit < max_profit,
+				dps
+			))
+
+		return dps
+
 	def test_plot_profit_vs_loss(self):
-		dps = self.__get_valid_dps()
+		dps = self.__filter_stats(
+			self.__get_valid_dps(),
+			time=datetime.now() - timedelta(hours=33),
+			model_losses=(1.5, None)
+		)
 		print(f"Using {len(dps)} dps")
 		self.assertGreater(len(dps), 0)
 		losses = [
@@ -105,6 +146,22 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		self.repository.remove(ID)
 
+	def test_single_allocate(self):
+		stat = self.repository.allocate_for_runlive()
+		print(f"Allocated {stat.id}")
+		self.repository.finish_session(stat, 0)
+		self.__print_dps([stat])
+
+	def test_multiple_allocate(self):
+
+		allocated = []
+		for i in range(5):
+			allocated.append(self.repository.allocate_for_runlive())
+			self.repository.finish_session(allocated[-1], 0)
+			print(f"Allocated {len(allocated)}")
+
+		self.__print_dps(allocated)
+
 	def test_allocate(self):
 		created = self.__create_for_runlive()
 		allocated = []
@@ -131,19 +188,24 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"Percentage: {len(completed) / len(all)}")
 
 	def test_get_least_loss_losing_stats(self):
-		dps = sorted([
-			dp
-			for dp in self.__get_valid_dps()
-			if dp.profit < 0
-		], key=lambda dp: dp.model_losses[1]
+		dps = self.__filter_stats(
+			self.__get_valid_dps(),
+			time=datetime.now() - timedelta(hours=9),
+			model_losses=[1.0, None],
+			max_profit=0
 		)
 
 		self.__print_dps(dps)
 
 	def test_get_sessions(self):
 		dps = sorted(
-			self.__get_valid_dps(),
-			key=lambda dp: dp.session_timestamps[-1]
+			self.__filter_stats(
+				self.repository.retrieve_all(),
+				# model_losses=(1.5,None),
+				# time=datetime.now() - timedelta(hours=9),
+			),
+			key=lambda dp: dp.model_name,
+			reverse=True
 		)
 
 		self.__print_dps(dps)
