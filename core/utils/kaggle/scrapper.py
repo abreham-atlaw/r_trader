@@ -4,6 +4,7 @@ import time
 import typing
 
 from selenium import webdriver
+from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -40,6 +41,21 @@ class KaggleScraper:
 		self._scroll_to(element)
 		element.click()
 
+	def __add_user(self, username):
+		self._scroll_down()
+
+		username_input = WebDriverWait(self.driver, 20).until(
+			EC.element_to_be_clickable((By.XPATH, "//input[contains(@placeholder,'Search collaborators')]"))
+		)
+		username_input.send_keys(username)
+		try:
+			user_result = WebDriverWait(self.driver, 20).until(
+				EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(),'{username}')]"))
+			)
+			user_result.click()
+		except TimeoutException:
+			pass
+
 	def __enable_edit(self):
 		divs = [div for div in self.driver.find_elements(By.TAG_NAME, value="div")]
 		dropdown_button = [
@@ -60,16 +76,7 @@ class KaggleScraper:
 
 	def share_notebook(self, notebook_url, username):
 		self.driver.get(os.path.join(notebook_url, "settings"))
-		self._scroll_down()
-		username_input = WebDriverWait(self.driver, 20).until(
-			EC.element_to_be_clickable((By.XPATH,  "//input[contains(@placeholder,'Search collaborators')]"))
-		)
-		username_input.send_keys(username)
-
-		user_result = WebDriverWait(self.driver, 20).until(
-			EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(),'{username}')]"))
-		)
-		user_result.click()
+		self.__add_user(username)
 
 		self.__enable_edit()
 
@@ -82,18 +89,18 @@ class KaggleScraper:
 def main():
 	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-0-cum-{i}-it-1-tot'
-		for i in range(2, 4)
+		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-1-tot/'
+		for i in range(9, 12)
 	]
 	usernames = [
-		# 'bemnetatlaw',
-		# 'abrehamatlaw0',
-		# 'yosephmezemer',
-		# 'napoleonbonaparte0',
-		# 'biruk-ay',
-		# 'abrehamalemu',
-		# 'albertcamus0',
-		# 'birukay',
+		'bemnetatlaw',
+		'abrehamatlaw0',
+		'yosephmezemer',
+		'napoleonbonaparte0',
+		'inkoops',
+		'abrehamalemu',
+		'albertcamus0',
+		'birukay',
 		'nikolatesla0'
 	]
 
