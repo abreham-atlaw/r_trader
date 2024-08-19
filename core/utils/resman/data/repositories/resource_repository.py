@@ -12,9 +12,6 @@ class ResourceRepository(ABC):
 	def __init__(self, category: str):
 		self._category = category
 
-	def _is_locked(self, resource: Resource) -> bool:
-		return resource.locked
-
 	def _choose(self, resources: typing.List[Resource]) -> Resource:
 		return random.choice(resources)
 
@@ -22,7 +19,7 @@ class ResourceRepository(ABC):
 		valid_resources = [
 			resource
 			for resource in self._get_all()
-			if not self._is_locked(resource)
+			if not self.is_locked(resource)
 		]
 		if len(valid_resources) == 0:
 			raise ResourceUnavailableException()
@@ -41,6 +38,31 @@ class ResourceRepository(ABC):
 			if resource.id == id:
 				return resource
 		raise ResourceNotFoundException()
+
+	def is_locked(self, resource: Resource) -> bool:
+		return resource.locked
+
+	def is_locked_by_id(self, id: str) -> bool:
+		try:
+			stat = self._get_by_id(id)
+			return self.is_locked(stat)
+		except ResourceNotFoundException:
+			return False
+
+	def lock_by_id(self, id: str, create: bool = True) -> Resource:
+		try:
+			resource = self._get_by_id(id)
+		except ResourceNotFoundException:
+			if create:
+				resource = self.create(id)
+			else:
+				raise
+		self._lock(resource)
+		return resource
+
+	def unlock_by_id(self, id: str):
+		resource = self._get_by_id(id)
+		self._unlock(resource)
 
 	def allocate(self) -> Resource:
 		resource = self._select()
@@ -64,7 +86,7 @@ class ResourceRepository(ABC):
 		return [
 			resource
 			for resource in self._get_all()
-			if self._is_locked(resource)
+			if self.is_locked(resource)
 		]
 
 	@abstractmethod

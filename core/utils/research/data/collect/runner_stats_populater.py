@@ -82,7 +82,8 @@ class RunnerStatsPopulater:
 		stats = RunnerStats(
 			id=id,
 			model_name=os.path.basename(path),
-			model_losses=losses
+			model_losses=losses,
+			session_timestamps=[]
 		)
 		self.__repository.store(stats)
 		self.__clean(local_path)
@@ -103,7 +104,7 @@ class RunnerStatsPopulater:
 					continue
 				self._process_model(file)
 			except Exception as ex:
+				print(f"[-]Error Occurred processing {file}\n{ex}")
 				if self.__raise_exception:
 					raise ex
-				print(f"[-]Error Occurred processing {file}\n{ex}")
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
