@@ -145,7 +145,7 @@ class TraderAgentTest(unittest.TestCase):
 		agent = TraderAgent()
 		agent.set_environment(environment)
 
-		node, repo = stats.load_and_draw_graph("/home/abrehamatlaw/Downloads/Compressed/results/graph_dumps/1723586895.457289")
+		node, repo = stats.load_and_draw_graph("/home/abrehamatlaw/Downloads/Compressed/results_2/graph_dumps/1724040115.942755")
 		state = repo.retrieve(node.id)
 
 		agent._monte_carlo_tree_search(state)
