@@ -236,7 +236,7 @@ AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot"
+MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
 
 class ResourceCategories:
 
