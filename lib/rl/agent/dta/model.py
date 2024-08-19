@@ -54,9 +54,11 @@ class TorchModel(Model):
 
 	def __init__(self, model: nn.Module):
 		self.__model = model
+		self.__model.eval()
 
 	def predict(self, inputs: np.ndarray) -> np.ndarray:
-		return self.__model(torch.from_numpy(inputs.astype(np.float32))).detach().numpy()
+		with torch.no_grad():
+			return self.__model(torch.from_numpy(inputs.astype(np.float32))).detach().numpy()
 
 	def fit(self, X: np.ndarray, y: np.ndarray):
 		pass
