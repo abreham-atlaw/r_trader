@@ -89,12 +89,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		return dps
 
 	def test_plot_profit_vs_loss(self):
-		dps = self.__filter_stats(
+		dps = sorted(self.__filter_stats(
 			self.__get_valid_dps(),
 			time=datetime.now() - timedelta(hours=33),
 			model_losses=(1.5, None)
+		),
+			key=lambda dp: dp.profit,
+			reverse=True
 		)
 		print(f"Using {len(dps)} dps")
+		self.__print_dps(dps)
 		self.assertGreater(len(dps), 0)
 		losses = [
 			[dp.model_losses[i] for dp in dps]
@@ -107,8 +111,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			plt.figure()
 			plt.scatter(
 				losses[i],
-				[dp.profit for dp in dps]
+				[dp.profit for dp in dps],
 			)
+
+			plt.axhline(y=0, color="black")
 		plt.show()
 
 	def test_plot_losses(self):
@@ -191,7 +197,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = self.__filter_stats(
 			self.__get_valid_dps(),
 			time=datetime.now() - timedelta(hours=9),
-			model_losses=[1.0, None],
+			model_losses=[0.9, None],
 			max_profit=0
 		)
 
@@ -200,11 +206,11 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_sessions(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_all(),
+				self.__get_valid_dps(),
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.model_name,
+			key=lambda dp: dp.session_timestamps[-1],
 			reverse=True
 		)
 
