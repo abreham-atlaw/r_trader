@@ -17,9 +17,12 @@ class ResourcesManager:
 		self.__random_coefficient = 100
 
 	def __get_resources(self) -> typing.List[Resources]:
+
+		accounts = self.__accounts_repository.get_accounts()
+
 		return [
 			self.__resources_repository.get_resources(account)
-			for account in self.__accounts_repository.get_accounts()
+			for account in accounts
 		]
 
 	def _sort_resources(self, resources: typing.List[Resources], device: int) -> typing.List[Resources]:
