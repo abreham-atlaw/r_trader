@@ -35,13 +35,13 @@ class MSCETest(unittest.TestCase):
 
 		classes = np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
 
-		msce = MeanSquaredClassError(classes)
+		msce = MeanSquaredClassError(classes, epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON)
 
-		y = torch.zeros((1, len(classes)), dtype=torch.float32)
+		y = torch.zeros((1, len(classes)+1), dtype=torch.float32)
 		y[0, 3] = 1
 		predictions = torch.from_numpy(np.array([
-			[[1 if i == j else 0 for j in range(len(classes))]]
-			for i in range(len(classes))
+			[[1 if i == j else 0 for j in range(len(classes)+1)]]
+			for i in range(len(classes)+1)
 		]).astype(np.float32))
 
 		losses = [msce(y, predictions[i]) for i in range(len(classes))]
