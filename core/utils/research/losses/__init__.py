@@ -1,2 +1,3 @@
 from .weighted_cross_entropy import WeightedCrossEntropyLoss
 from .weighted_mean_square_error import WeightedMSELoss
+from .msce import MeanSquaredClassError
