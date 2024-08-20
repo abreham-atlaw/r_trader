@@ -256,7 +256,6 @@ class TrainerTest(unittest.TestCase):
 		new_state = trainer.state
 		self.assertIsNotNone(new_state)
 
-
 	def test_sinwave_prediction(self):
 
 		dataset = SineWaveDataset(10000, 64)
@@ -281,3 +280,9 @@ class TrainerTest(unittest.TestCase):
 			epochs=15
 		)
 
+	def test_summary(self):
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/1723549677.105747.zip")
+		trainer = Trainer(model)
+		trainer.summary()
+
+		self.assertIsNotNone(model)

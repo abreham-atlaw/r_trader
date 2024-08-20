@@ -24,11 +24,11 @@ class SessionManagerTest(unittest.TestCase):
 		# )
 		# manager.sync_notebooks()
 		manager.start_session(
-			kernel="albertcamus0/rtrader-mapploss-modelgeneration-cnn-0",
+			kernel="inkoops/rtrader-maploss-runlive-sim-cnn-0",
 			account=account,
 			meta_data={
-				"dataset_sources": ["abrehamatlaw0/rtrader-datapreparer-cum-0-it-0-v-0"],
+				"dataset_sources": ["abrehamatlaw0/rtrader-datapreparer-cum-0-it-1-v-0"],
 			},
-			gpu=True,
+			gpu=False,
 			sync_notebooks=False
 		)

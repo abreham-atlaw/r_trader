@@ -245,7 +245,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		return choice
 
 	def __squash_probabilities(self, probs: np.ndarray) -> np.ndarray:
-		probs[probs < 0] = self.__squash_epsilon
+		probs[probs <= 0] = self.__squash_epsilon
 		return probs / probs.sum()
 
 	def __correct_probabilities(self, expected: np.ndarray, counts: np.ndarray):
