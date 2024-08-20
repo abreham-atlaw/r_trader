@@ -20,4 +20,4 @@ class DuplicateDataCleaner:
 	def start(self, X_files: typing.List[str], y_files: typing.List[str] = None):
 		for i, (X_file, y_file) in enumerate(zip(X_files, y_files)):
 			self.__clean_file(X_file, y_file)
-			print(f"Completed: {(i+1)*100/len(X_files) :.2f}", end="\r")
+			print(f"Completed: {(i+1)*100/len(X_files) :.2f}%", end="\r")
