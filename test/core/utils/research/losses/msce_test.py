@@ -35,7 +35,7 @@ class MSCETest(unittest.TestCase):
 
 		classes = np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
 
-		msce = MeanSquaredClassError(classes, epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON)
+		msce = MeanSquaredClassError(classes, epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON, device=torch.device('cpu'))
 
 		y = torch.zeros((1, len(classes)+1), dtype=torch.float32)
 		y[0, 3] = 1
