@@ -224,7 +224,7 @@ AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
     ("AUD", "USD"),
 ]
-AGENT_STEP_TIME = 1 * 60
+AGENT_STEP_TIME = 3 * 60
 MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
@@ -238,7 +238,9 @@ AGENT_CRA_SIZE = 0
 
 MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
 
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stat"
+	OANDA_SIM_ACCOUNTS = "oanda_accounts-sim-cum-0-it-2"
