@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.losses import WeightedMSELoss
+from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss
 from core.utils.research.training.trainer import Trainer
 from lib.utils.file_storage import FileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -58,7 +58,7 @@ class RunnerStatsPopulater:
 			)
 			for loss in [
 				nn.CrossEntropyLoss(),
-				WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1)
+				MSCECrossEntropyLoss(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND, Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON)
 			]
 		])
 
