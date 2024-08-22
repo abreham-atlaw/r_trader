@@ -79,12 +79,18 @@ class RunnerStatsPopulater:
 		losses = self.__evaluate_model(model)
 		id = self.__generate_id(path)
 
-		stats = RunnerStats(
-			id=id,
-			model_name=os.path.basename(path),
-			model_losses=losses,
-			session_timestamps=[]
-		)
+		stats = self.__repository.retrieve(id)
+		if stats is None:
+			print("[+]Creating...")
+			stats = RunnerStats(
+				id=id,
+				model_name=os.path.basename(path),
+				model_losses=losses,
+				session_timestamps=[]
+			)
+		else:
+			print("[+]Updating...")
+			stats.model_losses = losses
 		self.__repository.store(stats)
 		self.__clean(local_path)
 
