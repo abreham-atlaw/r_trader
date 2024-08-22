@@ -49,7 +49,7 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	"W4btPZfKQB7ZQr0RIocN6vmc8DpzmoUhTztm4Dbk",  # abrishatlaw@gmail.com +
+	# "W4btPZfKQB7ZQr0RIocN6vmc8DpzmoUhTztm4Dbk",  # abrishatlaw@gmail.com +
 	# "RK3FFkZ6O9B7ZSRFxnYyBfc7f8oPTbFQgapHvKypk",  # abrishatlaw@yahoo.com +
 	# "p3Qtc7ZIO9B7Zk2Ys9k5kQdYXandlusB6BkwcqFr7",  # abreham.atlaw@yahoo.com -
 	# "m0AL1kZxDks7ZqjO4dcmcuzyJjRqAHsfyKudX6jGy",  # abrehamatlaw@outlook.com -
@@ -62,13 +62,7 @@ PCLOUD_TOKENS = [
 	# "aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
 	# "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
 	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
-	# "TalFg7ZMqk97ZhTsA8DiMgmyPnpf8F5vHVhoFr0ak",  # spinoza-pp3@outlook.com
-	# "T6QGFVZGqk97ZGiF6dVcqKYXya1UrUYOzlzgEHijy",  # spinoza-pp4@outlook.com
-	# "mieWw7Zcqk97ZQQM67pX1W7fEnsLFGBBSM4KYo6by",  # spinoza-pp5@outlook.com
-	# "eVxKoVZFtk97Zzw0sahaPryFbqNIx0C1GD5YVg4x7",  # spinoza-pp6@outlook.com
-	# "V7oaeXZ2tk97ZL4szMtywPyJf8NNyjdNlgRKBnGPX",  # spinoza-pp7@outlook.com
-	# "AsHrYXZztk97ZrkTaoWrTn146cqjGVz0018BVJUby",  # spinoza-pp8@outlook.com
-	# "Mljca7ZYtk97ZWHVQOYftIqbfRiuMx9Ql5VU3mnby",  # spinoza-pp9@outlook.com
+	"LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
