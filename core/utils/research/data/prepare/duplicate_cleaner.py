@@ -17,16 +17,17 @@ class DuplicateCleaner:
 
 	@staticmethod
 	def __filter_unique_rows(array: np.ndarray):
+		array_tuple = [tuple(row) for row in array]
 
-		clean_indices = []
-		clean_array = []
+		clean_dict = {}
+		for i, row in enumerate(array_tuple):
+			if row not in clean_dict:
+				clean_dict[row] = i
 
-		for i in range(array.shape[0]):
-			if array[i] not in clean_array:
-				clean_array.append(array[i])
-				clean_indices.append(i)
+		clean_indices = np.array(list(clean_dict.values()))
+		clean_array = array[clean_indices]
 
-		return np.array(clean_array), np.array(clean_indices)
+		return clean_array, clean_indices
 
 	def __generate_hashes(self, arrays: typing.Iterable[np.ndarray]) -> np.ndarray:
 		return np.concatenate([
@@ -40,7 +41,7 @@ class DuplicateCleaner:
 			for i in range(array.shape[0])
 		])
 
-	def __get_unique_rows(self, array: np.ndarray) -> np.ndarray:
+	def __get_unique_rows(self, array: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		checkpoint_size = self.__hashes.shape[0]
 		hashes = self.__hash(array)
 		complete_hashes = np.concatenate([self.__hashes, hashes])
@@ -54,4 +55,3 @@ class DuplicateCleaner:
 		if companion_array is None:
 			return clean_array
 		return clean_array, companion_array[indices]
-
