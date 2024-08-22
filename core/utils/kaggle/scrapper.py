@@ -44,12 +44,14 @@ class KaggleScraper:
 	def __add_user(self, username):
 		self._scroll_down()
 
-		username_input = WebDriverWait(self.driver, 20).until(
+		username_input = WebDriverWait(self.driver, 5).until(
 			EC.element_to_be_clickable((By.XPATH, "//input[contains(@placeholder,'Search collaborators')]"))
 		)
+		username_input.clear()
+		time.sleep(5)
 		username_input.send_keys(username)
 		try:
-			user_result = WebDriverWait(self.driver, 20).until(
+			user_result = WebDriverWait(self.driver, 5).until(
 				EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(),'{username}')]"))
 			)
 			user_result.click()
@@ -74,12 +76,12 @@ class KaggleScraper:
 		if len(dropdown_button) > 1:
 			self.__enable_edit()
 
-	def share_notebook(self, notebook_url, username):
+	def share_notebook(self, notebook_url, usernames):
 		self.driver.get(os.path.join(notebook_url, "settings"))
-		self.__add_user(username)
+		for username in usernames:
+			self.__add_user(username)
 
 		self.__enable_edit()
-
 		share_action = self.driver.find_element(By.XPATH, "//*[contains(text(),'Save Changes')]")
 		self._scroll_and_click(share_action)
 		time.sleep(5)
@@ -87,21 +89,21 @@ class KaggleScraper:
 
 # Usage
 def main():
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/inkoops.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-1-tot/'
-		for i in range(9, 12)
+		f'https://www.kaggle.com/code/inkoops/rtrader-runlive-sim-cum-0-it-2-{i}/'
+		for i in range(1, 50)
 	]
 	usernames = [
-		'bemnetatlaw',
 		'abrehamatlaw0',
-		'yosephmezemer',
-		'napoleonbonaparte0',
-		'inkoops',
-		'abrehamalemu',
-		'albertcamus0',
-		'birukay',
-		'nikolatesla0'
+		'bemnetatlaw',
+		# 'yosephmezemer',
+		# 'napoleonbonaparte0',
+		# 'inkoops',
+		# 'abrehamalemu',
+		# 'albertcamus0',
+		# 'birukay',
+		# 'nikolatesla0'
 	]
 
 	scrapper = KaggleScraper(
@@ -109,12 +111,11 @@ def main():
 	)
 
 	for i, notebook_url in enumerate(notebook_urls):
-		for username in usernames:
-			try:
-				scrapper.share_notebook(notebook_url, username)
-			except Exception as ex:
-				print(f"Failed to share {notebook_url} to {username}")
-				pass
+		try:
+			scrapper.share_notebook(notebook_url, usernames)
+		except Exception as ex:
+			print(f"Failed to share {notebook_url}")
+			pass
 		print(f"Progress{(i+1)*100/len(notebook_urls): .2f}%...")
 
 
