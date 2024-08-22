@@ -23,3 +23,6 @@ class Cache:
 			value = func()
 			self.store(key, value)
 		return value
+
+	def remove(self, key):
+		self.__store.pop(self.__hash(key), None)

@@ -12,11 +12,9 @@ class FusedManagerTest(unittest.TestCase):
 
 		manager: FusedManager = ApplicationContainer.kaggle.fused_manager()
 		manager.start_session(
-			kernel="abrehamatlaw0/rtrader-maploss-runnerstatspopulator-cnn-0",
+			kernel="inkoops/rtrader-maploss-runlive-sim-cnn-0",
 			meta_data={
-				"dataset_sources": [
-					"abrehamatlaw0/rtrader-datapreparer-cum-0-it-0-v-0"
-				]
+				"dataset_sources": ["abrehamatlaw0/rtrader-datapreparer-cum-0-it-1-v-0"],
 			},
 			sync_notebooks=False
 		)

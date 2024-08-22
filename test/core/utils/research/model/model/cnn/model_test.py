@@ -9,6 +9,7 @@ from core import Config
 from core.agent.agents import TraderAgent
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
+from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent.dta import TorchModel
 from lib.utils.torch_utils.model_handler import ModelHandler
 from temp import stats
@@ -129,17 +130,26 @@ class CNNTest(unittest.TestCase):
 
 		agent = TraderAgent()
 
-		model = TorchModel(ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/1723578489.233847.zip"))
-		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results/graph_dumps/1723588040.681984")
-
+		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results_2/graph_dumps/1724040115.942755")
 		state = repo.retrieve(node.id)
-
 		inputs = agent._prepare_dra_input(state, node.children[0].action)
 
-		out = model.predict(np.expand_dims(inputs, axis=0))
+		for model_path in [
+			"/home/abrehamatlaw/Downloads/Compressed/1723545682.854022.zip",
+			"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot.zip"
+		]:
+			model = TorchModel(
+				WrappedModel(
+					ModelHandler.load(model_path),
+					seq_len=Config.MARKET_STATE_MEMORY,
+					window_size=Config.AGENT_MA_WINDOW_SIZE
+				)
+			)
+			out = model.predict(np.expand_dims(inputs, axis=0))
 
-		prob_distribution = out[0, :-2]
-		prob_distribution = (prob_distribution - np.min(prob_distribution)) / (np.sum(prob_distribution - np.min(prob_distribution)))
+			prob_distribution = out[0, :-2]
+			prob_distribution = (prob_distribution - np.min(prob_distribution)) / (
+				np.sum(prob_distribution - np.min(prob_distribution)))
 
-		plt.scatter(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND, prob_distribution)
+			plt.scatter(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND, prob_distribution)
 		plt.show()
