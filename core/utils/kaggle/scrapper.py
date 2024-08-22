@@ -52,7 +52,7 @@ class KaggleScraper:
 		username_input.send_keys(username)
 		try:
 			user_result = WebDriverWait(self.driver, 5).until(
-				EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(),'{username}')]"))
+				EC.element_to_be_clickable((By.XPATH, f"//*[contains(text(),'({username})')]"))
 			)
 			user_result.click()
 		except TimeoutException:
@@ -92,11 +92,11 @@ def main():
 	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/inkoops.json'
 	notebook_urls = [
 		f'https://www.kaggle.com/code/inkoops/rtrader-runlive-sim-cum-0-it-2-{i}/'
-		for i in range(1, 50)
+		for i in range(2, 50)
 	]
 	usernames = [
-		'abrehamatlaw0',
 		'bemnetatlaw',
+		# 'abrehamatlaw0',
 		# 'yosephmezemer',
 		# 'napoleonbonaparte0',
 		# 'inkoops',
