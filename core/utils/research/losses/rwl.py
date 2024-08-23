@@ -32,6 +32,7 @@ class ReverseMAWeightLoss(ReverseWeightLoss):
 		self.weights = torch.ones(1, 1, self.window).to(self.device)
 
 	def generate_weights(self, s: torch.Tensor) -> torch.Tensor:
+		print(s.shape)
 		s = F.pad(s, (self.window - 1, self.window - 1))
 
 		for _ in range(2):
