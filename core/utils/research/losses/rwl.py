@@ -7,9 +7,12 @@ import torch.nn.functional as F
 
 class ReverseWeightLoss(nn.Module, ABC):
 
-	def __init__(self, softmax=True):
+	def __init__(self, softmax=True, device=None):
 		super(ReverseWeightLoss, self).__init__()
 		self.softmax = softmax
+		if device is None:
+			device = torch.device("cpu")
+		self.device = device
 
 	@abstractmethod
 	def generate_weights(self, y: torch.Tensor) -> torch.Tensor:
@@ -18,7 +21,7 @@ class ReverseWeightLoss(nn.Module, ABC):
 	def forward(self, y: torch.Tensor, y_hat: torch.Tensor) -> torch.Tensor:
 		if self.softmax:
 			y_hat = F.softmax(y_hat, dim=1)
-		return torch.mean(torch.sum((1-self.generate_weights(y))*y_hat, dim=1))
+		return torch.mean(torch.sum((1-self.generate_weights(y).to(self.device))*y_hat, dim=1))
 
 
 class ReverseMAWeightLoss(ReverseWeightLoss):
