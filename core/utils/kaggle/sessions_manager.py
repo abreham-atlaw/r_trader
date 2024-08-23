@@ -100,7 +100,7 @@ class SessionsManager:
 			kernel: str,
 			account: Account,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu: bool = True,
+			gpu: bool = False,
 			close_others: bool = True,
 			sync_notebooks: bool = True
 	):
