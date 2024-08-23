@@ -38,7 +38,7 @@ class ReverseMAWeightLoss(ReverseWeightLoss):
 		for _ in range(2):
 			s = F.conv1d(s.unsqueeze(1),  self.weights/ self.window).squeeze(dim=1)
 
-		s = s / torch.max(s, dim=1)[0]
+		s = s / (torch.max(s, dim=1)[0]).unsqueeze(1)
 
 		return s
 
