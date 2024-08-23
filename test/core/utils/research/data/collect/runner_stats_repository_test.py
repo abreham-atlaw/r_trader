@@ -91,7 +91,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
 			self.__get_valid_dps(),
-			time=datetime.now() - timedelta(hours=33),
+			# time=datetime.now() - timedelta(hours=33),
 			model_losses=(1.5, None)
 		),
 			key=lambda dp: dp.profit,
@@ -151,6 +151,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.assertEqual(self.serializer.serialize(stat), self.serializer.serialize(retrieved_stat))
 
 		self.repository.remove(ID)
+
+	def test_clear_losses(self):
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			stat.model_losses = (0.0, 0.0)
+			self.repository.store(stat)
+			print("Progress:", (i+1)*100/len(stats))
 
 	def test_single_allocate(self):
 		stat = self.repository.allocate_for_runlive()
@@ -215,4 +222,3 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		)
 
 		self.__print_dps(dps)
-

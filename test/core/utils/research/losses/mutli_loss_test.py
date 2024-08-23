@@ -13,7 +13,7 @@ class MultiLossTest(unittest.TestCase):
 	def test_functionality(self):
 		classes = (np.arange(5) + 10).astype(np.float32)
 
-		msce = MSCECrossEntropyLoss(classes)
+		msce = MSCECrossEntropyLoss(classes, weights=[0.2, 0.8])
 
 		y = torch.from_numpy(np.array([[0, 1, 0, 0, 0]]).astype(np.float32))
 		predictions = torch.from_numpy(np.array([

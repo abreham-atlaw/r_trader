@@ -9,6 +9,8 @@ class MeanSquaredClassError(nn.Module):
 
 	def __init__(self, classes: typing.Union[np.ndarray, torch.Tensor], epsilon: float = None, device=None):
 		super().__init__()
+		if isinstance(classes, list):
+			classes = np.array(classes)
 		if isinstance(classes, np.ndarray):
 			classes = torch.from_numpy(classes)
 
