@@ -58,8 +58,12 @@ class RunnerStatsPopulater:
 			)
 			for loss in [
 				nn.CrossEntropyLoss(),
+				WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1),
 				MeanSquaredClassError(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND, Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON),
+				ReverseMAWeightLoss(window_size=5, softmax=True),
 				ReverseMAWeightLoss(window_size=10, softmax=True),
+				ReverseMAWeightLoss(window_size=20, softmax=True),
+				ReverseMAWeightLoss(window_size=40, softmax=True),
 			]
 		])
 
