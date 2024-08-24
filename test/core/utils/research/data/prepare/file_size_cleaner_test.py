@@ -31,6 +31,7 @@ class FileSizeCleanerTest(unittest.TestCase):
 
 		cleaner = FileSizeCleaner(
 			accumulation_mode=True,
-			accumulation_path=self.path
+			accumulation_path=self.path,
+			size=2
 		)
 		cleaner.start(self.files)
