@@ -155,7 +155,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_clear_losses(self):
 		stats = self.repository.retrieve_all()
 		for i, stat in enumerate(stats):
-			stat.model_losses = (0.0, 0.0)
+			stat.model_losses = (0.0, 0.0, 0.0)
 			self.repository.store(stat)
 			print("Progress:", (i+1)*100/len(stats))
 
@@ -213,12 +213,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_sessions(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.__get_valid_dps(),
+				self.repository.retrieve_all(),
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.session_timestamps[-1],
-			reverse=True
+			key=lambda dp: dp.profit,
+			reverse=False
 		)
 
 		self.__print_dps(dps)
