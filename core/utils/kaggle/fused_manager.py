@@ -14,7 +14,7 @@ class FusedManager(SessionsManager):
 			self,
 			kernel: str,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu=True,
+			gpu=False,
 			raise_exception=False,
 			sync_notebooks=True
 	):
