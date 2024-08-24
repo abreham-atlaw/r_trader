@@ -157,7 +157,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		for i, stat in enumerate(stats):
 			stat.model_losses = (0.0, 0.0, 0.0)
 			self.repository.store(stat)
-			print("Progress:", (i+1)*100/len(stats))
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_single_allocate(self):
 		stat = self.repository.allocate_for_runlive()
