@@ -92,7 +92,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(self.__filter_stats(
 			self.__get_valid_dps(),
 			# time=datetime.now() - timedelta(hours=33),
-			model_losses=(1.5, None)
+			# model_losses=(1.5, None, None)
 		),
 			key=lambda dp: dp.profit,
 			reverse=True
@@ -102,12 +102,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.assertGreater(len(dps), 0)
 		losses = [
 			[dp.model_losses[i] for dp in dps]
-			for i in range(2)
+			for i in range(len(dps[0].model_losses))
 		]
 		losses.append(
 			[np.prod(dp.model_losses) for dp in dps]
 		)
-		for i in range(3):
+		for i in range(len(losses)):
 			plt.figure()
 			plt.scatter(
 				losses[i],
@@ -204,7 +204,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = self.__filter_stats(
 			self.__get_valid_dps(),
 			time=datetime.now() - timedelta(hours=9),
-			model_losses=[0.9, None],
+			model_losses=(0.9, None, 0.0),
 			max_profit=0
 		)
 
