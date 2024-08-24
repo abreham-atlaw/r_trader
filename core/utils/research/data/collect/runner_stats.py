@@ -11,7 +11,7 @@ class RunnerStats:
 	session_timestamps: typing.List[datetime]
 	profit: float = 0.0
 	duration: float = 0.0
-	model_losses: typing.Tuple[float, ...] = (0.0, 0.0, 0.0)
+	model_losses: typing.Tuple[float, ...] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
 	def add_profit(self, profit: float):
 		self.profit += profit
