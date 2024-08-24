@@ -40,11 +40,12 @@ class FileSizeCleaner:
 			self.__accumulation = np.concatenate((self.__accumulation, array))
 		self.__checkpoint_accumulation()
 
-	def start(self, files: typing.List[str], size=None, verbose=2):
+	def start(self, files: typing.List[str], verbose=2):
 		if verbose > 0:
 			print(f"[+]Processing {len(files)} Files...")
-		if size is None:
-			size = self.__size = self.__get_size(files)
+		if self.__size is None:
+			self.__size = self.__get_size(files)
+		size = self.__size
 		if verbose > 0:
 			print(f"[+]Using Size {size}")
 		removed_files = []
