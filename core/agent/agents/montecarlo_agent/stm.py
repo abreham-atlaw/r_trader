@@ -4,15 +4,17 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from lib.rl.agent.mca import MonteCarloAgent
+from lib.rl.agent.mca import Node
+from lib.rl.agent.mca.stm import NodeMemoryMatcher, NodeShortTermMemory
+from lib.rl.agent.mca.stm.node_memory import NodeMemory
 from lib.utils.staterepository import StateRepository
 import lib.utils.math as libmath
 from lib.utils.logger import Logger
-from core.environment.trade_state import TradeState, AgentState, MarketState
+from core.environment.trade_state import TradeState, AgentState
 
 
 @dataclass
-class TraderNodeMemory(MonteCarloAgent.NodeMemory):
+class TraderNodeMemory(NodeMemory):
 	pass
 
 
@@ -21,7 +23,7 @@ class AttentionBasedTraderNodeMemory(TraderNodeMemory):
 	attention_instrument: Tuple[str, str]
 
 
-class TraderNodeMemoryMatcher(MonteCarloAgent.NodeMemoryMatcher):
+class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 
 	def __init__(self, threshold: float, repository: StateRepository = None, average_window=1, balance_tolerance=None):
 		super().__init__(repository=repository, state_matcher=None)
@@ -31,12 +33,13 @@ class TraderNodeMemoryMatcher(MonteCarloAgent.NodeMemoryMatcher):
 		if balance_tolerance is None:
 			self.__balance_tolerance = 0.01
 
-	def construct_memory(self, node: MonteCarloAgent.Node) -> TraderNodeMemory:
+	def construct_memory(self, node: Node) -> TraderNodeMemory:
 		return TraderNodeMemory(
 			node=node
 		)
 
-	def __error(self, state0: np.ndarray, state1: np.ndarray) -> float:
+	@staticmethod
+	def __error(state0: np.ndarray, state1: np.ndarray) -> float:
 		return float(np.mean(
 			np.abs(
 				(state0 - state1)/np.average((state0, state1), axis=0)
@@ -49,9 +52,9 @@ class TraderNodeMemoryMatcher(MonteCarloAgent.NodeMemoryMatcher):
 			libmath.moving_average(state1, self.__average_window)
 		)
 
-	def __compare_trades(self, trade0: AgentState.OpenTrade, trade1: AgentState.OpenTrade) -> bool:
-		return \
-			trade0.get_trade() == trade1.get_trade()
+	@staticmethod
+	def __compare_trades(trade0: AgentState.OpenTrade, trade1: AgentState.OpenTrade) -> bool:
+		return trade0.get_trade() == trade1.get_trade()
 
 	def __compare_agent_states(self, state0: AgentState, state1: AgentState) -> bool:
 		return \
@@ -70,7 +73,8 @@ class TraderNodeMemoryMatcher(MonteCarloAgent.NodeMemoryMatcher):
 		return self.__compare_agent_states(cue.get_agent_state(), memory.get_agent_state())
 
 	def _get_comparable_instruments(self, memory0: TraderNodeMemory, memory1: TraderNodeMemory) -> List[Tuple[str, str]]:
-		return self.get_repository().retrieve(memory0.node.id).get_market_state().get_tradable_pairs()
+		state: TradeState = self.get_repository().retrieve(memory0.node.id)
+		return state.get_market_state().get_tradable_pairs()
 
 	def __evaluate_stochastic_value(self, memory0: TraderNodeMemory, memory1: TraderNodeMemory) -> float:
 
@@ -107,7 +111,7 @@ class TraderNodeMemoryMatcher(MonteCarloAgent.NodeMemoryMatcher):
 				memory1
 			)
 
-	def is_match(self, cue: 'MonteCarloAgent.Node', memory: TraderNodeMemory) -> bool:
+	def is_match(self, cue: 'Node', memory: TraderNodeMemory) -> bool:
 		return self._compare_memories(
 			self.construct_memory(cue),
 			memory
@@ -116,16 +120,23 @@ class TraderNodeMemoryMatcher(MonteCarloAgent.NodeMemoryMatcher):
 
 class AttentionBasedTraderNodeMemoryMatcher(TraderNodeMemoryMatcher):
 
-	def __find_changed_instrument(self, state0: TradeState, state1: TradeState) -> Optional[Tuple[str, str]]:
+	@staticmethod
+	def __find_changed_instrument(state0: TradeState, state1: TradeState) -> Optional[Tuple[str, str]]:
 		for base_currency, quote_currency in state0.get_market_state().get_tradable_pairs():
 			if not np.all(
-					state0.get_market_state().get_state_of(base_currency, quote_currency) == state1.get_market_state().get_state_of(base_currency, quote_currency)
+					state0.get_market_state().get_state_of(
+						base_currency,
+						quote_currency
+					) == state1.get_market_state().get_state_of(
+						base_currency,
+						quote_currency
+					)
 			):
 				return base_currency, quote_currency
 
 		return None
 
-	def construct_memory(self, node: MonteCarloAgent.Node) -> TraderNodeMemory:
+	def construct_memory(self, node: Node) -> TraderNodeMemory:
 		attention_instrument = None
 		if node.parent is not None:
 			attention_instrument = self.__find_changed_instrument(
@@ -138,7 +149,11 @@ class AttentionBasedTraderNodeMemoryMatcher(TraderNodeMemoryMatcher):
 			attention_instrument=attention_instrument
 		)
 
-	def _get_comparable_instruments(self, memory0: AttentionBasedTraderNodeMemory, memory1: AttentionBasedTraderNodeMemory) -> List[Tuple[str, str]]:
+	def _get_comparable_instruments(
+			self,
+			memory0: AttentionBasedTraderNodeMemory,
+			memory1: AttentionBasedTraderNodeMemory
+	) -> List[Tuple[str, str]]:
 		for instrument in [memory0.attention_instrument, memory1.attention_instrument]:
 			if instrument is not None:
 				return [instrument]
@@ -148,15 +163,22 @@ class AttentionBasedTraderNodeMemoryMatcher(TraderNodeMemoryMatcher):
 	def _compare_memories(self, memory0: AttentionBasedTraderNodeMemory, memory1: AttentionBasedTraderNodeMemory) -> bool:
 		return \
 				not (
-						memory0.attention_instrument != memory1.attention_instrument and \
-						not(memory0.attention_instrument is None or memory1 .attention_instrument is None)
+						memory0.attention_instrument != memory1.attention_instrument and
+						not (memory0.attention_instrument is None or memory1 .attention_instrument is None)
 				) and \
 				super()._compare_memories(memory0, memory1)
 
 
-class TraderNodeShortTermMemory(MonteCarloAgent.NodeShortTermMemory):
+class TraderNodeShortTermMemory(NodeShortTermMemory):
 
-	def __init__(self, size: int, threshold: float, average_window: int = 1, balance_tolerance=None, attention_mode: bool=False):
+	def __init__(
+			self,
+			size: int,
+			threshold: float,
+			average_window: int = 1,
+			balance_tolerance=None,
+			attention_mode: bool = False
+	):
 		super().__init__(
 			size,
 			self.__create_matcher(
@@ -167,12 +189,13 @@ class TraderNodeShortTermMemory(MonteCarloAgent.NodeShortTermMemory):
 			)
 		)
 
-	def __create_matcher(self, attention: bool, *args, **kwargs) -> TraderNodeMemoryMatcher:
+	@staticmethod
+	def __create_matcher(attention: bool, *args, **kwargs) -> TraderNodeMemoryMatcher:
 		if attention:
 			return AttentionBasedTraderNodeMemoryMatcher(*args, **kwargs)
 		return TraderNodeMemoryMatcher(*args, **kwargs)
 
-	def _import_memory(self, node: MonteCarloAgent.Node) -> TraderNodeMemory:
+	def _import_memory(self, node: Node) -> TraderNodeMemory:
 		return self.get_matcher().construct_memory(node)
 
 	def _sort_memory(self, memories: List[TraderNodeMemory], recall_index=None) -> List[object]:
