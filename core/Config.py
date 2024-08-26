@@ -224,12 +224,12 @@ MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
 UPDATE_SAVE_PATH = "/kaggle/working/out"
-AGENT_DUMP_NODES_PATH = "/kaggle/working/out/graph_dumps"
-DUMP_CANDLESTICKS_PATH = None
+AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot"
+MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot.zip"
 
 class ResourceCategories:
 
