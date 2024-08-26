@@ -1,5 +1,6 @@
 import json
 import unittest
+from datetime import timedelta, datetime
 
 from core import Config
 from core.di import ServiceProvider
@@ -42,3 +43,16 @@ class MongoResourceRepository(unittest.TestCase):
 			self.repository.release(resource)
 
 		self.assertEqual(len(self.repository.get_locked()), 0)
+
+	def test_release_dead_locked(self):
+
+		dead_locked = [
+			res
+			for res in self.repository.get_locked()
+			if (datetime.now() - res.lock_datetime) > timedelta(hours=11)
+		]
+
+		print(f"Found Deadlocked: {len(dead_locked)}")
+		for i, res in enumerate(dead_locked):
+			self.repository.release(res)
+			print(f"Released {i+1} of {len(dead_locked)}")
