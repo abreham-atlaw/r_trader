@@ -20,7 +20,7 @@ class FilesMerger:
 			print(f"Completed {(i+1)*100/len(filenames) :.2f}%...", end="\r")
 
 	def split(self, x_path: str, y_path: str, in_path: str):
-		print(f"Splitting {x_path} and {y_path} into {in_path}")
+		print(f"Splitting {x_path} and {y_path} from {in_path}")
 		filenames = os.listdir(in_path)
 		for i, filename in enumerate(filenames):
 			array = np.load(os.path.join(in_path, filename))
