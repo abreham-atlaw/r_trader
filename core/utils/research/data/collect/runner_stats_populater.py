@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.losses import WeightedMSELoss
+from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, MeanSquaredClassError
 from core.utils.research.training.trainer import Trainer
 from lib.utils.file_storage import FileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -50,7 +50,7 @@ class RunnerStatsPopulater:
 			return loss[-1]
 		return loss
 
-	def __evaluate_model(self, model: nn.Module) -> typing.Tuple[float, float]:
+	def __evaluate_model(self, model: nn.Module) -> typing.Tuple[float, ...]:
 		return tuple([
 			self.__evaluate_model_loss(
 				model,
@@ -58,7 +58,12 @@ class RunnerStatsPopulater:
 			)
 			for loss in [
 				nn.CrossEntropyLoss(),
-				WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1)
+				WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1),
+				MeanSquaredClassError(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND, Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON),
+				ReverseMAWeightLoss(window_size=5, softmax=True),
+				ReverseMAWeightLoss(window_size=10, softmax=True),
+				ReverseMAWeightLoss(window_size=20, softmax=True),
+				ReverseMAWeightLoss(window_size=40, softmax=True),
 			]
 		])
 
@@ -79,12 +84,18 @@ class RunnerStatsPopulater:
 		losses = self.__evaluate_model(model)
 		id = self.__generate_id(path)
 
-		stats = RunnerStats(
-			id=id,
-			model_name=os.path.basename(path),
-			model_losses=losses,
-			session_timestamps=[]
-		)
+		stats = self.__repository.retrieve(id)
+		if stats is None:
+			print("[+]Creating...")
+			stats = RunnerStats(
+				id=id,
+				model_name=os.path.basename(path),
+				model_losses=losses,
+				session_timestamps=[]
+			)
+		else:
+			print("[+]Updating...")
+			stats.model_losses = losses
 		self.__repository.store(stats)
 		self.__clean(local_path)
 

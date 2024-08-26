@@ -57,6 +57,7 @@ class TorchModel(Model):
 		self.__model.eval()
 
 	def predict(self, inputs: np.ndarray) -> np.ndarray:
+		self.__model.eval()
 		with torch.no_grad():
 			return self.__model(torch.from_numpy(inputs.astype(np.float32))).detach().numpy()
 

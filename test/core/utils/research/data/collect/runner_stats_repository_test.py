@@ -91,8 +91,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
 			self.__get_valid_dps(),
-			time=datetime.now() - timedelta(hours=33),
-			model_losses=(1.5, None)
+			# time=datetime.now() - timedelta(hours=33),
+			# model_losses=(1.5, None, None)
 		),
 			key=lambda dp: dp.profit,
 			reverse=True
@@ -102,12 +102,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.assertGreater(len(dps), 0)
 		losses = [
 			[dp.model_losses[i] for dp in dps]
-			for i in range(2)
+			for i in range(len(dps[0].model_losses))
 		]
 		losses.append(
 			[np.prod(dp.model_losses) for dp in dps]
 		)
-		for i in range(3):
+		for i in range(len(losses)):
 			plt.figure()
 			plt.scatter(
 				losses[i],
@@ -151,6 +151,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.assertEqual(self.serializer.serialize(stat), self.serializer.serialize(retrieved_stat))
 
 		self.repository.remove(ID)
+
+	def test_clear_losses(self):
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			stat.model_losses = (0.0, 0.0, 0.0)
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_single_allocate(self):
 		stat = self.repository.allocate_for_runlive()
@@ -197,7 +204,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = self.__filter_stats(
 			self.__get_valid_dps(),
 			time=datetime.now() - timedelta(hours=9),
-			model_losses=[0.9, None],
+			model_losses=(0.9, None, 0.0),
 			max_profit=0
 		)
 
@@ -206,13 +213,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_sessions(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.__get_valid_dps(),
+				self.repository.retrieve_all(),
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.session_timestamps[-1],
-			reverse=True
+			key=lambda dp: dp.profit,
+			reverse=False
 		)
 
 		self.__print_dps(dps)
-
