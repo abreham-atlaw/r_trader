@@ -14,10 +14,12 @@ class SessionsManager:
 	def __init__(
 			self,
 			sessions_repository: SessionsRepository,
-			account_repository: AccountsRepository
+			account_repository: AccountsRepository,
+			dataset_key_alias: bool = True
 	):
 		self.__session_repository = sessions_repository
 		self.__account_repository = account_repository
+		self.__dataset_key_alias = dataset_key_alias
 
 	def __register_session(self, kernel: str, account: Account, gpu: bool):
 		self.__session_repository.add_session(Session(
@@ -75,8 +77,12 @@ class SessionsManager:
 			gpu: bool
 	):
 		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
+		meta_data = meta_data.copy()
 		meta_data["enable_gpu"] = gpu
 		meta_data["enable_internet"] = True
+		if self.__dataset_key_alias and meta_data.get("dataset_sources") is not None:
+			meta_data["kernel_sources"] = meta_data.pop("dataset_sources")
+
 		api = self.__create_api(account)
 		path = self.__pull_notebook(api, kernel)
 		try:
@@ -94,7 +100,7 @@ class SessionsManager:
 			kernel: str,
 			account: Account,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu: bool = True,
+			gpu: bool = False,
 			close_others: bool = True,
 			sync_notebooks: bool = True
 	):
@@ -121,7 +127,7 @@ class SessionsManager:
 			if ex.status == 429:
 				print("Rate limited. Waiting 30 seconds...")
 				time.sleep(30)
-				return self.__get_notebook_status(username, slug)
+				return self.__get_notebook_status(api, username, slug)
 			else:
 				raise ex
 

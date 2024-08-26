@@ -14,10 +14,12 @@ class FusedManager(SessionsManager):
 			self,
 			kernel: str,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu=True,
-			raise_exception=False
+			gpu=False,
+			raise_exception=False,
+			sync_notebooks=True
 	):
-		self.sync_notebooks()
+		if sync_notebooks:
+			self.sync_notebooks()
 		try:
 			account = self.__resources_manager.allocate_notebook(gpu)
 		except ResourceUnavailableException:
@@ -32,4 +34,4 @@ class FusedManager(SessionsManager):
 				print("[-]Resource Unavailable. Exiting...")
 				return
 
-		super().start_session(kernel, account, meta_data, gpu)
+		super().start_session(kernel, account, meta_data, gpu, sync_notebooks=False)

@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from pymongo import MongoClient
 
+from core.agent.utils.cache import Cache
 from core.utils.kaggle.data.models import Session, Account
 from .accounts_repository import AccountsRepository
 
@@ -57,6 +58,7 @@ class MongoSessionsRepository(SessionsRepository):
 		super().__init__()
 		self.__accounts_repository = accounts_repository
 		self.__collections = mongo_client[db_name][collection_name]
+		self.__cache = Cache()
 
 	def add_session(self, session: Session):
 		session_json = session.__dict__.copy()

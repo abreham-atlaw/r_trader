@@ -27,6 +27,13 @@ class FileStorage(ABC):
 	def listdir(self, path: str) -> typing.List[str]:
 		pass
 
+	def exists(self, path: str) -> bool:
+		try:
+			files = self.listdir(os.path.dirname(path))
+			return os.path.basename(path) in files
+		except FileNotFoundException:
+			return False
+
 	def download(self, path, download_path: Union[str, None] = None):
 		url = self.get_url(path)
 		command = f"wget --no-verbose \"{url}\""
@@ -177,12 +184,14 @@ class PCloudClient(FileStorage):
 		)
 
 	def listdir(self, path: str) -> typing.List[str]:
-		return self.__client.execute(
-			PCloudClient.ListDirRequest(
-				path
+		try:
+			return self.__client.execute(
+				PCloudClient.ListDirRequest(
+					path
+				)
 			)
-		)
-
+		except KeyError as ex:
+			raise FileNotFoundException()
 
 
 class LocalStorage(FileStorage):
