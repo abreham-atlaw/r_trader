@@ -23,7 +23,7 @@ class FusedManager(SessionsManager):
 		try:
 			account = self.__resources_manager.allocate_notebook(gpu)
 		except ResourceUnavailableException:
-			if not gpu:
+			if not gpu and raise_exception:
 				raise ResourceUnavailableException()
 			gpu = not gpu
 			try:
