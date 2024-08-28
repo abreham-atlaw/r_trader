@@ -264,7 +264,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		if self.__use_stm:
 			self.__store_to_stm(root)
-			self.__backup_and_clear_repository()
+			# self.__backup_and_clear_repository()
 		else:
 			self._state_repository.clear()
 		self.__manage_resources(end=True)
@@ -418,7 +418,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
-			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
+			stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
