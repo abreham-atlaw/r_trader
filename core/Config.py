@@ -217,7 +217,7 @@ CORE_MODEL_CONFIG.download = False
 OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
-    ("AUD", "USD"),
+	("AUD", "USD"),
 ]
 AGENT_STEP_TIME = 1 * 60
 MARKET_STATE_GRANULARITY = "M5"
@@ -238,9 +238,12 @@ OANDA_TRADING_ACCOUNT_ID = "f64b051b-46ab-4c72-8cb9-a7e69a38f052"
 
 MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
 
+for path in [DUMP_CANDLESTICKS_PATH, AGENT_DUMP_NODES_PATH]:
+	if not os.path.exists(path):
+		os.makedirs(path)
+
 
 class ResourceCategories:
-
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stat"
 	OANDA_SIM_ACCOUNTS = "oanda_accounts-sim-cum-0-it-2"
