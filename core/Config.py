@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import numpy as np
 from pytz import timezone
@@ -229,6 +230,9 @@ UPDATE_EXPORT_BATCH_SIZE = 64
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
+
+DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, f"temp/candlesticks/sim/{datetime.now().strftime('%Y%m%d-%H%M%S')}")
+AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, f"temp/graph_dumps/{datetime.now().strftime('%Y%m%d-%H%M%S')}")
 
 OANDA_TRADING_ACCOUNT_ID = "f64b051b-46ab-4c72-8cb9-a7e69a38f052"
 
