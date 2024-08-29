@@ -2,6 +2,7 @@ import typing
 from abc import ABC, abstractmethod
 
 from lib.rl.environment import Environment
+from temp import stats
 
 
 class Agent(ABC):
@@ -27,7 +28,11 @@ class Agent(ABC):
 	def perform_timestep(self):
 		state = self._get_environment().get_state()
 		action = self._policy(state)
-		return self._get_environment().do(action)
+
+		return stats.track_stats(
+			key="Environment.do",
+			func=lambda: self._get_environment().do(action)
+		)
 
 	def perform_episode(self):
 		while not self._get_environment().is_episode_over():

@@ -2,6 +2,7 @@ from typing import *
 from abc import abstractmethod, ABC
 
 from core import Config
+from temp import stats
 from .trade_state import TradeState
 from core.agent.trader_action import TraderAction
 from lib.rl.environment import Environment
@@ -57,7 +58,8 @@ class TradeEnvironment(Environment, ABC):
 
 		else:
 			self._open_trade(action)
-		self._state = self._refresh_state()
+
+		self._state = stats.track_stats(key="TradeEnvironment._refresh_state", func=lambda: self._refresh_state())
 		self._state.recent_balance = recent_balance
 
 	def render(self):

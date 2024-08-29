@@ -1,10 +1,11 @@
 import json
-import os.path
 import typing
+from datetime import datetime
 
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import os
 
 from core import Config
 
@@ -51,7 +52,9 @@ durations = {
 		'select',
 		'expand',
 		'simulate',
-		'backpropagate'
+		'backpropagate',
+
+		'perform_action'
 
 	]
 }
@@ -66,6 +69,21 @@ iterations = {
 possible_state_visits = []
 valid_actions = []
 prediction_inputs = []
+
+stat_dump_path = os.path.join(os.path.dirname(__file__), f"stats_dump/{datetime.now().timestamp()}.json")
+
+
+def track_stats(key, func, track_duration=True, track_iteration=True):
+	start_time = datetime.now()
+	rv = func()
+	if track_duration:
+		durations[key] = durations.get(key, 0) + (datetime.now() - start_time).total_seconds()
+	if track_iteration:
+		iterations[key] = iterations.get(key, 0) + 1
+	with open(stat_dump_path,"w") as f:
+		json.dump({"durations": durations, "iterations": iterations}, f)
+
+	return rv
 
 
 def get_percentages(total):

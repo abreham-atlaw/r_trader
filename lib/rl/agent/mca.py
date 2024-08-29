@@ -515,7 +515,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self._state_repository.store(root_node.id, state)
 		self.__init_current_graph(root_node)
 
-		self._monte_carlo_simulation(root_node)
+		stats.track_stats(
+			key="MonteCarloAgent._monte_carlo_simulation",
+			func=lambda: self._monte_carlo_simulation(root_node)
+		)
 
 		Logger.info(
 			f"Simulations Done: Iterations: {stats.iterations['main_loop']}, "
@@ -534,7 +537,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		raise Exception(f"Action Not Found in Graph. Action={action}")
 
 	def _get_optimal_action(self, state, **kwargs):
-		self._monte_carlo_tree_search(state)
+		stats.track_stats(
+			key="MonteCarloAgent._monte_carlo_tree_search",
+			func=lambda: self._monte_carlo_tree_search(state)
+		)
 		return super()._get_optimal_action(state, **kwargs)
 
 	def _explore(self, state):

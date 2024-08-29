@@ -227,9 +227,7 @@ UPDATE_EXPORT_BATCH_SIZE = 64
 # UPDATE_SAVE_PATH = "/kaggle/working/out"
 # DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 # AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
-AGENT_DUMP_NODES = True
-UPDATE_TRAIN = False
-AGENT_CRA_SIZE = 0
+
 
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, f"temp/candlesticks/sim/{datetime.now().strftime('%Y%m%d-%H%M%S')}")
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, f"temp/graph_dumps/{datetime.now().strftime('%Y%m%d-%H%M%S')}")

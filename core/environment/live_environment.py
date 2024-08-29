@@ -15,6 +15,7 @@ from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
 from core.environment.trade_environment import TradeEnvironment
+from temp import stats
 
 
 class LiveEnvironment(TradeEnvironment):
@@ -128,7 +129,7 @@ class LiveEnvironment(TradeEnvironment):
 
 	def __get_market_state(self, memory_size, granularity) -> MarketState:
 		market_state = MarketState(
-			currencies=self.__get_currencies(self.__all_instruments),
+			currencies=stats.track_stats(key="LiveEnvironment.__get_currencies", func=lambda: self.__get_currencies(self.__all_instruments)),
 			tradable_pairs=self.__instruments,
 			memory_len=memory_size
 		)
@@ -189,8 +190,14 @@ class LiveEnvironment(TradeEnvironment):
 		self.__trader.close_trades((base_currency, quote_currency))
 
 	def _initiate_state(self) -> TradeState:
-		market_state = self.__get_market_state(self._market_state_memory, self.__market_state_granularity)
-		agent_state = self.__get_agent_state(market_state)
+		market_state = stats.track_stats(
+			key="LiveEnvironment.__get_market_state",
+			func=lambda: self.__get_market_state(self._market_state_memory, self.__market_state_granularity)
+		)
+		agent_state = stats.track_stats(
+			key="LiveEnvironment.__get_agent_state",
+			func=lambda: self.__get_agent_state(market_state)
+		)
 
 		return TradeState(
 			agent_state=agent_state,
