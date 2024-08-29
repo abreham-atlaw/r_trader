@@ -59,7 +59,7 @@ class TradeEnvironment(Environment, ABC):
 		else:
 			self._open_trade(action)
 
-		self._state = stats.track_stats(key="TradeEnvironment._refresh_state", func=lambda: self._refresh_state())
+		self._state = self._refresh_state()
 		self._state.recent_balance = recent_balance
 
 	def render(self):

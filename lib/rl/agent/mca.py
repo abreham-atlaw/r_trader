@@ -21,6 +21,7 @@ from lib.utils.stm import ShortTermMemory, CueMemoryMatcher, ExactCueMemoryMatch
 from temp import stats
 from ..environment import ModelBasedState
 from ...network.rest_interface import Serializer
+from ...utils.devtools.performance import track_func_performance
 
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
@@ -485,6 +486,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self.__logical_backpropagate(node.parent)
 
+	@track_func_performance()
 	def _monte_carlo_simulation(self, root_node: 'MonteCarloAgent.Node'):
 		self._expand(root_node)
 
@@ -510,15 +512,13 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
+	@track_func_performance()
 	def _monte_carlo_tree_search(self, state) -> None:
 		root_node = MonteCarloAgent.Node(None, None, MonteCarloAgent.Node.NodeType.STATE)
 		self._state_repository.store(root_node.id, state)
 		self.__init_current_graph(root_node)
 
-		stats.track_stats(
-			key="MonteCarloAgent._monte_carlo_simulation",
-			func=lambda: self._monte_carlo_simulation(root_node)
-		)
+		self._monte_carlo_simulation(root_node)
 
 		Logger.info(
 			f"Simulations Done: Iterations: {stats.iterations['main_loop']}, "
@@ -537,10 +537,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		raise Exception(f"Action Not Found in Graph. Action={action}")
 
 	def _get_optimal_action(self, state, **kwargs):
-		stats.track_stats(
-			key="MonteCarloAgent._monte_carlo_tree_search",
-			func=lambda: self._monte_carlo_tree_search(state)
-		)
+		self._monte_carlo_tree_search(state)
 		return super()._get_optimal_action(state, **kwargs)
 
 	def _explore(self, state):

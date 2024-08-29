@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import *
 from abc import ABC, abstractmethod
 
+from lib.utils.devtools.performance import track_performance
 from lib.utils.logger import Logger
 from temp import stats
 
@@ -48,9 +49,9 @@ class Environment(ABC):
 		if not self.is_action_valid(action, self.get_state()):
 			raise ActionNotValidException()
 
-		stats.track_stats(
-			func=lambda: self.perform_action(action),
-			key="perform_action"
+		track_performance(
+			key="perform_action",
+			func=lambda: self.perform_action(action)
 		)
 		self.update_ui()
 		return self.get_reward()

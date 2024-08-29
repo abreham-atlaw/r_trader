@@ -10,6 +10,7 @@ from datetime import datetime
 
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
+from lib.utils.devtools.performance import track_func_performance
 from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
@@ -100,6 +101,7 @@ class LiveEnvironment(TradeEnvironment):
 		if action == Trader.TraderAction.SELL:
 			return TraderAction.Action.SELL
 
+	@track_func_performance()
 	def __get_agent_state(self, market_state: MarketState) -> AgentState:
 		balance = self.__trader.get_balance()
 		open_trades_raw: List[models.Trade] = self.__trader.get_open_trades()
@@ -121,15 +123,17 @@ class LiveEnvironment(TradeEnvironment):
 			)
 		return AgentState(balance, market_state, open_trades=open_trades, margin_rate=self.__trader.get_margin_rate())
 
+	@track_func_performance()
 	def __get_currencies(self, pairs: List[Tuple[str, str]]) -> List[str]:
 		currencies = []
 		for pair in pairs:
 			currencies += pair
 		return list(set(currencies))
 
+	@track_func_performance()
 	def __get_market_state(self, memory_size, granularity) -> MarketState:
 		market_state = MarketState(
-			currencies=stats.track_stats(key="LiveEnvironment.__get_currencies", func=lambda: self.__get_currencies(self.__all_instruments)),
+			currencies=self.__get_currencies(self.__all_instruments),
 			tradable_pairs=self.__instruments,
 			memory_len=memory_size
 		)
@@ -190,20 +194,15 @@ class LiveEnvironment(TradeEnvironment):
 		self.__trader.close_trades((base_currency, quote_currency))
 
 	def _initiate_state(self) -> TradeState:
-		market_state = stats.track_stats(
-			key="LiveEnvironment.__get_market_state",
-			func=lambda: self.__get_market_state(self._market_state_memory, self.__market_state_granularity)
-		)
-		agent_state = stats.track_stats(
-			key="LiveEnvironment.__get_agent_state",
-			func=lambda: self.__get_agent_state(market_state)
-		)
+		market_state = self.__get_market_state(self._market_state_memory, self.__market_state_granularity)
+		agent_state = self.__get_agent_state(market_state)
 
 		return TradeState(
 			agent_state=agent_state,
 			market_state=market_state
 		)
 
+	@track_func_performance()
 	def _refresh_state(self, state: TradeState = None) -> TradeState:
 		if state is None:
 			state = self.get_state()
