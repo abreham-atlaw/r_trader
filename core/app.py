@@ -2,6 +2,7 @@ import os
 import signal
 import sys
 import typing
+from datetime import datetime, timedelta
 
 from core import Config
 
@@ -159,12 +160,13 @@ class RTraderApplication:
 		if not self.is_setup:
 			self.setup()
 		if timeout is not None:
-			print(f"Using timeout: {timeout}")
+			print(f"Using timeout: {timeout}s(running from {datetime.now()} to {datetime.now() + timedelta(seconds=timeout)})")
 			signal.signal(signal.SIGALRM, self.__handle_timeout)
 			signal.alarm(timeout)
 		try:
 			self.RUN_FUNCTIONS[mode]()
 		except TimeoutException:
+			print(f"Timeout Quitting...")
 			return
 
 
