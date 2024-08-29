@@ -1,5 +1,7 @@
 import os
+import signal
 import sys
+import typing
 
 from core import Config
 
@@ -35,6 +37,9 @@ class RTraderApplication:
 	def __import_config(self):
 		from core import Config
 		return Config
+
+	def __handle_timeout(self, *_, **__):
+		raise TimeoutException()
 
 	def __init_db(self):
 		from lib.db import initialize_connection
@@ -135,14 +140,33 @@ class RTraderApplication:
 		self.__setup_agent(agent)
 		agent.loop()
 
+	@staticmethod
+	def __parse_args(key: str, args: list) -> typing.Optional[str]:
+		if key in args:
+			return args[args.index(key)+1]
+		return None
+
 	def run_args(self, args):
 		mode = args[1]
 		if mode not in self.RUN_FUNCTIONS.keys():
 			raise Exception(f"Invalid Argument {mode}")
+		timeout = self.__parse_args("-t", args)
+		if timeout is not None:
+			timeout = int(timeout)
+		self.run(mode, timeout=timeout)
 
-		self.run(mode)
-
-	def run(self, mode: str):
+	def run(self, mode: str, timeout: int = None):
 		if not self.is_setup:
 			self.setup()
-		self.RUN_FUNCTIONS[mode]()
+		if timeout is not None:
+			print(f"Using timeout: {timeout}")
+			signal.signal(signal.SIGALRM, self.__handle_timeout)
+			signal.alarm(timeout)
+		try:
+			self.RUN_FUNCTIONS[mode]()
+		except TimeoutException:
+			return
+
+
+class TimeoutException(Exception):
+	pass
