@@ -146,6 +146,10 @@ class SessionsManager:
 			if session.account is None:
 				print(f"Invalid session skipping...")
 				continue
-			if not self.is_notebook_running(session.kernel):
-				print(f"Finishing session")
-				self.finish_session(session.kernel, multiple=True)
+			try:
+				if not self.is_notebook_running(session.kernel):
+					print(f"Finishing session")
+					self.finish_session(session.kernel, multiple=True)
+			except Exception as ex:
+				print(f"Failed to finish session {session.kernel}")
+				print(ex)
