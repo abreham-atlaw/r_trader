@@ -231,7 +231,8 @@ AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
-OANDA_TRADING_ACCOUNT_ID = os.environ["OANDA_LOCAL_DEFAULT_ACCOUNT"]
+with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
 MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
 
