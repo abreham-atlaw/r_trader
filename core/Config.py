@@ -232,6 +232,7 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
 MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
+TIMEOUT = 1*60*60
 
 
 class ResourceCategories:
