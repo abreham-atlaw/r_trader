@@ -235,6 +235,8 @@ OANDA_TRADING_ACCOUNT_ID = os.environ["OANDA_LOCAL_DEFAULT_ACCOUNT"]
 
 MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
 
+TIMEOUT = int(0.5*60*60)
+
 
 class ResourceCategories:
 
