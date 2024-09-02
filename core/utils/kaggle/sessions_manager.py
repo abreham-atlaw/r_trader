@@ -15,11 +15,13 @@ class SessionsManager:
 			self,
 			sessions_repository: SessionsRepository,
 			account_repository: AccountsRepository,
-			dataset_key_alias: bool = True
+			dataset_key_alias: bool = True,
+			retry_patience: int = 10
 	):
 		self.__session_repository = sessions_repository
 		self.__account_repository = account_repository
 		self.__dataset_key_alias = dataset_key_alias
+		self.__retry_patience = retry_patience
 
 	def __register_session(self, kernel: str, account: Account, gpu: bool):
 		self.__session_repository.add_session(Session(
@@ -119,15 +121,15 @@ class SessionsManager:
 		for session in active_sessions:
 			self.__session_repository.finish_session(session)
 
-	def __get_notebook_status(self, api, username, slug):
+	def __get_notebook_status(self, api, username, slug, tries=0):
 		from kaggle.rest import ApiException
 		try:
 			return api.kernel_status(username, slug)
 		except ApiException as ex:
-			if ex.status == 429:
+			if ex.status == 429 and tries < self.__retry_patience:
 				print("Rate limited. Waiting 30 seconds...")
 				time.sleep(30)
-				return self.__get_notebook_status(api, username, slug)
+				return self.__get_notebook_status(api, username, slug, tries=tries+1)
 			else:
 				raise ex
 
