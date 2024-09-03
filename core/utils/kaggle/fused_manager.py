@@ -16,7 +16,7 @@ class FusedManager(SessionsManager):
 			meta_data: typing.Dict[str, typing.Any],
 			gpu=False,
 			raise_exception=False,
-			sync_notebooks=True
+			sync_notebooks=False
 	):
 		if sync_notebooks:
 			self.sync_notebooks()
