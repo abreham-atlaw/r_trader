@@ -14,6 +14,7 @@ class CNN(SavableModule):
 			self,
 			num_classes: int,
 			extra_len: int,
+			instruments_len: int,
 			conv_channels: typing.List[int],
 			kernel_sizes: typing.List[int],
 			ff_linear: LinearModel = None,
@@ -31,6 +32,7 @@ class CNN(SavableModule):
 		super(CNN, self).__init__()
 		self.args = {
 			'extra_len': extra_len,
+			'instruments_len': instruments_len,
 			'ff_linear': ff_linear,
 			'num_classes': num_classes,
 			'conv_channels': conv_channels,
@@ -47,6 +49,7 @@ class CNN(SavableModule):
 			'indicators': indicators
 		}
 		self.extra_len = extra_len
+		self.instruments_len = instruments_len
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
 		self.norm_layers = nn.ModuleList()
@@ -54,17 +57,18 @@ class CNN(SavableModule):
 
 		if indicators is None:
 			indicators = Indicators()
-		self.indicators = indicators
+		self.indicators_layer = indicators
 
 		if pool_sizes is None:
 			pool_sizes = [
 				0
 				for _ in kernel_sizes
 			]
-		conv_channels = [self.indicators.indicators_len] + conv_channels
+		conv_channels = [self.indicators_layer.indicators_len*self.instruments_len] + conv_channels
 
 		if isinstance(norm, bool):
 			norm = [norm for _ in range(len(conv_channels) - 1)]
+
 		if len(norm) != len(conv_channels) - 1:
 			raise ValueError("Norm size doesn't match layers size")
 
@@ -109,15 +113,38 @@ class CNN(SavableModule):
 		self.ff_linear = ff_linear
 		self.fc_layer = None
 		self.num_classes = num_classes
-		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
+		self.collapse_layer = nn.Linear(conv_channels[-1], self.instruments_len)
 		self.__init()
 
 	def __init(self):
-		init_data = torch.rand((1, self.input_size))
+		init_data = torch.rand((1, self.instruments_len+1, self.input_size))
 		self(init_data)
 
+	def indicators(self, sequences: torch.Tensor) -> torch.Tensor:
+		indicators = [
+			self.indicators_layer(sequences[:, i])
+			for i in range(sequences.shape[1])
+		]
+		return torch.cat(indicators, dim=1)
+
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
-		return torch.flatten(out, 1, 2)
+		return torch.transpose(
+			self.collapse_layer(
+				torch.transpose(
+					out,
+					1, 2
+				)
+			),
+			1, 2
+		)
+
+	def merge_extra(self, out: torch.Tensor, extra: torch.Tensor) -> torch.Tensor:
+		extra_repeated = torch.repeat_interleave(
+			torch.unsqueeze(extra, dim=1),
+			repeats=out.shape[1],
+			dim=1
+		)
+		return torch.concatenate((out, extra_repeated), dim=2)
 
 	def fc(self, out: torch.Tensor) -> torch.Tensor:
 		if self.fc_layer is None:
@@ -132,7 +159,8 @@ class CNN(SavableModule):
 		return self.fc_layer(out)
 
 	def forward(self, x):
-		seq = x[:, :-self.extra_len]
+		seq = x[:, :-1]
+		extra = x[:, -1, :self.extra_len]
 		out = self.indicators(seq)
 		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
 			out = norm(out)
@@ -141,9 +169,12 @@ class CNN(SavableModule):
 			out = pool_layer(out)
 			out = self.dropout(out)
 		out = self.collapse(out)
-		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
-		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
+		out = self.merge_extra(out, extra)
+		#
+		# out = self.collapse(out)
+		# out = out.reshape(out.size(0), -1)
+		# out = self.dropout(out)
+		# out = torch.cat((out, extra), dim=1)
 		out = self.fc(out)
 		return out
 

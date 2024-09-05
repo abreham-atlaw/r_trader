@@ -189,7 +189,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot_1.zip",
+	path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/multi-instrument-test-model.zip",
 	download=False
 )
 

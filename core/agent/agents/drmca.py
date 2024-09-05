@@ -14,6 +14,7 @@ from core.utils.research.model.model.wrapped import WrappedModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
 from lib.rl.agent.dta import Model, TorchModel
 from lib.rl.environment import ModelBasedState
+from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -73,7 +74,11 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			return encoded
 		encoded[action.action] = 1
 		if action.action != TraderAction.Action.CLOSE:
-			encoded[3] = state.agent_state.calc_required_margin(action.units, action.base_currency, action.quote_currency)/state.agent_state.get_margin_available()
+			encoded[3] = state.agent_state.calc_required_margin(
+				action.units,
+				action.base_currency,
+				action.quote_currency
+			) / state.agent_state.get_margin_available()
 		return encoded
 
 	def __encode_open_trade(self, trade: AgentState.OpenTrade, state: TradeState) -> np.ndarray:
@@ -81,7 +86,9 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		encoded[:2] = [trade.get_enter_value(), trade.get_current_value()]
 		encoded[trade.get_trade().action + 2] = 1
 		encoded[4] = trade.get_trade().margin_used / state.agent_state.get_balance()
-		encoded[5] = state.agent_state.to_agent_currency(trade.get_unrealized_profit(), trade.get_trade().quote_currency) / state.get_agent_state().get_balance()
+		encoded[5] = state.agent_state.to_agent_currency(
+			trade.get_unrealized_profit(), trade.get_trade().quote_currency
+		) / state.get_agent_state().get_balance()
 		return encoded
 
 	def __encode_open_trades(self, state: TradeState):
@@ -90,39 +97,62 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			raise ValueError("Found more open trades than `encode_max_open_trades`")
 		encoded = np.zeros((self.__OPEN_TRADE_ENCODE_SIZE * self.__encode_max_open_trades))
 		for i, trade in enumerate(open_trades):
-			encoded[i*self.__OPEN_TRADE_ENCODE_SIZE: (i+1)*self.__OPEN_TRADE_ENCODE_SIZE] = self.__encode_open_trade(trade, state)
+			encoded[
+				i*self.__OPEN_TRADE_ENCODE_SIZE:
+				(i+1)*self.__OPEN_TRADE_ENCODE_SIZE
+			] = self.__encode_open_trade(trade, state)
 		return encoded
 
+	@staticmethod
+	def __encode_market_state(state: TradeState) -> np.ndarray:
+		return np.array([
+			state.market_state.get_state_of(bc, qc)
+			for bc, qc in state.market_state.get_tradable_pairs()
+		])
+
+	def __encode_extra(self, state: TradeState, action: TraderAction) -> np.ndarray:
+		encoded_action = self.__encode_action(state, action)
+		open_trades = self.__encode_open_trades(state)
+		return np.concatenate((encoded_action, open_trades), axis=0)
+
+	@staticmethod
+	def __merge_encoded(encoded_market: np.ndarray, encoded_extra: np.ndarray) -> np.ndarray:
+		padded_extra = np.expand_dims(
+			np.pad(
+				encoded_extra,
+				(0, encoded_market.shape[1] - encoded_extra.shape[0]),
+				'constant',
+				constant_values=0
+			),
+			axis=0
+		)
+
+		return np.concatenate((encoded_market, padded_extra), axis=0)
+
+	@CacheDecorators.cached_method()
 	def __prepare_model_input(
 			self,
 			state: TradeState,
-			action: typing.Optional[TraderAction],
-			target_instrument: typing.Tuple[str, str]
+			action: TraderAction,
 	) -> np.ndarray:
+		encoded_market_state = self.__encode_market_state(state)
+		encoded_extra = self.__encode_extra(state, action)
 
-		def prepare_model_input(state: TradeState, action: typing.Optional[TraderAction], target_instrument: typing.Tuple[str, str]) -> np.ndarray:
-			time_series = state.get_market_state().get_state_of(target_instrument[0], target_instrument[1])
-			encoded_action = self.__encode_action(state, action)
-			open_trades = self.__encode_open_trades(state)
-			return np.concatenate((time_series, encoded_action, open_trades), axis=0)
-
-		return self.__dra_input_cache.cached_or_execute((state, action, target_instrument), lambda: prepare_model_input(state, action, target_instrument))
-
+		return self.__merge_encoded(encoded_market_state, encoded_extra)
 
 	def _prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
-		return self.__prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
+		return self.__prepare_model_input(
+			state,
+			action,
+		)
 
 	def _prepare_dra_input(self, state: TradeState, action: TraderAction) -> np.ndarray:
-		if action is None:
-			instrument = random.choice(state.get_market_state().get_tradable_pairs())
-		else:
-			instrument = action.base_currency, action.quote_currency
-		return self.__prepare_model_input(state, action, instrument)
+		return self.__prepare_model_input(state, action)
 
 	@staticmethod
 	def _parse_model_output(output: np.ndarray) -> typing.Tuple[np.ndarray, float]:
-		probability_distribution = output[:-1]
-		value = output[-1]
+		probability_distribution = output[:, :-1]
+		value = output[0, -1]
 		return probability_distribution, value
 
 	def _prepare_dra_output(self, state: TradeState, action: TraderAction, output: np.ndarray) -> float:
@@ -138,6 +168,17 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		output, _ = self._parse_model_output(output)
 		return super()._single_prediction_to_transition_probability_bound_mode(initial_state, output, final_state)
 
+	def __prepare_dra_train_output_instrument(self, state, final_state, instrument) -> np.ndarray:
+		percentage = final_state.market_state.get_current_price(
+			*instrument
+		) / state.market_state.get_current_price(
+			*instrument
+		)
+		bound_idx = self._find_gap_index(percentage)
+		output = np.zeros(len(self._state_change_delta_bounds) + 1)
+		output[bound_idx] = 1
+		return output
+
 	def _prepare_dra_train_output(
 			self,
 			state: TradeState,
@@ -145,12 +186,25 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			final_state: TradeState,
 			value: float
 	) -> np.ndarray:
-		instrument = self._get_target_instrument(state, action, final_state)
-		percentage = final_state.market_state.get_current_price(*instrument)/state.market_state.get_current_price(*instrument)
-		bound_idx = self._find_gap_index(percentage)
-		output = np.zeros(len(self._state_change_delta_bounds)+2)
-		output[bound_idx] = 1
-		output[-1] = value/state.agent_state.get_balance()
+
+		pds = np.array([
+			self.__prepare_dra_train_output_instrument(
+				state,
+				final_state,
+				instrument=instrument
+			)
+			for instrument in state.market_state.get_tradable_pairs()
+		])
+
+		value = value/state.agent_state.get_balance()
+
+		output = np.concatenate(
+			(
+				pds,
+				np.expand_dims(np.repeat(value, pds.shape[0]), axis=1)
+			),
+			axis=1
+		)
 		return output
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):

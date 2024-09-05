@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 from core import Config
 from core.agent.agents import TraderAgent
+from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.wrapped import WrappedModel
@@ -70,51 +71,80 @@ class CNNTest(unittest.TestCase):
 		ModelHandler.save(model, "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/model.zip")
 
 	def test_functionality(self):
-		# CHANNELS = [128 for i in range(5)]
-		# EXTRA_LEN = 4
-		# KERNEL_SIZES = [3 for _ in CHANNELS]
-		# VOCAB_SIZE = 431
-		# POOL_SIZES = [3 for _ in CHANNELS]
-		# DROPOUT_RATE = 0
-		# ACTIVATION = nn.LeakyReLU()
-		# INIT = None
-		# BLOCK_SIZE = 1028
-		# PADDING = 0
-		#
-		# USE_FF = False
-		# FF_LINEAR_BLOCK_SIZE = 256
-		# FF_LINEAR_OUTPUT_SIZE = 256
-		# FF_LINEAR_LAYERS = [256, 256]
-		# FF_LINEAR_ACTIVATION = nn.ReLU()
-		# FF_LINEAR_INIT = None
-		# FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
-		#
-		# if USE_FF:
-		# 	ff = LinearModel(
-		# 		block_size=FF_LINEAR_BLOCK_SIZE,
-		# 		vocab_size=FF_LINEAR_OUTPUT_SIZE,
-		# 		dropout_rate=DROPOUT_RATE,
-		# 		layer_sizes=FF_LINEAR_LAYERS,
-		# 		hidden_activation=FF_LINEAR_ACTIVATION,
-		# 		init_fn=FF_LINEAR_INIT,
-		# 		norm=FF_LINEAR_NORM
-		# 	)
-		# else:
-		# 	ff = None
-		#
-		# model = CNN(
-		# 	extra_len=EXTRA_LEN,
-		# 	num_classes=VOCAB_SIZE + 1,
-		# 	conv_channels=CHANNELS,
-		# 	kernel_sizes=KERNEL_SIZES,
-		# 	hidden_activation=ACTIVATION,
-		# 	pool_sizes=POOL_SIZES,
-		# 	dropout_rate=DROPOUT_RATE,
-		# 	padding=PADDING,
-		# 	ff_linear=ff,
-		# 	linear_collapse=True
-		# )
-		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/bemnetatlaw-drmca-cnn-111-experiment.zip")
+		CHANNELS = [128, 128] + [64 for _ in range(2)]
+		EXTRA_LEN = 124
+		INSTRUMENTS_LEN = 2
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 431
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0.3
+		ACTIVATION = nn.LeakyReLU()
+		BLOCK_SIZE = 1024
+		PADDING = 0
+		LINEAR_COLLAPSE = True
+		FLATTEN_COLLAPSE = True
+		AVG_POOL = True
+		NORM = [True] + [False for _ in CHANNELS[1:]]
+		LR = 1e-3
+
+		INDICATORS_DELTA = True
+		INDICATORS_SO = [14]
+		INDICATORS_RSI = [14]
+
+		USE_FF = True
+		FF_LINEAR_BLOCK_SIZE = 1024
+		FF_LINEAR_OUTPUT_SIZE = 1024
+		FF_LINEAR_LAYERS = []
+		FF_LINEAR_ACTIVATION = nn.ReLU()
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+		FF_DROPOUT = 0.5
+
+		BATCH_SIZE = 64
+		EPOCHS = 300
+		TIMEOUT = 10 * 60 * 60
+
+		DTYPE = torch.float32
+		NP_DTYPE = np.float32
+		if USE_FF:
+			ff = LinearModel(
+				block_size=FF_LINEAR_BLOCK_SIZE,
+				vocab_size=FF_LINEAR_OUTPUT_SIZE,
+				dropout_rate=FF_DROPOUT,
+				layer_sizes=FF_LINEAR_LAYERS,
+				hidden_activation=FF_LINEAR_ACTIVATION,
+				init_fn=FF_LINEAR_INIT,
+				norm=FF_LINEAR_NORM,
+			)
+		else:
+			ff = None
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI
+		)
+
+		model = CNN(
+			extra_len=EXTRA_LEN,
+			instruments_len=INSTRUMENTS_LEN,
+			num_classes=VOCAB_SIZE + 1,
+			conv_channels=CHANNELS,
+			kernel_sizes=KERNEL_SIZES,
+			hidden_activation=ACTIVATION,
+			pool_sizes=POOL_SIZES,
+			dropout_rate=DROPOUT_RATE,
+			padding=PADDING,
+			avg_pool=AVG_POOL,
+			linear_collapse=LINEAR_COLLAPSE,
+			norm=NORM,
+			ff_linear=ff,
+			indicators=indicators,
+			input_size=BLOCK_SIZE
+		)
+		ModelHandler.save(model, "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/multi-instrument-test-model.zip")
+
+		# model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/bemnetatlaw-drmca-cnn-111-experiment.zip")
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32

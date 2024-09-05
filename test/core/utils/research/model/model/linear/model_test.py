@@ -11,7 +11,6 @@ from core.utils.research.model.model.wrapped import WrappedModel
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
-
 class LinearTest(unittest.TestCase):
 
 	def test_functionality(self):

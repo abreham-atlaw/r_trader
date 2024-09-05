@@ -22,13 +22,13 @@ class SessionManagerTest(unittest.TestCase):
 		# 	username='bemnetatlaw',
 		# 	key='0c9625e07a328c93a9c27fb1dda49f1a'
 		# )
-		# manager.sync_notebooks()
-		manager.start_session(
-			kernel="inkoops/rtrader-maploss-runlive-sim-cnn-0",
-			account=account,
-			meta_data={
-				"dataset_sources": ["abrehamatlaw0/rtrader-datapreparer-cum-0-it-1-v-0"],
-			},
-			gpu=False,
-			sync_notebooks=False
-		)
+		manager.sync_notebooks()
+		# manager.start_session(
+		# 	kernel="abrehamalemu/rtrader-training-exp-0-cnn-19-cum-0-it-2-tot",
+		# 	account=account,
+		# 	meta_data={
+		# 		"dataset_sources": ["abrehamatlaw0/rtrader-datapreparer-cum-0-it-2-v-0"],
+		# 	},
+		# 	gpu=True,
+		# 	sync_notebooks=False
+		# )
