@@ -126,6 +126,19 @@ class CNNTest(unittest.TestCase):
 
 		self.assertEquals(y.shape, y_hat.shape)
 
+	def test_load_and_predict(self):
+
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot-2l.zip")
+		model.eval()
+		NP_DTYPE = np.float32
+
+		X = np.load("/home/abrehamatlaw/Downloads/1722305017.596668.npy").astype(NP_DTYPE)
+
+		with torch.no_grad():
+			y = model(torch.from_numpy(X))
+
+		self.assertIsNotNone(y)
+
 	def test_plot_probability_distribution(self):
 
 		agent = TraderAgent()

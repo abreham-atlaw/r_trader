@@ -10,7 +10,12 @@ from core.utils.research.data.prepare.file_size_cleaner import FileSizeCleaner
 class FileSizeCleanerTest(unittest.TestCase):
 
 	def setUp(self):
-		self.files = self.__generate_files("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/dummy")
+		self.path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/dummy"
+		self.files = self.__generate_files(self.path)
+		print(f"Files: {len(os.listdir(self.path))}")
+
+	def tearDown(self):
+		print(f"Files: {len(os.listdir(self.path))}")
 
 	def __generate_files(self, path):
 		paths = []
@@ -24,5 +29,9 @@ class FileSizeCleanerTest(unittest.TestCase):
 
 	def test_functionality(self):
 
-		cleaner = FileSizeCleaner()
+		cleaner = FileSizeCleaner(
+			accumulation_mode=True,
+			accumulation_path=self.path,
+			size=2
+		)
 		cleaner.start(self.files)
