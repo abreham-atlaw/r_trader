@@ -13,6 +13,7 @@ class FileSizeCleaner:
 		self.__accumulation_path = accumulation_path
 		self.__accumulation: np.ndarray = None
 		self.__accumulation_mode = accumulation_mode
+		self.__accumulated_files = []
 
 	def _generate_save_path(self) -> str:
 		return os.path.join(self.__accumulation_path, f"{datetime.now().timestamp()}.npy")
@@ -30,6 +31,7 @@ class FileSizeCleaner:
 		path = self._generate_save_path()
 		print(f"[+]Saving Accumulation {path}")
 		np.save(path, savable)
+		self.__accumulated_files.append(path)
 
 	def __accumulate(self, array: np.ndarray):
 		if not self.__accumulation_mode:
@@ -75,5 +77,6 @@ class FileSizeCleaner:
 			print(f"Removed Files: {len(removed_files)}")
 			print(f"Updated Files: {len(updated_files)}")
 			print(f"Clean Files: {len(clean_files)}")
+			print(f"Accumulated Files: {len(self.__accumulated_files)}")
 
 		return removed_files, updated_files, clean_files
