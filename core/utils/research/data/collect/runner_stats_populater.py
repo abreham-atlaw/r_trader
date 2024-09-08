@@ -64,7 +64,7 @@ class RunnerStatsPopulater:
 					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON
 				),
 				# ReverseMAWeightLoss(window_size=5, softmax=True),
-				ReverseMAWeightLoss(window_size=10, softmax=True),
+				# ReverseMAWeightLoss(window_size=10, softmax=True),
 				# ReverseMAWeightLoss(window_size=20, softmax=True),
 				# ReverseMAWeightLoss(window_size=40, softmax=True),
 			]
