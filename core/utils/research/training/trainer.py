@@ -70,9 +70,10 @@ class Trainer:
         init_data = torch.rand((1, model.input_size))
         model = model.to(torch.device("cpu"))
         model(init_data)
-        return model.to(self.device)
+        return model.to(self.device).float()
 
-    def __split_y(self, y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
+    @staticmethod
+    def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         return y[:, :-1], y[:, -1:]
 
     def __loss(self, y_hat, y):
@@ -137,7 +138,7 @@ class Trainer:
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                X, y = X.to(self.device), y.to(self.device)
+                X, y = X.to(self.device).type(X.type()), y.to(self.device).type(y.type())
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 
