@@ -52,28 +52,37 @@ class TrainerTest(unittest.TestCase):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
-		BATCH_SIZE = 8
-
-		CHANNELS = [432]
-		EXTRA_LEN = 4
-		KERNEL_SIZES = [3]
+		CHANNELS = [128, 128] + [64 for _ in range(2)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [0]
-		DROPOUT_RATE = 0
-		ACTIVATION = nn.Identity()
-		BLOCK_SIZE = 1028
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0.3
+		ACTIVATION = nn.LeakyReLU()
+		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
+		FLATTEN_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [True] + [False for _ in CHANNELS[1:]]
+		LR = 1e-3
 
-		USE_FF = False
-		FF_LINEAR_BLOCK_SIZE = 256
-		FF_LINEAR_OUTPUT_SIZE = 256
+		INDICATORS_DELTA = True
+		INDICATORS_SO = [14]
+		INDICATORS_RSI = [14]
+
+		USE_FF = True
+		FF_LINEAR_BLOCK_SIZE = 1024
+		FF_LINEAR_OUTPUT_SIZE = 1024
 		FF_LINEAR_LAYERS = []
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+		FF_DROPOUT = 0.5
+
+		BATCH_SIZE = 64
+		EPOCHS = 300
+		TIMEOUT = 10 * 60 * 60
 
 		INDICATOR = Indicators(
 			delta=True,
@@ -84,7 +93,7 @@ class TrainerTest(unittest.TestCase):
 			ff = LinearModel(
 				block_size=FF_LINEAR_BLOCK_SIZE,
 				vocab_size=FF_LINEAR_OUTPUT_SIZE,
-				dropout_rate=DROPOUT_RATE,
+				dropout_rate=FF_DROPOUT,
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
 				init_fn=FF_LINEAR_INIT,
@@ -92,6 +101,13 @@ class TrainerTest(unittest.TestCase):
 			)
 		else:
 			ff = None
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI
+		)
+
 		model = CNN(
 			extra_len=EXTRA_LEN,
 			num_classes=VOCAB_SIZE + 1,
@@ -102,10 +118,11 @@ class TrainerTest(unittest.TestCase):
 			dropout_rate=DROPOUT_RATE,
 			padding=PADDING,
 			avg_pool=AVG_POOL,
-			norm=NORM,
 			linear_collapse=LINEAR_COLLAPSE,
+			norm=NORM,
 			ff_linear=ff,
-			indicators=INDICATOR
+			indicators=indicators,
+			input_size=BLOCK_SIZE
 		)
 		# model = LinearModel(
 		# 	block_size=1028,
@@ -121,36 +138,36 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
+				"/home/abrehamatlaw/Downloads/Compressed/out_1/kaggle/input/rtrader-datapreparer-simsim-cum-0-it-2/out/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
-		test_dataset = BaseDataset(
-			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-			],
-		)
-		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
 		callbacks = [
-			CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			WeightStatsCallback()
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
 		]
 
-		trainer = Trainer(
-			model,
-			callbacks=callbacks,
-			max_norm=1,
-			clip_value=1,
-			log_gradient_stats=True
-		)
+		trainer = Trainer(model)
 		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
 		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
 
-		trainer.train(dataloader, epochs=10, progress=True, val_dataloader=test_dataloader)
+		trainer.train(
+			dataloader,
+			epochs=EPOCHS,
+			progress=True,
+			cls_loss_only=False
+		)
+
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
 	def test_functionality(self):
