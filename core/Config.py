@@ -220,7 +220,7 @@ AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 ]
 AGENT_FRICTION_TIME = 8
-AGENT_STEP_TIME = (1 * 60) - AGENT_FRICTION_TIME
+AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
@@ -234,13 +234,14 @@ AGENT_CRA_SIZE = 0
 with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
-MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot"
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn"
+MODEL_TMP_PATH = os.path.abspath("./out/")
 
-TIMEOUT = int(6*60*60)
+TIMEOUT = 3*60*60
 
 
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stat"
-	OANDA_SIM_ACCOUNTS = "oanda_accounts-sim-cum-0-it-2"
+	OANDA_SIM_ACCOUNTS = 'oanda-sim-accounts-3d'
