@@ -126,7 +126,9 @@ class CNN(SavableModule):
 			else:
 				self.fc_layer = nn.Sequential(
 					nn.Linear(out.shape[-1], self.ff_linear.input_size),
+					self.ff_linear.hidden_activation,
 					self.ff_linear,
+					self.ff_linear.hidden_activation,
 					nn.Linear(self.ff_linear.output_size, self.num_classes)
 				)
 		return self.fc_layer(out)
