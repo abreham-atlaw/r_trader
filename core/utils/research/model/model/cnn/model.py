@@ -110,14 +110,20 @@ class CNN(SavableModule):
 		self.fc_layer = None
 		self.num_classes = num_classes
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
+		self.collapse_norm_layer = None
 		self.__init()
 
 	def __init(self):
-		init_data = torch.rand((1, self.input_size))
+		init_data = torch.rand((8, self.input_size))
 		self(init_data)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
 		return torch.flatten(out, 1, 2)
+
+	def collapse_norm(self, out: torch.Tensor) -> torch.Tensor:
+		if self.collapse_norm_layer is None:
+			self.collapse_norm_layer = nn.BatchNorm1d(out.shape[1])
+		return self.collapse_norm_layer(out)
 
 	def fc(self, out: torch.Tensor) -> torch.Tensor:
 		if self.fc_layer is None:
@@ -142,6 +148,7 @@ class CNN(SavableModule):
 			out = self.dropout(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
+		out = self.collapse_norm(out)
 		out = self.dropout(out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.fc(out)
