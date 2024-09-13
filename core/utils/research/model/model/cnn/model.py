@@ -122,7 +122,7 @@ class CNN(SavableModule):
 
 	def collapse_norm(self, out: torch.Tensor) -> torch.Tensor:
 		if self.collapse_norm_layer is None:
-			self.collapse_norm_layer = nn.BatchNorm1d(out.shape[1])
+			self.collapse_norm_layer = nn.LayerNorm(out.shape[1])
 		return self.collapse_norm_layer(out)
 
 	def fc(self, out: torch.Tensor) -> torch.Tensor:
