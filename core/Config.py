@@ -118,7 +118,7 @@ AGENT_MIN_PROBABILITY = 1e-6
 AGENT_DISCOUNT_FACTOR = 1
 AGENT_DISCOUNT_FUNCTION = None
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
-AGENT_UCT_EXPLORE_WEIGHT = 0.01
+AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
@@ -150,10 +150,10 @@ AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 10
 AGENT_CRA_SIZE = 5
-AGENT_CRA_DISCOUNT = 0.7
+AGENT_CRA_DISCOUNT = 0.07
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = 10
-AGENT_DUMP_NODES = False
+AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
@@ -212,27 +212,27 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.path = "/home/abrehamatlaw/Downloads/Compressed/results_8/abrehamalemu-rtrader-training-exp-0-cnn-7-ss-cum-0-it-2-tot.zip"
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+# OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 ]
 AGENT_FRICTION_TIME = 4
-AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
+AGENT_STEP_TIME = (10 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
-UPDATE_SAVE_PATH = "/kaggle/working/out"
-DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
-AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+# UPDATE_SAVE_PATH = "/kaggle/working/out"
+# DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+# AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
-with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+# with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+# 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn"
 MODEL_TMP_PATH = os.path.abspath("./out/")
