@@ -35,15 +35,23 @@ class LinearModel(SavableModule):
 		layer_sizes = [block_size] + layer_sizes + [vocab_size]
 
 		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(layer_sizes) - 1)]
+			norm = [norm for self.layers[1] in range(len(layer_sizes) - 1)]
 		if len(norm) != len(layer_sizes) - 1:
 			raise ValueError("Norm size doesn't match layers size")
 		self.layers = nn.ModuleList()
+		self.norms = nn.ModuleList()
 
 		for i in range(len(layer_sizes) - 1):
 			if norm[i]:
-				self.layers.append(nn.LayerNorm(layer_sizes[i]))
-			self.layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
+				self.norms.append(nn.LayerNorm(layer_sizes[i]))
+			else:
+				self.norms.append(nn.Identity())
+			self.layers.append(
+				nn.Linear(
+					layer_sizes[i],
+					layer_sizes[i + 1]
+				)
+			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
 		if hidden_activation is None:
@@ -56,12 +64,13 @@ class LinearModel(SavableModule):
 			self.dropout = nn.Identity()
 
 	def forward(self, x):
-		for layer in self.layers[:-1]:
-			x = layer.forward(x)
-			x = self.hidden_activation(x)
-			x = self.dropout(x)
-		x = self.layers[-1](x)
-		return x
+		out = x
+		for norm, layer in zip(self.norms, self.layers):
+			out = norm(out)
+			out = layer.forward(out)
+			out = self.hidden_activation(out)
+			out = self.dropout(out)
+		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
 		return self.args
