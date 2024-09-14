@@ -7,7 +7,7 @@ import zipfile
 import os
 import importlib
 
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
 class ModelHandler:
@@ -24,7 +24,7 @@ class ModelHandler:
 
         model_config_copy = {}
         for key, value in model_config.items():
-            if isinstance(value, SavableModule):
+            if isinstance(value, SpinozaModule):
                 filename = f"{key}.zip"
                 ModelHandler.save(value, filename)
                 model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename
