@@ -62,7 +62,6 @@ class TrainerTest(unittest.TestCase):
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
-		FLATTEN_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [True] + [False for _ in CHANNELS[1:]]
 		LR = 1e-3
@@ -72,26 +71,14 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = [14]
 
 		USE_FF = True
-		FF_LINEAR_BLOCK_SIZE = 1024
-		FF_LINEAR_OUTPUT_SIZE = 1024
-		FF_LINEAR_LAYERS = []
+		FF_LINEAR_LAYERS = [1024, 1024, VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_DROPOUT = 0.5
-
-		BATCH_SIZE = 64
-		EPOCHS = 300
-		TIMEOUT = 10 * 60 * 60
-
-		INDICATOR = Indicators(
-			delta=True
-		)
 
 		if USE_FF:
 			ff = LinearModel(
-				block_size=FF_LINEAR_BLOCK_SIZE,
-				vocab_size=FF_LINEAR_OUTPUT_SIZE,
 				dropout_rate=FF_DROPOUT,
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
@@ -109,7 +96,6 @@ class TrainerTest(unittest.TestCase):
 
 		model = CNN(
 			extra_len=EXTRA_LEN,
-			num_classes=VOCAB_SIZE + 1,
 			conv_channels=CHANNELS,
 			kernel_sizes=KERNEL_SIZES,
 			hidden_activation=ACTIVATION,
@@ -119,7 +105,7 @@ class TrainerTest(unittest.TestCase):
 			avg_pool=AVG_POOL,
 			linear_collapse=LINEAR_COLLAPSE,
 			norm=NORM,
-			ff_linear=ff,
+			ff_block=ff,
 			indicators=indicators,
 			input_size=BLOCK_SIZE
 		)
@@ -140,7 +126,7 @@ class TrainerTest(unittest.TestCase):
 				"/home/abrehamatlaw/Downloads/Compressed/out_1/kaggle/input/rtrader-datapreparer-simsim-cum-0-it-2/out/train"
 			],
 		)
-		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+		dataloader = DataLoader(dataset, batch_size=8)
 
 		# test_dataset = BaseDataset(
 		# 	[
@@ -162,7 +148,7 @@ class TrainerTest(unittest.TestCase):
 
 		trainer.train(
 			dataloader,
-			epochs=EPOCHS,
+			epochs=10,
 			progress=True,
 			cls_loss_only=False
 		)
