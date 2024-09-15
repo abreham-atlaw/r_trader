@@ -90,10 +90,10 @@ class ModelHandler:
         model_config = ModelClass.import_config(model_config)
 
         # Create the model
-        model = ModelClass(**model_config)
+        model: SpinozaModule = ModelClass(**model_config)
 
         # Load the state dict
-        model.load_state_dict(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
+        model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
 
         shutil.rmtree(dirname, ignore_errors=True)
 
