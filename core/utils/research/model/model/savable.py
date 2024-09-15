@@ -19,6 +19,7 @@ class SpinozaModule(nn.Module, ABC):
 		self.input_size = input_size
 		if input_size is not None and auto_build:
 			self.init()
+		self.__state_dict_params = None
 
 	def init(self):
 		init_data = torch.rand((1,) + self.input_size[1:])
@@ -29,6 +30,9 @@ class SpinozaModule(nn.Module, ABC):
 		self.input_size = (None, ) + input_size[1:]
 		self.build(input_size)
 		self.built = True
+		if self.__state_dict_params is not None:
+			self.load_state_dict(*self.__state_dict_params[0], ** self.__state_dict_params[1])
+			self.__state_dict_params = None
 
 	@staticmethod
 	def _get_input_size(*args, **kwargs) -> torch.Size:
@@ -45,6 +49,10 @@ class SpinozaModule(nn.Module, ABC):
 		if not self.built:
 			self.__build(self._get_input_size(*args, **kwargs))
 		return self.call(*args, **kwargs)
+
+	def load_state_dict_lazy(self, *args, **kwargs):
+		self.__state_dict_params = args, kwargs
+		self.built = False
 
 	@abstractmethod
 	def export_config(self) -> typing.Dict[str, typing.Any]:
