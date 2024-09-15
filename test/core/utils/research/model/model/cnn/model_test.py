@@ -114,7 +114,7 @@ class CNNTest(unittest.TestCase):
 		# 	ff_linear=ff,
 		# 	linear_collapse=True
 		# )
-		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/bemnetatlaw-drmca-cnn-111-experiment.zip")
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-39-cum-0-it-2-tot.zip")
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32
