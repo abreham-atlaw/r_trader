@@ -71,64 +71,64 @@ class CNNTest(unittest.TestCase):
 		ModelHandler.save(model, "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/model.zip")
 
 	def test_functionality(self):
-		CHANNELS = [128, 128] + [64 for _ in range(2)]
-		EXTRA_LEN = 124
-		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = 431
-		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0.3
-		ACTIVATION = nn.LeakyReLU()
-		BLOCK_SIZE = 1024 + EXTRA_LEN
-		PADDING = 0
-		LINEAR_COLLAPSE = True
-		AVG_POOL = True
-		NORM = [True] + [False for _ in CHANNELS[1:]]
-		LR = 1e-3
-
-		INDICATORS_DELTA = True
-		INDICATORS_SO = [14]
-		INDICATORS_RSI = [14]
-
-		USE_FF = True
-		FF_LINEAR_LAYERS = [1024, 1024, VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = nn.ReLU()
-		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
-		FF_DROPOUT = 0.5
-
-		if USE_FF:
-			ff = LinearModel(
-				dropout_rate=FF_DROPOUT,
-				layer_sizes=FF_LINEAR_LAYERS,
-				hidden_activation=FF_LINEAR_ACTIVATION,
-				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
-			)
-		else:
-			ff = None
-
-		indicators = Indicators(
-			delta=INDICATORS_DELTA,
-			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
-		)
-
-		model = CNN(
-			extra_len=EXTRA_LEN,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE,
-			padding=PADDING,
-			avg_pool=AVG_POOL,
-			linear_collapse=LINEAR_COLLAPSE,
-			norm=NORM,
-			ff_block=ff,
-			indicators=indicators,
-			input_size=BLOCK_SIZE
-		)
-		# model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-31-cum-0-it-2-tot.zip")
+		# CHANNELS = [128, 128] + [64 for _ in range(2)]
+		# EXTRA_LEN = 124
+		# KERNEL_SIZES = [3 for _ in CHANNELS]
+		# VOCAB_SIZE = 431
+		# POOL_SIZES = [3 for _ in CHANNELS]
+		# DROPOUT_RATE = 0.3
+		# ACTIVATION = nn.LeakyReLU()
+		# BLOCK_SIZE = 1024 + EXTRA_LEN
+		# PADDING = 0
+		# LINEAR_COLLAPSE = True
+		# AVG_POOL = True
+		# NORM = [True] + [False for _ in CHANNELS[1:]]
+		# LR = 1e-3
+		#
+		# INDICATORS_DELTA = True
+		# INDICATORS_SO = [14]
+		# INDICATORS_RSI = [14]
+		#
+		# USE_FF = True
+		# FF_LINEAR_LAYERS = [1024, 1024, VOCAB_SIZE + 1]
+		# FF_LINEAR_ACTIVATION = nn.ReLU()
+		# FF_LINEAR_INIT = None
+		# FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+		# FF_DROPOUT = 0.5
+		#
+		# if USE_FF:
+		# 	ff = LinearModel(
+		# 		dropout_rate=FF_DROPOUT,
+		# 		layer_sizes=FF_LINEAR_LAYERS,
+		# 		hidden_activation=FF_LINEAR_ACTIVATION,
+		# 		init_fn=FF_LINEAR_INIT,
+		# 		norm=FF_LINEAR_NORM
+		# 	)
+		# else:
+		# 	ff = None
+		#
+		# indicators = Indicators(
+		# 	delta=INDICATORS_DELTA,
+		# 	so=INDICATORS_SO,
+		# 	rsi=INDICATORS_RSI
+		# )
+		#
+		# model = CNN(
+		# 	extra_len=EXTRA_LEN,
+		# 	conv_channels=CHANNELS,
+		# 	kernel_sizes=KERNEL_SIZES,
+		# 	hidden_activation=ACTIVATION,
+		# 	pool_sizes=POOL_SIZES,
+		# 	dropout_rate=DROPOUT_RATE,
+		# 	padding=PADDING,
+		# 	avg_pool=AVG_POOL,
+		# 	linear_collapse=LINEAR_COLLAPSE,
+		# 	norm=NORM,
+		# 	ff_block=ff,
+		# 	indicators=indicators,
+		# 	input_size=BLOCK_SIZE
+		# )
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-38-cum-0-it-2-tot.zip")
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32
