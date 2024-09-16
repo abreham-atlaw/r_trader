@@ -63,7 +63,7 @@ class TrainerTest(unittest.TestCase):
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [True] + [False for _ in CHANNELS[1:]]
+		NORM = [True] + [True for _ in CHANNELS[1:]]
 		LR = 1e-3
 
 		INDICATORS_DELTA = True
