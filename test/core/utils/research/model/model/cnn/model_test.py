@@ -118,8 +118,12 @@ class CNNTest(unittest.TestCase):
 
 		# DTYPE = torch.float32
 		NP_DTYPE = np.float32
-		X = np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train/X/1712734175.835725.npy").astype(NP_DTYPE)
-		y = np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train/y/1712734175.835725.npy").astype(NP_DTYPE)
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_exports/rtrader-datapreparer-simsim-cum-0-it-2/out/train/X/1725558208.724822.npy").astype(
+			NP_DTYPE)
+		y = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_exports/rtrader-datapreparer-simsim-cum-0-it-2/out/train/y/1725558208.724822.npy").astype(
+			NP_DTYPE)
 		#
 		with torch.no_grad():
 			y_hat: torch.Tensor = model(torch.from_numpy(X))
