@@ -123,7 +123,7 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Downloads/Compressed/out_1/kaggle/input/rtrader-datapreparer-simsim-cum-0-it-2/out/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=8)
