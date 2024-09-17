@@ -55,7 +55,7 @@ class ModelHandler:
                 os.remove(value)
 
     @staticmethod
-    def load(path):
+    def load(path, dtype=torch.float32):
         dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
         try:
@@ -97,4 +97,4 @@ class ModelHandler:
 
         shutil.rmtree(dirname, ignore_errors=True)
 
-        return model
+        return model.type(dtype)
