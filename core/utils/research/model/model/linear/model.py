@@ -4,6 +4,7 @@ import typing
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.layers import MinMaxNorm
 from core.utils.research.model.model.savable import SpinozaModule
 
 
@@ -61,7 +62,7 @@ class LinearModel(SpinozaModule):
 		for i in range(len(self.layers_sizes) - 1):
 
 			if self.norms_mask[i]:
-				self.norms.append(nn.LayerNorm(self.layers_sizes[i]))
+				self.norms.append(MinMaxNorm())
 			else:
 				self.norms.append(nn.Identity())
 
