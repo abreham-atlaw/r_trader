@@ -9,3 +9,4 @@ from .overlay_comibiner import *
 from .rsi import *
 from .so import *
 from .indicators import *
+from .minmax_norm import MinMaxNorm
