@@ -3,7 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, MinMaxNorm
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -67,7 +67,7 @@ class CNN(SpinozaModule):
 
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
-				self.norm_layers.append(DynamicLayerNorm())
+				self.norm_layers.append(MinMaxNorm())
 			else:
 				self.norm_layers.append(nn.Identity())
 			self.layers.append(
