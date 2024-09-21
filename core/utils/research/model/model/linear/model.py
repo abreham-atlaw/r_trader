@@ -1,51 +1,45 @@
 import importlib
 import typing
 
+import torch
 import torch.nn as nn
 
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
-class LinearModel(SavableModule):
+class LinearModel(SpinozaModule):
 
 	def __init__(
 			self,
-			block_size: int,
-			vocab_size: int,
 			layer_sizes: typing.List[int],
 			dropout_rate: float = 0,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			init_fn: typing.Optional[typing.Callable] = None,
 			norm: typing.Union[bool, typing.List[bool]] = False,
+			input_size: int = None
 	):
-		super(LinearModel, self).__init__()
-		# Save the arguments
+		super(LinearModel, self).__init__(input_size=input_size)
 		self.args = {
-			'block_size': block_size,
-			'vocab_size': vocab_size,
 			'layer_sizes': layer_sizes,
 			'dropout_rate': dropout_rate,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'norm': norm,
+			'input_size': input_size
 		}
-		self.input_size = block_size
-		self.output_size = vocab_size
+		self.output_size = layer_sizes[-1]
+		self.layers_sizes = [self.input_size] + layer_sizes
+		self.init_fn = init_fn
 
-		layer_sizes = [block_size] + layer_sizes + [vocab_size]
+		self.layers = None
+		self.norms = None
 
+		self.norms_mask = norm
 		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(layer_sizes) - 1)]
-		if len(norm) != len(layer_sizes) - 1:
+			self.norms_mask = [norm for _ in range(len(layer_sizes) - 1)]
+		if len(norm) != len(self.layers_sizes) - 1:
 			raise ValueError("Norm size doesn't match layers size")
-		self.layers = nn.ModuleList()
 
-		for i in range(len(layer_sizes) - 1):
-			if norm[i]:
-				self.layers.append(nn.LayerNorm(layer_sizes[i]))
-			self.layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
-			if init_fn is not None:
-				init_fn(self.layers[-1].weight)
 		if hidden_activation is None:
 			hidden_activation = nn.Identity()
 		self.hidden_activation = hidden_activation
@@ -55,13 +49,39 @@ class LinearModel(SavableModule):
 		else:
 			self.dropout = nn.Identity()
 
-	def forward(self, x):
-		for layer in self.layers[:-1]:
-			x = layer.forward(x)
-			x = self.hidden_activation(x)
-			x = self.dropout(x)
-		x = self.layers[-1](x)
-		return x
+	def build(self, input_size: torch.Size):
+		self.layers = nn.ModuleList()
+		self.norms = nn.ModuleList()
+
+		if self.layers_sizes[0] is None:
+			self.layers_sizes[0] = input_size[-1]
+
+		for i in range(len(self.layers_sizes) - 1):
+
+			if self.norms_mask[i]:
+				self.norms.append(nn.LayerNorm(self.layers_sizes[i]))
+			else:
+				self.norms.append(nn.Identity())
+
+			self.layers.append(
+				nn.Linear(
+					self.layers_sizes[i],
+					self.layers_sizes[i + 1]
+				)
+			)
+			if self.init_fn is not None:
+				self.init_fn(self.layers[-1].weight)
+
+	def call(self, x):
+		out = x
+		for norm, layer, i in zip(self.norms, self.layers, range(len(self.layers))):
+			out = norm(out)
+			out = layer.forward(out)
+			if i == len(self.layers) - 1:
+				continue
+			out = self.hidden_activation(out)
+			out = self.dropout(out)
+		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
 		return self.args
