@@ -48,6 +48,50 @@ class SineWaveDataset(Dataset):
 
 class TrainerTest(unittest.TestCase):
 
+	def test_linear(self):
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/linear_test.zip"
+
+		VOCAB_SIZE = 431
+		DROPOUT = 0.5
+		LAYER_SIZES = [128, 128, VOCAB_SIZE + 1]
+		HIDDEN_ACTIVATION = nn.LeakyReLU()
+		INIT_FUNCTION = None
+		NORM = [True] + [False for _ in LAYER_SIZES[1:]]
+		BLOCK_SIZE = 1148
+		LR = 1e-3
+
+		model = LinearModel(
+			dropout_rate=DROPOUT,
+			layer_sizes=LAYER_SIZES,
+			hidden_activation=HIDDEN_ACTIVATION,
+			init_fn=INIT_FUNCTION,
+			norm=NORM,
+			input_size=BLOCK_SIZE
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		trainer = Trainer(model)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(
+			dataloader,
+			epochs=10,
+			progress=True,
+			cls_loss_only=False
+		)
+
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+
+
 	def test_cnn_model(self):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
@@ -289,3 +333,4 @@ class TrainerTest(unittest.TestCase):
 		trainer.summary()
 
 		self.assertIsNotNone(model)
+
