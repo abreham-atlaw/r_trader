@@ -25,8 +25,6 @@ class LinearTest(unittest.TestCase):
 		INIT = None
 
 		model = LinearModel(
-			block_size=BLOCK_SIZE,
-			vocab_size=VOCAB_SIZE,
 			dropout_rate=DROPOUT_RATE,
 			layer_sizes=LAYER_SIZES,
 			hidden_activation=ACTIVATION,
@@ -35,7 +33,7 @@ class LinearTest(unittest.TestCase):
 		)
 
 		# model = ModelHandler.load("/home/abreham/Downloads/Compressed/bemnetatlaw-rtrader-linear-wl-0.zip")
-		ModelHandler.save(model, "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/bemnetatlaw-drmca-linear-0.zip")
+		ModelHandler.save(model, "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-24-cum-0-it-2-tot.zip")
 
 		loss_fn = WeightedMSELoss(size=449, a=0.01, softmax=True)
 		DTYPE = torch.float32
@@ -52,3 +50,16 @@ class LinearTest(unittest.TestCase):
 
 		loss = loss_fn(y_hat, torch.from_numpy(y))
 		self.assertEqual(y_hat_classes.shape, (X.shape[0],))
+
+	def test_load_and_predict(self):
+
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-33-cum-0-it-2-tot.zip")
+
+		NP_DTYPE = np.float32
+		X = np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(NP_DTYPE)
+		y = np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/y/1724671615.45445.npy").astype(NP_DTYPE)
+
+		with torch.no_grad():
+			y_hat: torch.Tensor = model(torch.from_numpy(X))
+
+		self.assertEquals(y.shape, y_hat.shape)

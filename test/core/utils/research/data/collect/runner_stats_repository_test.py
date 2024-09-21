@@ -213,12 +213,15 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_sessions(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_all(),
+				self.__get_valid_dps(),
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.profit,
+			key=lambda dp: dp.session_timestamps[-1],
 			reverse=False
 		)
 
 		self.__print_dps(dps)
+
+	def test_release_all(self):
+		self.repository.retrieve_non_locked()

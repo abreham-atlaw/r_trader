@@ -217,6 +217,7 @@ MODEL_TMP_PATH = os.path.abspath("./out/")
 
 MAX_LOSS = 1.5
 
+WEIGHTED_MSE_ALPHA = 1e-3
 
 class ResourceCategories:
 
