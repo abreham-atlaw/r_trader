@@ -20,7 +20,7 @@ class RunnerStatsRepository:
 			db_name: str = "runner_stats",
 			collection_name: str = "runner_stats",
 			select_weight: float = 0.5,
-			max_loss: float = 1.5
+			max_loss: float = Config.RUNNER_STAT_MAX_LOSS
 	):
 		db = client[db_name]
 		self._collection = db[collection_name]
