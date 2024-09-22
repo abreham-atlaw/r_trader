@@ -112,7 +112,7 @@ class CNN(SpinozaModule):
 			out = self.dropout(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		# out = self.dropout(out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.ff_block(out)
 		return out
