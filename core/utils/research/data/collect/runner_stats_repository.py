@@ -95,10 +95,7 @@ class RunnerStatsRepository:
 			key=lambda stat: self.__get_select_sort_field(stat) + (self.__select_weight * np.mean([self.__get_select_sort_field(stat) for stat in pool]) * random.random())
 		)
 		if len(sorted_pool) == 0:
-			if allow_locked:
-				raise Exception("No stats available")
-			print("No stats available. Allocating for locked...")
-			return self.allocate_for_runlive(allow_locked=True)
+			raise Exception("No stats available")
 		selected = sorted_pool[0]
 		selected.add_session_timestamp(datetime.now())
 		self.__resman.lock_by_id(selected.id)
