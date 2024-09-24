@@ -242,5 +242,5 @@ RUNNER_STAT_MAX_LOSS = 6.0
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
-	RUNNER_STAT = "runner_stat"
+	RUNNER_STAT = "runner_stats"
 	OANDA_SIM_ACCOUNTS = 'oanda-sim-accounts-3d'
