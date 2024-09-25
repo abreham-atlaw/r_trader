@@ -238,6 +238,7 @@ MODEL_TMP_PATH = os.path.abspath("./out/")
 TIMEOUT = 6*60*60
 
 RUNNER_STAT_MAX_LOSS = 6.0
+RUNNER_STAT_MODEL_NAME_KEY = "linear"
 
 class ResourceCategories:
 
