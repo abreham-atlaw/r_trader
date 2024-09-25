@@ -16,5 +16,8 @@ class RunnerStatsSerializer(Serializer):
 		if json_.get("_id"):
 			json_.pop("_id")
 
+		if "profits" not in json_.keys():
+			json_["profits"] = [json_.pop("profit")] + [0 for _ in range(len(json_["session_timestamps"]) - 1)]
+
 		json_["model_losses"] = tuple(json_["model_losses"])
 		return RunnerStats(**json_)
