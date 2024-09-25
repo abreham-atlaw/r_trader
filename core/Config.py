@@ -232,7 +232,7 @@ AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn"
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
 TIMEOUT = 6*60*60
