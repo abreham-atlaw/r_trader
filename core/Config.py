@@ -248,7 +248,7 @@ class QueenConfigs:
 class WorkerConfigs:
 	BATCH_SIZE = 64
 	EPOCHS = 100
-	TIMEOUT = 10
+	TIMEOUT = 10*60
 
 
 class ResourceCategories:
