@@ -241,7 +241,7 @@ class QueenConfigs:
 
 	POPULATION_SIZE = 10
 	EPOCHS = 10
-	TIMEOUT = int(0.5*60*60)
+	TIMEOUT = int(0.1*60*60)
 
 
 class WorkerConfigs:
