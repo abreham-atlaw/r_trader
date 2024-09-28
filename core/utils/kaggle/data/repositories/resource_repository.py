@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from pymongo import MongoClient
 
+from core.agent.utils.cache import Cache
 from core.utils.kaggle.data.models.resource import Resource, Resources
 from core.utils.kaggle.data.models.resource import Account
 from . import SessionsRepository
@@ -25,18 +26,26 @@ class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 		self.__sessions_repository = sessions_repository
 		self.__allowed_gpu_instances = allowed_gpu_instances
 		self.__allowed_cpu_instances = allowed_cpu_instances
+		self.__cache = Cache()
 
 	@abstractmethod
 	def _get_resources(self, account: Account) -> Resources:
 		pass
 
+	@abstractmethod
+	def _save_resources(self, resources: Resources):
+		pass
+
 	def get_resources(self, account: Account) -> Resources:
-		resources = self._get_resources(account)
+		resources = self.__cache.cached_or_execute(key=account.username, func=lambda : self._get_resources(account))
 		resources.get_resource(Resources.Devices.CPU).remaining_instances = self.__allowed_cpu_instances - len(
 			self.__sessions_repository.filter(gpu=False, active=True, account=account))
 		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_gpu_instances - len(
 			self.__sessions_repository.filter(gpu=True, active=True, account=account))
 		return resources
+
+	def save_resources(self, resources: Resources):
+		self.__cache.remove(resources.account.username)
 
 
 class MongoResourcesRepository(SessionBasedResourcesRepository):
@@ -55,7 +64,7 @@ class MongoResourcesRepository(SessionBasedResourcesRepository):
 			resources_list.append(resource)
 		return Resources(account, resources_list)
 
-	def save_resources(self, resources: Resources):
+	def _save_resources(self, resources: Resources):
 		for resource in resources:
 			self.__collection.update_one(
 				{"device": resource.device, "account": resources.account.username},

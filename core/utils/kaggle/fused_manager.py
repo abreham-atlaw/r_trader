@@ -14,7 +14,7 @@ class FusedManager(SessionsManager):
 			self,
 			kernel: str,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu=True,
+			gpu=False,
 			raise_exception=False,
 			sync_notebooks=True
 	):
@@ -24,8 +24,10 @@ class FusedManager(SessionsManager):
 			account = self.__resources_manager.allocate_notebook(gpu)
 		except ResourceUnavailableException:
 			if not gpu:
-				raise ResourceUnavailableException()
-			gpu = not gpu
+				if raise_exception:
+					raise ResourceUnavailableException()
+				return
+			gpu = False
 			try:
 				account = self.__resources_manager.allocate_notebook(gpu)
 			except ResourceUnavailableException:
