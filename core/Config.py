@@ -213,7 +213,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-POPULATION_UPLOAD_PATH = "/Apps/RTrader/maploss/ga/cnn/"
+POPULATION_UPLOAD_PATH = "/Apps/RTrader/ga/population/cnn/"
 POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
 
 MODEL_SAVE_PATH = "/kaggle/working/out/"
