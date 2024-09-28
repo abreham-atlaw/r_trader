@@ -69,7 +69,7 @@ class Trainer:
         )
 
     def __initialize_model(self, model: nn.Module) -> nn.Module:
-        init_data = torch.rand((1, model.input_size))
+        init_data = torch.rand((1,) + model.input_size[1:])
         model = model.to(torch.device("cpu"))
         model(init_data)
         return model.to(self.device).float()

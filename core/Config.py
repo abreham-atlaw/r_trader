@@ -215,6 +215,8 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+WEIGHTED_MSE_ALPHA = 1e-3
+
 POPULATION_UPLOAD_PATH = "/Apps/RTrader/ga/population/cnn/"
 POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
 
