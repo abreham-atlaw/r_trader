@@ -46,7 +46,8 @@ class ModelBuilder:
 		return LinearModel(
 			layer_sizes=config.layers + [config.vocab_size],
 			dropout_rate=config.dropout,
-			hidden_activation=nn.ReLU()
+			hidden_activation=nn.ReLU(),
+			input_size=config.block_size
 		)
 
 	def build(self, config: ModelConfig) -> nn.Module:

@@ -74,12 +74,12 @@ class OptimizerTest(unittest.TestCase):
 	def test_linear_optimizer(self):
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 
@@ -99,7 +99,8 @@ class OptimizerTest(unittest.TestCase):
 		]
 
 		optimizer = LinearOptimizer(
-			vocab_size=449,
+			vocab_size=Config.VOCAB_SIZE,
+			input_size=Config.INPUT_SIZE,
 			dataset=dataset,
 			test_dataset=test_dataset,
 			epochs=1,

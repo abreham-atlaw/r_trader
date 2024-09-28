@@ -13,9 +13,11 @@ class LinearOptimizer(Optimizer):
 			*args,
 			layers_range: typing.Tuple[int, int] = (0, 32),
 			layer_size_range: typing.Tuple[int, int] = (32, 2048),
+			input_size: typing.Tuple[int, ...] = None,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
+		self.__input_size = input_size
 		self.__layers_range, self.__layer_size_range = layers_range, layer_size_range
 
 	def generate_random_config(self) -> LinearConfig:
@@ -27,7 +29,8 @@ class LinearOptimizer(Optimizer):
 			vocab_size=self._vocab_size,
 			layers=layers,
 			dropout=ChoiceUtils.choice_continuous(0, 1,),
-			norm=ChoiceUtils.generate_list(True, False, size=len(layers))
+			norm=ChoiceUtils.generate_list(True, False, size=len(layers)),
+			block_size=self.__input_size
 		)
 
 	def _generate_initial_generation(self) -> typing.List[ModelConfig]:

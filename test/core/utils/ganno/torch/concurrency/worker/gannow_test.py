@@ -1,8 +1,8 @@
 import unittest
 
 from core import Config
-from core.utils.ganno.torch.concurrent.queen.gannoq import CNNOptimizerQueen
-from core.utils.ganno.torch.concurrent.worker.gannow import CNNOptimizerWorker
+from core.utils.ganno.torch.concurrency.queen.gannoq import CNNOptimizerQueen
+from core.utils.ganno.torch.concurrency.worker.gannow import CNNOptimizerWorker
 from core.utils.research.data.load.dataset import BaseDataset
 
 

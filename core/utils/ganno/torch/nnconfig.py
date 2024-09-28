@@ -33,19 +33,13 @@ class LinearConfig(ModelConfig):
 	layers: typing.List[int]
 	dropout: float
 	norm: typing.List[bool]
+	block_size: typing.Optional[int] = None
 
 	def generate_offspring(self: 'LinearConfig', spouse: 'LinearConfig') -> 'LinearConfig':
-		min_len = min(len(self.layers), len(spouse.layers))
-		max_len = max(len(self.layers), len(spouse.layers))
-		new_len = random.randint(min_len, max_len)
-
-		layers_pool = self.layers + spouse.layers
-		random.shuffle(layers_pool)
-
-		new_layers = layers_pool[:new_len]
 
 		return LinearConfig(
 			vocab_size=self.vocab_size,
+			block_size=self.block_size,
 
 			layers=ChoiceUtils.list_select(
 				self.layers,
