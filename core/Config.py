@@ -234,7 +234,6 @@ INDICATORS_DELTA = True
 INDICATORS_SO = [14]
 INDICATORS_RSI = [14]
 
-PCLOUD_FOLDER = MODEL_UPLOAD_PATH
 VOCAB_SIZE = 431
 
 
@@ -243,6 +242,12 @@ class QueenConfigs:
 	POPULATION_SIZE = 10
 	EPOCHS = 10
 	TIMEOUT = int(0.5*60*60)
+
+
+class WorkerConfigs:
+	BATCH_SIZE = 64
+	EPOCHS = 100
+	TIMEOUT = 10
 
 
 class ResourceCategories:
