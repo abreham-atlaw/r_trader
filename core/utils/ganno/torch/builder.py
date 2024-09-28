@@ -1,7 +1,6 @@
 from torch import nn
 
-from core.Config import FF_LINEAR_BLOCK_SIZE, FF_LINEAR_OUTPUT_SIZE, FF_LINEAR_LAYERS, FF_LINEAR_INIT, FF_LINEAR_NORM, \
-	INDICATORS_DELTA, INDICATORS_SO, INDICATORS_RSI
+from core.Config import FF_LINEAR_LAYERS, FF_LINEAR_INIT, FF_LINEAR_NORM, INDICATORS_DELTA, INDICATORS_SO, INDICATORS_RSI
 from core.utils.ganno.torch.nnconfig import ModelConfig, CNNConfig, TransformerConfig, LinearConfig
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
@@ -14,24 +13,15 @@ class ModelBuilder:
 	def __build_conv(self, config: CNNConfig) -> nn.Module:
 		return CNN(
 			extra_len=config.extra_len,
-			num_classes=config.vocab_size + 1,
 			conv_channels=[layer.features for layer in config.layers],
 			kernel_sizes=[layer.kernel_size for layer in config.layers],
-			hidden_activation=nn.ReLU(),
+			hidden_activation=nn.PReLU(),
 			pool_sizes=[layer.pooling for layer in config.layers],
 			dropout_rate=config.dropout,
 			padding=0,
 			linear_collapse=True,
 			norm=[layer.norm for layer in config.layers],
-			ff_linear=LinearModel(
-				block_size=FF_LINEAR_BLOCK_SIZE,
-				vocab_size=FF_LINEAR_OUTPUT_SIZE,
-				dropout_rate=config.dropout,
-				layer_sizes=FF_LINEAR_LAYERS,
-				hidden_activation=nn.ReLU(),
-				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
-			),
+			ff_block=self.__build_linear(config.ff_block),
 			indicators=Indicators(
 				delta=INDICATORS_DELTA,
 				so=INDICATORS_SO,
@@ -54,9 +44,7 @@ class ModelBuilder:
 
 	def __build_linear(self, config: LinearConfig) -> nn.Module:
 		return LinearModel(
-			block_size=config.block_size,
-			vocab_size=config.vocab_size,
-			layer_sizes=config.layers,
+			layer_sizes=config.layers + [config.vocab_size],
 			dropout_rate=config.dropout,
 			hidden_activation=nn.ReLU()
 		)

@@ -2,6 +2,7 @@ import unittest
 
 from torch import nn
 
+from core import Config
 from core.utils.ganno.torch.builder import ModelBuilder
 from core.utils.ganno.torch.nnconfig import CNNConfig, ConvLayer, TransformerConfig, LinearConfig
 from core.utils.research.model.model.cnn.model import CNN
@@ -27,7 +28,13 @@ class BuilderTest(unittest.TestCase):
 				]
 			],
 			dropout=0.1,
-			vocab_size=499
+			vocab_size=Config.VOCAB_SIZE,
+			ff_block=LinearConfig(
+				vocab_size=Config.VOCAB_SIZE,
+				layers=[128, 128, 432],
+				dropout=0.5,
+
+			)
 		)
 
 		model = builder.build(config)
