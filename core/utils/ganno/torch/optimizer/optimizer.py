@@ -59,9 +59,9 @@ class Optimizer(GeneticAlgorithm, ABC):
 			model,
 			callbacks=self.__trainer_callback
 		)
-		trainer.cls_loss_function = nn.CrossEntropyLoss(),
-		trainer.reg_loss_function = nn.MSELoss(),
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3),
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=1e-3)
 		if self.__train_timeout is not None:
 			self.__set_timeout()
 		try:

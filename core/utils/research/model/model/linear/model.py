@@ -18,7 +18,7 @@ class LinearModel(SpinozaModule):
 			norm: typing.Union[bool, typing.List[bool]] = False,
 			input_size: int = None
 	):
-		super(LinearModel, self).__init__(input_size=input_size)
+		super(LinearModel, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
 			'layer_sizes': layer_sizes,
 			'dropout_rate': dropout_rate,
@@ -28,7 +28,7 @@ class LinearModel(SpinozaModule):
 			'input_size': input_size
 		}
 		self.output_size = layer_sizes[-1]
-		self.layers_sizes = [self.input_size] + layer_sizes
+		self.layers_sizes = [input_size] + layer_sizes
 		self.init_fn = init_fn
 
 		self.layers = None
@@ -48,6 +48,8 @@ class LinearModel(SpinozaModule):
 			self.dropout = nn.Dropout(dropout_rate)
 		else:
 			self.dropout = nn.Identity()
+		if input_size is not None:
+			self.init()
 
 	def build(self, input_size: torch.Size):
 		self.layers = nn.ModuleList()
