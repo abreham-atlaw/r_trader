@@ -16,7 +16,8 @@ class LinearModel(SpinozaModule):
 			hidden_activation: typing.Optional[nn.Module] = None,
 			init_fn: typing.Optional[typing.Callable] = None,
 			norm: typing.Union[bool, typing.List[bool]] = False,
-			input_size: int = None
+			input_size: int = None,
+			softmax: bool = True
 	):
 		super(LinearModel, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -25,11 +26,14 @@ class LinearModel(SpinozaModule):
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'norm': norm,
-			'input_size': input_size
+			'input_size': input_size,
+			'softmax': softmax
 		}
 		self.output_size = layer_sizes[-1]
 		self.layers_sizes = [input_size] + layer_sizes
 		self.init_fn = init_fn
+
+		self.softmax = nn.Softmax(dim=1) if softmax else nn.Identity()
 
 		self.layers = None
 		self.norms = None
@@ -83,6 +87,7 @@ class LinearModel(SpinozaModule):
 				continue
 			out = self.hidden_activation(out)
 			out = self.dropout(out)
+		out = self.softmax(out)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
