@@ -7,7 +7,7 @@ import numpy as np
 from .msce import MeanSquaredClassError
 
 
-class MutliLoss(nn.Module):
+class MultiLoss(nn.Module):
 
 	def __init__(self, losses: typing.List[nn.Module], weights: typing.Union[typing.List[float], np.ndarray, torch.Tensor] = None):
 		super().__init__()
@@ -26,7 +26,7 @@ class MutliLoss(nn.Module):
 		)
 
 
-class MSCECrossEntropyLoss(MutliLoss):
+class MSCECrossEntropyLoss(MultiLoss):
 
 	def __init__(self, classes: typing.Union[np.ndarray, torch.Tensor], epsilon: float = None, device=None, *args, **kwargs):
 		super().__init__([MeanSquaredClassError(classes, epsilon, device), nn.CrossEntropyLoss()], *args, **kwargs)
