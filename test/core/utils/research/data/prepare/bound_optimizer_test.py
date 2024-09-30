@@ -32,15 +32,21 @@ class BoundOptimizerTest(unittest.TestCase):
 		self.assertEqual(len(bounds), N)
 
 	def test_get_weights(self):
+		EXPORT_PATH = f"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/bounds/weights/{datetime.now().timestamp()}.json"
 
-		with open("/home/abrehamatlaw/Downloads/bound.json", "r") as f:
+		with open("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/res/bounds/01.json", "r") as f:
 			bounds = json.load(f)
 
 		weights = self.generator.get_weights(bounds)
+
+		with open(EXPORT_PATH, "w") as f:
+			json.dump(weights, f)
+			print(f"Exported to: {EXPORT_PATH}")
 
 		plt.figure()
 		plt.scatter(bounds, weights)
 
 		self.generator.plot_bounds(bounds)
+
 
 		self.assertEqual(len(weights), len(bounds))
