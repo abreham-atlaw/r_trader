@@ -1,5 +1,6 @@
 import os
 import random
+import typing
 import uuid
 
 import numpy as np
@@ -68,13 +69,14 @@ class BoundGenerator:
 		])
 		y_classes = np.argmax(y, axis=1)
 		classes, frequencies = np.unique(y_classes, return_counts=True)
+
+		classes, frequencies = [[arr[i] for i in range(len(classes)) if classes[i] < len(bounds)] for arr in [classes, frequencies]]
+
 		frequencies = frequencies / np.sum(frequencies)
 		os.system(f"rm -fr \"{path}\"")
 		return classes, frequencies
 
 	def __plot(self, bounds, indexes, frequencies):
-		plt.close('all')
-
 		plt.figure()
 		plt.scatter(indexes, frequencies)
 
@@ -105,11 +107,22 @@ class BoundGenerator:
 			bounds = self.__generate(n, bounds)
 		return bounds
 
+	def plot_bounds(self, bounds):
+		self.__filter_valid(bounds, threshold=0, plot=True)
+
 	def generate(self, n, plot=False):
 		print(f"Generating {n} bounds...")
 		bounds = self.__generate(n, [])
 
 		if plot:
-			self.__filter_valid(bounds, threshold=0, plot=True)
+			self.plot_bounds(bounds)
 
 		return bounds
+
+	def get_weights(self, bounds: typing.List[float]) -> typing.List[float]:
+		indexes, frequencies = self.__get_frequencies(bounds)
+
+		weights = np.ones((len(bounds),))
+		weights[indexes] = np.sum(frequencies) / frequencies
+
+		return list(weights)
