@@ -67,6 +67,7 @@ class BoundGenerator:
 		])
 		y_classes = np.argmax(y, axis=1)
 		classes, frequencies = np.unique(y_classes, return_counts=True)
+		frequencies = frequencies / np.sum(frequencies)
 		os.system(f"rm -fr \"{path}\"")
 		return classes, frequencies
 
