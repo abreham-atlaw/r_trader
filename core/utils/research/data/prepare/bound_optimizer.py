@@ -70,8 +70,6 @@ class BoundGenerator:
 		y_classes = np.argmax(y, axis=1)
 		classes, frequencies = np.unique(y_classes, return_counts=True)
 
-		classes, frequencies = [[arr[i] for i in range(len(classes)) if classes[i] < len(bounds)] for arr in [classes, frequencies]]
-
 		frequencies = frequencies / np.sum(frequencies)
 		os.system(f"rm -fr \"{path}\"")
 		return classes, frequencies
@@ -122,7 +120,7 @@ class BoundGenerator:
 	def get_weights(self, bounds: typing.List[float]) -> typing.List[float]:
 		indexes, frequencies = self.__get_frequencies(bounds)
 
-		weights = np.ones((len(bounds),))
+		weights = np.ones((len(bounds) + 1,))
 		weights[indexes] = np.sum(frequencies) / frequencies
 
 		return list(weights)

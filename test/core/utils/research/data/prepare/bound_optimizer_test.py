@@ -5,6 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from core import Config
 from core.utils.research.data.prepare.bound_optimizer import BoundGenerator
 
 
@@ -44,9 +45,8 @@ class BoundOptimizerTest(unittest.TestCase):
 			print(f"Exported to: {EXPORT_PATH}")
 
 		plt.figure()
-		plt.scatter(bounds, weights)
+		plt.scatter(bounds + [bounds[-1] + Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON], weights)
 
 		self.generator.plot_bounds(bounds)
 
-
-		self.assertEqual(len(weights), len(bounds))
+		self.assertEqual(len(weights), len(bounds)+1)
