@@ -20,7 +20,8 @@ class RunnerStatsRepository:
 			db_name: str = "runner_stats",
 			collection_name: str = "runner_stats",
 			select_weight: float = 0.5,
-			max_loss: float = 1.5
+			max_loss: float = Config.MAX_LOSS,
+			model_name_key: str = ""
 	):
 		db = client[db_name]
 		self._collection = db[collection_name]
@@ -28,13 +29,14 @@ class RunnerStatsRepository:
 		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
 		self.__select_weight = select_weight
 		self.__max_loss = max_loss
+		self.__model_name_key = model_name_key
 
 	def __get_select_sort_field(self, stat: RunnerStats) -> float:
 		return stat.duration
 
 	def __filter_select(self, stats: typing.List[RunnerStats]):
 		return list(filter(
-			lambda stat: stat.model_losses[0] <= self.__max_loss,
+			lambda stat: stat.model_losses[0] <= self.__max_loss and self.__model_name_key in stat.model_name,
 			stats
 		))
 
@@ -87,9 +89,7 @@ class RunnerStatsRepository:
 			pool = self.retrieve_all()
 		else:
 			pool = self.retrieve_non_locked()
-		pool = self.__filter_select(
-			pool
-		)
+
 		sorted_pool = sorted(
 			pool,
 			key=lambda stat: self.__get_select_sort_field(stat) + (self.__select_weight * np.mean([self.__get_select_sort_field(stat) for stat in pool]) * random.random())

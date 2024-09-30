@@ -3,20 +3,19 @@ import typing
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
-class CNN(SavableModule):
+class CNN(SpinozaModule):
 
 	def __init__(
 			self,
-			num_classes: int,
 			extra_len: int,
 			conv_channels: typing.List[int],
 			kernel_sizes: typing.List[int],
-			ff_linear: LinearModel = None,
+			ff_block: LinearModel = None,
 			indicators: typing.Optional[Indicators] = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
@@ -28,11 +27,10 @@ class CNN(SavableModule):
 			input_size: int = 1028,
 			norm: typing.Union[bool, typing.List[bool]] = False,
 	):
-		super(CNN, self).__init__()
+		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
 			'extra_len': extra_len,
-			'ff_linear': ff_linear,
-			'num_classes': num_classes,
+			'ff_block': ff_block,
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
@@ -50,7 +48,6 @@ class CNN(SavableModule):
 		self.layers = nn.ModuleList()
 		self.pool_layers = nn.ModuleList()
 		self.norm_layers = nn.ModuleList()
-		self.input_size = input_size
 
 		if indicators is None:
 			indicators = Indicators()
@@ -70,7 +67,7 @@ class CNN(SavableModule):
 
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
-				self.norm_layers.append(nn.BatchNorm1d(conv_channels[i]))
+				self.norm_layers.append(DynamicLayerNorm())
 			else:
 				self.norm_layers.append(nn.Identity())
 			self.layers.append(
@@ -93,45 +90,18 @@ class CNN(SavableModule):
 			else:
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
-		if ff_linear is None:
-			self.fc = nn.Linear(conv_channels[-1]+self.extra_len, num_classes)
-		else:
-			self.fc = nn.Sequential(
-				nn.Linear(conv_channels[-1] + self.extra_len, ff_linear.input_size),
-				ff_linear,
-				nn.Linear(ff_linear.output_size, num_classes)
-			)
-
 		if dropout_rate > 0:
 			self.dropout = nn.Dropout(dropout_rate)
 		else:
 			self.dropout = nn.Identity()
-		self.ff_linear = ff_linear
-		self.fc_layer = None
-		self.num_classes = num_classes
+		self.ff_block = ff_block
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
-		self.__init()
-
-	def __init(self):
-		init_data = torch.rand((1, self.input_size))
-		self(init_data)
+		self.init()
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
 		return torch.flatten(out, 1, 2)
 
-	def fc(self, out: torch.Tensor) -> torch.Tensor:
-		if self.fc_layer is None:
-			if self.ff_linear is None:
-				self.fc_layer = nn.Linear(out.shape[-1], self.num_classes)
-			else:
-				self.fc_layer = nn.Sequential(
-					nn.Linear(out.shape[-1], self.ff_linear.input_size),
-					self.ff_linear,
-					nn.Linear(self.ff_linear.output_size, self.num_classes)
-				)
-		return self.fc_layer(out)
-
-	def forward(self, x):
+	def call(self, x):
 		seq = x[:, :-self.extra_len]
 		out = self.indicators(seq)
 		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
@@ -144,7 +114,7 @@ class CNN(SavableModule):
 		out = out.reshape(out.size(0), -1)
 		out = self.dropout(out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
-		out = self.fc(out)
+		out = self.ff_block(out)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:

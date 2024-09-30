@@ -7,8 +7,9 @@ from .delta import Delta
 from .sign import SignFilter
 
 class RelativeStrengthIndex(OverlayIndicator):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, epsilon=1e-7, **kwargs):
         super().__init__(*args, **kwargs)
+        self.epsilon = epsilon
         self.delta = Delta()
         self.gain_filter = SignFilter(1)
         self.loss_filter = SignFilter(-1)
@@ -23,4 +24,4 @@ class RelativeStrengthIndex(OverlayIndicator):
             -1 * self.loss_filter(percentage),
             dim=2
         )
-        return 1 - (1 / (1 + average_gain / average_loss))
+        return 1 - (1 / (1 + average_gain / (average_loss + self.epsilon)))

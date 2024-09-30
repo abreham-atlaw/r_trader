@@ -16,6 +16,7 @@ class ConvLayer:
 	features: int
 	padding: int = 1
 	pooling: int = 0
+	norm: bool = False
 
 
 @dataclass
@@ -30,6 +31,8 @@ class ModelConfig(Species):
 class CNNConfig(ModelConfig):
 	layers: typing.List[ConvLayer]
 	dropout: float = 0
+	extra_len: int = 124
+	block_size: int = 1024 + extra_len
 
 	def reproduce(self, spouse: 'CNNConfig', preferred_offsprings: int) -> typing.List['Species']:
 		configs = []
@@ -51,7 +54,6 @@ class CNNConfig(ModelConfig):
 class TransformerConfig(ModelConfig):
 	kernel_size: int
 	emb_size: int
-	block_size: int
 	num_heads: int
 	ff_size: int
 
@@ -80,7 +82,6 @@ class TransformerConfig(ModelConfig):
 class LinearConfig(ModelConfig):
 	layers: typing.List[int]
 	dropout: float
-	block_size: int
 
 	def __generate_offspring(self: 'LinearConfig', spouse: 'LinearConfig') -> 'LinearConfig':
 		min_len = min(len(self.layers), len(spouse.layers))
