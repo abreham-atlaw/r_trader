@@ -10,7 +10,8 @@ from torch.optim import Adam
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
+from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
+	MSCECrossEntropyLoss, LogLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
@@ -77,7 +78,11 @@ class TrainerTest(unittest.TestCase):
 		dataloader = DataLoader(dataset, batch_size=8)
 
 		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.cls_loss_function = LogLoss(MSCECrossEntropyLoss(
+			classes=np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
+			epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
+			device=trainer.device
+		))
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
 
