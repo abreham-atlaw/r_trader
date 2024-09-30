@@ -214,6 +214,9 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+WEIGHTED_MSE_ALPHA = 1e-3
+
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
