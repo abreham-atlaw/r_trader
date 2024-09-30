@@ -53,6 +53,7 @@ class BoundGenerator:
 			test_split_size=0.1,
 			granularity=5,
 			batch_size=int(1e9),
+			verbose=False
 		)
 
 		path = self.__prepare_tmp_path()
