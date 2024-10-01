@@ -1,9 +1,8 @@
-import random
 import typing
 
 from .optimizer import Optimizer
 from ..choice_utils import ChoiceUtils
-from ..nnconfig import CNNConfig, ConvLayer, ModelConfig, LinearConfig
+from ..nnconfig import ModelConfig, LinearConfig
 
 
 class LinearOptimizer(Optimizer):
