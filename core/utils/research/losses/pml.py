@@ -24,7 +24,7 @@ class ProximalMaskedLoss(nn.Module):
 			ProximalMaskedLoss.__f(t, n, p) for t in range(n)
 		])
 
-	def forward(self, y, y_hat) -> torch.Tensor:
+	def forward(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		y_hat = self.activation(y_hat)
 
 		y_mask = torch.sum(
