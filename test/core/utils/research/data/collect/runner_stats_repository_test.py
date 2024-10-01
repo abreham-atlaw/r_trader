@@ -57,8 +57,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			time: datetime = None,
 			model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
-			max_profit: float = None
+			max_profit: float = None,
+			model_key: str = None
 	) -> typing.List[RunnerStats]:
+
+		if model_key is not None:
+			dps = [
+				dp
+				for dp in dps
+				if model_key in dp.model_name
+			]
 
 		if time is not None:
 			dps = [
@@ -203,7 +211,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_least_loss_losing_stats(self):
 		dps = self.__filter_stats(
 			self.__get_valid_dps(),
-			time=datetime.now() - timedelta(hours=9),
+			# time=datetime.now() - timedelta(hours=),
 			model_losses=(4.5,),
 			max_profit=0
 		)
@@ -214,6 +222,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.repository.retrieve_all(),
+				model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),

@@ -11,7 +11,8 @@ from torch.utils.data import DataLoader
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, MeanSquaredClassError
+from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, \
+	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVariance, OutputBatchVariance
 from core.utils.research.training.trainer import Trainer
 from lib.utils.file_storage import FileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -58,15 +59,18 @@ class RunnerStatsPopulater:
 			)
 			for loss in [
 				nn.CrossEntropyLoss(),
-				# WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1),
-				# MeanSquaredClassError(
-				# 	Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-				# 	Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON
-				# ),
-				# ReverseMAWeightLoss(window_size=5, softmax=True),
-				# ReverseMAWeightLoss(window_size=10, softmax=True),
-				# ReverseMAWeightLoss(window_size=20, softmax=True),
-				# ReverseMAWeightLoss(window_size=40, softmax=True),
+				WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1),
+				MeanSquaredClassError(
+					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON
+				),
+				ReverseMAWeightLoss(window_size=5, softmax=True),
+				ReverseMAWeightLoss(window_size=10, softmax=True),
+				ReverseMAWeightLoss(window_size=20, softmax=True),
+				ReverseMAWeightLoss(window_size=40, softmax=True),
+				PredictionConfidenceScore(softmax=True),
+				OutputClassesVariance(softmax=True),
+				OutputBatchVariance(softmax=True),
 			]
 		])
 
