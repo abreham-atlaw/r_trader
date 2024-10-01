@@ -40,13 +40,14 @@ class LinearConfig(ModelConfig):
 				self.layers,
 				spouse.layers,
 				discrete=False,
-				round_mode=True
+				round_mode=True,
+				noise=0.2
 			),
 
 			dropout=ChoiceUtils.choice_continuous(
 				self.dropout,
 				spouse.dropout,
-				noise=0.1,
+				noise=0.2,
 				min_value=0,
 				max_value=1
 			),

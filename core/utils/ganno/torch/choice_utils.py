@@ -23,10 +23,12 @@ class ChoiceUtils:
 			min_value=None,
 			max_value=None
 	):
-		value = random.uniform(a, b)
 
 		if noise is not None:
-			pass  # TODO
+			d = b - a
+			a, b = a - d * noise, b + d * noise
+
+		value = random.uniform(a, b)
 
 		if min_value:
 			value = max(min_value, value)
@@ -44,7 +46,8 @@ class ChoiceUtils:
 			a: typing.List,
 			b: typing.List,
 			discrete: bool = True,
-			round_mode: bool = False
+			round_mode: bool = False,
+			noise: float = None
 	) -> typing.List:
 		min_len = min(len(a), len(b))
 		max_len = max(len(a), len(b))
@@ -60,7 +63,8 @@ class ChoiceUtils:
 				new_value = ChoiceUtils.choice_continuous(
 					a[i],
 					b[i],
-					round_mode=round_mode
+					round_mode=round_mode,
+					noise=noise
 				)
 
 			mixed_values.append(
