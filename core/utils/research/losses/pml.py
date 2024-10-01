@@ -8,7 +8,7 @@ class ProximalMaskedLoss(nn.Module):
 		super().__init__(*args, **kwargs)
 		self.n = n
 		self.p = p
-		self.activation = nn.Softmax() if softmax else nn.Identity()
+		self.activation = nn.Softmax(dim=1) if softmax else nn.Identity()
 		self.mask = self.__generate_mask(n, p).to(device)
 		self.epsilon = epsilon
 		self.device = device
