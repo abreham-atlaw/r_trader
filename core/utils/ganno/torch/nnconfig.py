@@ -1,12 +1,7 @@
 import typing
 from dataclasses import dataclass
-from enum import Enum
 import random
 
-import torch.nn as nn
-from torch.optim import Optimizer
-
-from core.Config import ModelConfig
 from core.utils.ganno.torch.choice_utils import ChoiceUtils
 from lib.ga import Species
 
