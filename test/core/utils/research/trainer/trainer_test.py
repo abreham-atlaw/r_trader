@@ -78,11 +78,12 @@ class TrainerTest(unittest.TestCase):
 		dataloader = DataLoader(dataset, batch_size=8)
 
 		trainer = Trainer(model)
-		trainer.cls_loss_function = LogLoss(MSCECrossEntropyLoss(
+		trainer.cls_loss_function = MSCECrossEntropyLoss(
 			classes=np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
 			epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
-			device=trainer.device
-		))
+			device=trainer.device,
+			weights=[0.1, 0.9]
+		)
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
 
