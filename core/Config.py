@@ -217,7 +217,7 @@ PREDICTION_MODELS = [
 
 WEIGHTED_MSE_ALPHA = 1e-3
 
-POPULATION_UPLOAD_PATH = "/Apps/RTrader/ga/population/cnn/"
+POPULATION_UPLOAD_PATH = "/Apps/RTrader/ga/population/linear/"
 POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
 
 MODEL_SAVE_PATH = "/kaggle/working/out/"
