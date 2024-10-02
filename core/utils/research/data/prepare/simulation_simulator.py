@@ -73,7 +73,7 @@ class SimulationSimulator:
 		print(f"Preparing X...")
 		return np.concatenate(
 			(
-				sequences,
+				sequences[:, :-1],
 				np.zeros((sequences.shape[0], self.__extra_len))
 			),
 			axis=1
