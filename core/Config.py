@@ -217,7 +217,7 @@ PREDICTION_MODELS = [
 MODEL_IN_PATH = "/Apps/RTrader/maploss/models/linear"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
-MAX_LOSS = 1.5
+MAX_LOSS = 6.0
 
 WEIGHTED_MSE_ALPHA = 1e-3
 
