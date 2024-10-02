@@ -214,6 +214,13 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+MODEL_IN_PATH = "/Apps/RTrader/maploss/models/linear"
+MODEL_TMP_PATH = os.path.abspath("./out/")
+
+MAX_LOSS = 1.5
+
+WEIGHTED_MSE_ALPHA = 1e-3
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
