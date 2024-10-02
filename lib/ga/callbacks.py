@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import *
 
 import os
@@ -34,11 +35,14 @@ class CheckpointCallback(Callback):
 				)
 			)
 		self._save_path = save_path
-		if save_path is None:
-			self._save_path = os.path.abspath("population.ga")
+
+	def _get_save_path(self) -> str:
+		if self._save_path is not None:
+			return self._save_path
+		return os.path.abspath(f"{datetime.now().timestamp()}.ga")
 
 	def on_epoch_end(self, population: List[Species]):
-		self.__fileio.dumps(population, self._save_path)
+		self.__fileio.dumps(population, self._get_save_path())
 
 
 class StoreCheckpointCallback(CheckpointCallback):
