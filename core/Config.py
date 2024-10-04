@@ -233,7 +233,8 @@ DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "abrehamalemu-rtrader-training-exp-0-cnn-7-cum-0-it-1-tot.zip"
+MODEL_ID = "abrehamalemu-rtrader-training-exp-0-linear-72-cum-0-it-2-tot.zip"
+
 
 class ResourceCategories:
 
