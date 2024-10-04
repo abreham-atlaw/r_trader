@@ -47,9 +47,9 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def __print_dps(self, dps: typing.List[RunnerStats]):
 		print(pd.DataFrame([
-			(dp.id, dp.model_name, dp.profit, dp.model_losses, dp.session_timestamps, dp.duration)
+			(dp.id, dp.model_name, dp.duration, dp.profit, dp.model_losses, dp.session_timestamps, dp.profits)
 			for dp in dps
-		], columns=["ID", "Model", "Profit", "Losses", "Sessions", "Duration"]).to_string())
+		], columns=["ID", "Model", "Duration", "Profit", "Losses", "Sessions", "Profits"]).to_string())
 
 	def __filter_stats(
 			self,
@@ -57,8 +57,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			time: datetime = None,
 			model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
-			max_profit: float = None
+			max_profit: float = None,
+			model_key: str = None
 	) -> typing.List[RunnerStats]:
+
+		if model_key is not None:
+			dps = [
+				dp
+				for dp in dps
+				if model_key in dp.model_name
+			]
 
 		if time is not None:
 			dps = [
@@ -130,6 +138,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_get_all(self):
 		stats = self.repository.retrieve_all()
+		self.__print_dps(stats)
 		self.assertGreater(len(stats), 0)
 
 	def test_store(self):
@@ -203,8 +212,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_least_loss_losing_stats(self):
 		dps = self.__filter_stats(
 			self.__get_valid_dps(),
-			time=datetime.now() - timedelta(hours=9),
-			model_losses=(0.9, None, 0.0),
+			# time=datetime.now() - timedelta(hours=),
+			model_losses=(4.5,),
 			max_profit=0
 		)
 
@@ -214,11 +223,39 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.repository.retrieve_all(),
+				model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.profit,
-			reverse=False
+			key=lambda dp: datetime.now() - timedelta(days=1000) if len(dp.session_timestamps) == 0 else dp.session_timestamps[-1],
+			reverse=True
 		)
 
 		self.__print_dps(dps)
+
+	def test_retrieve_non_locked(self):
+		dps = self.repository.retrieve_all()
+		non_locked = self.repository.retrieve_non_locked()
+		locked = [
+			stat
+			for stat in dps
+			if stat.id not in [stat.id for stat in non_locked]
+		]
+		print("All:")
+		self.__print_dps(dps)
+
+		print("Non Locked:")
+		self.__print_dps(non_locked)
+
+		print("Locked:")
+		self.__print_dps(locked)
+
+	def test_reset_sessions(self):
+
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			stat.profits = []
+			stat.session_timestamps = []
+			stat.duration = 0
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")

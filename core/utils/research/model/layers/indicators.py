@@ -3,10 +3,10 @@ import typing
 import torch.nn as nn
 
 from core.utils.research.model.layers import *
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
-class Indicators(SavableModule):
+class Indicators(SpinozaModule):
     def __init__(
             self,
             delta: bool = False,
@@ -55,7 +55,7 @@ class Indicators(SavableModule):
             count += len(self.so)
         return count
 
-    def forward(self, inputs):
+    def call(self, inputs):
         outputs = [inputs]
         if self.delta:
             outputs.append(self.delta(inputs))
