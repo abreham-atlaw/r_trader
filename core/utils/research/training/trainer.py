@@ -22,7 +22,8 @@ class Trainer:
             callbacks: typing.List[Callback]=None,
             max_norm: typing.Optional[float] = None,
             clip_value: typing.Optional[float] = None,
-            log_gradient_stats: bool = False
+            log_gradient_stats: bool = False,
+            dtype: torch.dtype = torch.float32
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.device_count() > 1:
@@ -39,6 +40,7 @@ class Trainer:
         self.__max_norm = max_norm
         self.__clip_value = clip_value
         self.__log_gradient_stats = log_gradient_stats
+        self.__dtype = dtype
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -67,7 +69,7 @@ class Trainer:
         )
 
     def __initialize_model(self, model: nn.Module) -> nn.Module:
-        init_data = torch.rand((1, model.input_size))
+        init_data = torch.rand((1,) + model.input_size[1:])
         model = model.to(torch.device("cpu"))
         model(init_data)
         return model.to(self.device).float()
@@ -138,7 +140,8 @@ class Trainer:
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                X, y = X.to(self.device).type(X.type()), y.to(self.device).type(y.type())
+                X, y = X.to(self.device), y.to(self.device)
+                X, y = X.type(self.__dtype), y.type(self.__dtype)
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 

@@ -10,7 +10,8 @@ from torch.optim import Adam
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
+from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
+	MSCECrossEntropyLoss, LogLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
@@ -48,6 +49,55 @@ class SineWaveDataset(Dataset):
 
 class TrainerTest(unittest.TestCase):
 
+	def test_linear(self):
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/linear_test.zip"
+
+		VOCAB_SIZE = 431
+		DROPOUT = 0.5
+		LAYER_SIZES = [128, 128, VOCAB_SIZE + 1]
+		HIDDEN_ACTIVATION = nn.LeakyReLU()
+		INIT_FUNCTION = None
+		NORM = [True] + [False for _ in LAYER_SIZES[1:]]
+		BLOCK_SIZE = 1148
+		LR = 1e-3
+
+		model = LinearModel(
+			dropout_rate=DROPOUT,
+			layer_sizes=LAYER_SIZES,
+			hidden_activation=HIDDEN_ACTIVATION,
+			init_fn=INIT_FUNCTION,
+			norm=NORM,
+			input_size=BLOCK_SIZE
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		trainer = Trainer(model)
+		trainer.cls_loss_function = MSCECrossEntropyLoss(
+			classes=np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
+			epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
+			device=trainer.device,
+			weights=[0.1, 0.9]
+		)
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(
+			dataloader,
+			epochs=10,
+			progress=True,
+			cls_loss_only=False
+		)
+
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+
+
 	def test_cnn_model(self):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
@@ -62,9 +112,8 @@ class TrainerTest(unittest.TestCase):
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
-		FLATTEN_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [True] + [False for _ in CHANNELS[1:]]
+		NORM = [True] + [True for _ in CHANNELS[1:]]
 		LR = 1e-3
 
 		INDICATORS_DELTA = True
@@ -72,27 +121,14 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = [14]
 
 		USE_FF = True
-		FF_LINEAR_BLOCK_SIZE = 1024
-		FF_LINEAR_OUTPUT_SIZE = 1024
-		FF_LINEAR_LAYERS = []
+		FF_LINEAR_LAYERS = [1024, 1024, VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_DROPOUT = 0.5
-
-		BATCH_SIZE = 64
-		EPOCHS = 300
-		TIMEOUT = 10 * 60 * 60
-
-		INDICATOR = Indicators(
-			delta=True,
-			msd=[14, 50],
-		)
 
 		if USE_FF:
 			ff = LinearModel(
-				block_size=FF_LINEAR_BLOCK_SIZE,
-				vocab_size=FF_LINEAR_OUTPUT_SIZE,
 				dropout_rate=FF_DROPOUT,
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
@@ -110,7 +146,6 @@ class TrainerTest(unittest.TestCase):
 
 		model = CNN(
 			extra_len=EXTRA_LEN,
-			num_classes=VOCAB_SIZE + 1,
 			conv_channels=CHANNELS,
 			kernel_sizes=KERNEL_SIZES,
 			hidden_activation=ACTIVATION,
@@ -120,7 +155,7 @@ class TrainerTest(unittest.TestCase):
 			avg_pool=AVG_POOL,
 			linear_collapse=LINEAR_COLLAPSE,
 			norm=NORM,
-			ff_linear=ff,
+			ff_block=ff,
 			indicators=indicators,
 			input_size=BLOCK_SIZE
 		)
@@ -138,10 +173,10 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Downloads/Compressed/out_1/kaggle/input/rtrader-datapreparer-simsim-cum-0-it-2/out/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
-		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+		dataloader = DataLoader(dataset, batch_size=8)
 
 		# test_dataset = BaseDataset(
 		# 	[
@@ -163,7 +198,7 @@ class TrainerTest(unittest.TestCase):
 
 		trainer.train(
 			dataloader,
-			epochs=EPOCHS,
+			epochs=10,
 			progress=True,
 			cls_loss_only=False
 		)
@@ -304,3 +339,4 @@ class TrainerTest(unittest.TestCase):
 		trainer.summary()
 
 		self.assertIsNotNone(model)
+

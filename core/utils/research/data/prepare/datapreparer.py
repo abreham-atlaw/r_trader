@@ -26,7 +26,8 @@ class DataPreparer:
 			X_dir_name: str = "X",
 			y_dir_name: str = "y",
 
-			test_split_size: float = 0.2
+			test_split_size: float = 0.2,
+			verbose: bool = True
 	):
 		self.__ma_window_size = ma_window_size
 		self.__granularity = granularity
@@ -38,6 +39,8 @@ class DataPreparer:
 		self.__test_split_size = test_split_size
 
 		self.__boundaries = boundaries
+
+		self.__verbose = verbose
 
 	@staticmethod
 	def __generate_filename() -> str:
@@ -152,6 +155,10 @@ class DataPreparer:
 		remaining = [arr[self.__batch_size:] for arr in [X, y]]
 		return self.__checkpoint(*remaining, save_path=save_path)
 
+	def __print(self, *args, **kwargs):
+		if self.__verbose:
+			print(*args, **kwargs)
+
 	def start(
 			self,
 			df: pd.DataFrame,
@@ -168,7 +175,7 @@ class DataPreparer:
 
 		sequence = df[header_close].to_numpy()
 
-		print("[+]Preparing...")
+		self.__print("[+]Preparing...")
 
 		for i in range(self.__granularity):
 			gran_sequence = sequence[i::self.__granularity]
@@ -189,7 +196,7 @@ class DataPreparer:
 
 			X, y = self.__checkpoint(X, y, save_path)
 			gc.collect()
-			print(f"[+]Preparing: {(i + 1) * 100 / df.shape[0] :.2f}% ...", end="\r")
+			self.__print(f"[+]Preparing: {(i + 1) * 100 / df.shape[0] :.2f}% ...", end="\r")
 
 		if export_remaining:
 			self.__split_and_save(

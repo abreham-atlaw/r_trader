@@ -1,5 +1,7 @@
 import unittest
 
+from kaggle.rest import ApiException
+
 from core.di import init_di, ApplicationContainer
 from core.utils.kaggle import SessionsManager
 from core.utils.kaggle.data.models import Account
@@ -13,7 +15,7 @@ class SessionManagerTest(unittest.TestCase):
 
 		accounts_repository: AccountsRepository = ApplicationContainer.kaggle.accounts_repository()
 		manager: SessionsManager = ApplicationContainer.kaggle.sessions_manager()
-		account = accounts_repository.get_by_username("bemnetatlaw")
+		account = accounts_repository.get_by_username("yosephmezemer")
 		# account = Account(
 		# 	username='yosephmezemer',
 		# 	key='022b607f1ca94bc82cf68914eb6b0c4a'
@@ -24,11 +26,13 @@ class SessionManagerTest(unittest.TestCase):
 		# )
 		# manager.sync_notebooks()
 		manager.start_session(
-			kernel="inkoops/rtrader-maploss-runlive-sim-cnn-0",
+			kernel="abrehamalemu/rtrader-training-exp-0-cnn-144-cum-0-it-2-tot",
 			account=account,
 			meta_data={
-				"dataset_sources": ["abrehamatlaw0/rtrader-datapreparer-cum-0-it-1-v-0"],
+				"dataset_sources": [
+					"abrehamatlaw0/rtrader-datapreparer-cum-0-it-2-v-7"
+				]
 			},
-			gpu=False,
+			gpu=True,
 			sync_notebooks=False
 		)

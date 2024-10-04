@@ -49,10 +49,10 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	"XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
-	# "RK3FFkZ6O9B7ZSRFxnYyBfc7f8oPTbFQgapHvKypk",  # abrishatlaw@yahoo.com +
-	# "p3Qtc7ZIO9B7Zk2Ys9k5kQdYXandlusB6BkwcqFr7",  # abreham.atlaw@yahoo.com -
-	# "m0AL1kZxDks7ZqjO4dcmcuzyJjRqAHsfyKudX6jGy",  # abrehamatlaw@outlook.com -
+	# "XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
+	"7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
+	"KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
+	"qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
 	# "lyJXAkZHDks7Z4w79whbTSVhssQ85JevC1QMEkoGk",  # abreham.atlaw@outlook.com +
 	# "1xjpt7ZEWJs7ZcfiRorgfUDQMbJsY2QV1h0whI5ek",  # abreham-atlaw@outlook.com -
 	# "CtEWXXZnvzs7Z8rc9rNJgHDQS6xh53cB8uy0hvhty",  # abreham_atlaw@outlook.com +
@@ -159,6 +159,8 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
+	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 
 MC_WORKER_STEP_TIME = 1 * 60
@@ -244,4 +246,3 @@ class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stat"
-	OANDA_SIM_ACCOUNTS = 'oanda-sim-accounts-3d'
