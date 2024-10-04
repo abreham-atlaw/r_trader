@@ -36,13 +36,13 @@ class SimulationSimulatorTest(unittest.TestCase):
 
 	def test_functionality(self):
 
-		df = pd.read_csv("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-2k.csv")
+		df = pd.read_csv("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-10k.csv")
 
 		simulator = SimulationSimulator(
 			df=df,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			seq_len=24,
-			extra_len=5,
+			seq_len=1033,
+			extra_len=124,
 			batch_size=10,
 			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data",
 			granularity=5
