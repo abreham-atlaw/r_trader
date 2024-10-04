@@ -212,7 +212,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MODEL_IN_PATH = "/Apps/RTrader/maploss/models/cnn/synced"
+MODEL_IN_PATH = "/Apps/RTrader/maploss/models/linear/synced"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
 MAX_LOSS = 1.5
