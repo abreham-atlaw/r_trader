@@ -1,7 +1,7 @@
-from datetime import datetime
 from typing import *
 
 import os
+from datetime import datetime
 
 from lib.network.rest_interface.serializers import Serializer
 from lib.utils.fileio import PickleFileIO, SerializerFileIO
@@ -42,7 +42,9 @@ class CheckpointCallback(Callback):
 		return os.path.abspath(f"{datetime.now().timestamp()}.ga")
 
 	def on_epoch_end(self, population: List[Species]):
-		self.__fileio.dumps(population, self._get_save_path())
+		path = self._get_save_path()
+		self.__fileio.dumps(population, path)
+		return path
 
 
 class StoreCheckpointCallback(CheckpointCallback):
@@ -52,5 +54,5 @@ class StoreCheckpointCallback(CheckpointCallback):
 		self.__fs = fs
 
 	def on_epoch_end(self, population: List[Species]):
-		super().on_epoch_end(population)
-		self.__fs.upload_file(self._save_path)
+		path = super().on_epoch_end(population)
+		self.__fs.upload_file(path)
