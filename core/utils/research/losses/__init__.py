@@ -7,3 +7,4 @@ from .pcs import PredictionConfidenceScore
 from .ocv import OutputClassesVariance
 from .obv import OutputBatchVariance
 from .log_loss import LogLoss
+from .pml import ProximalMaskedLoss

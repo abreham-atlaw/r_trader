@@ -21,7 +21,7 @@ class MeanSquaredClassError(nn.Module):
 		if device is not None:
 			self.classes = self.classes.to(device)
 
-		self.softmax = nn.Softmax() if softmax else nn.Identity()
+		self.softmax = nn.Softmax(dim=1) if softmax else nn.Identity()
 
 	def get_class_value(self, y: torch.Tensor) -> torch.Tensor:
 		return torch.sum(y * self.classes, dim=1)

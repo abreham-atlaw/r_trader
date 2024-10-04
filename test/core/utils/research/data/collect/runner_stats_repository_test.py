@@ -138,6 +138,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_get_all(self):
 		stats = self.repository.retrieve_all()
+		self.__print_dps(stats)
 		self.assertGreater(len(stats), 0)
 
 	def test_store(self):
