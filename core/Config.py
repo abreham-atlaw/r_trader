@@ -236,7 +236,7 @@ AGENT_CRA_SIZE = 0
 with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
-MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn"
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn/synced"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
 TIMEOUT = 3*60*60
