@@ -12,7 +12,7 @@ class LinearModel(SpinozaModule):
 	def __init__(
 			self,
 			layer_sizes: typing.List[int],
-			dropout_rate: float = 0,
+			dropout_rate: typing.Union[float, typing.List[float]] = 0,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			init_fn: typing.Optional[typing.Callable] = None,
 			norm: typing.Union[bool, typing.List[bool]] = False,
@@ -33,6 +33,7 @@ class LinearModel(SpinozaModule):
 
 		self.layers = None
 		self.norms = None
+		self.dropouts = None
 
 		self.norms_mask = norm
 		if isinstance(norm, bool):
@@ -40,20 +41,24 @@ class LinearModel(SpinozaModule):
 		if len(norm) != len(self.layers_sizes) - 1:
 			raise ValueError("Norm size doesn't match layers size")
 
+		self.dropout_rates = dropout_rate
+		if isinstance(dropout_rate, float):
+			self.dropout_rates = [dropout_rate for _ in range(len(layer_sizes) - 2)]
+		self.dropout_rates.append(0)
+		if len(self.dropout_rates) != len(self.layers_sizes) - 1:
+			raise ValueError("Dropout rate doesn't match layers size")
+
 		if hidden_activation is None:
 			hidden_activation = nn.Identity()
 		self.hidden_activation = hidden_activation
 
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
 		if input_size is not None:
 			self.init()
 
 	def build(self, input_size: torch.Size):
 		self.layers = nn.ModuleList()
 		self.norms = nn.ModuleList()
+		self.dropouts = nn.ModuleList()
 
 		if self.layers_sizes[0] is None:
 			self.layers_sizes[0] = input_size[-1]
@@ -74,15 +79,21 @@ class LinearModel(SpinozaModule):
 			if self.init_fn is not None:
 				self.init_fn(self.layers[-1].weight)
 
+			self.dropouts.append(
+				nn.Dropout(self.dropout_rates[i])
+				if self.dropout_rates != 0
+				else nn.Identity()
+			)
+
 	def call(self, x):
 		out = x
-		for norm, layer, i in zip(self.norms, self.layers, range(len(self.layers))):
+		for norm, layer, dropout, i in zip(self.norms, self.layers, self.dropouts, range(len(self.layers))):
 			out = norm(out)
 			out = layer.forward(out)
 			if i == len(self.layers) - 1:
 				continue
 			out = self.hidden_activation(out)
-			out = self.dropout(out)
+			out = dropout(out)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
