@@ -23,12 +23,20 @@ class SpinozaModule(nn.Module, ABC):
 
 	def init(self):
 		init_data = torch.rand((1,) + self.input_size[1:])
-		out = self(init_data)
+		self.eval()
+		with torch.no_grad():
+			out = self(init_data)
 		self.output_size = (None,) + out.size()[1:]
 
 	def __build(self, input_size: torch.Size):
 		self.input_size = (None, ) + input_size[1:]
 		self.build(input_size)
+
+		if self.training:
+			self.train()
+		else:
+			self.eval()
+
 		self.built = True
 		if self.__state_dict_params is not None:
 			self.load_state_dict(*self.__state_dict_params[0], ** self.__state_dict_params[1])

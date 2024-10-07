@@ -61,7 +61,9 @@ class LinearModel(SpinozaModule):
 		for i in range(len(self.layers_sizes) - 1):
 
 			if self.norms_mask[i]:
-				self.norms.append(nn.LayerNorm(self.layers_sizes[i]))
+				self.norms.append(nn.BatchNorm1d(
+					self.layers_sizes[i],
+				))
 			else:
 				self.norms.append(nn.Identity())
 
