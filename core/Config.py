@@ -245,13 +245,13 @@ class QueenConfigs:
 
 	POPULATION_SIZE = 20
 	EPOCHS = 15
-	TIMEOUT = int(4*60*60)
+	TIMEOUT = int(8*60*60)
 
 
 class WorkerConfigs:
 	BATCH_SIZE = 64
 	EPOCHS = 100
-	TIMEOUT = int(60*60)
+	TIMEOUT = int(2*60*60)
 
 
 class ResourceCategories:
