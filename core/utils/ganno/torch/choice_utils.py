@@ -47,11 +47,15 @@ class ChoiceUtils:
 			b: typing.List,
 			discrete: bool = True,
 			round_mode: bool = False,
-			noise: float = None
+			noise: float = None,
+			size: int = None
 	) -> typing.List:
 		min_len = min(len(a), len(b))
 		max_len = max(len(a), len(b))
-		new_len = random.randint(min_len, max_len)
+
+		new_len = size
+		if size is None:
+			new_len = random.randint(min_len, max_len)
 
 		mixed_values = []
 

@@ -28,7 +28,7 @@ class LinearOptimizer(Optimizer):
 			vocab_size=self._vocab_size,
 			layers=layers,
 			dropout=ChoiceUtils.choice_continuous(0, 1,),
-			norm=ChoiceUtils.generate_list(True, False, size=len(layers)),
+			norm=ChoiceUtils.generate_list(True, False, size=len(layers)+1),
 			block_size=self.__input_size
 		)
 

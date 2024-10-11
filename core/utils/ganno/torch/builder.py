@@ -47,7 +47,8 @@ class ModelBuilder:
 			layer_sizes=config.layers + [config.vocab_size],
 			dropout_rate=config.dropout,
 			hidden_activation=nn.ReLU(),
-			input_size=config.block_size
+			input_size=config.block_size,
+			norm=config.norm
 		)
 
 	def build(self, config: ModelConfig) -> nn.Module:
