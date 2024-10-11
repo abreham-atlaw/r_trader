@@ -257,4 +257,4 @@ class WorkerConfigs:
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
-	RUNNER_STAT = "runner_stat"
+	RUNNER_STAT = "runner_stats"
