@@ -220,4 +220,4 @@ WEIGHTED_MSE_ALPHA = 1e-3
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
-	RUNNER_STAT = "runner_stat"
+	RUNNER_STAT = "runner_stats"
