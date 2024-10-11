@@ -32,17 +32,19 @@ class LinearConfig(ModelConfig):
 
 	def generate_offspring(self: 'LinearConfig', spouse: 'LinearConfig') -> 'LinearConfig':
 
+		layers = ChoiceUtils.list_select(
+			self.layers,
+			spouse.layers,
+			discrete=False,
+			round_mode=True,
+			noise=0.2
+		)
+
 		return LinearConfig(
 			vocab_size=self.vocab_size,
 			block_size=self.block_size,
 
-			layers=ChoiceUtils.list_select(
-				self.layers,
-				spouse.layers,
-				discrete=False,
-				round_mode=True,
-				noise=0.2
-			),
+			layers=layers,
 
 			dropout=ChoiceUtils.choice_continuous(
 				self.dropout,
@@ -55,7 +57,8 @@ class LinearConfig(ModelConfig):
 			norm=ChoiceUtils.list_select(
 				self.norm,
 				spouse.norm,
-				discrete=True
+				discrete=True,
+				size=len(layers)+1
 			)
 		)
 
