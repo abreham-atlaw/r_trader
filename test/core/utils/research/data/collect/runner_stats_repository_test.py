@@ -42,7 +42,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		return [
 			dp
 			for dp in dps
-			if dp.profit != 0 and 0 not in dp.model_losses
+			if dp.duration > 0 and 0 not in dp.model_losses
 		]
 
 	def __print_dps(self, dps: typing.List[RunnerStats]):
@@ -115,8 +115,20 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		losses.append(
 			[np.prod(dp.model_losses) for dp in dps]
 		)
+
+		names = [
+			"nn.CrossEntropyLoss()",
+			"ProximalMaskedLoss",
+			"MeanSquaredClassError",
+			"ReverseMAWeightLoss(window_size=10, softmax=True)",
+			"PredictionConfidenceScore(softmax=True)",
+			"OutputClassesVariance(softmax=True)",
+			"OutputBatchVariance(softmax=True)",
+			"Product of all losses"
+		]
 		for i in range(len(losses)):
 			plt.figure()
+			plt.title(names[i])
 			plt.scatter(
 				losses[i],
 				[dp.profit for dp in dps],
@@ -131,7 +143,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		plt.scatter(
 			*[
 				[dp.model_losses[i] for dp in dps]
-				for i in range(2)
+				for i in [0, -1]
 			]
 		)
 		plt.show()
@@ -228,6 +240,20 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				# time=datetime.now() - timedelta(hours=9),
 			),
 			key=lambda dp: datetime.now() - timedelta(days=1000) if len(dp.session_timestamps) == 0 else dp.session_timestamps[-1],
+			reverse=True
+		)
+
+		self.__print_dps(dps)
+
+	def test_get_custom_sorted(self):
+		dps = sorted(
+			self.__filter_stats(
+				self.repository.retrieve_all(),
+				model_key='linear',
+				# model_losses=(1.5,None),
+				# time=datetime.now() - timedelta(hours=9),
+			),
+			key=lambda dp: dp.model_losses[-1],
 			reverse=True
 		)
 
