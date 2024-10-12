@@ -65,6 +65,28 @@ class LinearConfig(ModelConfig):
 	def reproduce(self, spouse: 'LinearConfig', preferred_offsprings: int) -> typing.List['LinearConfig']:
 		return [self.generate_offspring(spouse) for _ in range(preferred_offsprings)]
 
+	def mutate(self, *args, **kwargs):
+		self.layers = ChoiceUtils.mutate_list(
+			self.layers,
+			rate=0.5,
+			noise=0.3,
+			discrete=False,
+			round_mode=True,
+			size=(max(1, int(len(self.layers)*0.7)), int(len(self.layers)*3))
+		)
+		self.dropout = ChoiceUtils.mutate_continuous(
+			self.dropout,
+			noise=0.2,
+			min_value=0,
+			max_value=1
+		)
+		self.norm = ChoiceUtils.mutate_list(
+			self.norm,
+			rate=0.5,
+			values=[True, False],
+			size=len(self.layers)+1
+		)
+
 
 @dataclass
 class CNNConfig(ModelConfig):

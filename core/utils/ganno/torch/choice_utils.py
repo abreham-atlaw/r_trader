@@ -104,3 +104,45 @@ class ChoiceUtils:
 			discrete=discrete,
 			round_mode=round_mode
 		)
+
+	@staticmethod
+	def mutate_continuous(x, noise, *args, **kwargs):
+		a = (x + 3*x*noise)/(1+2*noise)
+		b = 2*x - a
+		return ChoiceUtils.choice_continuous(
+			a,
+			b,
+			*args,
+			**kwargs
+		)
+
+	@staticmethod
+	def mutate_discrete(a, values):
+		return random.choice(values)
+
+	@staticmethod
+	def mutate_list(
+			a: typing.List,
+			rate: float,
+			size: typing.Union[typing.Tuple[int, int], int] = None,
+			discrete=True,
+			values: typing.List = None,
+			*args,
+			**kwargs
+	):
+		if size is None:
+			size = len(a)
+		if isinstance(size, int):
+			size = (size, size)
+		a = [random.choice(a) for _ in range(random.randint(*size))]
+
+		new_values = a.copy()
+		for i, value in enumerate(a):
+			if random.random() > rate:
+				continue
+			if discrete:
+				new_value = ChoiceUtils.mutate_discrete(value, values)
+			else:
+				new_value = ChoiceUtils.mutate_continuous(value, *args, **kwargs)
+			new_values[i] = new_value
+		return new_values
