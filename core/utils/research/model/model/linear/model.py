@@ -36,8 +36,8 @@ class LinearModel(SpinozaModule):
 
 		self.norms_mask = norm
 		if isinstance(norm, bool):
-			self.norms_mask = [norm for _ in range(len(layer_sizes) - 1)]
-		if len(norm) != len(self.layers_sizes) - 1:
+			self.norms_mask = [norm for _ in range(len(self.layer_sizes) - 1)]
+		if len(self.norms_mask) != (len(self.layers_sizes) - 1):
 			raise ValueError("Norm size doesn't match layers size")
 
 		if hidden_activation is None:
