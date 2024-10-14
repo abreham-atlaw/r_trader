@@ -9,13 +9,13 @@ class DRLExportPreparerTest(unittest.TestCase):
 
 
 		INPUT_DIRS = [
-			"/home/abrehamatlaw/Downloads/Compressed/results_13/out"
+			"/home/abrehamatlaw/Downloads/Compressed/results/out"
 		]
 
 		INPUT_SIZE = 1157
 		SEQ_LEN = 1033
 		MA_WINDOW = 10
-		OUT_DIR = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export"
+		OUT_DIR = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/1"
 
 		preparer = DRLExportPreparer(
 			INPUT_SIZE,
