@@ -21,7 +21,7 @@ class RunnerStatsPopulaterTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test"
 			],
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=32)
@@ -30,7 +30,7 @@ class RunnerStatsPopulaterTest(unittest.TestCase):
 			repository=repo,
 			dataloader=test_dataloader,
 			in_filestorage=ServiceProvider.provide_file_storage("/"),
-			in_path="/Apps/RTrader/test",
+			in_path=Config.MODEL_IN_PATH,
 			tmp_path="/tmp/",
 		)
 
