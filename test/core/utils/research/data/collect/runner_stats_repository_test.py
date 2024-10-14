@@ -176,7 +176,18 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_clear_losses(self):
 		stats = self.repository.retrieve_all()
 		for i, stat in enumerate(stats):
-			stat.model_losses = (0.0, 0.0, 0.0)
+			stat.model_losses = [
+				0
+				if i in [7] else stat.model_losses[i]
+				for i in range(len(stat.model_losses))
+			]
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_add_empty_loss(self):
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			stat.model_losses += (0.0,)
 			self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
