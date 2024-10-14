@@ -15,7 +15,7 @@ class SessionManagerTest(unittest.TestCase):
 
 		accounts_repository: AccountsRepository = ApplicationContainer.kaggle.accounts_repository()
 		manager: SessionsManager = ApplicationContainer.kaggle.sessions_manager()
-		account = accounts_repository.get_by_username("yosephmezemer")
+		account = (accounts_repository.get_by_username("yosephmezemer"))
 		# account = Account(
 		# 	username='yosephmezemer',
 		# 	key='022b607f1ca94bc82cf68914eb6b0c4a'
@@ -26,11 +26,12 @@ class SessionManagerTest(unittest.TestCase):
 		# )
 		# manager.sync_notebooks()
 		manager.start_session(
-			kernel="abrehamalemu/rtrader-training-exp-0-cnn-144-cum-0-it-2-tot",
+			kernel="abrehamalemu/rtrader-training-exp-0-linear-113-cum-0-it-4-tot",
 			account=account,
 			meta_data={
 				"dataset_sources": [
-					"abrehamatlaw0/rtrader-datapreparer-cum-0-it-2-v-7"
+					f"abrehamatlaw0/rtrader-datapreparer-simsim-cum-0-it-2-{i}"
+					for i in range(4)
 				]
 			},
 			gpu=True,
