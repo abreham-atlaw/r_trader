@@ -8,7 +8,7 @@ class OutputBatchVariance(nn.Module):
 		super(OutputBatchVariance, self).__init__()
 		self.__softmax = softmax
 
-	def forward(self, inputs):
+	def forward(self, inputs, *args, **kwargs):
 		probabilities = inputs
 		if self.__softmax:
 			probabilities = torch.softmax(inputs, dim=1)
