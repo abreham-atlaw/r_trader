@@ -98,10 +98,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
-			self.__get_valid_dps(),
-			# time=datetime.now() - timedelta(hours=33),
-			# model_losses=(1.5, None, None)
-		),
+				self.__get_valid_dps(),
+				# time=datetime.now() - timedelta(hours=33),
+				# model_losses=(1.5, None, None)
+			),
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
@@ -124,9 +124,11 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			"PredictionConfidenceScore(softmax=True)",
 			"OutputClassesVariance(softmax=True)",
 			"OutputBatchVariance(softmax=True)",
+			"OutputBatchClassVariance(softmax=True)",
 			"Product of all losses"
 		]
 		for i in range(len(losses)):
+			print(f"Plotting {names[i]}")
 			plt.figure()
 			plt.title(names[i])
 			plt.scatter(
@@ -187,8 +189,9 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_add_empty_loss(self):
 		stats = self.repository.retrieve_all()
 		for i, stat in enumerate(stats):
-			stat.model_losses += (0.0,)
-			self.repository.store(stat)
+			if len(stat.model_losses) == 7:
+				stat.model_losses += (0.0,)
+				self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_single_allocate(self):
