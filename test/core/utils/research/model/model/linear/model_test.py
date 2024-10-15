@@ -9,46 +9,111 @@ from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.wrapped import WrappedModel
 from lib.utils.torch_utils.model_handler import ModelHandler
-
+import matplotlib.pyplot as plt
 
 
 class LinearTest(unittest.TestCase):
 
-	def test_functionality(self):
+	@staticmethod
+	def __plot_outputs(model: nn.Module, size: int):
 
-		LAYER_SIZES = [256, 256]
-		NORM = [True] + [False for _ in LAYER_SIZES]
-		BLOCK_SIZE = 1148
-		VOCAB_SIZE = 449
-		DROPOUT_RATE = 0
-		ACTIVATION = nn.ReLU()
-		INIT = None
-
-		model = LinearModel(
-			block_size=BLOCK_SIZE,
-			vocab_size=VOCAB_SIZE,
-			dropout_rate=DROPOUT_RATE,
-			layer_sizes=LAYER_SIZES,
-			hidden_activation=ACTIVATION,
-			init_fn=INIT,
-			norm=NORM
-		)
-
-		# model = ModelHandler.load("/home/abreham/Downloads/Compressed/bemnetatlaw-rtrader-linear-wl-0.zip")
-		ModelHandler.save(model, "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/bemnetatlaw-drmca-linear-0.zip")
-
-		loss_fn = WeightedMSELoss(size=449, a=0.01, softmax=True)
-		DTYPE = torch.float32
 		NP_DTYPE = np.float32
 
-		X = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1704085283.024914.npy").astype(NP_DTYPE)[:]
-		y = np.load("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/y/1704085283.024914.npy").astype(NP_DTYPE)[:]
+		def softmax(x):
+			exp_x = np.exp(x - np.max(x))
+			softmax_x = exp_x / np.sum(exp_x)
+			return softmax_x
+
+		def scale(x):
+			x = softmax(x)
+			x = x / np.max(x)
+			return x
+
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/X/1727815242.844215.npy").astype(
+			NP_DTYPE)[:size]
+		y = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/y/1727815242.844215.npy").astype(
+			NP_DTYPE)[:size]
 
 		with torch.no_grad():
-			y_hat: torch.Tensor = model(torch.from_numpy(X))
+			y_hat: torch.Tensor = model(torch.from_numpy(X)).detach().numpy()
 
-		y_hat_classes = np.argmax(y_hat.detach().numpy(), axis=1)
+		softmaxed = np.array([softmax(y_hat[i, :-1]) for i in range(y_hat.shape[0])])
+		scaled = np.array([scale(y_hat[i, :-1]) for i in range(y_hat.shape[0])])
+
+		for i in range(y_hat.shape[0]):
+			plt.figure()
+			plt.plot(y[i, :-1])
+			plt.plot(softmaxed[i])
+
+			# plt.figure()
+			# plt.plot(X[i, :-124])
+
+		y_hat_classes = np.argmax(y_hat, axis=1)
 		y_classes = np.argmax(y, axis=1)
 
-		loss = loss_fn(y_hat, torch.from_numpy(y))
-		self.assertEqual(y_hat_classes.shape, (X.shape[0],))
+	def test_plot_outputs(self):
+
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/results_3/abrehamalemu-rtrader-training-exp-0-linear-101-cum-0-it-4-tot.zip")
+
+		self.__plot_outputs(model, 10)
+		plt.show()
+
+	def test_model_evolution(self):
+
+		container_path = "/home/abrehamatlaw/Downloads/Compressed/results_1/out"
+
+		models = [
+			ModelHandler.load(os.path.join(container_path, f))
+			for f in sorted(os.listdir(container_path))
+			if f.endswith(".zip")
+		]
+
+		for model in models:
+			self.__plot_outputs(model, 3)
+
+		plt.show()
+
+	def test_multiple_models_comparison(self):
+		model_paths = [
+			"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-77-cum-0-it-4-tot.zip",
+			'/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-107-cum-0-it-4-tot.zip'
+		]
+
+		models = [
+			ModelHandler.load(path)
+			for path in model_paths
+		]
+
+		for model in models:
+			self.__plot_outputs(model, 3)
+
+		plt.show()
+
+	def test_load_and_call(self):
+
+		NP_DTYPE = np.float32
+
+		model = ModelHandler.load(
+			"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-104-cum-0-it-4-tot.zip"
+		)
+
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/X/1727815242.844215.npy"
+		).astype(
+			NP_DTYPE
+		)
+		y = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/y/1727815242.844215.npy"
+		).astype(
+			NP_DTYPE
+		)
+
+		with torch.no_grad():
+			y_hat: torch.Tensor = model(torch.from_numpy(X)).detach().numpy()
+
+		y_hat_classes = np.argmax(y_hat, axis=1)
+		y_classes = np.argmax(y, axis=1)
+
+		self.assertIsNotNone(y_hat_classes)

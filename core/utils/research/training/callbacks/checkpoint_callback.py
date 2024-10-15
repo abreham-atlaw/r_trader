@@ -20,10 +20,7 @@ class CheckpointCallback(Callback):
 		return f"{datetime.now().timestamp()}.{self.ext}"
 
 	def _save(self, model, path):
-		if self.save_state:
-			torch.save(model.state_dict(), path)
-		else:
-			ModelHandler.save(model, path)
+		ModelHandler.save(model, path)
 
 	def on_epoch_end(self, model, epoch, losses, logs=None):
 		path = self.path

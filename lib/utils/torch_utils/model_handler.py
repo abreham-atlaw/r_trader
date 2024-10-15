@@ -7,7 +7,7 @@ import zipfile
 import os
 import importlib
 
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
 class ModelHandler:
@@ -24,7 +24,7 @@ class ModelHandler:
 
         model_config_copy = {}
         for key, value in model_config.items():
-            if isinstance(value, SavableModule):
+            if isinstance(value, SpinozaModule):
                 filename = f"{key}.zip"
                 ModelHandler.save(value, filename)
                 model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename
@@ -55,7 +55,7 @@ class ModelHandler:
                 os.remove(value)
 
     @staticmethod
-    def load(path):
+    def load(path, dtype=torch.float32):
         dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
         try:
@@ -90,11 +90,11 @@ class ModelHandler:
         model_config = ModelClass.import_config(model_config)
 
         # Create the model
-        model = ModelClass(**model_config)
+        model: SpinozaModule = ModelClass(**model_config)
 
         # Load the state dict
-        model.load_state_dict(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
+        model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
 
         shutil.rmtree(dirname, ignore_errors=True)
 
-        return model
+        return model.type(dtype)

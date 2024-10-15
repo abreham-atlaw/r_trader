@@ -49,26 +49,20 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	# "W4btPZfKQB7ZQr0RIocN6vmc8DpzmoUhTztm4Dbk",  # abrishatlaw@gmail.com +
-	# "RK3FFkZ6O9B7ZSRFxnYyBfc7f8oPTbFQgapHvKypk",  # abrishatlaw@yahoo.com +
-	# "p3Qtc7ZIO9B7Zk2Ys9k5kQdYXandlusB6BkwcqFr7",  # abreham.atlaw@yahoo.com -
-	# "m0AL1kZxDks7ZqjO4dcmcuzyJjRqAHsfyKudX6jGy",  # abrehamatlaw@outlook.com -
+	# "XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
+	"7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
+	"KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
+	"qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
 	# "lyJXAkZHDks7Z4w79whbTSVhssQ85JevC1QMEkoGk",  # abreham.atlaw@outlook.com +
 	# "1xjpt7ZEWJs7ZcfiRorgfUDQMbJsY2QV1h0whI5ek",  # abreham-atlaw@outlook.com -
 	# "CtEWXXZnvzs7Z8rc9rNJgHDQS6xh53cB8uy0hvhty",  # abreham_atlaw@outlook.com +
-	"51pub7ZkqQs7Z0HsMuiQ78i4HGbzAlNXIkJtNdvX0",  # abrehama@outlook.com +
+	# "51pub7ZkqQs7Z0HsMuiQ78i4HGbzAlNXIkJtNdvX0",  # abrehama@outlook.com +
 	# "2V9aqXZiyRs7ZjXdUChjbQJkh9C7UjG76K73UbH1V",  # abreham.a@outlook.com +
 	# "gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
 	# "aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
 	# "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
 	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
-	# "TalFg7ZMqk97ZhTsA8DiMgmyPnpf8F5vHVhoFr0ak",  # spinoza-pp3@outlook.com
-	# "T6QGFVZGqk97ZGiF6dVcqKYXya1UrUYOzlzgEHijy",  # spinoza-pp4@outlook.com
-	# "mieWw7Zcqk97ZQQM67pX1W7fEnsLFGBBSM4KYo6by",  # spinoza-pp5@outlook.com
-	# "eVxKoVZFtk97Zzw0sahaPryFbqNIx0C1GD5YVg4x7",  # spinoza-pp6@outlook.com
-	# "V7oaeXZ2tk97ZL4szMtywPyJf8NNyjdNlgRKBnGPX",  # spinoza-pp7@outlook.com
-	# "AsHrYXZztk97ZrkTaoWrTn146cqjGVz0018BVJUby",  # spinoza-pp8@outlook.com
-	# "Mljca7ZYtk97ZWHVQOYftIqbfRiuMx9Ql5VU3mnby",  # spinoza-pp9@outlook.com
+	# "LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -126,7 +120,8 @@ AGENT_DISCOUNT_FUNCTION = None
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
-AGENT_STEP_TIME = 2 * 60
+AGENT_FRICTION_TIME = 6
+AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -161,9 +156,13 @@ AGENT_TOP_K_NODES = 5
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_MODEL_USE_TRANSITION_ONLY = False
+AGENT_MODEL_EXTRA_LEN = 124
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
+	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 
 MC_WORKER_STEP_TIME = 1 * 60
@@ -239,3 +238,4 @@ PCLOUD_FOLDER = MODEL_UPLOAD_PATH
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
+	RUNNER_STAT = "runner_stats"
