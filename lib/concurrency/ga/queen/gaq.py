@@ -24,7 +24,7 @@ class GAQueen(GeneticAlgorithm, ABC):
 		self.__species_serializer = self._init_serializer()
 		self.__sleep_time = sleep_time
 		self.__timeout = timeout
-		self.__default_value = None
+		self.__default_value = default_value
 		self.__values_map = TupleMap()
 
 	@abstractmethod

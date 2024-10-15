@@ -42,4 +42,8 @@ class GAWorker(GeneticAlgorithm, ABC):
 
 	def start(self, *args, **kwargs):
 		while True:
-			self.__process_request()
+			try:
+				self.__process_request()
+			except Exception as ex:
+				print(f"Failed to Process Request: {ex}")
+

@@ -1,13 +1,9 @@
 import unittest
 
-from torch.utils.data import DataLoader
-
 from core import Config
-from core.utils.ganno.torch.concurrent.data.serializers import CNNConfigSerializer
 from core.utils.ganno.torch.optimizer import Optimizer, CNNOptimizer, TransformerOptimizer, LinearOptimizer
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
-from lib.utils.file_storage import PCloudClient, DropboxClient
 
 
 class OptimizerTest(unittest.TestCase):
@@ -15,12 +11,12 @@ class OptimizerTest(unittest.TestCase):
 	def test_cnn_optimizer(self):
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 		test_dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 
@@ -44,7 +40,7 @@ class OptimizerTest(unittest.TestCase):
 		]
 
 		optimizer = CNNOptimizer(
-			vocab_size=431,
+			vocab_size=Config.VOCAB_SIZE,
 			dataset=dataset,
 			test_dataset=test_dataset,
 			epochs=1,
@@ -78,12 +74,12 @@ class OptimizerTest(unittest.TestCase):
 	def test_linear_optimizer(self):
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
 
@@ -103,7 +99,8 @@ class OptimizerTest(unittest.TestCase):
 		]
 
 		optimizer = LinearOptimizer(
-			vocab_size=449,
+			vocab_size=Config.VOCAB_SIZE,
+			input_size=Config.INPUT_SIZE,
 			dataset=dataset,
 			test_dataset=test_dataset,
 			epochs=1,
