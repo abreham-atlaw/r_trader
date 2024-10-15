@@ -225,7 +225,7 @@ POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
 MODEL_SAVE_PATH = "/kaggle/working/out/"
 MODEL_UPLOAD_PATH = "/Apps/RTrader/maploss/models/linear/"
 
-
+INPUT_SIZE = 1024+AGENT_MODEL_EXTRA_LEN
 FF_LINEAR_BLOCK_SIZE = 256
 FF_LINEAR_OUTPUT_SIZE = 256
 FF_LINEAR_LAYERS = []
