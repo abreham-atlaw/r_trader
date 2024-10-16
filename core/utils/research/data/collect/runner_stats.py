@@ -12,6 +12,7 @@ class RunnerStats:
 	profits: typing.List[float] = field(default_factory=lambda: [])
 	duration: float = 0.0
 	model_losses: typing.Tuple[float, ...] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	temperature: float = 1.0
 
 	@property
 	def profit(self) -> float:
