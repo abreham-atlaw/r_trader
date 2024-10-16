@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 import random
 
+import numpy as np
 from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -12,7 +13,8 @@ from core import Config
 from core.Config import MODEL_SAVE_EXTENSION
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, \
-	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVariance, OutputBatchVariance
+	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVariance, OutputBatchVariance, ProximalMaskedLoss, \
+	OutputBatchClassVariance
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.training.trainer import Trainer
 from lib.utils.cache.decorators import CacheDecorators
@@ -49,34 +51,38 @@ class RunnerStatsPopulater:
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
 
 	def __evaluate_model_loss(self, model: nn.Module, cls_loss_fn: typing.Optional[nn.Module]) -> float:
-		print("[+]Evaluating Model")
+		print(f"[+]Evaluating Model with {cls_loss_fn.__class__.__name__}")
 		trainer = Trainer(model, cls_loss_function=cls_loss_fn, reg_loss_function=nn.MSELoss(), optimizer=Adam(model.parameters()))
 		loss = trainer.validate(self.__dataloader)
 		if isinstance(loss, list):
 			return loss[-1]
 		return loss
 
-	def __evaluate_model(self, model: nn.Module) -> typing.Tuple[float, ...]:
+	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
 		return tuple([
 			self.__evaluate_model_loss(
 				model,
 				loss
-			)
-			for loss in [
+			) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
+			for i, loss in enumerate([
 				nn.CrossEntropyLoss(),
-				WeightedMSELoss(len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+				),
 				MeanSquaredClassError(
 					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON
 				),
-				ReverseMAWeightLoss(window_size=5, softmax=True),
 				ReverseMAWeightLoss(window_size=10, softmax=True),
-				ReverseMAWeightLoss(window_size=20, softmax=True),
-				ReverseMAWeightLoss(window_size=40, softmax=True),
 				PredictionConfidenceScore(softmax=True),
 				OutputClassesVariance(softmax=True),
 				OutputBatchVariance(softmax=True),
-			]
+				OutputBatchClassVariance(
+					np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
+					epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
+				)
+			])
 		])
 
 	def __prepare_model(self, model: nn.Module) -> nn.Module:
@@ -102,13 +108,21 @@ class RunnerStatsPopulater:
 
 	def _process_model(self, path: str, temperature: float):
 		print(f"[+]Processing {path}(T={temperature})...")
+
+		stat = self.__repository.retrieve(self.__generate_id(path, temperature))
+		current_losses = stat.model_losses if stat is not None else None
+
 		local_path = self.__download_model(path)
 		model = TemperatureScalingModel(
 			ModelHandler.load(local_path),
 			temperature=temperature
 		)
+
+		if current_losses is not None and False not in [l == 0 for l in current_losses]:
+			current_losses = None
+
 		print(f"[+]Evaluating...")
-		losses = self.__evaluate_model(model)
+		losses = self.__evaluate_model(model, current_losses)
 		id = self.__generate_id(path, temperature)
 
 		stats = self.__repository.retrieve(id)
