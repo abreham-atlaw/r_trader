@@ -94,7 +94,7 @@ class KaggleScraper:
 		if len(dropdown_button) > 1:
 			self.__enable_edit()
 
-	def share_notebook(self, notebook_url, usernames, visit=True):
+	def share_notebook(self, notebook_url, usernames, visit=False):
 		self.driver.get(os.path.join(notebook_url, "settings"))
 		for username in usernames:
 			self.__add_user(username)
@@ -223,20 +223,21 @@ class VisitProcess(Process):
 
 def share_notebooks():
 
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/inkoops.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/inkoops/rtrader-maploss-runlive-sim-linear-0'
-		# for i in range(0, 5)
+		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-4-tot'
+		for i in [146]
 	]
 	random.shuffle(notebook_urls)
-	threads = len(notebook_urls)//1
+	threads = len(notebook_urls)
+	# threads = 1
 	usernames = [
 		'bemnetatlaw',
 		'abrehamatlaw0',
 		'yosephmezemer',
 		'napoleonbonaparte0',
-		# 'inkoops',
-		'abrehamalemu',
+		'inkoops',
+		# 'abrehamalemu',
 		'albertcamus0',
 		'birukay',
 		'nikolatesla0'
@@ -268,8 +269,8 @@ def remove_inputs():
 
 def visit():
 	notebook_urls = [
-		f'https://www.kaggle.com/code/inkoops/rtrader-maploss-runlive-sim-linear-0'
-		for i in range(0, 30)
+		f'https://www.kaggle.com/code/abrehamatlaw0/rtrader-datapreparer-simsim-cum-0-it-2-{i}'
+		for i in range(0, 4)
 	]
 
 	usernames = [
