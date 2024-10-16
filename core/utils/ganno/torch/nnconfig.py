@@ -72,7 +72,7 @@ class LinearConfig(ModelConfig):
 			noise=0.3,
 			discrete=False,
 			round_mode=True,
-			size=(max(1, int(len(self.layers)*0.7)), int(len(self.layers)*3))
+			size=(max(0, int(len(self.layers)*0.7)), int(len(self.layers)*3))
 		)
 		self.dropout = ChoiceUtils.mutate_continuous(
 			self.dropout,
