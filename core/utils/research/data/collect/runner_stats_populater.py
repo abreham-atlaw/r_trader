@@ -156,7 +156,7 @@ class RunnerStatsPopulater:
 			for temperature in self.__temperatures:
 				try:
 					if self.__is_processed(file, temperature) and not replace_existing:
-						print(f"[+]Skipping {file}. Already Processed")
+						print(f"[+]Skipping {file}(T={temperature}). Already Processed")
 						continue
 					self._process_model(file, temperature)
 				except Exception as ex:
