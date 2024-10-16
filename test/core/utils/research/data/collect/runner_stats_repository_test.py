@@ -99,6 +99,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
 				self.__get_valid_dps(),
+				min_profit=-5,
+				max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
 				# model_losses=(1.5, None, None)
 			),
