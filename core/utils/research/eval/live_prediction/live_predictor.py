@@ -6,7 +6,7 @@ import numpy as np
 
 from core import Config
 from core.Config import OANDA_TOKEN, OANDA_TEST_ACCOUNT_ID
-from core.utils.research.model.model.wrapped import WrappedModel
+from core.utils.research.model.model.utils import WrappedModel
 from lib.network.oanda import Trader
 from lib.rl.agent.dta import TorchModel
 from lib.utils.torch_utils.model_handler import ModelHandler

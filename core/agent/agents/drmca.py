@@ -10,8 +10,8 @@ from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.trader_action import TraderAction
 from core.agent.utils.cache import Cache
 from core.environment.trade_state import TradeState, AgentState
-from core.utils.research.model.model.tom import TransitionOnlyModel
-from core.utils.research.model.model.wrapped import WrappedModel
+from core.utils.research.model.model.utils import TransitionOnlyModel
+from core.utils.research.model.model.utils import WrappedModel
 
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
