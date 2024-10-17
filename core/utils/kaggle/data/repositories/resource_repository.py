@@ -1,5 +1,7 @@
 import typing
 from abc import ABC, abstractmethod
+from copy import deepcopy
+from datetime import datetime
 
 from pymongo import MongoClient
 
@@ -22,10 +24,17 @@ class ResourcesRepository(ABC):
 
 class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 
-	def __init__(self, sessions_repository: SessionsRepository, allowed_gpu_instances=2, allowed_cpu_instances=5):
+	def __init__(
+			self,
+			sessions_repository: SessionsRepository,
+			allowed_gpu_instances=2,
+			allowed_cpu_instances=5,
+			gpu_instance_usage=12
+	):
 		self.__sessions_repository = sessions_repository
 		self.__allowed_gpu_instances = allowed_gpu_instances
 		self.__allowed_cpu_instances = allowed_cpu_instances
+		self.__gpu_instance_usage = gpu_instance_usage
 		self.__cache = Cache()
 
 	@abstractmethod
@@ -37,15 +46,23 @@ class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 		pass
 
 	def get_resources(self, account: Account) -> Resources:
-		resources = self.__cache.cached_or_execute(key=account.username, func=lambda : self._get_resources(account))
+		resources = deepcopy(self.__cache.cached_or_execute(key=account.username, func=lambda: self._get_resources(account)))
 		resources.get_resource(Resources.Devices.CPU).remaining_instances = self.__allowed_cpu_instances - len(
 			self.__sessions_repository.filter(gpu=False, active=True, account=account))
+
+		active_gpu_sessions = self.__sessions_repository.filter(gpu=True, active=True, account=account)
+		for session in active_gpu_sessions:
+			resources.get_resource(Resources.Devices.GPU).remaining_amount += max(
+				0,
+				self.__gpu_instance_usage - (datetime.now() - session.start_datetime).total_seconds()//3600
+			)
 		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_gpu_instances - len(
 			self.__sessions_repository.filter(gpu=True, active=True, account=account))
 		return resources
 
 	def save_resources(self, resources: Resources):
 		self.__cache.remove(resources.account.username)
+		self._save_resources(resources)
 
 
 class MongoResourcesRepository(SessionBasedResourcesRepository):
