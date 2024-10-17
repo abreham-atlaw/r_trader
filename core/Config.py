@@ -53,9 +53,9 @@ PCLOUD_TOKENS = [
 	"7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
 	"KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
 	"qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
-	# "lyJXAkZHDks7Z4w79whbTSVhssQ85JevC1QMEkoGk",  # abreham.atlaw@outlook.com +
-	# "1xjpt7ZEWJs7ZcfiRorgfUDQMbJsY2QV1h0whI5ek",  # abreham-atlaw@outlook.com -
-	# "CtEWXXZnvzs7Z8rc9rNJgHDQS6xh53cB8uy0hvhty",  # abreham_atlaw@outlook.com +
+	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
+	"bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
+	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	# "51pub7ZkqQs7Z0HsMuiQ78i4HGbzAlNXIkJtNdvX0",  # abrehama@outlook.com +
 	# "2V9aqXZiyRs7ZjXdUChjbQJkh9C7UjG76K73UbH1V",  # abreham.a@outlook.com +
 	# "gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
@@ -158,6 +158,7 @@ AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
+AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))

@@ -8,3 +8,5 @@ from .ocv import OutputClassesVariance
 from .obv import OutputBatchVariance
 from .log_loss import LogLoss
 from .pml import ProximalMaskedLoss
+from .obvl import OutputBatchVarianceLoss
+from .obcv import OutputBatchClassVariance
