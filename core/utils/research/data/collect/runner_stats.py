@@ -26,6 +26,9 @@ class RunnerStats:
 	def add_profit(self, profit: float):
 		self.profits.append(profit)
 
+	def add_real_profit(self, profit: float):
+		self.real_profits.append(profit)
+
 	def add_duration(self, duration: float):
 		self.duration += duration
 
