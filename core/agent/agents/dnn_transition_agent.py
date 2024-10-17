@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from core import Config
 from core.agent.utils.cache import Cache
-from core.utils.research.model.model.wrapped import WrappedModel
+from core.utils.research.model.model.utils import WrappedModel
 from lib.rl.agent import DNNTransitionAgent
 from lib.rl.agent.dta import TorchModel
 from lib.utils.logger import Logger
