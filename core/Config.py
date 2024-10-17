@@ -236,10 +236,10 @@ DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_ID = "abrehamalemu-rtrader-training-exp-0-linear-72-cum-0-it-2-tot.zip"
-
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear"
 
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stats"
+	OANDA_ACCOUNTS = "oanda_accounts"
