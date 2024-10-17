@@ -47,9 +47,9 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def __print_dps(self, dps: typing.List[RunnerStats]):
 		print(pd.DataFrame([
-			(dp.id, dp.model_name, dp.duration, dp.profit, dp.model_losses, dp.session_timestamps, dp.profits)
+			(dp.id, dp.model_name, dp.duration, dp.profit, dp.real_profit,  dp.model_losses, dp.session_timestamps, dp.profits, dp.real_profits)
 			for dp in dps
-		], columns=["ID", "Model", "Duration", "Profit", "Losses", "Sessions", "Profits"]).to_string())
+		], columns=["ID", "Model", "Duration", "Profit", "Real Profit", "Losses", "Sessions", "Profits", "Real Profits"]).to_string())
 
 	def __filter_stats(
 			self,
@@ -99,6 +99,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
 				self.__get_valid_dps(),
+				min_profit=-5,
+				max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
 				# model_losses=(1.5, None, None)
 			),
