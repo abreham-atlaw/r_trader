@@ -243,3 +243,4 @@ class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stats"
+	OANDA_ACCOUNTS = "oanda_accounts"
