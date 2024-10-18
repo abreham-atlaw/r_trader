@@ -95,6 +95,8 @@ class RunnerStatsRepository:
 		else:
 			pool = self.retrieve_non_locked()
 
+		pool = self.__filter_select(pool)
+
 		sorted_pool = sorted(
 			pool,
 			key=lambda stat: self.__get_select_sort_field(stat) + (self.__select_weight * np.mean([self.__get_select_sort_field(stat) for stat in pool]) * random.random())
