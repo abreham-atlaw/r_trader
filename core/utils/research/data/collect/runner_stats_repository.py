@@ -21,7 +21,8 @@ class RunnerStatsRepository:
 			collection_name: str = "runner_stats",
 			select_weight: float = 0.5,
 			max_loss: float = 6,
-			model_name_key: str = ""
+			model_name_key: str = "",
+			population_size: int = 160
 	):
 		db = client[db_name]
 		self._collection = db[collection_name]
@@ -30,15 +31,19 @@ class RunnerStatsRepository:
 		self.__select_weight = select_weight
 		self.__max_loss = max_loss
 		self.__model_name_key = model_name_key
+		self.__population_size = population_size
 
 	def __get_select_sort_field(self, stat: RunnerStats) -> float:
 		return stat.duration
 
 	def __filter_select(self, stats: typing.List[RunnerStats]):
-		return list(filter(
+		selected = list(filter(
 			lambda stat: stat.model_losses[0] <= self.__max_loss and self.__model_name_key in stat.model_name,
 			stats
 		))
+		if self.__population_size is not None:
+			selected = selected[:self.__population_size]
+		return selected
 
 	def store(self, stats: RunnerStats):
 		old_stats = self.retrieve(stats.id)
@@ -110,3 +115,9 @@ class RunnerStatsRepository:
 		instance.add_duration(duration)
 		self.store(instance)
 		self.__resman.unlock_by_id(instance.id)
+
+	def delete(self, id: str):
+		self._collection.delete_one({"id": id})
+
+	def retrieve_valid(self):
+		return self.__filter_select(self.retrieve_all())
