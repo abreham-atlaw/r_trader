@@ -34,7 +34,7 @@ class RunnerStatsRepository:
 		self.__population_size = population_size
 
 	def __get_select_sort_field(self, stat: RunnerStats) -> float:
-		return stat.duration
+		return 1/(stat.profit + 1e-9)
 
 	def __filter_select(self, stats: typing.List[RunnerStats]):
 		selected = list(filter(
