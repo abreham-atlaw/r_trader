@@ -63,6 +63,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			model=ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
 			temperature=Config.AGENT_MODEL_TEMPERATURE
 		)
+		print(f"Using Temperature: {Config.AGENT_MODEL_TEMPERATURE}")
 		if Config.AGENT_MODEL_USE_TRANSITION_ONLY:
 			model = TransitionOnlyModel(
 				model=model,
