@@ -7,7 +7,7 @@ from torch import nn
 from core.utils.research.losses import WeightedMSELoss
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.wrapped import WrappedModel
+from core.utils.research.model.model.utils import WrappedModel
 from lib.utils.torch_utils.model_handler import ModelHandler
 import matplotlib.pyplot as plt
 
@@ -55,7 +55,7 @@ class LinearTest(unittest.TestCase):
 
 	def test_plot_outputs(self):
 
-		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/results_3/abrehamalemu-rtrader-training-exp-0-linear-101-cum-0-it-4-tot.zip")
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/results/abrehamalemu-rtrader-training-exp-0-linear-85-cum-0-it-4-tot.zip")
 
 		self.__plot_outputs(model, 10)
 		plt.show()
