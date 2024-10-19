@@ -18,7 +18,7 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.repository = ResearchProvider.provide_runner_stats_repository()
+		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository()
 		self.serializer = RunnerStatsSerializer()
 
 		self.loss_names = [
@@ -252,7 +252,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_get_least_loss_losing_stats(self):
 		dps = self.__filter_stats(
-			self.repository.retrieve_all(),
+			self.repository.retrieve_valid(),
 			# time=datetime.now() - timedelta(hours=),
 			model_losses=(4.5,),
 			max_profit=0
@@ -277,12 +277,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_custom_sorted(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.__get_valid_dps(),
+				self.repository.retrieve_valid(),
 				model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.model_losses[2],
+			key=lambda dp: dp.profit,
 			reverse=True
 		)
 
@@ -377,3 +377,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				print(f"Deleting {dp.model_losses[LOSS_IDX]}")
 				self.repository.delete(dp.id)
 			print(f"{(i+1)*100/len(all) :.2f}%... Done")
+
+	def test_get_selected(self):
+		stats = self.repository.retrieve_valid()
+		self.__print_dps(stats)
