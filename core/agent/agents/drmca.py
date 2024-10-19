@@ -10,8 +10,10 @@ from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.trader_action import TraderAction
 from core.agent.utils.cache import Cache
 from core.environment.trade_state import TradeState, AgentState
-from core.utils.research.model.model.tom import TransitionOnlyModel
-from core.utils.research.model.model.wrapped import WrappedModel
+from core.utils.research.model.model.utils import TransitionOnlyModel
+from core.utils.research.model.model.utils import WrappedModel
+
+from core.utils.research.model.model.utils import TemperatureScalingModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
 from lib.rl.agent.dta import Model, TorchModel
 from lib.rl.environment import ModelBasedState
@@ -57,7 +59,11 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		self.__dra_input_cache = Cache()
 
 	def _init_model(self) -> Model:
-		model = ModelHandler.load(Config.CORE_MODEL_CONFIG.path)
+		model = TemperatureScalingModel(
+			model=ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
+			temperature=Config.AGENT_MODEL_TEMPERATURE
+		)
+		print(f"Using Temperature: {Config.AGENT_MODEL_TEMPERATURE}")
 		if Config.AGENT_MODEL_USE_TRANSITION_ONLY:
 			model = TransitionOnlyModel(
 				model=model,

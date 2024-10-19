@@ -13,6 +13,8 @@ class RunnerStatsSerializer(Serializer):
 		json_ = data.__dict__.copy()
 		if "profit" in json_.keys():
 			json_.pop("profit")
+		if "real_profit" in json_.keys():
+			json_.pop("real_profit")
 		return json_
 
 	def deserialize(self, json_: Dict) -> RunnerStats:

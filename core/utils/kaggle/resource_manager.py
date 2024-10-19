@@ -1,7 +1,7 @@
 import typing
 import random
 
-from core.utils.kaggle.data.models import Account, Resources
+from core.utils.kaggle.data.models import Account, Resources, Resource
 from core.utils.kaggle.data.repositories import ResourcesRepository, AccountsRepository
 
 
@@ -14,7 +14,7 @@ class ResourcesManager:
 	):
 		self.__accounts_repository, self.__resources_repository = (
 			accounts_repository, resources_repository)
-		self.__random_coefficient = 100
+		self.__random_coefficient = 0.1
 
 	def __get_resources(self) -> typing.List[Resources]:
 
@@ -27,9 +27,17 @@ class ResourcesManager:
 
 	def _sort_resources(self, resources: typing.List[Resources], device: int) -> typing.List[Resources]:
 
-		key = lambda res: res.remaining_instances
+		def eval_cpu(res: Resource):
+			return res.remaining_instances
+
+		def eval_gpu(res: Resource):
+			if res.remaining_instances <= 0 or res.remaining_amount <= 0:
+				return 0
+			return 1/((res.remaining_instances**1.5)*res.remaining_amount)
+
+		key = eval_cpu
 		if device == Resources.Devices.GPU:
-			key = lambda res: res.remaining_instances * res.remaining_amount
+			key = eval_gpu
 
 		return sorted(
 			resources,
@@ -69,6 +77,7 @@ class ResourcesManager:
 			accounts = self.__accounts_repository.get_accounts()
 
 		for account in accounts:
+			print(f"Resetting {account.username}...")
 			resources = self.__resources_repository.get_resources(account)
 			resources.get_resource(Resources.Devices.CPU).remaining_instances = cpu_instances
 			resources.get_resource(Resources.Devices.GPU).remaining_instances = gpu_instances

@@ -3,7 +3,7 @@ import unittest
 import torch
 import numpy as np
 
-from core.utils.research.model.model.tom import TransitionOnlyModel
+from core.utils.research.model.model.utils import TransitionOnlyModel
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
