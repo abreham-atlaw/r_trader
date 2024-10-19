@@ -10,7 +10,7 @@ from pprint import pprint
 
 import pandas as pd
 
-from core.di import ServiceProvider
+from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
 
@@ -18,7 +18,7 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.repository = RunnerStatsRepository(ServiceProvider.provide_mongo_client())
+		self.repository = ResearchProvider.provide_runner_stats_repository()
 		self.serializer = RunnerStatsSerializer()
 
 		self.loss_names = [
@@ -53,7 +53,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		return [
 			dp
 			for dp in dps
-			if dp.duration > 0 and 0 not in dp.model_losses
+			if (dp.duration > 0) and (0 not in dp.model_losses)
 		]
 
 	def __print_dps(self, dps: typing.List[RunnerStats]):
@@ -109,10 +109,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
-				filter(
-					lambda dp: len(dp.model_losses) == 8 and dp.duration > 0,
-					self.repository.retrieve_all()
-				),
+				self.__get_valid_dps(),
 				min_profit=-5,
 				max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
@@ -211,7 +208,9 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_single_allocate(self):
-		stat = self.repository.allocate_for_runlive()
+		stat = self.repository.allocate_for_runlive(
+			allow_locked=True
+		)
 		print(f"Allocated {stat.id}")
 		self.repository.finish_session(stat, 0)
 		self.__print_dps([stat])
@@ -278,7 +277,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_custom_sorted(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_all(),
+				self.__get_valid_dps(),
 				model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
