@@ -77,6 +77,7 @@ class ResourcesManager:
 			accounts = self.__accounts_repository.get_accounts()
 
 		for account in accounts:
+			print(f"Resetting {account.username}...")
 			resources = self.__resources_repository.get_resources(account)
 			resources.get_resource(Resources.Devices.CPU).remaining_instances = cpu_instances
 			resources.get_resource(Resources.Devices.GPU).remaining_instances = gpu_instances
