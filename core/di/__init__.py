@@ -2,6 +2,7 @@ from .application_container import ApplicationContainer
 
 from .legacy import *
 
+
 def init_di():
 	container = ApplicationContainer()
 	print("Wiring")
