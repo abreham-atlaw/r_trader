@@ -69,7 +69,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
 			max_profit: float = None,
-			model_key: str = None
+			model_key: str = None,
+			min_duration: float = None
 	) -> typing.List[RunnerStats]:
 
 		if model_key is not None:
@@ -102,6 +103,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		if max_profit is not None:
 			dps = list(filter(
 				lambda dp: dp.profit < max_profit,
+				dps
+			))
+
+		if min_duration is not None:
+			dps = list(filter(
+				lambda dp: dp.duration >= min_duration,
 				dps
 			))
 
@@ -381,3 +388,79 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_selected(self):
 		stats = self.repository.retrieve_valid()
 		self.__print_dps(stats)
+
+	def test_wipe_old_profits(self):
+		date_threshold = datetime(
+			year=2024,
+			month=10,
+			day=16,
+		)
+
+		stats = self.__filter_stats(
+			self.repository.retrieve_all(),
+			min_duration=1
+		)
+
+		for i, stat in enumerate(stats):
+			valid_idxs = [
+				i
+				for i, time in enumerate(stat.session_timestamps)
+				if time >= date_threshold
+			]
+			if len(valid_idxs) == len(stat.session_timestamps):
+				continue
+			stat.profits, stat.session_timestamps = [
+				[
+					array[i]
+					for i in valid_idxs
+					if i < len(array)
+				]
+				for array in (stat.profits, stat.session_timestamps)
+			]
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_transfer_profits(self):
+
+		class TargetNotFoundException(Exception):
+			pass
+
+		def get_target(stat: RunnerStats) -> RunnerStats:
+			target = list(filter(
+				lambda s: s.model_name == stat.model_name and s.temperature == 1.0,
+				all
+			))
+			if len(target) == 0:
+				raise TargetNotFoundException()
+			return target[0]
+
+		def is_transferable(stat: RunnerStats) -> bool:
+			return stat.temperature != 1 and len(stat.session_timestamps) > 0
+
+		def get_transferable() -> typing.List[RunnerStats]:
+			return list(filter(is_transferable, all))
+
+		def transfer(source: RunnerStats, target: RunnerStats):
+			print(f"[+]Transferring {source.id} to {target.id}")
+
+			for target_arr, source_arr in zip([target.session_timestamps, target.profits], [source.session_timestamps, source.profits]):
+				target_arr.extend(source_arr)
+
+			source.session_timestamps, source.profits = [], []
+			self.repository.store(target)
+			self.repository.store(source)
+
+		def process(stat):
+			try:
+				target = get_target(stat)
+				transfer(stat, target)
+			except TargetNotFoundException:
+				print(f"[-]Could not transfer {stat.id}")
+
+		all = self.repository.retrieve_all()
+
+		transferable = get_transferable()
+
+		for i, stat in enumerate(transferable):
+			process(stat)
+			print(f"{(i+1)*100/len(transferable):.2f}%... Done")
