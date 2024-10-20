@@ -258,11 +258,14 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"Percentage: {len(completed) / len(all)}")
 
 	def test_get_least_loss_losing_stats(self):
-		dps = self.__filter_stats(
-			self.repository.retrieve_valid(),
-			# time=datetime.now() - timedelta(hours=),
-			model_losses=(4.5,),
-			max_profit=0
+		dps = sorted(
+			self.__filter_stats(
+				self.repository.retrieve_valid(),
+				# time=datetime.now() - timedelta(hours=),
+				model_losses=(4.5,),
+				max_profit=0
+			),
+			key=lambda dp: dp.model_losses[0]
 		)
 
 		self.__print_dps(dps)
