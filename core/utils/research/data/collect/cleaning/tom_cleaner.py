@@ -83,7 +83,7 @@ class TomCleaner:
 			os.path.join(self.__in_path, stat.model_name),
 			download_path=path
 		)
-		return ModelHandler.load(path)
+		return ModelHandler.load(path).to('cpu')
 
 	def __clear_pl(self, stat: RunnerStats):
 		print(f"[+] Cleaning...")
