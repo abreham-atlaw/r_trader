@@ -389,6 +389,25 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		stats = self.repository.retrieve_valid()
 		self.__print_dps(stats)
 
+	def test_wipe_profits(self):
+
+		IDS = [
+		]
+
+		stats = list(filter(
+			lambda stat: stat.id in IDS,
+			self.repository.retrieve_all()
+		))
+		print(f"Wiping {len(stats)} stats")
+
+		for i, stat in enumerate(stats):
+			print(f"Wiping {stat.id}")
+			stat.profits = []
+			stat.session_timestamps = []
+			stat.duration = 0
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
 	def test_wipe_old_profits(self):
 		date_threshold = datetime(
 			year=2024,
