@@ -261,7 +261,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.__get_valid_dps(),
-				# time=datetime.now() - timedelta(hours=),
+				time=datetime.now() - timedelta(hours=24),
 				model_losses=(4.5,),
 				max_profit=0
 			),
