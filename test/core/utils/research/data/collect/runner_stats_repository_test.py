@@ -260,7 +260,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_least_loss_losing_stats(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_valid(),
+				self.__get_valid_dps(),
 				# time=datetime.now() - timedelta(hours=),
 				model_losses=(4.5,),
 				max_profit=0
@@ -486,3 +486,15 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		for i, stat in enumerate(transferable):
 			process(stat)
 			print(f"{(i+1)*100/len(transferable):.2f}%... Done")
+
+	def test_sync_duration(self):
+
+		SESSION_LEN = 3*60*60
+
+		stats = self.repository.retrieve_all()
+
+		for i, stat in enumerate(stats):
+			stat.duration = SESSION_LEN * len(stat.session_timestamps)
+			self.repository.store(stat)
+
+			print(f"{i+1} of {len(stats)}... Done")
