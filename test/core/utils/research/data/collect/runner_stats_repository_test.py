@@ -10,7 +10,7 @@ from pprint import pprint
 
 import pandas as pd
 
-from core.di import ServiceProvider
+from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
 
@@ -18,8 +18,19 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.repository = RunnerStatsRepository(ServiceProvider.provide_mongo_client())
+		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository()
 		self.serializer = RunnerStatsSerializer()
+
+		self.loss_names = [
+			"nn.CrossEntropyLoss()",
+			"ProximalMaskedLoss",
+			"MeanSquaredClassError",
+			"ReverseMAWeightLoss(window_size=10, softmax=True)",
+			"PredictionConfidenceScore(softmax=True)",
+			"OutputClassesVariance(softmax=True)",
+			"OutputBatchVariance(softmax=True)",
+			"OutputBatchClassVariance(softmax=True)",
+		]
 
 	def __create_for_runlive(self) -> typing.List[RunnerStats]:
 		stats = []
@@ -42,14 +53,14 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		return [
 			dp
 			for dp in dps
-			if dp.duration > 0 and 0 not in dp.model_losses
+			if (dp.duration > 0) and (0 not in dp.model_losses)
 		]
 
 	def __print_dps(self, dps: typing.List[RunnerStats]):
 		print(pd.DataFrame([
-			(dp.id, dp.model_name, dp.duration, dp.profit, dp.model_losses, dp.session_timestamps, dp.profits)
+			(dp.id, dp.model_name, dp.duration, dp.profit, dp.real_profit,  dp.model_losses, dp.session_timestamps, dp.profits, dp.real_profits)
 			for dp in dps
-		], columns=["ID", "Model", "Duration", "Profit", "Losses", "Sessions", "Profits"]).to_string())
+		], columns=["ID", "Model", "Duration", "Profit", "Real Profit", "Losses", "Sessions", "Profits", "Real Profits"]).to_string())
 
 	def __filter_stats(
 			self,
@@ -58,7 +69,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
 			max_profit: float = None,
-			model_key: str = None
+			model_key: str = None,
+			min_duration: float = None
 	) -> typing.List[RunnerStats]:
 
 		if model_key is not None:
@@ -91,6 +103,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		if max_profit is not None:
 			dps = list(filter(
 				lambda dp: dp.profit < max_profit,
+				dps
+			))
+
+		if min_duration is not None:
+			dps = list(filter(
+				lambda dp: dp.duration >= min_duration,
 				dps
 			))
 
@@ -197,7 +215,9 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_single_allocate(self):
-		stat = self.repository.allocate_for_runlive()
+		stat = self.repository.allocate_for_runlive(
+			allow_locked=True
+		)
 		print(f"Allocated {stat.id}")
 		self.repository.finish_session(stat, 0)
 		self.__print_dps([stat])
@@ -238,11 +258,14 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"Percentage: {len(completed) / len(all)}")
 
 	def test_get_least_loss_losing_stats(self):
-		dps = self.__filter_stats(
-			self.__get_valid_dps(),
-			# time=datetime.now() - timedelta(hours=),
-			model_losses=(4.5,),
-			max_profit=0
+		dps = sorted(
+			self.__filter_stats(
+				self.repository.retrieve_valid(),
+				# time=datetime.now() - timedelta(hours=),
+				model_losses=(4.5,),
+				max_profit=0
+			),
+			key=lambda dp: dp.model_losses[0]
 		)
 
 		self.__print_dps(dps)
@@ -264,12 +287,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_custom_sorted(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_all(),
+				self.repository.retrieve_valid(),
 				model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.model_losses[-1],
+			key=lambda dp: dp.profit,
 			reverse=True
 		)
 
@@ -301,3 +324,165 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			stat.duration = 0
 			self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_plot_distribution(self):
+
+		def count_bounds(values: typing.List[float], bounds: typing.List[typing.Tuple[float, float]]):
+			bound_counts = [0 for _ in bounds]
+
+			for value in values:
+				for i, (b_b, b_t) in enumerate(bounds):
+					if b_b <= value <= b_t:
+						bound_counts[i] += 1
+			return bound_counts
+
+		def generate_bounds(values: typing.List[float], size: int):
+
+			sequence = np.linspace(
+				min(values),
+				max(values),
+				size+1
+			)
+
+			return [
+				(sequence[i], sequence[i+1])
+				for i in range(size)
+			]
+
+		def process_loss(losses: typing.List[float], name: str):
+
+			bounds = generate_bounds(losses, 10)
+			counts = count_bounds(losses, bounds)
+
+			plt.figure()
+			plt.title(name)
+			plt.scatter(
+				[sum(bound)/2 for bound in bounds],
+				counts
+			)
+
+		dps = list(filter(
+			lambda dp: (
+					len(dp.model_losses) == len(self.loss_names)
+			),
+			self.repository.retrieve_valid()
+		))
+
+		print(f"Using {len(dps)} stats")
+
+		for i in range(len(self.loss_names)):
+			losses = [dp.model_losses[i] for dp in dps]
+			process_loss(losses, self.loss_names[i])
+
+		plt.show()
+
+	def test_trim_stats(self):
+
+		BOUNDS = (0, 15)
+		LOSS_IDX = 0
+
+		all = self.repository.retrieve_all()
+		for i, dp in enumerate(all):
+			if not (BOUNDS[0] <= dp.model_losses[LOSS_IDX] <= BOUNDS[1]):
+				print(f"Deleting {dp.model_losses[LOSS_IDX]}")
+				self.repository.delete(dp.id)
+			print(f"{(i+1)*100/len(all) :.2f}%... Done")
+
+	def test_get_selected(self):
+		stats = self.repository.retrieve_valid()
+		self.__print_dps(stats)
+
+	def test_wipe_profits(self):
+
+		IDS = [
+		]
+
+		stats = list(filter(
+			lambda stat: stat.id in IDS,
+			self.repository.retrieve_all()
+		))
+		print(f"Wiping {len(stats)} stats")
+
+		for i, stat in enumerate(stats):
+			print(f"Wiping {stat.id}")
+			stat.profits = []
+			stat.session_timestamps = []
+			stat.duration = 0
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_wipe_old_profits(self):
+		date_threshold = datetime(
+			year=2024,
+			month=10,
+			day=16,
+		)
+
+		stats = self.__filter_stats(
+			self.repository.retrieve_all(),
+			min_duration=1
+		)
+
+		for i, stat in enumerate(stats):
+			valid_idxs = [
+				i
+				for i, time in enumerate(stat.session_timestamps)
+				if time >= date_threshold
+			]
+			if len(valid_idxs) == len(stat.session_timestamps):
+				continue
+			stat.profits, stat.session_timestamps = [
+				[
+					array[i]
+					for i in valid_idxs
+					if i < len(array)
+				]
+				for array in (stat.profits, stat.session_timestamps)
+			]
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_transfer_profits(self):
+
+		class TargetNotFoundException(Exception):
+			pass
+
+		def get_target(stat: RunnerStats) -> RunnerStats:
+			target = list(filter(
+				lambda s: s.model_name == stat.model_name and s.temperature == 1.0,
+				all
+			))
+			if len(target) == 0:
+				raise TargetNotFoundException()
+			return target[0]
+
+		def is_transferable(stat: RunnerStats) -> bool:
+			return stat.temperature != 1 and len(stat.session_timestamps) > 0
+
+		def get_transferable() -> typing.List[RunnerStats]:
+			return list(filter(is_transferable, all))
+
+		def transfer(source: RunnerStats, target: RunnerStats):
+			print(f"[+]Transferring {source.id} to {target.id}")
+
+			for target_arr, source_arr in zip([target.session_timestamps, target.profits], [source.session_timestamps, source.profits]):
+				target_arr.extend(source_arr)
+
+			source.session_timestamps, source.profits = [], []
+			self.repository.store(target)
+			self.repository.store(source)
+
+		def process(stat):
+			try:
+				target = get_target(stat)
+				transfer(stat, target)
+			except TargetNotFoundException:
+				print(f"[-]Could not transfer {stat.id}")
+
+		all = self.repository.retrieve_all()
+
+		transferable = get_transferable()
+
+		for i, stat in enumerate(transferable):
+			process(stat)
+			print(f"{(i+1)*100/len(transferable):.2f}%... Done")
