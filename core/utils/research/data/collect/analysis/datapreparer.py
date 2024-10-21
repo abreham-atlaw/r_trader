@@ -1,4 +1,5 @@
 import typing
+from copy import deepcopy
 
 import numpy as np
 
@@ -30,9 +31,6 @@ class RunnerStatsDataPreparer:
 			min_sessions = self.__min_sessions
 
 		stats: typing.List[RunnerStats] = self.__repository.retrieve_all()
-		if self.__columns is not None:
-			for dp in stats:
-				dp.model_losses = tuple([dp.model_losses[i] for i in self.__columns if i < len(dp.model_losses)])
 
 		if min_sessions is not None:
 			stats = list(filter(
@@ -74,6 +72,15 @@ class RunnerStatsDataPreparer:
 				runlive_tested=runlive_tested,
 				min_sessions=min_sessions
 			)
+
+		if self.__columns is not None:
+			stats = [
+				deepcopy(dp)
+				for dp in stats
+			]
+			for dp in stats:
+				dp.model_losses = tuple([dp.model_losses[i] for i in self.__columns if i < len(dp.model_losses)])
+
 		print(f"Preparing {len(stats)} stats")
 		X = np.stack([
 			dp.model_losses
