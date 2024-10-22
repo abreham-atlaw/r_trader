@@ -1,3 +1,4 @@
+from core import Config
 
 
 class ResearchProvider:
@@ -8,10 +9,15 @@ class ResearchProvider:
 		return ProfitPredictor()
 
 	@staticmethod
-	def provide_runner_stats_repository() -> 'RunnerStatsRepository':
+	def provide_runner_stats_repository(branch=None) -> 'RunnerStatsRepository':
 		from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
 		from .service_provider import ServiceProvider
+
+		if branch is None:
+			branch = Config.RunnerStatsBranches.default
+
 		return RunnerStatsRepository(
 			client=ServiceProvider.provide_mongo_client(),
-			profit_based_selection=True
+			profit_based_selection=True,
+			branch=branch
 		)

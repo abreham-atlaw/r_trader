@@ -26,11 +26,10 @@ class RunnerStatsRepository:
 			population_size: int = 160,
 			profit_based_selection: bool = False,
 			profit_predictor: 'ProfitPredictor' = None,
-			branch: str = RunnerStats.Branches.main,
-			all_branches: typing.List[str] = None
+			branch: str = Config.RunnerStatsBranches.default,
 	):
 		db = client[db_name]
-		self._collection = db[collection_name]
+		self._collection = db[f"{collection_name}-branch-{branch}"]
 		self.__serializer = RunnerStatsSerializer()
 		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
 		self.__select_weight = select_weight
@@ -41,10 +40,6 @@ class RunnerStatsRepository:
 		if profit_predictor is None:
 			profit_predictor = ResearchProvider.provide_profit_predictor()
 		self.__profit_predictor = profit_predictor
-		self.__branch = branch
-		if all_branches is None:
-			all_branches = RunnerStats.Branches.all
-		self.__all_branches = all_branches
 
 	def __get_select_sort_field(self, stat: RunnerStats) -> float:
 		return stat.duration
@@ -103,15 +98,9 @@ class RunnerStatsRepository:
 		else:
 			return None
 
-	def retrieve_all(
-			self,
-			branch: str = None
-	) -> typing.List[RunnerStats]:
-		if branch is None:
-			branch = self.__branch
+	def retrieve_all(self) -> typing.List[RunnerStats]:
 		docs = self._collection.find()
-		all: typing.List[RunnerStats] = self.__serializer.deserialize_many(docs)
-		return [stat for stat in all if stat.branch == branch]
+		return self.__serializer.deserialize_many(docs)
 
 	def exists(self, id):
 		return self.retrieve(id) is not None
@@ -157,56 +146,7 @@ class RunnerStatsRepository:
 		self.__resman.unlock_by_id(instance.id)
 
 	def delete(self, id: str):
-		self._collection.delete_one({
-			"id": id,
-			'branch': self.__branch
-		})
+		self._collection.delete_one({"id": id})
 
 	def retrieve_valid(self):
 		return self.__filter_select(self.retrieve_all())
-
-	def __sync_branch(
-			self,
-			branch: str,
-			synced_stats: typing.List[RunnerStats]
-	) -> typing.List[RunnerStats]:
-
-		synced_ids = [stat.id for stat in synced_stats]
-
-		stats = self.retrieve_all(branch=branch)
-
-		for target_branch in self.__all_branches:
-			if target_branch == branch:
-				continue
-
-			print(f"Syncing '{branch}' -> '{target_branch}'")
-
-			target_stats = self.retrieve_all(branch=target_branch)
-			target_ids = [stat.id for stat in target_stats]
-
-			for i, stat in enumerate(stats):
-				print(f"Processing {(i+1)*100/len(stats)}")
-				if stat.id in synced_ids:
-					continue
-
-				if stat.id in target_ids:
-					continue
-
-				new_stat = deepcopy(stat)
-				new_stat.session_timestamps, new_stat.profits, new_stat.real_profits, new_stat.duration, new_stat.branch = ([], [], [], 0, target_branch)
-				self.store(new_stat)
-				print(f"Added {new_stat.id} to {target_branch}")
-
-		return stats
-
-	def sync_branches(self, branches: typing.List[str] = None):
-
-		if branches is None:
-			branches = self.__all_branches
-
-		synced_stats = []
-
-		for source_stat in branches:
-
-			new_syncs = self.__sync_branch(source_stat, synced_stats)
-			synced_stats.extend(new_syncs)
