@@ -26,7 +26,7 @@ class RunnerStatsRepository:
 			population_size: int = 160,
 			profit_based_selection: bool = False,
 			profit_predictor: 'ProfitPredictor' = None,
-			branch: str = RunnerStats.Branches.main,
+			branch: str = Config.MAPLOSS_BRANCH,
 			all_branches: typing.List[str] = None
 	):
 		db = client[db_name]
