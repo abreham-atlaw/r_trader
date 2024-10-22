@@ -175,7 +175,6 @@ class RunnerStatsRepository:
 
 		stats = self.retrieve_all(branch=branch)
 
-
 		for target_branch in self.__all_branches:
 			if target_branch == branch:
 				continue

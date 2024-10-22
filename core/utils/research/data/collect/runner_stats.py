@@ -9,8 +9,10 @@ class RunnerStats:
 
 	class Branches:
 		main = "main"
+		ma_ews = "ma_ews"
 		all = [
-			main
+			main,
+			ma_ews
 		]
 
 	id: str
