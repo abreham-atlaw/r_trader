@@ -4,6 +4,7 @@ import unittest
 from unittest import mock
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from copy import deepcopy
 
@@ -145,9 +146,10 @@ class TraderAgentTest(unittest.TestCase):
 		agent = TraderAgent()
 		agent.set_environment(environment)
 
-		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results_8/graph_dumps/1726208000.773295")
+		node, repo = stats.load_and_draw_graph("/home/abrehamatlaw/Downloads/Compressed/results_8/graph_dumps/1729381879.210845")
 		state = repo.retrieve(node.id)
 
+		plt.figure()
 		agent._monte_carlo_tree_search(state)
 
 		x = 1

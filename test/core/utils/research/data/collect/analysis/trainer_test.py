@@ -85,22 +85,36 @@ class TrainerTest(unittest.TestCase):
 		self.__visualize_result(model, detailed=detailed, name=name)
 
 	def test_svr(self):
-		model = SVRModel()
+		model = SVRModel(
+			kernel='rbf',
+			C=10**5,
+			gamma=10**5
+		)
 		self.__test_model(model)
+		coef = model.model.dual_coef_
+		for i in range(len(coef)):
+			print(f"Feature {self.column_names[i]}: {coef[i]}")
+
+
 		plt.show()
 
-	def test_optimal_kernel(self):
-		KERNELS = ['rbf', 'linear', 'poly']
+	def test_optimal_svr_config(self):
+		KERNELS = ['linear']
+		Cs = [10**i for i in range(2, 6)]
+		gammas = [10**i for i in range(-2, 2)]
 
 		for kernel in KERNELS:
 
-			model = SVRModel(kernel=kernel)
-			self.__test_model(model)
+			for C in Cs:
+				for gamma in gammas:
+					print(f"Processing Kernel: {kernel}, C: {C}, gamma: {gamma}")
+					model = SVRModel(kernel=kernel, C=C, gamma=gamma)
+					self.__test_model(model, name=f"Kernel={kernel}, C={C}, gamma={gamma}")
 
 		plt.show()
 
 	def test_decision_tree(self):
-		model = DecisionTreeModel(max_depth=2)
+		model = DecisionTreeModel(max_depth=4)
 		self.__test_model(model, detailed=True)
 
 		rules = export_text(model.model, feature_names=self.column_names)
@@ -155,7 +169,7 @@ class TrainerTest(unittest.TestCase):
 
 	def test_optimize_alpha(self):
 
-		alphas = [(0.1)**i for i in range(10, 20)] + [0]
+		alphas = [(0.1)*i for i in range(10)]
 		for alpha in alphas:
 			print(f"Using Alpha: {alpha}")
 			model = RidgeModel(alpha=alpha)
@@ -185,10 +199,10 @@ class TrainerTest(unittest.TestCase):
 	def test_optimal_model(self):
 		models = [
 			SVRModel(),
-			DecisionTreeModel(max_depth=3),
+			DecisionTreeModel(max_depth=4),
 			XGBoostModel(),
 			RidgeModel(alpha=0),
-			LassoModel(),
+			LassoModel(alpha=0),
 		]
 
 		for model in models:
