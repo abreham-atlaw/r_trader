@@ -238,7 +238,7 @@ AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
-MAPLOSS_BRANCH = "main"
+MAPLOSS_BRANCH = "ma_ews"
 with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
