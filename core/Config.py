@@ -107,7 +107,8 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 1033
+MARKET_STATE_MEMORY = 1024
+MARKET_STATE_USE_MA = True
 MARKET_STATE_GRANULARITY = "M5"
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
@@ -149,6 +150,7 @@ AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 10
+AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
@@ -193,7 +195,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-94-cum-0-it-4-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/results_9/abrehamalemu-rtrader-training-exp-0-linear-101-cum-0-it-4-tot_1.zip",
 	download=False
 )
 
