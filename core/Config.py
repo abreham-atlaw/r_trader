@@ -262,4 +262,4 @@ class RunnerStatsBranches:
 		ma_ews
 	]
 
-	default = main
+	default = ma_ews
