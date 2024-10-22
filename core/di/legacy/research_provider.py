@@ -18,6 +18,6 @@ class ResearchProvider:
 
 		return RunnerStatsRepository(
 			client=ServiceProvider.provide_mongo_client(),
-			profit_based_selection=True,
+			profit_based_selection=False,
 			branch=branch
 		)
