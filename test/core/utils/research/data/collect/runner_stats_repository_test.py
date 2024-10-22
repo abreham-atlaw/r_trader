@@ -498,3 +498,6 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.repository.store(stat)
 
 			print(f"{i+1} of {len(stats)}... Done")
+
+	def test_sync_branches(self):
+		self.repository.sync_branches()
