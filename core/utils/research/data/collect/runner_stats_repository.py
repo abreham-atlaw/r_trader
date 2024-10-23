@@ -21,7 +21,7 @@ class RunnerStatsRepository:
 			db_name: str = "runner_stats",
 			collection_name: str = "runner_stats",
 			select_weight: float = 0.5,
-			max_loss: float = 6,
+			max_loss: float = None,
 			model_name_key: str = "",
 			population_size: int = 160,
 			profit_based_selection: bool = False,
@@ -57,7 +57,7 @@ class RunnerStatsRepository:
 	def __filter_select(self, stats: typing.List[RunnerStats]):
 		selected = list(filter(
 			lambda stat:
-			stat.model_losses[0] <= self.__max_loss and
+			(self.__max_loss is None or stat.model_losses[0] <= self.__max_loss) and
 			self.__model_name_key in stat.model_name and
 			0 not in stat.model_losses,
 			stats
@@ -72,7 +72,7 @@ class RunnerStatsRepository:
 			else:
 				selected = sorted(
 					selected,
-					key=lambda stat: stat.model_losses[0]
+					key=lambda stat: stat.model_losses[1]
 				)
 			selected = selected[:self.__population_size]
 		return selected
