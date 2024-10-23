@@ -7,14 +7,6 @@ from datetime import datetime
 @dataclass
 class RunnerStats:
 
-	class Branches:
-		main = "main"
-		ma_ews = "ma_ews"
-		all = [
-			main,
-			ma_ews
-		]
-
 	id: str
 	model_name: str
 	session_timestamps: typing.List[datetime]
@@ -23,7 +15,6 @@ class RunnerStats:
 	model_losses: typing.Tuple[float, ...] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 	temperature: float = 1.0
 	real_profits: typing.List[float] = field(default_factory=lambda: [])
-	branch: str = Branches.main
 
 	@property
 	def profit(self) -> float:

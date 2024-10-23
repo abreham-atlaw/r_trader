@@ -230,7 +230,6 @@ AGENT_STATIC_INSTRUMENTS = [
 AGENT_FRICTION_TIME = 4
 AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
-MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
 # UPDATE_SAVE_PATH = "/kaggle/working/outs"
@@ -253,3 +252,15 @@ class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stats"
+
+
+class RunnerStatsBranches:
+
+	main = "main"
+	ma_ews = "ma_ews"
+	all = [
+		main,
+		ma_ews
+	]
+
+	default = ma_ews
