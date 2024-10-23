@@ -69,6 +69,11 @@ class RunnerStatsRepository:
 					key=lambda stat: self.__profit_predictor.predict(stat),
 					reverse=True
 				)
+			else:
+				selected = sorted(
+					selected,
+					key=lambda stat: stat.model_losses[0]
+				)
 			selected = selected[:self.__population_size]
 		return selected
 
