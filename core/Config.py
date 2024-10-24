@@ -220,15 +220,16 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.path = "/home/abrehamatlaw/Downloads/Compressed/results_12/abrehamalemu-rtrader-training-exp-0-linear-99-cum-0-it-4-tot_1.zip"
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+# OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
+# OANDA_TRADING_ACCOUNT_ID = "f01055da-9daa-4084-9c5a-55818a2a1e40"
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 ]
 AGENT_FRICTION_TIME = 4
-AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
+AGENT_STEP_TIME = (10 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
@@ -239,8 +240,8 @@ AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 MAPLOSS_BRANCH = "ma_ews"
-with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+# with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+# 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear/"
 MODEL_TMP_PATH = os.path.abspath("./out/")
