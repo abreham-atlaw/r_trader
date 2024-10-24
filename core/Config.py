@@ -219,7 +219,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.path = "/home/abrehamatlaw/Downloads/Compressed/results_12/abrehamalemu-rtrader-training-exp-0-linear-99-cum-0-it-4-tot_1.zip"
 CORE_MODEL_CONFIG.download = False
 # OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
@@ -229,12 +229,11 @@ AGENT_STATIC_INSTRUMENTS = [
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = 5*60 - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
-MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
-UPDATE_SAVE_PATH = "/kaggle/working/out"
-AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
-DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+# UPDATE_SAVE_PATH = "/kaggle/working/out"
+# AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+# DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
@@ -260,4 +259,4 @@ class RunnerStatsBranches:
 		ma_ews_trim_scaling
 	]
 
-	default = main
+	default = ma_ews
