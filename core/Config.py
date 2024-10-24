@@ -154,8 +154,9 @@ AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
-AGENT_TOP_K_NODES = 10
-AGENT_DUMP_NODES = False
+AGENT_TOP_K_NODES = None
+AGENT_DYNAMIC_K_THRESHOLD = 0.05
+AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
@@ -195,7 +196,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/results_9/abrehamalemu-rtrader-training-exp-0-linear-101-cum-0-it-4-tot_1.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-94-cum-0-it-4-tot.zip",
 	download=False
 )
 
@@ -257,9 +258,12 @@ class RunnerStatsBranches:
 
 	main = "main"
 	ma_ews = "ma_ews"
+	ma_ews_trim_scaling = "ma_ews_trim_scaling"
+
 	all = [
 		main,
-		ma_ews
+		ma_ews,
+		ma_ews_trim_scaling
 	]
 
 	default = ma_ews
