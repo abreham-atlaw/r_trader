@@ -268,4 +268,4 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k
 	]
 
-	default = ma_ews
+	default = ma_ews_dynamic_k
