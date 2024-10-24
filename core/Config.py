@@ -265,4 +265,4 @@ class RunnerStatsBranches:
 		ma_ews_trim_scaling
 	]
 
-	default = ma_ews
+	default = ma_ews_trim_scaling
