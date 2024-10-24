@@ -216,7 +216,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_single_allocate(self):
 		stat = self.repository.allocate_for_runlive(
-			allow_locked=True
+			allow_locked=False
 		)
 		print(f"Allocated {stat.id}")
 		self.repository.finish_session(stat, 0)
@@ -274,7 +274,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.repository.retrieve_all(),
-				model_key='linear',
+				# model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
@@ -498,6 +498,3 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.repository.store(stat)
 
 			print(f"{i+1} of {len(stats)}... Done")
-
-	def test_sync_branches(self):
-		self.repository.sync_branches()

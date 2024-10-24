@@ -249,3 +249,15 @@ class ResourceCategories:
 
 	TEST_RESOURCE = "test"
 	RUNNER_STAT = "runner_stats"
+
+
+class RunnerStatsBranches:
+
+	main = "main"
+	ma_ews = "ma_ews"
+	all = [
+		main,
+		ma_ews
+	]
+
+	default = main
