@@ -145,6 +145,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			probability_correction: bool = False,
 			min_probability: typing.Optional[float] = None,
 			top_k_nodes: typing.Optional[int] = None,
+			trim_scaling: bool = True,
 			dump_nodes: bool = False,
 			dump_path: str = "./",
 			dump_visited_only: bool = False,
@@ -179,7 +180,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__dump_visited_only = dump_visited_only
 		self.__serializer = node_serializer
 		self.__squash_epsilon = squash_epsilon
-
+		self.__trim_scaling = trim_scaling
 
 	@property
 	def trim_mode(self) -> bool:
@@ -404,8 +405,15 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
 
+	def __scale_trimmed(self, node: 'MonteCarloAgent.Node'):
+		weight_sum = sum([node.weight for node in node.children])
+		for child in node.children:
+			child.weight = child.weight / weight_sum
+
 	def __trim_node(self, node: 'MonteCarloAgent.Node'):
 		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:self.__top_k_nodes]
+		if self.__trim_scaling:
+			self.__scale_trimmed(node)
 
 	def _expand(self, state_node: 'MonteCarloAgent.Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
