@@ -8,8 +8,10 @@ from core.utils.research.data.collect.analysis.models import Model
 
 class RunnerStatsTrainer:
 
-	def __init__(self, loss_fn: Loss = None):
-		self.__data_preparer = RunnerStatsDataPreparer()
+	def __init__(self, loss_fn: Loss = None, data_preparer: RunnerStatsDataPreparer = None):
+		if data_preparer is None:
+			data_preparer = RunnerStatsDataPreparer()
+		self.__data_preparer = data_preparer
 		self.X, self.y = self.__data_preparer.prepare()
 
 		if loss_fn is None:
