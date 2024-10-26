@@ -132,9 +132,11 @@ AGENT_CORE_PRICING = False
 AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_STM = True
-AGENT_STM_THRESHOLD = 0.05
+AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
-AGENT_STM_SIZE = 5
+AGENT_STM_SIZE = 10
+AGENT_STM_USE_MA_SMOOTHING = False
+AGENT_STM_MEAN_ERROR = False
 AGENT_STM_AVERAGE_WINDOW_SIZE = 10
 AGENT_STM_ATTENTION_MODE = False
 AGENT_DEPTH_MODE = False
@@ -187,7 +189,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/albertcamus0-rtrader-training-cnn-111-cum-0-it-0-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/results_12/abrehamalemu-rtrader-training-exp-0-linear-99-cum-0-it-4-tot_1.zip",
 	download=False
 )
 
