@@ -25,10 +25,20 @@ class AttentionBasedTraderNodeMemory(TraderNodeMemory):
 
 class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 
-	def __init__(self, threshold: float, repository: StateRepository = None, average_window=1, balance_tolerance=None):
+	def __init__(
+			self,
+			threshold: float,
+			repository: StateRepository = None,
+			average_window=1,
+			mean_error: bool = False,
+			use_ma_smoothng=False,
+			balance_tolerance=None
+	):
 		super().__init__(repository=repository, state_matcher=None)
 		self.__threshold = threshold
 		self.__average_window = average_window
+		self.__use_ma_smoothing = use_ma_smoothng
+		self.__mean_error = mean_error
 		self.__balance_tolerance = balance_tolerance
 		if balance_tolerance is None:
 			self.__balance_tolerance = 0.01
@@ -38,18 +48,26 @@ class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 			node=node
 		)
 
-	@staticmethod
-	def __error(state0: np.ndarray, state1: np.ndarray) -> float:
-		return float(np.mean(
-			np.abs(
+	def __error(self, state0: np.ndarray, state1: np.ndarray) -> float:
+		error = np.abs(
 				(state0 - state1)/np.average((state0, state1), axis=0)
-			)
-		))
+		)
+		if self.__mean_error:
+			error = np.mean(error)
+		else:
+			error = np.sum(error)
+		print(f"Error {error}")
+		return float(error)
 
 	def _compare_instrument_history(self, state0: np.ndarray, state1: np.ndarray) -> float:
+		if self.__use_ma_smoothing:
+			state0, state1 = [
+				libmath.moving_average(state, self.__average_window)
+				for state in [state0, state1]
+			]
 		return self.__error(
-			libmath.moving_average(state0, self.__average_window),
-			libmath.moving_average(state1, self.__average_window)
+			state0,
+			state1
 		)
 
 	@staticmethod
@@ -174,26 +192,12 @@ class TraderNodeShortTermMemory(NodeShortTermMemory):
 	def __init__(
 			self,
 			size: int,
-			threshold: float,
-			average_window: int = 1,
-			balance_tolerance=None,
-			attention_mode: bool = False
+			matcher: TraderNodeMemoryMatcher,
 	):
 		super().__init__(
 			size,
-			self.__create_matcher(
-				attention=attention_mode,
-				threshold=threshold,
-				average_window=average_window,
-				balance_tolerance=balance_tolerance
-			)
+			matcher
 		)
-
-	@staticmethod
-	def __create_matcher(attention: bool, *args, **kwargs) -> TraderNodeMemoryMatcher:
-		if attention:
-			return AttentionBasedTraderNodeMemoryMatcher(*args, **kwargs)
-		return TraderNodeMemoryMatcher(*args, **kwargs)
 
 	def _import_memory(self, node: Node) -> TraderNodeMemory:
 		return self.get_matcher().construct_memory(node)

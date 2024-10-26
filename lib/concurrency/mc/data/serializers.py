@@ -2,7 +2,7 @@ from typing import *
 from abc import ABC, abstractmethod
 
 from lib.network.rest_interface.serializers import Serializer
-from lib.rl.agent.mca import Node
+from lib.rl.agent import Node
 
 
 class NodeSerializer(Serializer, ABC):

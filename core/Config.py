@@ -49,20 +49,20 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	# "W4btPZfKQB7ZQr0RIocN6vmc8DpzmoUhTztm4Dbk",  # abrishatlaw@gmail.com +
-	# "RK3FFkZ6O9B7ZSRFxnYyBfc7f8oPTbFQgapHvKypk",  # abrishatlaw@yahoo.com +
-	# "p3Qtc7ZIO9B7Zk2Ys9k5kQdYXandlusB6BkwcqFr7",  # abreham.atlaw@yahoo.com -
-	# "m0AL1kZxDks7ZqjO4dcmcuzyJjRqAHsfyKudX6jGy",  # abrehamatlaw@outlook.com -
-	# "lyJXAkZHDks7Z4w79whbTSVhssQ85JevC1QMEkoGk",  # abreham.atlaw@outlook.com +
-	# "1xjpt7ZEWJs7ZcfiRorgfUDQMbJsY2QV1h0whI5ek",  # abreham-atlaw@outlook.com -
-	# "CtEWXXZnvzs7Z8rc9rNJgHDQS6xh53cB8uy0hvhty",  # abreham_atlaw@outlook.com +
-	# "51pub7ZkqQs7Z0HsMuiQ78i4HGbzAlNXIkJtNdvX0",  # abrehama@outlook.com +
-	# "2V9aqXZiyRs7ZjXdUChjbQJkh9C7UjG76K73UbH1V",  # abreham.a@outlook.com +
+	# "XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
+	# "7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
+	"KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
+	# "qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
+	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
+	"bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
+	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
+	"BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
+	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	# "gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
 	# "aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
 	# "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
 	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
-	"LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
+	# "LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -120,7 +120,8 @@ AGENT_DISCOUNT_FUNCTION = None
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
-AGENT_STEP_TIME = 2 * 60
+AGENT_FRICTION_TIME = 6
+AGENT_STEP_TIME = (1 * 60) - AGENT_FRICTION_TIME
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -134,7 +135,7 @@ AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_STM = True
 AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
-AGENT_STM_SIZE = 10
+AGENT_STM_SIZE = int(1e2)
 AGENT_STM_USE_MA_SMOOTHING = False
 AGENT_STM_MEAN_ERROR = False
 AGENT_STM_AVERAGE_WINDOW_SIZE = 10
@@ -157,6 +158,9 @@ AGENT_TOP_K_NODES = 5
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_MODEL_USE_TRANSITION_ONLY = True
+AGENT_MODEL_EXTRA_LEN = 124
+AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
@@ -217,4 +221,21 @@ PREDICTION_MODELS = [
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
-	RUNNER_STAT = "runner_stat"
+	RUNNER_STAT = "runner_stats"
+
+
+class RunnerStatsBranches:
+
+	main = "main"
+	ma_ews = "ma_ews"
+	ma_ews_trim_scaling = "ma_ews_trim_scaling"
+	ma_ews_dynamic_k = "ma_ews_dynamic_k"
+
+	all = [
+		main,
+		ma_ews,
+		ma_ews_trim_scaling,
+		ma_ews_dynamic_k
+	]
+
+	default = main

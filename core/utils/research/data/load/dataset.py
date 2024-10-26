@@ -10,6 +10,17 @@ import os
 
 
 class BaseDataset(Dataset):
+
+	__NUMPY_TORCH_TYPE_MAP = {
+		np.dtype('int8'): torch.int8,
+		np.dtype('int32'): torch.int32,
+		np.dtype('int64'): torch.int64,
+		np.dtype('uint8'): torch.uint8,
+		np.dtype('float16'): torch.float16,
+		np.dtype('float32'): torch.float32,
+		np.dtype('float64'): torch.float64,
+	}
+
 	def __init__(
 			self,
 			root_dirs: list,
@@ -90,4 +101,4 @@ class BaseDataset(Dataset):
 
 			self.cache[file_idx] = (X, y)
 
-		return tuple([torch.from_numpy(dp[data_idx]) for dp in self.cache[file_idx]])
+		return tuple([torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype]) for dp in self.cache[file_idx]])

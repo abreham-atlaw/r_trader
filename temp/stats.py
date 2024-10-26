@@ -378,6 +378,7 @@ def load_node_repo(filepath):
 
 
 def load_and_draw_graph(filepath):
+	plt.figure()
 	node, repo = load_node_repo(filepath)
 	draw_graph_live(node, visited=True, state_repository=repo)
 	return node, repo
@@ -393,7 +394,6 @@ def load_and_draw_graphs(container, bounds: typing.Tuple[int, int] = None):
 
 	for i, filename in enumerate(files):
 		print(f"Plotting {filename}")
-		plt.figure()
 		path = os.path.join(container, filename)
 		if not os.path.isdir(path):
 			continue

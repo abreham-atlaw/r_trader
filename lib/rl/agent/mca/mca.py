@@ -11,7 +11,6 @@ import numpy as np
 import gc
 import psutil
 
-from lib.concurrency.mc.data.serializers import NodeSerializer
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import ModelBasedAgent
 from lib.rl.environment import ModelBasedState
