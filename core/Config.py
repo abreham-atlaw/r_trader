@@ -134,9 +134,11 @@ AGENT_CORE_PRICING = False
 AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_STM = False
-AGENT_STM_THRESHOLD = 0.05
+AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
-AGENT_STM_SIZE = 5
+AGENT_STM_SIZE = int(1e2)
+AGENT_STM_USE_MA_SMOOTHING = False
+AGENT_STM_MEAN_ERROR = False
 AGENT_STM_AVERAGE_WINDOW_SIZE = 10
 AGENT_STM_ATTENTION_MODE = False
 AGENT_DEPTH_MODE = False
@@ -261,12 +263,14 @@ class RunnerStatsBranches:
 	ma_ews = "ma_ews"
 	ma_ews_trim_scaling = "ma_ews_trim_scaling"
 	ma_ews_dynamic_k = "ma_ews_dynamic_k"
+	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
 
 	all = [
 		main,
 		ma_ews,
 		ma_ews_trim_scaling,
-		ma_ews_dynamic_k
+		ma_ews_dynamic_k,
+		ma_ews_dynamic_k_stm
 	]
 
 	default = ma_ews_dynamic_k

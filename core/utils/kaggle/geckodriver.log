@@ -1713,3 +1713,34 @@ Exiting due to channel error.
 Exiting due to channel error.
 Exiting due to channel error.
 Exiting due to channel error.
+1730024838241	geckodriver	INFO	Listening on 127.0.0.1:59839
+1730024838487	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "45483" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofilev8vmHk"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1730024839702	Marionette	INFO	Marionette enabled
+1730024840207	Marionette	INFO	Listening on port 42027
+WebDriver BiDi listening on ws://127.0.0.1:45483
+Read port: 42027
+1730024840557	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+DevTools listening on ws://127.0.0.1:45483/devtools/browser/598136a5-a452-49a9-a34f-aacdc89d1173
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: CustomizableUI: 
+  TypeError: aNode is null -- resource:///modules/CustomizableUI.sys.mjs:1715
+console.error: "update.locale" " file doesn't exist in either the application or GRE directories"
+1730024869696	addons.xpi	ERROR	System addon update list error SyntaxError: XMLHttpRequest.open: 'http://%(server)s/dummy-system-addons.xml' is not a valid URL.
+1730024875194	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'uninitialized'.
+console.error: services.settings: 
+  main/fingerprinting-protection-overrides Signature failed  TypeError: NetworkError: Network request failed
+console.error: (new NetworkError("Network error: TypeError: NetworkError: Network request failed", "resource://services-settings/RemoteSettingsClient.sys.mjs", 107))
+1730025276460	Marionette	INFO	Stopped listening on port 42027
+JavaScript warning: https://www.kaggle.com/static/assets/vendor.js?v=0c3a17ab76fa2e875645, line 205: Script terminated by timeout at:
+Uu@https://www.kaggle.com/static/assets/vendor.js?v=0c3a17ab76fa2e875645:205:546500
+qu@https://www.kaggle.com/static/assets/vendor.js?v=0c3a17ab76fa2e875645:205:549138
+Nu@https://www.kaggle.com/static/assets/vendor.js?v=0c3a17ab76fa2e875645:205:543762
+y@https://www.kaggle.com/static/assets/app.js?v=d74036614acb36a04098:2:763511
+D@https://www.kaggle.com/static/assets/app.js?v=d74036614acb36a04098:2:764042
+

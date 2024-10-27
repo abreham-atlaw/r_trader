@@ -223,10 +223,10 @@ class VisitProcess(Process):
 
 def share_notebooks():
 
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/inkoops.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-4-tot'
-		for i in [146]
+		f'https://www.kaggle.com/code/inkoops/rtrader-maploss-runlive-sim-linear-it-4-me-dk-stm/'
+		# for i in [146]
 	]
 	random.shuffle(notebook_urls)
 	threads = len(notebook_urls)
@@ -236,8 +236,8 @@ def share_notebooks():
 		'abrehamatlaw0',
 		'yosephmezemer',
 		'napoleonbonaparte0',
-		'inkoops',
-		# 'abrehamalemu',
+		# 'inkoops',
+		'abrehamalemu',
 		'albertcamus0',
 		'birukay',
 		'nikolatesla0'
@@ -277,7 +277,7 @@ def visit():
 		'bemnetatlaw',
 		'abrehamatlaw0',
 		'napoleonbonaparte0',
-		'inkoops',
+		# 'inkoops',
 		'abrehamalemu',
 		'albertcamus0',
 		'biruk-ay',
