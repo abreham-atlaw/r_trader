@@ -258,9 +258,12 @@ class RunnerStatsBranches:
 
 	main = "main"
 	ma_ews = "ma_ews"
+	ma_ews_trim_scaling = "ma_ews_trim_scaling"
+
 	all = [
 		main,
-		ma_ews
+		ma_ews,
+		ma_ews_trim_scaling
 	]
 
-	default = ma_ews
+	default = ma_ews_trim_scaling
