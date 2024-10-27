@@ -281,7 +281,8 @@ def visit():
 		'abrehamalemu',
 		'albertcamus0',
 		'biruk-ay',
-		'nikolatesla0'
+		'nikolatesla0',
+		'friedrichnietzche0'
 	]
 
 	cookie_container = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies"
