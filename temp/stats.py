@@ -343,6 +343,7 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 
 
 def load_node(filename: str):
+	from lib.rl.agent.mca.node import Node
 	from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 
 	serializer = TraderNodeSerializer()
