@@ -56,7 +56,6 @@ class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 			error = np.mean(error)
 		else:
 			error = np.sum(error)
-		print(f"Error {error}")
 		return float(error)
 
 	def _compare_instrument_history(self, state0: np.ndarray, state1: np.ndarray) -> float:
@@ -114,7 +113,6 @@ class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 
 	def __compare_stochastic_values(self, memory0: TraderNodeMemory, memory1: TraderNodeMemory) -> bool:
 		sv = self.__evaluate_stochastic_value(memory0, memory1)
-		Logger.info(f"Stochastic Difference: {sv}")
 		return sv < self.__threshold
 
 	def _compare_memories(self, memory0: TraderNodeMemory, memory1: TraderNodeMemory) -> bool:
