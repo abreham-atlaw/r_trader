@@ -171,7 +171,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		plt.show()
 
 	def test_get_all(self):
-		stats = self.repository.retrieve_all()
+		stats = sorted(
+			self.repository.retrieve_all(),
+			key=lambda stat: stat.model_name
+		)
 		self.__print_dps(stats)
 		self.assertGreater(len(stats), 0)
 
@@ -216,7 +219,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_single_allocate(self):
 		stat = self.repository.allocate_for_runlive(
-			allow_locked=True
+			allow_locked=False
 		)
 		print(f"Allocated {stat.id}")
 		self.repository.finish_session(stat, 0)
@@ -260,8 +263,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_least_loss_losing_stats(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_valid(),
-				# time=datetime.now() - timedelta(hours=),
+				self.__get_valid_dps(),
+				time=datetime.now() - timedelta(hours=24),
 				model_losses=(4.5,),
 				max_profit=0
 			),
@@ -274,7 +277,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.repository.retrieve_all(),
-				model_key='linear',
+				# model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
@@ -486,3 +489,15 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		for i, stat in enumerate(transferable):
 			process(stat)
 			print(f"{(i+1)*100/len(transferable):.2f}%... Done")
+
+	def test_sync_duration(self):
+
+		SESSION_LEN = 3*60*60
+
+		stats = self.repository.retrieve_all()
+
+		for i, stat in enumerate(stats):
+			stat.duration = SESSION_LEN * len(stat.session_timestamps)
+			self.repository.store(stat)
+
+			print(f"{i+1} of {len(stats)}... Done")

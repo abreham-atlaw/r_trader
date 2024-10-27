@@ -2,7 +2,8 @@ import typing
 
 from .trainer import RunnerStatsTrainer
 from .datapreparer import RunnerStatsDataPreparer
-from core.utils.research.data.collect.analysis.models import XGBoostModel, RidgeModel, DecisionTreeModel
+from core.utils.research.data.collect.analysis.models import XGBoostModel, RidgeModel, DecisionTreeModel, SVRModel, \
+	KNNModel
 from core.utils.research.data.collect.runner_stats import RunnerStats
 
 
@@ -19,12 +20,13 @@ class ProfitPredictor:
 	def __datapreparer(self):
 		if self.__datapreparer_singleton is None:
 			self.__datapreparer_singleton = RunnerStatsDataPreparer(
-				min_sessions=3
+				min_sessions=3,
+				# columns=[0],
 			)
 		return self.__datapreparer_singleton
 
 	def _init_model(self):
-		return DecisionTreeModel(max_depth=4)
+		return KNNModel(k=3)
 
 	def _train_model(self, model):
 		trainer = RunnerStatsTrainer(

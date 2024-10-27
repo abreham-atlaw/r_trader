@@ -2,6 +2,7 @@ import random
 import typing
 from dataclasses import dataclass
 from datetime import datetime
+from copy import deepcopy
 
 import numpy as np
 from pymongo import MongoClient
@@ -20,14 +21,16 @@ class RunnerStatsRepository:
 			db_name: str = "runner_stats",
 			collection_name: str = "runner_stats",
 			select_weight: float = 0.5,
-			max_loss: float = 6,
+			max_loss: float = None,
 			model_name_key: str = "",
 			population_size: int = 160,
 			profit_based_selection: bool = False,
-			profit_predictor: 'ProfitPredictor' = None
+			profit_predictor: 'ProfitPredictor' = None,
+			branch: str = Config.RunnerStatsBranches.default,
 	):
+		print(f"Using Branch {branch}")
 		db = client[db_name]
-		self._collection = db[collection_name]
+		self._collection = db[f"{collection_name}-branch-{branch}"]
 		self.__serializer = RunnerStatsSerializer()
 		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
 		self.__select_weight = select_weight
@@ -54,7 +57,7 @@ class RunnerStatsRepository:
 	def __filter_select(self, stats: typing.List[RunnerStats]):
 		selected = list(filter(
 			lambda stat:
-			stat.model_losses[0] <= self.__max_loss and
+			(self.__max_loss is None or stat.model_losses[0] <= self.__max_loss) and
 			self.__model_name_key in stat.model_name and
 			0 not in stat.model_losses,
 			stats
@@ -65,6 +68,11 @@ class RunnerStatsRepository:
 					selected,
 					key=lambda stat: self.__profit_predictor.predict(stat),
 					reverse=True
+				)
+			else:
+				selected = sorted(
+					selected,
+					key=lambda stat: stat.model_losses[1]
 				)
 			selected = selected[:self.__population_size]
 		return selected

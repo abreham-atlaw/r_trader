@@ -14,8 +14,9 @@ class TrainerTest(unittest.TestCase):
 
 	def setUp(self):
 		columns_size = 8
-		omitted_columns = [2]
+		omitted_columns = []
 		columns = [i for i in range(columns_size) if i not in omitted_columns]
+		columns = [0, 4, 6]
 
 		self.bounds = (-5, 5)
 
@@ -31,7 +32,7 @@ class TrainerTest(unittest.TestCase):
 				"OutputBatchVariance(softmax=True)",
 				"OutputBatchClassVariance(softmax=True)",
 			])
-			if i not in omitted_columns
+			if i in columns
 		]
 
 		self.datapreparer = RunnerStatsDataPreparer(
@@ -40,17 +41,6 @@ class TrainerTest(unittest.TestCase):
 			min_sessions=1
 		)
 		self.X, self.y = self.datapreparer.prepare()
-
-		self.column_names = [
-			"nn.CrossEntropyLoss()",
-			"ProximalMaskedLoss",
-			# "MeanSquaredClassError",
-			"ReverseMAWeightLoss(window_size=10, softmax=True)",
-			"PredictionConfidenceScore(softmax=True)",
-			"OutputClassesVariance(softmax=True)",
-			"OutputBatchVariance(softmax=True)",
-			"OutputBatchClassVariance(softmax=True)",
-		]
 
 	def __visualize_result(self, model: Model, detailed=False, name=None):
 		y_hat = model.predict(self.X)
@@ -85,22 +75,35 @@ class TrainerTest(unittest.TestCase):
 		self.__visualize_result(model, detailed=detailed, name=name)
 
 	def test_svr(self):
-		model = SVRModel()
+		model = SVRModel(
+			kernel='linear',
+			C=100,
+			gamma=10**0
+		)
 		self.__test_model(model)
+		coef = model.model.coef_
+		for i in range(len(coef)):
+			print(f"Feature {self.column_names[i]}: {coef[i]}")
+
 		plt.show()
 
-	def test_optimal_kernel(self):
-		KERNELS = ['rbf', 'linear', 'poly']
+	def test_optimal_svr_config(self):
+		KERNELS = ['linear']
+		Cs = [10**i for i in range(0, 3)]
+		gammas = [10**i for i in range(0, 3)]
 
 		for kernel in KERNELS:
 
-			model = SVRModel(kernel=kernel)
-			self.__test_model(model)
+			for C in Cs:
+				for gamma in gammas:
+					print(f"Processing Kernel: {kernel}, C: {C}, gamma: {gamma}")
+					model = SVRModel(kernel=kernel, C=C, gamma=gamma)
+					self.__test_model(model, name=f"Kernel={kernel}, C={C}, gamma={gamma}")
 
 		plt.show()
 
 	def test_decision_tree(self):
-		model = DecisionTreeModel(max_depth=2)
+		model = DecisionTreeModel(max_depth=4)
 		self.__test_model(model, detailed=True)
 
 		rules = export_text(model.model, feature_names=self.column_names)
@@ -155,7 +158,7 @@ class TrainerTest(unittest.TestCase):
 
 	def test_optimize_alpha(self):
 
-		alphas = [(0.1)**i for i in range(10, 20)] + [0]
+		alphas = [(0.1)*i for i in range(10)]
 		for alpha in alphas:
 			print(f"Using Alpha: {alpha}")
 			model = RidgeModel(alpha=alpha)
@@ -184,11 +187,11 @@ class TrainerTest(unittest.TestCase):
 
 	def test_optimal_model(self):
 		models = [
-			SVRModel(),
+			SVRModel(kernel="linear"),
 			DecisionTreeModel(max_depth=3),
 			XGBoostModel(),
 			RidgeModel(alpha=0),
-			LassoModel(),
+			LassoModel(alpha=0),
 		]
 
 		for model in models:
