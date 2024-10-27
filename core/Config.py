@@ -262,12 +262,14 @@ class RunnerStatsBranches:
 	ma_ews = "ma_ews"
 	ma_ews_trim_scaling = "ma_ews_trim_scaling"
 	ma_ews_dynamic_k = "ma_ews_dynamic_k"
+	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
 
 	all = [
 		main,
 		ma_ews,
 		ma_ews_trim_scaling,
-		ma_ews_dynamic_k
+		ma_ews_dynamic_k,
+		ma_ews_dynamic_k_stm
 	]
 
 	default = ma_ews_dynamic_k
