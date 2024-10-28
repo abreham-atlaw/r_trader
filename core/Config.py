@@ -51,16 +51,15 @@ DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
 	# "XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
 	# "7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
-	"KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
+	# "KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
 	# "qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
 	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
 	"bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	"BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
 	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
-	# "gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
-	# "aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
-	# "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
+	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
+	"0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
 	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
 	# "LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
 ]
@@ -134,9 +133,11 @@ AGENT_CORE_PRICING = False
 AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_STM = False
-AGENT_STM_THRESHOLD = 0.05
+AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
-AGENT_STM_SIZE = 5
+AGENT_STM_SIZE = int(1e2)
+AGENT_STM_USE_MA_SMOOTHING = False
+AGENT_STM_MEAN_ERROR = False
 AGENT_STM_AVERAGE_WINDOW_SIZE = 10
 AGENT_STM_ATTENTION_MODE = False
 AGENT_DEPTH_MODE = False
@@ -260,12 +261,14 @@ class RunnerStatsBranches:
 	ma_ews = "ma_ews"
 	ma_ews_trim_scaling = "ma_ews_trim_scaling"
 	ma_ews_dynamic_k = "ma_ews_dynamic_k"
+	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
 
 	all = [
 		main,
 		ma_ews,
 		ma_ews_trim_scaling,
-		ma_ews_dynamic_k
+		ma_ews_dynamic_k,
+		ma_ews_dynamic_k_stm
 	]
 
 	default = ma_ews_dynamic_k

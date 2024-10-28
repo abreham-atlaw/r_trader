@@ -171,7 +171,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		plt.show()
 
 	def test_get_all(self):
-		stats = self.repository.retrieve_all()
+		stats = sorted(
+			self.repository.retrieve_all(),
+			key=lambda stat: stat.model_name
+		)
 		self.__print_dps(stats)
 		self.assertGreater(len(stats), 0)
 
