@@ -8,16 +8,17 @@ from core.utils.kaggle.data.repositories import MongoAccountsRepository
 
 class KaggleDataRepository:
 
-	__ZIP_FILENAME = "_output_.zip"
 
 	def __init__(
 			self,
 			account: Account = None,
-			output_path: str = "./"
+			output_path: str = "./",
+			zip_filename: str = "_output_.zip"
 	):
 		self.__account_singleton = account
 		self.__api_singleton = None
 		self.__output_path = output_path
+		self.__zip_filename = zip_filename
 
 	@property
 	def __account(self) -> Account:
@@ -63,9 +64,9 @@ class KaggleDataRepository:
 			self.__download_kernel(slug, download_path)
 		else:
 			self.__download_dataset(slug, download_path)
-		if os.path.exists(os.path.join(download_path, self.__ZIP_FILENAME)):
+		if os.path.exists(os.path.join(download_path, self.__zip_filename)):
 			print(f"Unzipping Data...")
-			os.system(f"unzip -d \"{download_path}\" \"{download_path}/{self.__ZIP_FILENAME}\"")
+			os.system(f"unzip -d \"{download_path}\" \"{download_path}/{self.__zip_filename}\"")
 		return download_path
 
 	def download_multiple(self, kernels: typing.List[str]) -> typing.List[str]:
