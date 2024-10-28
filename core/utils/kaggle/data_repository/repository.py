@@ -64,6 +64,7 @@ class KaggleDataRepository:
 		else:
 			self.__download_dataset(slug, download_path)
 		if os.path.exists(os.path.join(download_path, self.__ZIP_FILENAME)):
+			print(f"Unzipping Data...")
 			os.system(f"unzip -d \"{download_path}\" \"{download_path}/{self.__ZIP_FILENAME}\"")
 		return download_path
 
