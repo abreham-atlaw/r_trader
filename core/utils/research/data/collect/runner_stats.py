@@ -6,6 +6,7 @@ from datetime import datetime
 
 @dataclass
 class RunnerStats:
+
 	id: str
 	model_name: str
 	session_timestamps: typing.List[datetime]

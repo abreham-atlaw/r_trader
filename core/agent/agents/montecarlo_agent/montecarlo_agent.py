@@ -5,7 +5,7 @@ from datetime import datetime
 from core import Config
 from lib.rl.agent import MonteCarloAgent
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
-from .stm import TraderNodeShortTermMemory
+from .stm import TraderNodeShortTermMemory, TraderNodeMemoryMatcher
 
 
 class TraderMonteCarloAgent(MonteCarloAgent, ABC):
@@ -23,6 +23,8 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			stm_threshold=Config.AGENT_STM_THRESHOLD,
 			stm_balance_tolerance=Config.AGENT_STM_BALANCE_TOLERANCE,
 			stm_average_window=Config.AGENT_STM_AVERAGE_WINDOW_SIZE,
+			stm_use_ma_smoothing=Config.AGENT_STM_USE_MA_SMOOTHING,
+			stm_mean_error=Config.AGENT_STM_MEAN_ERROR,
 			stm_attention_mode=Config.AGENT_STM_ATTENTION_MODE,
 			probability_correction=Config.AGENT_PROBABILITY_CORRECTION,
 			min_probability=Config.AGENT_MIN_PROBABILITY,
@@ -37,10 +39,13 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			use_stm=use_stm,
 			short_term_memory=TraderNodeShortTermMemory(
 				stm_size,
-				stm_threshold,
-				stm_average_window,
-				balance_tolerance=stm_balance_tolerance,
-				attention_mode=stm_attention_mode
+				matcher=TraderNodeMemoryMatcher(
+					threshold=stm_threshold,
+					use_ma_smoothng=stm_use_ma_smoothing,
+					mean_error=stm_mean_error,
+					balance_tolerance=stm_balance_tolerance,
+					average_window=stm_average_window,
+				)
 			),
 			probability_correction=probability_correction,
 			min_probability=min_probability,
