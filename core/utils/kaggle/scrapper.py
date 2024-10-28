@@ -240,7 +240,8 @@ def share_notebooks():
 		# 'abrehamalemu',
 		'albertcamus0',
 		'birukay',
-		'nikolatesla0'
+		'nikolatesla0',
+		'friedrichnietzche0'
 	]
 
 	scrapper_threads = []
