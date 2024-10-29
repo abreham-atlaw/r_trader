@@ -1,19 +1,23 @@
 import os
 import typing
 
+from requests.exceptions import ChunkedEncodingError
+
 from core.di import ServiceProvider
 from core.utils.kaggle.data.models import Account
 from core.utils.kaggle.data.repositories import MongoAccountsRepository
+from lib.utils.decorators import retry
+from lib.utils.logger import Logger
 
 
 class KaggleDataRepository:
-
 
 	def __init__(
 			self,
 			account: Account = None,
 			output_path: str = "./",
-			zip_filename: str = "_output_.zip"
+			zip_filename: str = "_output_.zip",
+			retries: int = 10
 	):
 		self.__account_singleton = account
 		self.__api_singleton = None
@@ -27,7 +31,7 @@ class KaggleDataRepository:
 		self.__account_singleton = MongoAccountsRepository(
 			ServiceProvider.provide_mongo_client()
 		).get_accounts()[0]
-		print(f"Using Account: {self.__account_singleton.username}")
+		Logger.info(f"Using Account: {self.__account_singleton.username}")
 		return self.__account_singleton
 
 	@property
@@ -46,6 +50,7 @@ class KaggleDataRepository:
 
 	@staticmethod
 	def __clean(path: str):
+		Logger.info(f"Cleaning {path}")
 		os.system(f"rm -fr \"{path}\"")
 
 	def __download_kernel(self, kernel, download_path):
@@ -53,11 +58,12 @@ class KaggleDataRepository:
 
 	def __download_dataset(self, dataset, download_path):
 		raise Exception("Unimplemented...")
-
+	
+	@retry(exception_cls=ChunkedEncodingError, patience=10, sleep_timer=5)
 	def download(self, slug: str, kernel=True) -> str:
-		print(f"Downloading {slug}")
+		Logger.info(f"Downloading {slug}")
 		download_path = self.__generate_download_path(slug)
-		print(f"Downloading to {download_path}")
+		Logger.info(f"Downloading to {download_path}")
 		self.__clean(download_path)
 		os.mkdir(download_path)
 		if kernel:
@@ -65,7 +71,7 @@ class KaggleDataRepository:
 		else:
 			self.__download_dataset(slug, download_path)
 		if os.path.exists(os.path.join(download_path, self.__zip_filename)):
-			print(f"Unzipping Data...")
+			Logger.info(f"Unzipping Data...")
 			os.system(f"unzip -d \"{download_path}\" \"{download_path}/{self.__zip_filename}\"")
 		return download_path
 
