@@ -65,7 +65,7 @@ class KaggleDataRepository:
 		self.__api.dataset_download_files(dataset=dataset, path=download_path)
 
 	def __check_predownloaded(self, path: str, checksum: str) -> bool:
-		print(f"Checking pre-downloaded for {path}")
+		Logger.info(f"Checking pre-downloaded for {path}")
 		return os.path.exists(path) and checksum is not None and self.check_integrity(path, checksum)
 
 	@retry(exception_cls=(ChunkedEncodingError, IntegrityFailException), patience=10, sleep_timer=5)
