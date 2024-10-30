@@ -1,3 +1,4 @@
+import hashlib
 import os
 import typing
 
@@ -8,6 +9,7 @@ from core.utils.kaggle.data.models import Account
 from core.utils.kaggle.data.repositories import MongoAccountsRepository
 from lib.utils.decorators import retry
 from lib.utils.logger import Logger
+from .exceptions import IntegrityFailException
 
 
 class KaggleDataRepository:
@@ -59,8 +61,8 @@ class KaggleDataRepository:
 	def __download_dataset(self, dataset, download_path):
 		raise Exception("Unimplemented...")
 	
-	@retry(exception_cls=ChunkedEncodingError, patience=10, sleep_timer=5)
-	def download(self, slug: str, kernel=True) -> str:
+	@retry(exception_cls=(ChunkedEncodingError, IntegrityFailException), patience=10, sleep_timer=5)
+	def download(self, slug: str, kernel=True, checksum: str = None) -> str:
 		Logger.info(f"Downloading {slug}")
 		download_path = self.__generate_download_path(slug)
 		Logger.info(f"Downloading to {download_path}")
@@ -73,6 +75,11 @@ class KaggleDataRepository:
 		if os.path.exists(os.path.join(download_path, self.__zip_filename)):
 			Logger.info(f"Unzipping Data...")
 			os.system(f"unzip -d \"{download_path}\" \"{download_path}/{self.__zip_filename}\"")
+
+		if checksum is not None:
+			if not self.check_integrity(download_path, checksum):
+				raise IntegrityFailException()
+
 		return download_path
 
 	def download_multiple(self, kernels: typing.List[str]) -> typing.List[str]:
@@ -80,3 +87,12 @@ class KaggleDataRepository:
 			self.download(slug=kernel)
 			for kernel in kernels
 		]
+
+	@staticmethod
+	def generate_checksum(path: str) -> str:
+		Logger.info(f"Generating checksum for '{path}'")
+		files_str = str(list(os.walk(path)))
+		return hashlib.sha256(files_str.encode('utf-8')).hexdigest()
+
+	def check_integrity(self, path, checksum: str) -> bool:
+		return self.generate_checksum(path) == checksum
