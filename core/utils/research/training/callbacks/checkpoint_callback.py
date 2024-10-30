@@ -35,7 +35,7 @@ class StoreCheckpointCallback(CheckpointCallback):
 
 	def __init__(self, *args, fs: FileStorage = None, delete_stored=False, **kwargs):
 		super().__init__(*args, **kwargs)
-		if fs is not None:
+		if fs is None:
 			fs = ServiceProvider.provide_file_storage()
 		self.__file_storage = fs
 		self.__delete_stored = delete_stored
