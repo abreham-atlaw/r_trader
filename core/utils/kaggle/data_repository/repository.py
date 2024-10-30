@@ -88,9 +88,9 @@ class KaggleDataRepository:
 
 		return download_path
 
-	def download_multiple(self, kernels: typing.List[str]) -> typing.List[str]:
+	def download_multiple(self, kernels: typing.List[str], *args, **kwargs) -> typing.List[str]:
 		return [
-			self.download(slug=kernel)
+			self.download(slug=kernel, *args, **kwargs)
 			for kernel in kernels
 		]
 
