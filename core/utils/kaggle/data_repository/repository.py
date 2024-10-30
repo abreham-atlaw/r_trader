@@ -19,7 +19,6 @@ class KaggleDataRepository:
 			account: Account = None,
 			output_path: str = "./",
 			zip_filename: str = "_output_.zip",
-			retries: int = 10
 	):
 		self.__account_singleton = account
 		self.__api_singleton = None
@@ -47,6 +46,10 @@ class KaggleDataRepository:
 		api.authenticate()
 		return api
 
+	@staticmethod
+	def __unzip(zip_path: str, output_path: str):
+		os.system(f"unzip -d \"{output_path}\" \"{zip_path}\"")
+
 	def __generate_download_path(self, kernel: str) -> str:
 		return os.path.join(self.__output_path, kernel.replace("/", "-"))
 
@@ -59,8 +62,8 @@ class KaggleDataRepository:
 		self.__api.kernels_output(kernel, download_path)
 
 	def __download_dataset(self, dataset, download_path):
-		raise Exception("Unimplemented...")
-	
+		self.__api.dataset_download_files(dataset=dataset, path=download_path)
+
 	@retry(exception_cls=(ChunkedEncodingError, IntegrityFailException), patience=10, sleep_timer=5)
 	def download(self, slug: str, kernel=True, checksum: str = None) -> str:
 		Logger.info(f"Downloading {slug}")
@@ -72,9 +75,12 @@ class KaggleDataRepository:
 			self.__download_kernel(slug, download_path)
 		else:
 			self.__download_dataset(slug, download_path)
-		if os.path.exists(os.path.join(download_path, self.__zip_filename)):
-			Logger.info(f"Unzipping Data...")
-			os.system(f"unzip -d \"{download_path}\" \"{download_path}/{self.__zip_filename}\"")
+		zip_names = [self.__zip_filename, f"{slug.split('/')[1]}.zip"]
+
+		for zip_name in zip_names:
+			if os.path.exists(os.path.join(download_path, zip_name)):
+				Logger.info(f"Unzipping Data...")
+				os.system(f"unzip -d \"{download_path}\" \"{download_path}/{zip_name}\"")
 
 		if checksum is not None:
 			if not self.check_integrity(download_path, checksum):
