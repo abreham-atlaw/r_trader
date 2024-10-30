@@ -92,6 +92,9 @@ class KaggleDataRepository:
 
 		if checksum is not None:
 			if not self.check_integrity(download_path, checksum):
+				Logger.error(f"Integrity check failed for {download_path}")
+				Logger.error(f"Expected: {checksum}")
+				Logger.error(f"Actual: {self.generate_checksum(download_path)}")
 				raise IntegrityFailException()
 
 		Logger.info(f"Downloaded {kernel} to {download_path}")
