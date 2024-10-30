@@ -88,10 +88,16 @@ class KaggleDataRepository:
 
 		return download_path
 
-	def download_multiple(self, kernels: typing.List[str], *args, **kwargs) -> typing.List[str]:
+	def download_multiple(self, kernels: typing.List[str], checksums: typing.List[str] = None, *args, **kwargs) -> typing.List[str]:
+
 		return [
-			self.download(slug=kernel, *args, **kwargs)
-			for kernel in kernels
+			self.download(
+				slug=kernel,
+				checksum=checksums[i] if checksums is not None else None,
+				*args,
+				**kwargs
+			)
+			for i, kernel in enumerate(kernels)
 		]
 
 	@staticmethod
