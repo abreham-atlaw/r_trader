@@ -19,7 +19,6 @@ class KaggleDataRepository:
 			account: Account = None,
 			output_path: str = "./",
 			zip_filename: str = "_output_.zip",
-			retries: int = 10
 	):
 		self.__account_singleton = account
 		self.__api_singleton = None
