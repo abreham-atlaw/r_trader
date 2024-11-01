@@ -108,7 +108,10 @@ class IMSRepository:
 
 		values = self.__generate_stats(value)
 		values["epoch"], values["batch"] = epoch, batch
-		self.__df = pd.concat([self.__df, pd.DataFrame(values, index=[0])])
+		if self.__df.shape[0] == 0:
+			self.__df = pd.DataFrame(values, index=[0])
+		else:
+			self.__df = pd.concat([self.__df, pd.DataFrame(values, index=[0])])
 		if self.__df.shape[0] >= self.__dump_size:
 			self.sync()
 
