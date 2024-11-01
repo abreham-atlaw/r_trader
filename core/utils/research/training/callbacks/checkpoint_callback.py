@@ -5,6 +5,7 @@ from datetime import datetime
 import torch
 
 from core.Config import MODEL_SAVE_EXTENSION
+from core.di import ServiceProvider
 from core.utils.research.training.callbacks import Callback
 from lib.utils.file_storage import FileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -32,8 +33,10 @@ class CheckpointCallback(Callback):
 
 class StoreCheckpointCallback(CheckpointCallback):
 
-	def __init__(self, fs: FileStorage, *args, delete_stored=False, **kwargs):
+	def __init__(self, *args, fs: FileStorage = None, delete_stored=False, **kwargs):
 		super().__init__(*args, **kwargs)
+		if fs is None:
+			fs = ServiceProvider.provide_file_storage()
 		self.__file_storage = fs
 		self.__delete_stored = delete_stored
 
