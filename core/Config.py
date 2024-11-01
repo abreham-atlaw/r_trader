@@ -70,6 +70,10 @@ PCLOUD_FOLDER = "/Apps/RTrader"
 MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")
 CHECKPOINT_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Checkpoints/10M/10MA")
 
+IMS_REMOTE_PATH = os.path.join(PCLOUD_FOLDER, "stats")
+IMS_SYNC_SIZE = int(1e5)
+IMS_TEMP_PATH = "/tmp/"
+
 POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"
 
 # ENVIRONMENT CONFIGS
@@ -166,6 +170,7 @@ with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
+
 
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8
