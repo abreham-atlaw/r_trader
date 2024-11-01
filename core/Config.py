@@ -51,17 +51,16 @@ DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
 	# "XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
 	# "7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
-	"KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
+	# "KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
 	# "qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
 	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
 	"bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	"BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
 	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
-	# "gEVq3kZPR4s7ZmdNgKxMPooQ9IKVwb8XgMyVYibuV",  # abreham_a@outlook.com +
-	# "aQXg0kZkqQs7ZPjSXBAcaVeFixxH2SvvitBMCMnrk",  # abrehama@outlook.com +
-	# "RC4By7ZPays7ZgYcLvQzFDPfjMNRnQzHGshbX040y",  # hiwotahab12@gmail.com +
-	# "47ro2VZXe7s7ZwCNAS9a05du6xHUO9IHPrS8Jt1a7",  # abrehamatlaw321@gmail.com -
+	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
+	"0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
+	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
 	# "LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
 ]
 
@@ -70,6 +69,10 @@ PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
 PCLOUD_FOLDER = "/Apps/RTrader"
 MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")
 CHECKPOINT_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Checkpoints/10M/10MA")
+
+IMS_REMOTE_PATH = os.path.join(PCLOUD_FOLDER, "stats")
+IMS_SYNC_SIZE = int(1e5)
+IMS_TEMP_PATH = "/tmp/"
 
 POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"
 
@@ -136,7 +139,7 @@ AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_STM = True
 AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
-AGENT_STM_SIZE = int(1e2)
+AGENT_STM_SIZE = int(1e5)
 AGENT_STM_USE_MA_SMOOTHING = False
 AGENT_STM_MEAN_ERROR = False
 AGENT_STM_AVERAGE_WINDOW_SIZE = 10
@@ -170,6 +173,7 @@ with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
+
 
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8

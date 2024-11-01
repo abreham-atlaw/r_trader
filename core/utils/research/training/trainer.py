@@ -7,8 +7,11 @@ from tqdm import tqdm
 import uuid
 import typing
 
+from core.di import ResearchProvider
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
+from core.utils.research.training.trackers.tracker import TorchTracker
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class Trainer:
@@ -23,6 +26,7 @@ class Trainer:
             max_norm: typing.Optional[float] = None,
             clip_value: typing.Optional[float] = None,
             log_gradient_stats: bool = False,
+            trackers: typing.List[TorchTracker] = None,
             dtype: torch.dtype = torch.float32
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,6 +45,8 @@ class Trainer:
         self.__clip_value = clip_value
         self.__log_gradient_stats = log_gradient_stats
         self.__dtype = dtype
+        self.__trackers = trackers if trackers is not None \
+            else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -154,12 +160,10 @@ class Trainer:
                 else:
                     loss.backward()
 
-                if self.__log_gradient_stats is not None:
-                    for param in self.model.parameters():
-                        if param.grad is not None:
-                            grad_data = param.grad.data
-                            min_gradient = min(min_gradient, grad_data.min().item())
-                            max_gradient = max(max_gradient, grad_data.max().item())
+                gradients = [param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
+
+                for tracker in self.__trackers:
+                    tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
 
                 if self.__max_norm is not None:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
