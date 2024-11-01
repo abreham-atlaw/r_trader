@@ -452,7 +452,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			if action_node.action == action:
 				return action_node.get_total_value()
 
-		raise Exception(f"Action Not Found in Graph. Action={action}")
+		raise Exception(f"Action Not Found in Graph.\nGiven Action={action}.\nAvailable Actions={[node.action for node in self.__get_current_graph().get_children()]}")
 
 	def _get_optimal_action(self, state, **kwargs):
 		self._monte_carlo_tree_search(state)
