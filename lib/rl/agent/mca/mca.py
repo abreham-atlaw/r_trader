@@ -213,6 +213,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._state_repository.store(id_, state)
 		Logger.info(f"Synced state repository({len(self._state_repository)} states present).")
 
+	def __clear_stm(self):
+		Logger.info("Clearing short-term memory...")
+		self.__short_term_memory.clear()
+
 	def __expand_from_stm(self, node: 'Node') -> bool:
 
 		memorized = self.__check_stm(node)
@@ -223,6 +227,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self.__move_node(memorized, node)
 			resolved = True
 		self.__sync_repository()
+		if self.__use_stm:
+			self.__clear_stm()
 
 		return resolved
 
