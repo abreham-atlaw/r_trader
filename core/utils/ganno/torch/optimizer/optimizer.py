@@ -46,6 +46,7 @@ class Optimizer(GeneticAlgorithm, ABC):
 		trainer = Trainer(
 			model,
 			cls_loss_function=nn.CrossEntropyLoss(),
+			reg_loss_function=nn.MSELoss(),
 			optimizer=Adam(model.parameters(), lr=1e-3),
 			callbacks=self.__trainer_callback
 		)

@@ -100,6 +100,9 @@ class StateRepository(ABC):
 		for key, state in state_map.items():
 			self.store(key, state)
 
+	def __len__(self):
+		return len(self.get_keys())
+
 
 class DictStateRepository(StateRepository):
 

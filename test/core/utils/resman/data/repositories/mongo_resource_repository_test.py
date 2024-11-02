@@ -10,7 +10,7 @@ from core.utils.resman.data.repositories.resource_repository import ResourceUnav
 class MongoResourceRepository(unittest.TestCase):
 
 	def setUp(self):
-		self.repository = ServiceProvider.provide_resman(Config.ResourceCategories.OANDA_SIM_ACCOUNTS)
+		self.repository = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
 
 	def test_create(self):
 		with open("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/accounts/accounts.json") as f:
