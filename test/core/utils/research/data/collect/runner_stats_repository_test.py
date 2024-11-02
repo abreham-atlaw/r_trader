@@ -19,7 +19,8 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository()
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k
+		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
 		self.branches = Config.RunnerStatsBranches.all
