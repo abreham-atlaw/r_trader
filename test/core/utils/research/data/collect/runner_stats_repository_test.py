@@ -107,12 +107,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		if min_profit is not None:
 			dps = list(filter(
-				lambda dp: dp.profit > min_profit,
+				lambda dp: dp.profit >= min_profit,
 				dps
 			))
 		if max_profit is not None:
 			dps = list(filter(
-				lambda dp: dp.profit < max_profit,
+				lambda dp: dp.profit <= max_profit,
 				dps
 			))
 
