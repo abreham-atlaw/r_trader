@@ -19,7 +19,7 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -127,7 +127,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def __plot_profit_vs_loss(self, dps_list, dps_names=None):
 		if dps_names is None:
-			dps_names = ["" for _ in range(len(dps_list))]
+			dps_names = [str(i) for i in range(len(dps_list))]
 		for dps in dps_list:
 			print(f"Using {len(dps)} dps")
 			self.__print_dps(dps)
@@ -149,7 +149,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			"OutputBatchVariance(softmax=True)",
 			"OutputBatchClassVariance(softmax=True)",
 		]
-		for i in range(len(losses)):
+		for i in range(len(losses[0])):
 			print(f"Plotting {names[i]}")
 			plt.figure()
 			plt.title(names[i])
@@ -161,7 +161,6 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				)
 			plt.axhline(y=0, color="black")
 			plt.legend()
-
 
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
