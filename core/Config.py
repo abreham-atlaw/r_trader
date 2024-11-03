@@ -61,7 +61,7 @@ PCLOUD_TOKENS = [
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
 	"0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
-	# "LmwLc7ZktF97Zv62oq2MHiPJ4tL3VdgrcLj90O3DV"  # abrehamalemu@outlook.com
+	"74KlVVZktF97ZlN8XWt32axY622ndH5eK7hBfIreV",  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
