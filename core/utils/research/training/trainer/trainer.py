@@ -215,7 +215,7 @@ class Trainer:
 
                 # self.optimizer.step()
                 self.__optimizer_step()
-                
+
                 running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
                 if progress and i % progress_interval == 0:
                     pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")
