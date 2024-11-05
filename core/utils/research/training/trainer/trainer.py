@@ -2,16 +2,22 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
+import torch_xla
+import torch_xla.core.xla_model as xm
+from torch_xla.distributed import parallel_loader
 from tqdm import tqdm
 
 import uuid
 import typing
+import os
 
+from core import Config
 from core.di import ResearchProvider
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
 from core.utils.research.training.trackers.tracker import TorchTracker
 from lib.utils.torch_utils.model_handler import ModelHandler
+from .device import Device
 
 
 class Trainer:
@@ -27,9 +33,10 @@ class Trainer:
             clip_value: typing.Optional[float] = None,
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
-            dtype: torch.dtype = torch.float32
+            dtype: torch.dtype = torch.float32,
+            tpu_os_key: str = Config.TPU_OS_KEY
     ):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = self.__get_device(tpu_os_key)
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
             model = torch.nn.DataParallel(model)
@@ -47,6 +54,23 @@ class Trainer:
         self.__dtype = dtype
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
+
+    def __get_device(self, tpu_os_key: str):
+        if tpu_os_key in os.environ:
+            return xm.xla_device()
+        elif torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
+
+    @property
+    def device_type(self) -> int:
+        if isinstance(self.device, torch_xla.core.xla_model.XLADevice):
+            return Device.TPU
+        elif self.device.type == "cuda":
+            return Device.GPU
+        else:
+            return Device.CPU
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -98,6 +122,20 @@ class Trainer:
     def __format_loss(self, loss):
         return f"loss: {loss[2]}(cls: {loss[0]}, reg: {loss[1]})"
 
+# train_device_loader = parallel_loader.MpDeviceLoader(dataloader, self.device)
+# val_device_loader = parallel_loader.MpDeviceLoader(val_dataloader, self.device) if val_dataloader else None
+
+    def __prepare_dataloader(self, dataloader) -> DataLoader:
+        if self.device_type == Device.TPU:
+            dataloader = parallel_loader.MpDeviceLoader(dataloader, self.device)
+        return dataloader
+
+    def __optimizer_step(self):
+        if self.device_type == Device.TPU:
+            xm.optimizer_step(self.optimizer)
+        else:
+            self.optimizer.step()
+
     def train(
             self,
             dataloader: DataLoader,
@@ -112,6 +150,10 @@ class Trainer:
     ):
         if self.optimizer is None or self.cls_loss_function is None:
             raise ValueError("Model not setup(optimizer or loss function missing")
+
+        dataloader = self.__prepare_dataloader(dataloader)
+        if val_dataloader is not None:
+            val_dataloader = self.__prepare_dataloader(val_dataloader)
 
         if state is None:
             state = self.__get_default_state()
@@ -171,7 +213,9 @@ class Trainer:
                 if self.__clip_value is not None:
                     torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=self.__clip_value)
 
-                self.optimizer.step()
+                # self.optimizer.step()
+                self.__optimizer_step()
+                
                 running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
                 if progress and i % progress_interval == 0:
                     pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")
