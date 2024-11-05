@@ -244,8 +244,8 @@ AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
-with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-	OANDA_TRADING_ACCOUNT_ID = "b7204c1c-feb0-46bf-9495-8f229e1ddace"
+# with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+# 	OANDA_TRADING_ACCOUNT_ID = "b7204c1c-feb0-46bf-9495-8f229e1ddace"
 
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear/"
 MODEL_TMP_PATH = os.path.abspath("./out/")
