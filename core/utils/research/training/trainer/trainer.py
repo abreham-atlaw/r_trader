@@ -65,9 +65,9 @@ class Trainer:
 
     @property
     def device_type(self) -> int:
-        if isinstance(self.device, torch_xla.core.xla_model.XLADevice):
+        if self.device.type == "xla":  # Check for TPU
             return Device.TPU
-        elif self.device.type == "cuda":
+        elif self.device.type == "cuda":  # Check for GPU
             return Device.GPU
         else:
             return Device.CPU
