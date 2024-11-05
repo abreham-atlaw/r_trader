@@ -226,9 +226,9 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-85-cum-0-it-4-tot.zip"
+CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
+OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
@@ -238,14 +238,14 @@ AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
-# UPDATE_SAVE_PATH = "/kaggle/working/outs"
-# DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
-# AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+UPDATE_SAVE_PATH = "/kaggle/working/outs"
+DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
-# with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-OANDA_TRADING_ACCOUNT_ID = "b7204c1c-feb0-46bf-9495-8f229e1ddace"
+with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+	OANDA_TRADING_ACCOUNT_ID = "b7204c1c-feb0-46bf-9495-8f229e1ddace"
 
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear/"
 MODEL_TMP_PATH = os.path.abspath("./out/")
