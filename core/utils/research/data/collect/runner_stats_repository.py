@@ -41,6 +41,7 @@ class RunnerStatsRepository:
 		if profit_predictor is None:
 			profit_predictor = ResearchProvider.provide_profit_predictor()
 		self.__profit_predictor = profit_predictor
+		self.branch = branch
 
 	def __get_select_sort_field(self, stat: RunnerStats) -> float:
 		return 1/(stat.profit + 1e-9)

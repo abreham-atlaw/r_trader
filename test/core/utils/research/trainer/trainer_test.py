@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.optim import Adam
 
 from core import Config
+from core.di import ServiceProvider
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
 	MSCECrossEntropyLoss, LogLoss
@@ -22,6 +23,8 @@ from core.utils.research.training.callbacks.checkpoint_callback import Checkpoin
 from core.utils.research.training.callbacks.metric_callback import MetricCallback
 from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
 from core.utils.research.training.data.state import TrainingState
+from core.utils.research.training.trackers.stats_tracker import DynamicStatsTracker, Keys, WeightsStatsTracker, \
+	GradientsStatsTracker
 from core.utils.research.training.trainer import Trainer
 from lib.utils.torch_utils.model_handler import ModelHandler
 
@@ -75,9 +78,12 @@ class TrainerTest(unittest.TestCase):
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
+
 		dataloader = DataLoader(dataset, batch_size=8)
 
-		trainer = Trainer(model)
+		trainer = Trainer(
+			model,
+		)
 		trainer.cls_loss_function = MSCECrossEntropyLoss(
 			classes=np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
 			epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
