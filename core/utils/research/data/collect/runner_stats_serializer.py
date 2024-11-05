@@ -13,11 +13,16 @@ class RunnerStatsSerializer(Serializer):
 		json_ = data.__dict__.copy()
 		if "profit" in json_.keys():
 			json_.pop("profit")
+		if "real_profit" in json_.keys():
+			json_.pop("real_profit")
 		return json_
 
 	def deserialize(self, json_: Dict) -> RunnerStats:
 		if json_.get("_id"):
 			json_.pop("_id")
+
+		if json_.get("branch"):
+			json_.pop("branch")
 
 		if "profits" not in json_.keys():
 			json_["profits"] = [json_.pop("profit")] + [0 for _ in range(len(json_["session_timestamps"]) - 1)]
