@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from core import Config
 from core.di import ServiceProvider
 from core.utils.research.training.data.ims import IMS, IMSs
 from lib.utils.cache.decorators import CacheDecorators
@@ -22,6 +23,7 @@ class IMSRepository:
 			stats: typing.List[IMS] = None,
 			sync_size: int = 1024,
 			tmp_path: str = "./",
+			drop_idx: bool = True
 	):
 
 		self.__dump_path = None
@@ -32,6 +34,7 @@ class IMSRepository:
 		self.__dump_size = sync_size
 		self.__df = self.__init_df()
 		self.__tmp_path = tmp_path
+		self.__drop_idx = drop_idx
 
 	def __init_df(self):
 		return pd.DataFrame(columns=[stat.name for stat in self.__stats])
@@ -81,8 +84,15 @@ class IMSRepository:
 	@CacheDecorators.cached_method()
 	def __load_df(self, filename: str) -> pd.DataFrame:
 		download_path = self.__generate_download_path(filename)
-		self.__fs.download(filename, download_path=download_path)
-		return pd.read_csv(download_path, index_col=None)
+		if not os.path.exists(download_path):
+			self.__fs.download(filename, download_path=download_path)
+		df = pd.read_csv(download_path, index_col=None)
+		if self.__drop_idx:
+			df = df.reset_index(drop=True)
+			# batch_size = max(df["batch"])
+			# df["index"] = df.apply(lambda row: int(row["epoch"] * batch_size + row["batch"]), axis=1)
+			# df = df.set_index("index")
+		return df
 
 	def __load_dfs(self) -> pd.DataFrame:
 		files = sorted(list(filter(
@@ -93,8 +103,13 @@ class IMSRepository:
 			self.__load_df(filename)
 			for filename in files
 		]
+		if len(dfs) == 0:
+			return self.__init_df()
 
-		return pd.concat(dfs)
+		df = pd.concat(dfs)
+		if self.__drop_idx:
+			df = df.reset_index(drop=True)
+		return df
 
 	def store(
 			self,
@@ -118,3 +133,20 @@ class IMSRepository:
 	def retrieve(self) -> pd.DataFrame:
 		dfs = self.__load_dfs()
 		return dfs
+
+	@staticmethod
+	def retrieve_labels(
+			model_name: str,
+			fs: FileStorage = None
+	) -> typing.List[str]:
+		if fs is None:
+			fs = ServiceProvider.provide_file_storage(Config.IMS_REMOTE_PATH)
+		files = sorted(list(filter(
+			lambda filepath: os.path.basename(filepath).startswith(model_name),
+			fs.listdir("")
+		)))
+		return list(map(
+			lambda filename: os.path.basename(filename).split(".")[1],
+			files
+		))
+

@@ -14,9 +14,12 @@ class RunnerStatsDataPreparer:
 			self,
 			bounds=(-5, 5),
 			columns=None,
-			min_sessions=1
+			min_sessions=1,
+			repository: RunnerStatsRepository = None
 	):
-		self.__repository = ResearchProvider.provide_runner_stats_repository()
+		if repository is None:
+			repository = ResearchProvider.provide_runner_stats_repository()
+		self.__repository = repository
 		self.__bounds = bounds
 		self.__columns = columns
 		self.__min_sessions = min_sessions
