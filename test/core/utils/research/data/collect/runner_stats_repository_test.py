@@ -149,7 +149,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			"OutputBatchVariance(softmax=True)",
 			"OutputBatchClassVariance(softmax=True)",
 		]
-		for i in range(len(losses)):
+		for i in range(len(losses[0])):
 			print(f"Plotting {names[i]}")
 			plt.figure()
 			plt.title(names[i])
@@ -161,7 +161,6 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				)
 			plt.axhline(y=0, color="black")
 			plt.legend()
-
 
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
