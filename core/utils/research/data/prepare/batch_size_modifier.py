@@ -25,9 +25,10 @@ class BatchSizeModifier:
 
 	def __setup_dirs(self):
 		for dir_ in self.__X_dir, self.__y_dir:
-			if not os.path.exists(os.path.join(self.__target_path, dir_)):
-				Logger.info(f"[+]Creating {dir_} Directory...")
-				os.mkdir(os.path.join(self.__target_path, dir_))
+			path = os.path.join(self.__target_path, dir_)
+			if not os.path.exists(path):
+				Logger.info(f"[+]Creating {path}...")
+				os.makedirs(path)
 
 	@staticmethod
 	def __generate_filename():
