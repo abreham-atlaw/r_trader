@@ -1,12 +1,14 @@
-import random
-from collections import OrderedDict
-
 import numpy as np
 import torch
 import typing
 from torch.utils.data import Dataset
 
+import random
+from collections import OrderedDict
+import threading
 import os
+
+from lib.utils.decorators.thread_decorator import thread_method
 
 
 class BaseDataset(Dataset):
@@ -28,7 +30,9 @@ class BaseDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			out_dtypes: typing.Type = np.float32,
-			num_files: typing.Optional[int] = None
+			num_files: typing.Optional[int] = None,
+			preload: bool = False,
+			preload_size = 3
 	):
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
@@ -41,6 +45,9 @@ class BaseDataset(Dataset):
 		self.cache = OrderedDict()
 		self.cache_size = cache_size
 		self.data_points_per_file = self.__get_dp_per_file()
+
+		self.__preload = preload
+		self.__preload_size = preload_size
 
 	@property
 	def random(self):
@@ -78,27 +85,56 @@ class BaseDataset(Dataset):
 	def __len__(self):
 		return len(self.__files) * self.data_points_per_file
 
+	def __preload_file(self, idx: str):
+		print(f"Preloading {idx}...")
+		filename = self.__files[idx]
+		root_dir = self.__root_dir_map[filename]
+
+		X, y = [
+			self.__load_array(os.path.join(root_dir, dir_, filename))
+			for dir_ in [self.__X_dir, self.__y_dir]
+		]
+		self.cache[idx] = (X, y)
+
+	@thread_method
+	def __preload_files(self, idx: str):
+		for i in range(idx, idx+self.__preload_size):
+			if i in self.cache or i >= len(self.__files):
+				continue
+			self.__preload_file(i)
+
 	def __load_array(self, path: str) -> np.ndarray:
 		out = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
 		if self.random is not None:
 			self.random.shuffle(indexes)
+
 		return out[indexes]
+
+	def __load_files(self, idx: np.ndarray) -> np.ndarray:
+		if idx in self.cache:
+			return self.cache[idx]
+
+		if len(self.cache) >= self.cache_size:
+			self.cache.popitem(last=False)
+
+		file_name = self.__files[idx]
+		root_dir = self.__root_dir_map[file_name]
+
+		X = self.__load_array(os.path.join(root_dir, self.__X_dir, file_name))
+		y = self.__load_array(os.path.join(root_dir, self.__y_dir, file_name))
+
+		self.cache[idx] = (X, y)
+
+		if self.__preload:
+			self.__preload_files(idx+1)
+
+		return X, y
 
 	def __getitem__(self, idx):
 		file_idx = idx // self.data_points_per_file
 		data_idx = idx % self.data_points_per_file
 
-		if file_idx not in self.cache:
-			if len(self.cache) >= self.cache_size:
-				self.cache.popitem(last=False)
+		X, y = self.__load_files(file_idx)
 
-			file_name = self.__files[file_idx]
-			root_dir = self.__root_dir_map[file_name]
-
-			X = self.__load_array(os.path.join(root_dir, self.__X_dir, file_name))
-			y = self.__load_array(os.path.join(root_dir, self.__y_dir, file_name))
-
-			self.cache[file_idx] = (X, y)
-
-		return tuple([torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype]) for dp in self.cache[file_idx]])
+		return tuple([torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype]) for dp in [X, y]])
