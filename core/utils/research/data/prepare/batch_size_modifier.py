@@ -21,6 +21,14 @@ class BatchSizeModifier:
 		self.__target_batch_size = target_batch_size
 		self.__X_dir, self.__y_dir = X_dir, y_dir
 		self.__X, self.__y = None, None
+		self.__setup_dirs()
+
+	def __setup_dirs(self):
+		for dir_ in self.__X_dir, self.__y_dir:
+			path = os.path.join(self.__target_path, dir_)
+			if not os.path.exists(path):
+				Logger.info(f"[+]Creating {path}...")
+				os.makedirs(path)
 
 	@staticmethod
 	def __generate_filename():
@@ -59,4 +67,4 @@ class BatchSizeModifier:
 
 		for i, filename in enumerate(files):
 			self.__process_file(filename)
-			Logger.info(f"[+]Processed {i+1}/{len(files)} files ...")
+			Logger.info(f"[+]Processed {i+1}/{len(files)} files ...", end="\r")
