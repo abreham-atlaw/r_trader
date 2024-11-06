@@ -67,4 +67,4 @@ class BatchSizeModifier:
 
 		for i, filename in enumerate(files):
 			self.__process_file(filename)
-			Logger.info(f"[+]Processed {i+1}/{len(files)} files ...")
+			Logger.info(f"[+]Processed {i+1}/{len(files)} files ...", end="\r")
