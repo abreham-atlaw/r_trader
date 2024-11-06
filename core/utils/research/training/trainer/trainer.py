@@ -43,6 +43,7 @@ class Trainer:
             dtype: torch.dtype = torch.float32,
     ):
         self.device = self.__get_device()
+        Logger.info(f"Using device: {self.device_type}")
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
             model = torch.nn.DataParallel(model)
