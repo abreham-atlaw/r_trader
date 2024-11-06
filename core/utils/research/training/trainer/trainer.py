@@ -2,9 +2,6 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-import torch_xla
-import torch_xla.core.xla_model as xm
-from torch_xla.distributed import parallel_loader
 from tqdm import tqdm
 
 import uuid
@@ -16,8 +13,17 @@ from core.di import ResearchProvider
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
 from core.utils.research.training.trackers.tracker import TorchTracker
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .device import Device
+
+try:
+    from torch_xla.distributed import parallel_loader
+    from torch_xla.core import xla_model
+    import torch_xla.core.xla_model as xm
+
+except ImportError:
+    Logger.warning("XLA is not installed. Training using TPU will not be possible.")
 
 
 class Trainer:
@@ -34,9 +40,8 @@ class Trainer:
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
             dtype: torch.dtype = torch.float32,
-            tpu_os_key: str = Config.TPU_OS_KEY
     ):
-        self.device = self.__get_device(tpu_os_key)
+        self.device = self.__get_device()
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
             model = torch.nn.DataParallel(model)
@@ -55,13 +60,16 @@ class Trainer:
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
 
-    def __get_device(self, tpu_os_key: str):
-        if tpu_os_key in os.environ:
+    @staticmethod
+    def __get_device():
+        try:
+            import torch_xla
+            from torch_xla.distributed import parallel_loader
             return xm.xla_device()
-        elif torch.cuda.is_available():
-            self.device = torch.device("cuda")
-        else:
-            self.device = torch.device("cpu")
+        except ImportError:
+            if torch.cuda.is_available():
+                return torch.device("cuda")
+            return torch.device("cpu")
 
     @property
     def device_type(self) -> int:
@@ -119,11 +127,9 @@ class Trainer:
         loss = cls_loss + reg_loss
         return cls_loss, reg_loss, loss
 
-    def __format_loss(self, loss):
+    @staticmethod
+    def __format_loss(loss):
         return f"loss: {loss[2]}(cls: {loss[0]}, reg: {loss[1]})"
-
-# train_device_loader = parallel_loader.MpDeviceLoader(dataloader, self.device)
-# val_device_loader = parallel_loader.MpDeviceLoader(val_dataloader, self.device) if val_dataloader else None
 
     def __prepare_dataloader(self, dataloader) -> DataLoader:
         if self.device_type == Device.TPU:
