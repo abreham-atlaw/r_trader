@@ -50,7 +50,8 @@ class BaseDatasetTest(unittest.TestCase):
 	def test_dataloader(self):
 		dataloader = DataLoader(
 			dataset=self.dataset,
-			batch_size=6
+			batch_size=6,
+			num_workers=3
 		)
 
 		self.dataset.shuffle()

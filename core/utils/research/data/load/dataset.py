@@ -32,7 +32,7 @@ class BaseDataset(Dataset):
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
 			preload: bool = False,
-			preload_size = 3
+			preload_size: int = 3
 	):
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
@@ -48,6 +48,7 @@ class BaseDataset(Dataset):
 
 		self.__preload = preload
 		self.__preload_size = preload_size
+		self.__preload_queue = []
 
 	@property
 	def random(self):
@@ -98,10 +99,18 @@ class BaseDataset(Dataset):
 
 	@thread_method
 	def __preload_files(self, idx: str):
-		for i in range(idx, idx+self.__preload_size):
+
+		idxs_range = range(idx, idx+self.__preload_size)
+
+		if idx in self.__preload_queue:
+			return
+
+		self.__preload_queue.extend(list(idxs_range))
+		for i in idxs_range:
 			if i in self.cache or i >= len(self.__files):
 				continue
 			self.__preload_file(i)
+			self.__preload_queue.remove(i)
 
 	def __load_array(self, path: str) -> np.ndarray:
 		out = np.load(path).astype(self.__dtype)
