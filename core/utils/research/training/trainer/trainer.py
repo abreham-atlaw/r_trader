@@ -16,6 +16,7 @@ from core.utils.research.training.trackers.tracker import TorchTracker
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .device import Device
+from ...data.load.dataset import BaseDataset
 
 try:
     from torch_xla.distributed import parallel_loader
@@ -157,6 +158,8 @@ class Trainer:
         if self.optimizer is None or self.cls_loss_function is None:
             raise ValueError("Model not setup(optimizer or loss function missing")
 
+        dataset: BaseDataset = dataloader.dataset
+
         dataloader = self.__prepare_dataloader(dataloader)
         if val_dataloader is not None:
             val_dataloader = self.__prepare_dataloader(val_dataloader)
@@ -183,7 +186,7 @@ class Trainer:
             max_gradient = float('-inf')
             state.epoch = epoch
             if shuffle:
-                dataloader.dataset.shuffle()
+                dataset.shuffle()
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
