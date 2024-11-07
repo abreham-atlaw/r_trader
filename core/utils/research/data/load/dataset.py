@@ -111,15 +111,16 @@ class BaseDataset(Dataset):
 			self.__preload_file(i)
 			self.__preload_queue.remove(i)
 
-	def __load_array(self, path: str) -> np.ndarray:
-		out = np.load(path).astype(self.__dtype)
+	def __load_array(self, path: str) -> torch.Tensor:
+		out: np.ndarray = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
 		if self.random is not None:
 			self.random.shuffle(indexes)
 
-		return out[indexes]
+		# torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype])
+		return torch.from_numpy(out[indexes]).type(self.__NUMPY_TORCH_TYPE_MAP[out.dtype])
 
-	def __load_files(self, idx: np.ndarray) -> np.ndarray:
+	def __load_files(self, idx: int) -> torch.Tensor:
 		if idx in self.cache:
 			return self.cache[idx]
 
@@ -145,4 +146,4 @@ class BaseDataset(Dataset):
 
 		X, y = self.__load_files(file_idx)
 
-		return tuple([torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype]) for dp in [X, y]])
+		return tuple([dp[data_idx] for dp in [X, y]])
