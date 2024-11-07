@@ -20,6 +20,7 @@ class BaseDataset(Dataset):
 		np.dtype('uint8'): torch.uint8,
 		np.dtype('float16'): torch.float16,
 		np.dtype('float32'): torch.float32,
+		np.float32: torch.float32,
 		np.dtype('float64'): torch.float64,
 	}
 
@@ -32,8 +33,10 @@ class BaseDataset(Dataset):
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
 			preload: bool = False,
-			preload_size = 3
+			preload_size: int = 3,
+			device=torch.device("cpu"),
 	):
+		self.__device = device
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
 		self.__X_dir = X_dir
@@ -49,11 +52,15 @@ class BaseDataset(Dataset):
 		self.__preload = preload
 		self.__preload_size = preload_size
 
+
 	@property
 	def random(self):
 		if self.random_state is None:
 			return None
 		return np.random.default_rng(self.random_state)
+
+	def set_device(self, device: torch.device):
+		self.__device = device
 
 	def shuffle(self):
 		print("[+]Shuffling dataset...")
@@ -109,7 +116,13 @@ class BaseDataset(Dataset):
 			self.random.shuffle(indexes)
 
 		# torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype])
-		return torch.from_numpy(out[indexes]).type(self.__NUMPY_TORCH_TYPE_MAP[out.dtype])
+		return torch.from_numpy(
+			out[indexes]
+		).type(
+			self.__NUMPY_TORCH_TYPE_MAP[out.dtype]
+		).to(self.__device).type(
+			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
+		)
 
 	def __load_files(self, idx: int) -> torch.Tensor:
 		if idx in self.cache:

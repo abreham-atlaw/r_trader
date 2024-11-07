@@ -160,6 +160,7 @@ class Trainer:
             raise ValueError("Model not setup(optimizer or loss function missing")
 
         dataset: BaseDataset = dataloader.dataset
+        dataset.set_device(self.device)
 
         dataloader = self.__prepare_dataloader(dataloader)
         if val_dataloader is not None:
@@ -199,8 +200,8 @@ class Trainer:
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                X, y = X.to(self.device), y.to(self.device)
-                X, y = X.type(self.__dtype), y.type(self.__dtype)
+                # X, y = X.to(self.device), y.to(self.device)
+                # X, y = X.type(self.__dtype), y.type(self.__dtype)
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 
