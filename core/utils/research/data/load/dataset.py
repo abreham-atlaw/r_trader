@@ -9,6 +9,7 @@ import threading
 import os
 
 from lib.utils.decorators.thread_decorator import thread_method
+from lib.utils.logger import Logger
 
 
 class BaseDataset(Dataset):
@@ -118,6 +119,7 @@ class BaseDataset(Dataset):
 			self.__preload_queue.remove(i)
 
 	def __load_array(self, path: str) -> torch.Tensor:
+		Logger.info(f"[+]Loading {path}...")
 		out: np.ndarray = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
 		if self.random is not None:
