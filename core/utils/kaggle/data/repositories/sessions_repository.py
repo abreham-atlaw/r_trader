@@ -34,14 +34,14 @@ class SessionsRepository(ABC):
 			self,
 			account: typing.Optional[Account] = None,
 			active: typing.Optional[bool] = None,
-			gpu: typing.Optional[bool] = None,
 			kernel: typing.Optional[str] = None,
+			device: typing.Optional[int] = None
 	) -> typing.List[Session]:
 		sessions = self.get_all()
 
 		filters = {
 			key: value
-			for key, value in zip(["account", "active", "gpu", "kernel"], [account, active, gpu, kernel])
+			for key, value in zip(["account", "active", "device", "kernel"], [account, active, device, kernel])
 			if value is not None
 		}
 
