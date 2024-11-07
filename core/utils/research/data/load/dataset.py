@@ -87,7 +87,6 @@ class BaseDataset(Dataset):
 		return len(self.__files) * self.data_points_per_file
 
 	def __preload_file(self, idx: str):
-		print(f"Preloading {idx}...")
 		filename = self.__files[idx]
 		root_dir = self.__root_dir_map[filename]
 
