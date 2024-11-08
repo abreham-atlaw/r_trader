@@ -25,7 +25,6 @@ class FileLoadManager:
 		if data is not None:
 			return data
 		self.__fileloader_thread.queue(idx, urgent=True)
-		Logger.info(f"Waiting for file {idx}...")
 		time.sleep(0.1)
 		return self.__wait_and_get(idx)
 

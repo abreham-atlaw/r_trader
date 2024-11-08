@@ -1,6 +1,8 @@
 import time
 from threading import Thread
 
+import torch
+
 from .file_loader import FileLoader
 
 

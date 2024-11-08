@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from core.utils.research.data.load import FLMDataset, BaseDataset
 from core.utils.research.data.load.flm import FileLoadManager
 from core.utils.research.data.load.flm.file_loader import FileLoader
+from lib.utils.devtools import performance
 
 
 class FLMDatasetTest(unittest.TestCase):
@@ -17,7 +18,7 @@ class FLMDatasetTest(unittest.TestCase):
 		self.manager = FileLoadManager(
 			FileLoader(
 				root_dirs=self.root_dirs,
-				pool_size=3
+				pool_size=2
 			)
 		)
 
@@ -48,14 +49,21 @@ class FLMDatasetTest(unittest.TestCase):
 
 		dataloader = DataLoader(
 			dataset=dataset,
-			batch_size=64,
-			num_workers=10
+			batch_size=1000,
+			num_workers=4
 		)
 
-		for X, y in dataloader:
+		for i, (X, y) in enumerate(dataloader):
 			self.assertIsNotNone(X)
+			print(f"{i} / {len(dataloader)}", end='\r')
 
 		print(f"Duration {(datetime.now() - start_time).total_seconds()}")
+		print("Performance:\n{}".format(
+			'\n'.join([
+				f"{key}:{value}"
+				for key, value in performance.durations
+			])
+		))
 
 	def test_compare_dataset_performances(self):
 

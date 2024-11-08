@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import os
 
+from lib.utils.devtools import performance
 from lib.utils.logger import Logger
 
 
@@ -40,8 +41,8 @@ class FileLoader:
 		self.__pool_size = pool_size
 		self.manager = Manager()
 		self.__init_pool()
+		self.file_size = self.__get_file_size()
 		# self.__pool = [None] * len(self.__files)
-
 
 	@property
 	def random(self):
@@ -49,8 +50,7 @@ class FileLoader:
 			return None
 		return np.random.default_rng(self.random_state)
 
-	@property
-	def file_size(self) -> int:
+	def __get_file_size(self) -> int:
 		first_file_name = self.__files[0]
 		first_file_data = self.__load_array(os.path.join(self.root_dirs[0], self.__X_dir, first_file_name))
 		return first_file_data.shape[0]
@@ -58,14 +58,12 @@ class FileLoader:
 	def __init_pool(self):
 		X, y = self.__load_arrays(0)
 
-		self.__pool_X = torch.zeros(self.__pool_size, X.shape[0], X.shape[1])
-		self.__pool_y = torch.zeros(self.__pool_size, y.shape[0], y.shape[1])
+		self.__pool_X = torch.zeros(self.__pool_size, X.shape[0], X.shape[1]).to(self.__device)
+		self.__pool_y = torch.zeros(self.__pool_size, y.shape[0], y.shape[1]).to(self.__device)
 		self.__pool_X.share_memory_()
 		self.__pool_y.share_memory_()
 
-		self.__pool_idxs = self.manager.list()
-		for i in range(self.__pool_size):
-			self.__pool_idxs.append(None)
+		self.__pool_idxs = (torch.zeros(self.__pool_size, dtype=torch.int64) - 1).share_memory_()
 
 	def __get_files(self, size=None):
 		files_map = {}
@@ -82,7 +80,6 @@ class FileLoader:
 				files_map[file] = root_dir
 		return files, files_map
 
-	@Logger.logged_method
 	def __load_array(self, path: str) -> torch.Tensor:
 		out: np.ndarray = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
@@ -91,7 +88,7 @@ class FileLoader:
 
 		tensor = torch.from_numpy(out[indexes]).type(
 			self.__NUMPY_TORCH_TYPE_MAP[out.dtype]
-		).type(self.__NUMPY_TORCH_TYPE_MAP[self.__dtype])
+		).to(self.__device).type(self.__NUMPY_TORCH_TYPE_MAP[self.__dtype])
 
 		return tensor
 
@@ -102,10 +99,16 @@ class FileLoader:
 		return X, y
 
 	def __get_free_slot(self) -> int:
-		return self.__pool_idxs.index(None)
+
+		if not torch.any(self.__pool_idxs == -1):
+			self.__pool_idxs[0] = -1
+			# for arr in [self.__pool_X, self.__pool_y]:
+			# 	arr[0] = torch.zeros_like(arr[0])
+
+		return list(self.__pool_idxs).index(-1)
 
 	def __get_slot(self, idx: int) -> int:
-		return self.__pool_idxs.index(idx)
+		return self.__pool_idxs[self.__pool_idxs == idx][0]
 
 	def __load_files(self, idx: int):
 
@@ -127,8 +130,7 @@ class FileLoader:
 		self.__load_files(idx)
 
 	def __getitem__(self, item: int) -> typing.Optional[typing.Tuple[torch.Tensor, torch.Tensor]]:
-		if item not in self.__pool_idxs:
-			Logger.info(f"Slots: {self.__pool_idxs}")
+		if not torch.any(self.__pool_idxs == item):
 			return None
 		slot = self.__get_slot(item)
 		return self.__pool_X[slot], self.__pool_y[slot]
