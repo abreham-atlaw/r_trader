@@ -160,7 +160,6 @@ class Trainer:
             raise ValueError("Model not setup(optimizer or loss function missing")
 
         dataset: BaseDataset = dataloader.dataset
-        dataset.set_device(self.device)
 
         dataloader = self.__prepare_dataloader(dataloader)
         if val_dataloader is not None:
