@@ -1,5 +1,6 @@
 import typing
 from multiprocessing import Manager
+import random
 
 import numpy as np
 import torch
@@ -41,7 +42,6 @@ class FileLoader:
 		self.manager = Manager()
 		self.__init_pool()
 		self.file_size = self.__get_file_size()
-		# self.__pool = [None] * len(self.__files)
 
 	@property
 	def random(self):
@@ -59,8 +59,8 @@ class FileLoader:
 
 		self.__pool_X = torch.zeros(self.__pool_size, X.shape[0], X.shape[1]).to(self.__device)
 		self.__pool_y = torch.zeros(self.__pool_size, y.shape[0], y.shape[1]).to(self.__device)
-		self.__pool_X.share_memory_()
-		self.__pool_y.share_memory_()
+		# self.__pool_X.share_memory_()
+		# self.__pool_y.share_memory_()
 
 		self.__pool_idxs = (torch.zeros(self.__pool_size, dtype=torch.int64) - 1).share_memory_()
 
@@ -115,8 +115,8 @@ class FileLoader:
 
 		X, y = self.__load_arrays(idx)
 
-		X.share_memory_()
-		y.share_memory_()
+		# X.share_memory_()
+		# y.share_memory_()
 		self.__pool_X[slot] = X
 		self.__pool_y[slot] = y
 
@@ -127,6 +127,12 @@ class FileLoader:
 		if idx in self.__pool_idxs:
 			return
 		self.__load_files(idx)
+
+	def shuffle(self):
+		print("[+]Shuffling dataset...")
+		random.shuffle(self.__files)
+		self.__init_pool()
+		self.random_state = random.randint(0, 1000)
 
 	def __getitem__(self, item: int) -> typing.Optional[typing.Tuple[torch.Tensor, torch.Tensor]]:
 		if not torch.any(self.__pool_idxs == item):

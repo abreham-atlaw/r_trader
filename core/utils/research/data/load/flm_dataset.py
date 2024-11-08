@@ -13,6 +13,9 @@ class FLMDataset(Dataset):
 		self.__flm = flm
 		self.__flm.start()
 
+	def shuffle(self):
+		self.__flm.fileloader.shuffle()
+
 	def __getitem__(self, idx):
 		file_idx = idx // self.__file_size
 		data_idx = idx % self.__file_size

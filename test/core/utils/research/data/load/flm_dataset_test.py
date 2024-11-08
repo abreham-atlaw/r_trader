@@ -53,6 +53,8 @@ class FLMDatasetTest(unittest.TestCase):
 			num_workers=4
 		)
 
+		dataloader.dataset.shuffle()
+
 		for i, (X, y) in enumerate(dataloader):
 			self.assertIsNotNone(X)
 			print(f"{i} / {len(dataloader)}", end='\r')

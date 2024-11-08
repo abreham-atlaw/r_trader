@@ -109,7 +109,6 @@ class BaseDataset(Dataset):
 			self.__preload_file(i)
 
 	def __load_array(self, path: str) -> torch.Tensor:
-		print(f"Loading {path}...")
 		out: np.ndarray = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
 		if self.random is not None:
