@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import os
 
-from lib.utils.devtools import performance
 from lib.utils.logger import Logger
 
 
