@@ -199,8 +199,8 @@ class Trainer:
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                # X, y = X.to(self.device), y.to(self.device)
-                # X, y = X.type(self.__dtype), y.type(self.__dtype)
+                X, y = X.to(self.device), y.to(self.device)
+                X, y = X.type(self.__dtype), y.type(self.__dtype)
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 
