@@ -6,8 +6,6 @@ import numpy as np
 import torch
 import os
 
-from lib.utils.logger import Logger
-
 
 class FileLoader:
 
@@ -118,7 +116,6 @@ class FileLoader:
 		self.__pool_y[slot] = y
 
 		self.__pool_idxs[slot] = idx
-		Logger.info(f"[+]Loaded {idx} in slot {slot}")
 
 	def load(self, idx: int):
 		if idx in self.__pool_idxs:
