@@ -6,12 +6,25 @@ from tqdm import tqdm
 
 import uuid
 import typing
+import os
 
+from core import Config
 from core.di import ResearchProvider
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
 from core.utils.research.training.trackers.tracker import TorchTracker
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
+from .device import Device
+from ...data.load.dataset import BaseDataset
+
+try:
+    from torch_xla.distributed import parallel_loader
+    from torch_xla.core import xla_model
+    import torch_xla.core.xla_model as xm
+
+except ImportError:
+    Logger.warning("XLA is not installed. Training using TPU will not be possible.")
 
 
 class Trainer:
@@ -27,9 +40,10 @@ class Trainer:
             clip_value: typing.Optional[float] = None,
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
-            dtype: torch.dtype = torch.float32
+            dtype: torch.dtype = torch.float32,
     ):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = self.__get_device()
+        Logger.info(f"Using device: {self.device_type}")
         if torch.cuda.device_count() > 1:
             print("Found use", torch.cuda.device_count(), "GPUs.")
             model = torch.nn.DataParallel(model)
@@ -47,6 +61,26 @@ class Trainer:
         self.__dtype = dtype
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
+
+    @staticmethod
+    def __get_device():
+        try:
+            import torch_xla
+            from torch_xla.distributed import parallel_loader
+            return xm.xla_device()
+        except ImportError:
+            if torch.cuda.is_available():
+                return torch.device("cuda")
+            return torch.device("cpu")
+
+    @property
+    def device_type(self) -> int:
+        if self.device.type == "xla":  # Check for TPU
+            return Device.TPU
+        elif self.device.type == "cuda":  # Check for GPU
+            return Device.GPU
+        else:
+            return Device.CPU
 
     @property
     def state(self) -> typing.Optional[TrainingState]:
@@ -95,8 +129,20 @@ class Trainer:
         loss = cls_loss + reg_loss
         return cls_loss, reg_loss, loss
 
-    def __format_loss(self, loss):
+    @staticmethod
+    def __format_loss(loss):
         return f"loss: {loss[2]}(cls: {loss[0]}, reg: {loss[1]})"
+
+    def __prepare_dataloader(self, dataloader) -> DataLoader:
+        if self.device_type == Device.TPU:
+            dataloader = parallel_loader.MpDeviceLoader(dataloader, self.device)
+        return dataloader
+
+    def __optimizer_step(self):
+        if self.device_type == Device.TPU:
+            xm.optimizer_step(self.optimizer)
+        else:
+            self.optimizer.step()
 
     def train(
             self,
@@ -112,6 +158,12 @@ class Trainer:
     ):
         if self.optimizer is None or self.cls_loss_function is None:
             raise ValueError("Model not setup(optimizer or loss function missing")
+
+        dataset: BaseDataset = dataloader.dataset
+
+        dataloader = self.__prepare_dataloader(dataloader)
+        if val_dataloader is not None:
+            val_dataloader = self.__prepare_dataloader(val_dataloader)
 
         if state is None:
             state = self.__get_default_state()
@@ -135,7 +187,7 @@ class Trainer:
             max_gradient = float('-inf')
             state.epoch = epoch
             if shuffle:
-                dataloader.dataset.shuffle()
+                dataset.shuffle()
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
@@ -171,7 +223,9 @@ class Trainer:
                 if self.__clip_value is not None:
                     torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=self.__clip_value)
 
-                self.optimizer.step()
+                # self.optimizer.step()
+                self.__optimizer_step()
+
                 running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
                 if progress and i % progress_interval == 0:
                     pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")

@@ -13,7 +13,8 @@ class ResourcesManager:
 			resources_repository: ResourcesRepository,
 	):
 		self.__accounts_repository, self.__resources_repository = (
-			accounts_repository, resources_repository)
+			accounts_repository, resources_repository
+		)
 		self.__random_coefficient = 0.1
 
 	def __get_resources(self) -> typing.List[Resources]:
@@ -35,9 +36,14 @@ class ResourcesManager:
 				return 0
 			return 1/((res.remaining_instances**1.5)*res.remaining_amount)
 
-		key = eval_cpu
-		if device == Resources.Devices.GPU:
-			key = eval_gpu
+		def eval_tpu(res: Resource):
+			return res.remaining_instances
+
+		key = {
+			Resources.Devices.CPU: eval_cpu,
+			Resources.Devices.GPU: eval_gpu,
+			Resources.Devices.TPU: eval_tpu
+		}.get(device)
 
 		return sorted(
 			resources,
@@ -64,15 +70,21 @@ class ResourcesManager:
 		self.__allocate_notebook(optimal_resources, device)
 		return optimal_resources.account
 
-	def release_notebook(self, account: Account, use_gpu=True):
+	def release_notebook(self, account: Account, device=Resources.Devices.CPU):
 		resources = self.__resources_repository.get_resources(account)
-		resource = resources.get_resource(Resources.Devices.CPU)
-		if use_gpu:
-			resource = resources.get_resource(Resources.Devices.GPU)
+		resource = resources.get_resource(device)
 		resource.remaining_instances += 1
 		self.__resources_repository.save_resources(resources)
 
-	def reset_resources(self, accounts: typing.List[Account] = None, gpu_amount=30, gpu_instances=2, cpu_instances=5):
+	def reset_resources(
+			self,
+			accounts: typing.List[Account] = None,
+			gpu_amount=30,
+			gpu_instances=2,
+			cpu_instances=5,
+			tpu_instances=1,
+			tpu_amount=20
+	):
 		if accounts is None:
 			accounts = self.__accounts_repository.get_accounts()
 
@@ -82,6 +94,8 @@ class ResourcesManager:
 			resources.get_resource(Resources.Devices.CPU).remaining_instances = cpu_instances
 			resources.get_resource(Resources.Devices.GPU).remaining_instances = gpu_instances
 			resources.get_resource(Resources.Devices.GPU).remaining_amount = gpu_amount
+			resources.get_resource(Resources.Devices.TPU).remaining_instances = tpu_instances
+			resources.get_resource(Resources.Devices.TPU).remaining_amount = tpu_amount
 			self.__resources_repository.save_resources(resources)
 
 
