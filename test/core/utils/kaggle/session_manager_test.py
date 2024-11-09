@@ -15,7 +15,7 @@ class SessionManagerTest(unittest.TestCase):
 
 		accounts_repository: AccountsRepository = ApplicationContainer.kaggle.accounts_repository()
 		manager: SessionsManager = ApplicationContainer.kaggle.sessions_manager()
-		account = (accounts_repository.get_by_username("abrehamalemu"))
+		account = (accounts_repository.get_by_username("abrehamatlaw0"))
 		# account = Account(
 		# 	username='yosephmezemer',
 		# 	key='022b607f1ca94bc82cf68914eb6b0c4a'
@@ -34,6 +34,6 @@ class SessionManagerTest(unittest.TestCase):
 					for i in range(4)
 				]
 			},
-			device=Resources.Devices.TPU,
+			device=Resources.Devices.GPU,
 			sync_notebooks=False
 		)
