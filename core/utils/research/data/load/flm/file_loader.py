@@ -10,6 +10,7 @@ from lib.utils.logger import Logger
 
 
 class FileLoader:
+
 	__NUMPY_TORCH_TYPE_MAP = {
 		np.dtype('int8'): torch.int8,
 		np.dtype('int32'): torch.int32,
@@ -29,9 +30,7 @@ class FileLoader:
 			y_dir: str = "y",
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
-			device=torch.device("cpu")
 	):
-		self.__device = device
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
 		self.__X_dir = X_dir
@@ -57,10 +56,8 @@ class FileLoader:
 	def __init_pool(self):
 		X, y = self.__load_arrays(0)
 
-		self.__pool_X = torch.zeros(self.__pool_size, X.shape[0], X.shape[1]).to(self.__device)
-		self.__pool_y = torch.zeros(self.__pool_size, y.shape[0], y.shape[1]).to(self.__device)
-		# self.__pool_X.share_memory_()
-		# self.__pool_y.share_memory_()
+		self.__pool_X = torch.zeros(self.__pool_size, X.shape[0], X.shape[1])
+		self.__pool_y = torch.zeros(self.__pool_size, y.shape[0], y.shape[1])
 
 		self.__pool_idxs = (torch.zeros(self.__pool_size, dtype=torch.int64) - 1).share_memory_()
 
@@ -86,8 +83,8 @@ class FileLoader:
 			self.random.shuffle(indexes)
 
 		tensor = torch.from_numpy(out[indexes]).type(
-			self.__NUMPY_TORCH_TYPE_MAP[out.dtype]
-		).to(self.__device).type(self.__NUMPY_TORCH_TYPE_MAP[self.__dtype])
+			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
+		)
 
 		return tensor
 
