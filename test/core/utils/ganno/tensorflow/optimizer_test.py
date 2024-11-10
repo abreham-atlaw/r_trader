@@ -32,7 +32,7 @@ class NNGeneticAlgorithmTest(unittest.TestCase):
 		self.assertFalse(config.validate())
 
 	def test_functionality(self):
-		self.optimizer.start(5)
+		self.optimizer.load(5)
 
 
 if __name__ == "__main__":
