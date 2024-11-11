@@ -34,6 +34,8 @@ RECURSION_DEPTH = 10000
 NESTED_PROCESS = False
 MAIN_PID = os.getpid()
 
+DEFAULT_EPSILON = 1e-9
+
 MONGODB_URL = "mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.net/?retryWrites=true&w=majority"
 
 OPTIMIZER_PG_CONFIG = {
