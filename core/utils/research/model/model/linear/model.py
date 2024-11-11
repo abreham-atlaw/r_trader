@@ -76,13 +76,12 @@ class LinearModel(SpinozaModule):
 
 	def call(self, x):
 		out = x
-		for norm, layer, i in zip(self.norms, self.layers, range(len(self.layers))):
+		for i, (norm, layer) in enumerate(zip(self.norms, self.layers)):
 			out = norm(out)
 			out = layer.forward(out)
-			if i == len(self.layers) - 1:
-				continue
-			out = self.hidden_activation(out)
-			out = self.dropout(out)
+			if i < len(self.layers) - 1:
+				out = self.hidden_activation(out)
+				out = self.dropout(out)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
