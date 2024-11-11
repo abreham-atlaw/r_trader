@@ -11,6 +11,6 @@ class Session:
 
 	account: Account
 	kernel: str
-	gpu: bool
 	active: bool
+	device: int
 	start_datetime: datetime = datetime.now()

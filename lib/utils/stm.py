@@ -39,8 +39,9 @@ class ShortTermMemory:
 
 	def __init__(self, size, matcher: CueMemoryMatcher):
 		self.size = size
-		self.__memories: List[Optional[object]] = [ShortTermMemory.EmptyMemory() for _ in range(size)]
+		self.__memories: List[Optional[object]] = None
 		self._matcher = matcher
+		self.clear()
 
 	def _export_memory(self, memory: object) -> object:
 		return memory
@@ -73,6 +74,9 @@ class ShortTermMemory:
 			self._import_memory(memory)
 		)
 		self.__memories = self.__sort_memories(self.__memories)
+
+	def clear(self):
+		self.__memories = [ShortTermMemory.EmptyMemory() for _ in range(self.size)]
 
 	def __iter__(self):
 		for memory in self.__memories:
