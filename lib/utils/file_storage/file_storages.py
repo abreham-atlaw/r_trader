@@ -187,7 +187,7 @@ class PCloudClient(FileStorage):
 		try:
 			return self.__client.execute(
 				PCloudClient.ListDirRequest(
-					path
+					self.__get_complete_path(path)
 				)
 			)
 		except KeyError as ex:

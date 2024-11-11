@@ -196,14 +196,41 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		for child in source.children:
 			child.parent = destination
 
+	def __get_descendant_state_nodes(self, node: Node) -> typing.List[Node]:
+		descendants = []
+		for action_node in node.get_children():
+			descendants.extend(action_node.get_children())
+			for state_node in action_node.get_children():
+				descendants.extend(self.__get_descendant_state_nodes(state_node))
+		return descendants
+
+	def __sync_repository(self):
+		Logger.info(f"Syncing state repository({len(self._state_repository)} states present)...")
+		descendants = [self.__get_current_graph()] + self.__get_descendant_state_nodes(self.__get_current_graph())
+		state_backups = {node.id: self._state_repository.retrieve(node.id) for node in descendants}
+		self._state_repository.clear()
+		for id_, state in state_backups.items():
+			self._state_repository.store(id_, state)
+		Logger.info(f"Synced state repository({len(self._state_repository)} states present).")
+
+	def __clear_stm(self):
+		Logger.info("Clearing short-term memory...")
+		self.__short_term_memory.clear()
+
 	def __expand_from_stm(self, node: 'Node') -> bool:
 
 		memorized = self.__check_stm(node)
-		if memorized is None or not memorized.has_children():
-			return False
-		self.__move_node(memorized, node)
 
-		return True
+		resolved = False
+
+		if memorized is not None and memorized.has_children():
+			self.__move_node(memorized, node)
+			resolved = True
+		self.__sync_repository()
+		if self.__use_stm:
+			self.__clear_stm()
+
+		return resolved
 
 	def __store_to_stm(self, root: 'Node'):
 

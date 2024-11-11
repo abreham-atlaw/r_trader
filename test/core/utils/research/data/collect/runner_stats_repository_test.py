@@ -10,6 +10,7 @@ from pprint import pprint
 
 import pandas as pd
 
+from core import Config
 from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
@@ -18,8 +19,15 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository()
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k
+		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
+
+		self.branches = Config.RunnerStatsBranches.all
+		self.branch_repositories = {
+			branch: ResearchProvider.provide_runner_stats_repository(branch)
+			for branch in self.branches
+		}
 
 		self.loss_names = [
 			"nn.CrossEntropyLoss()",
@@ -48,8 +56,11 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			stats.append(stat)
 		return stats
 
-	def __get_valid_dps(self) -> typing.List[RunnerStats]:
-		dps = self.repository.retrieve_all()
+	def __get_valid_dps(self, repository=None) -> typing.List[RunnerStats]:
+		if repository is None:
+			repository = self.repository
+		print(f"Getting valid dps for '{repository.branch}'")
+		dps = repository.retrieve_all()
 		return [
 			dp
 			for dp in dps
@@ -97,12 +108,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		if min_profit is not None:
 			dps = list(filter(
-				lambda dp: dp.profit > min_profit,
+				lambda dp: dp.profit >= min_profit,
 				dps
 			))
 		if max_profit is not None:
 			dps = list(filter(
-				lambda dp: dp.profit < max_profit,
+				lambda dp: dp.profit <= max_profit,
 				dps
 			))
 
@@ -113,6 +124,44 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			))
 
 		return dps
+
+	def __plot_profit_vs_loss(self, dps_list, dps_names=None):
+		if dps_names is None:
+			dps_names = ["" for _ in range(len(dps_list))]
+		for dps in dps_list:
+			print(f"Using {len(dps)} dps")
+			self.__print_dps(dps)
+		losses = [
+			[
+				[dp.model_losses[i] for dp in dps]
+				for i in range(len(dps[0].model_losses))
+			]
+			for dps in dps_list
+		]
+
+		names = [
+			"nn.CrossEntropyLoss()",
+			"ProximalMaskedLoss",
+			"MeanSquaredClassError",
+			"ReverseMAWeightLoss(window_size=10, softmax=True)",
+			"PredictionConfidenceScore(softmax=True)",
+			"OutputClassesVariance(softmax=True)",
+			"OutputBatchVariance(softmax=True)",
+			"OutputBatchClassVariance(softmax=True)",
+		]
+		for i in range(len(losses[0])):
+			print(f"Plotting {names[i]}")
+			plt.figure()
+			plt.title(names[i])
+			for j, dps in enumerate(dps_list):
+				plt.scatter(
+					losses[j][i],
+					[dp.profit for dp in dps],
+					label=dps_names[j]
+				)
+			plt.axhline(y=0, color="black")
+			plt.axvline(x=4, color="black")
+			plt.legend()
 
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
@@ -125,38 +174,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
-		print(f"Using {len(dps)} dps")
-		self.__print_dps(dps)
-		self.assertGreater(len(dps), 0)
-		losses = [
-			[dp.model_losses[i] for dp in dps]
-			for i in range(len(dps[0].model_losses))
-		]
-		losses.append(
-			[np.prod(dp.model_losses) for dp in dps]
-		)
-
-		names = [
-			"nn.CrossEntropyLoss()",
-			"ProximalMaskedLoss",
-			"MeanSquaredClassError",
-			"ReverseMAWeightLoss(window_size=10, softmax=True)",
-			"PredictionConfidenceScore(softmax=True)",
-			"OutputClassesVariance(softmax=True)",
-			"OutputBatchVariance(softmax=True)",
-			"OutputBatchClassVariance(softmax=True)",
-			"Product of all losses"
-		]
-		for i in range(len(losses)):
-			print(f"Plotting {names[i]}")
-			plt.figure()
-			plt.title(names[i])
-			plt.scatter(
-				losses[i],
-				[dp.profit for dp in dps],
-			)
-
-			plt.axhline(y=0, color="black")
+		self.__plot_profit_vs_loss([dps])
 		plt.show()
 
 	def test_plot_losses(self):
@@ -265,7 +283,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.__filter_stats(
 				self.__get_valid_dps(),
 				time=datetime.now() - timedelta(hours=24),
-				model_losses=(4.5,),
+				model_losses=(4.0,),
 				max_profit=0
 			),
 			key=lambda dp: dp.model_losses[0]
@@ -501,3 +519,81 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.repository.store(stat)
 
 			print(f"{i+1} of {len(stats)}... Done")
+
+	def test_plot_all_branches(self):
+
+		dps = list(filter(
+			lambda value: len(value[1]) > 0,
+			[
+				(branch, self.__get_valid_dps(repository=repository))
+				for branch, repository in self.branch_repositories.items()
+			]
+		))
+
+		names, dps = [
+			[value[i] for value in dps]
+			for i in range(2)
+		]
+
+		self.__plot_profit_vs_loss(dps_list=dps, dps_names=names)
+
+		plt.show()
+
+	def __plot_compare_branches(self, branch0, branch1):
+		repositories = [
+			self.branch_repositories.get(branch)
+			for branch in (branch0, branch1)
+		]
+
+		branches_dps = [
+			self.__get_valid_dps(repository=repository)
+			for repository in repositories
+		]
+
+		branch_dps_ids = [
+			[dp.id for dp in dps]
+			for dps in branches_dps
+		]
+
+		common_dps_ids = list(filter(
+			lambda id_: id_ in branch_dps_ids[1],
+			branch_dps_ids[0]
+		))
+
+		common_dps = [
+			sorted(
+				[dp for dp in branch_dps if dp.id in common_dps_ids],
+				key=lambda dp: dp.id
+			)
+			for branch_dps in branches_dps
+		]
+
+		X, y = [
+			[dp.profit for dp in dps]
+			for dps in common_dps
+		]
+
+		plt.figure()
+		plt.title(f"{branch0} vs {branch1}")
+		plt.axhline(y=0, color="black")
+		plt.axvline(x=0, color="black")
+		plt.scatter(X, y)
+
+	def test_plot_compare_branches(self):
+
+		BRANCH0 = "main"
+		BRANCH1 = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
+
+		self.__plot_compare_branches(BRANCH0, BRANCH1)
+
+		plt.show()
+
+	def test_plot_1_vs_all_branches(self):
+
+		BRANCH = "main"
+
+		for branch in self.branches:
+			if branch == BRANCH:
+				continue
+			self.__plot_compare_branches(BRANCH, branch)
+		plt.show()
