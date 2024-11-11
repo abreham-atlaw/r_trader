@@ -34,6 +34,8 @@ RECURSION_DEPTH = 10000
 NESTED_PROCESS = False
 MAIN_PID = os.getpid()
 
+DEFAULT_EPSILON = 1e-9
+
 MONGODB_URL = "mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.net/?retryWrites=true&w=majority"
 
 OPTIMIZER_PG_CONFIG = {
@@ -173,6 +175,7 @@ with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
+TPU_OS_KEY = "COLAB_TPU_ADDR"
 
 
 MC_WORKER_STEP_TIME = 1 * 60
