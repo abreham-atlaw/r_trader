@@ -13,7 +13,14 @@ class ModelCompilerTest(unittest.TestCase):
 
 	def setUp(self):
 		NP_DTYPE = np.float32
-		self.model = SimplifyCompiler().compile(ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-85-cum-0-it-4-tot.zip"))
+		self.model = SimplifyCompiler().compile(
+			ModelHandler.load(
+				# "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-85-cum-0-it-4-tot.zip"
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-151-cum-0-it-4-tot.zip"
+			)
+		)
+		self.model.eval()
+		# self.model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-151-cum-0-it-4-tot.zip")
 		self.X = torch.from_numpy(np.load(
 			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/X/1727815242.844215.npy").astype(
 			NP_DTYPE))
@@ -23,7 +30,6 @@ class ModelCompilerTest(unittest.TestCase):
 		self.compiler = TorchScriptCompiler()
 
 	def test_compile(self):
-		print(self.model.norms)
 		compiled = self.compiler.compile(self.model)
 		compiled.eval()
 		self.assertIsNotNone(compiled)

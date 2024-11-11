@@ -1,3 +1,4 @@
+import typing
 from typing import List, Tuple
 
 import torch
@@ -9,9 +10,7 @@ class OverlaysCombiner(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def forward(self, inputs, *args, **kwargs):
-        if isinstance(inputs, torch.Tensor) and len(inputs.shape) < 3:
-            return inputs.unsqueeze(2)
+    def forward(self, inputs: typing.List[torch.Tensor]) -> torch.Tensor:
         min_size = min([overlay.shape[1] for overlay in inputs])
         return torch.stack([
             overlay[:, -min_size:]

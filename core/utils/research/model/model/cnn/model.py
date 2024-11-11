@@ -110,7 +110,7 @@ class CNN(SpinozaModule):
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
 			out = self.dropout(out)
-		out = self.collapse(out)
+		out = torch.flatten(out, 1, 2)
 		out = out.reshape(out.size(0), -1)
 		out = self.dropout(out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)

@@ -16,6 +16,7 @@ from core.utils.research.training.trackers.tracker import TorchTracker
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .device import Device
+from ..compilers import ModelCompiler, PipelineCompiler, SimplifyCompiler, TorchScriptCompiler
 from ...data.load.dataset import BaseDataset
 
 try:
@@ -41,6 +42,8 @@ class Trainer:
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
             dtype: torch.dtype = torch.float32,
+            compile: bool = False,
+            compiler: typing.Optional[ModelCompiler] = None
     ):
         self.device = self.__get_device()
         Logger.info(f"Using device: {self.device_type}")
@@ -49,6 +52,12 @@ class Trainer:
             model = torch.nn.DataParallel(model)
         if callbacks is None:
             callbacks = []
+
+        if compiler is None:
+            compiler = PipelineCompiler([
+                SimplifyCompiler(),
+                TorchScriptCompiler()
+            ])
         self.model = self.__initialize_model(model)
         self.cls_loss_function = cls_loss_function
         self.reg_loss_function = reg_loss_function
@@ -61,6 +70,8 @@ class Trainer:
         self.__dtype = dtype
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
+        self.__compiler = compiler
+        self.__compile = compile
 
     @staticmethod
     def __get_device():
@@ -193,16 +204,21 @@ class Trainer:
             self.model.train()
             running_loss = torch.zeros((3,))
             pbar = tqdm(dataloader) if progress else dataloader
+
+            model = self.model
+            if self.__compile:
+                model = self.__compiler.compile(self.model)
+
             for i, (X, y) in enumerate(pbar):
                 if i < state.batch:
                     continue
                 state.batch = i
                 for callback in self.callbacks:
-                    callback.on_batch_start(self.model, i)
+                    callback.on_batch_start(model, i)
                 X, y = X.to(self.device), y.to(self.device)
                 X, y = X.type(self.__dtype), y.type(self.__dtype)
                 self.optimizer.zero_grad()
-                y_hat = self.model(X)
+                y_hat = model(X)
 
                 cls_loss, ref_loss, loss = self.__loss(y_hat, y)
                 if cls_loss_only:
@@ -212,16 +228,16 @@ class Trainer:
                 else:
                     loss.backward()
 
-                gradients = [param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
+                gradients = [param.grad.clone().detach() for param in model.parameters() if param.grad is not None]
 
                 for tracker in self.__trackers:
                     tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
 
                 if self.__max_norm is not None:
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=self.__max_norm)
 
                 if self.__clip_value is not None:
-                    torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=self.__clip_value)
+                    torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=self.__clip_value)
 
                 # self.optimizer.step()
                 self.__optimizer_step()
@@ -230,7 +246,7 @@ class Trainer:
                 if progress and i % progress_interval == 0:
                     pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")
                 for callback in self.callbacks:
-                    callback.on_batch_end(self.model, i)
+                    callback.on_batch_end(model, i)
             state.batch = 0
             epoch_loss = (running_loss / len(dataloader)).tolist()
             print(f"Epoch {epoch + 1} completed, {self.__format_loss(epoch_loss)}")
@@ -245,6 +261,9 @@ class Trainer:
                 val_losses.append(val_loss)
                 print(f"Validation loss: {self.__format_loss(val_loss)}")
                 losses = (epoch_loss, val_loss)
+
+            if self.__compile:
+                self.model = self.__compiler.decompile(model, self.model)
 
             for callback in self.callbacks:
                 callback.on_epoch_end(self.model, epoch, losses)
