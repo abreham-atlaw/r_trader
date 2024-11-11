@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from .data.repositories import SessionsRepository, AccountsRepository
-from .data.models import Account, Session
+from .data.models import Account, Session, Resources
 
 
 class SessionsManager:
@@ -23,11 +23,11 @@ class SessionsManager:
 		self.__dataset_key_alias = dataset_key_alias
 		self.__retry_patience = retry_patience
 
-	def __register_session(self, kernel: str, account: Account, gpu: bool):
+	def __register_session(self, kernel: str, account: Account, device: int):
 		self.__session_repository.add_session(Session(
 			account=account,
 			kernel=kernel,
-			gpu=gpu,
+			device=device,
 			active=True,
 			start_datetime=datetime.now()
 		))
@@ -76,11 +76,14 @@ class SessionsManager:
 			kernel: str,
 			account: Account,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu: bool
+			device: int
 	):
-		print(f"Starting {kernel} on {account.username}(gpu={gpu})...")
+		print(f"Starting {kernel} on {account.username}(device={device})...")
 		meta_data = meta_data.copy()
-		meta_data["enable_gpu"] = gpu
+
+		meta_data["enable_gpu"] = device == Resources.Devices.GPU
+		meta_data["enable_tpu"] = device == Resources.Devices.TPU
+
 		meta_data["enable_internet"] = True
 		if self.__dataset_key_alias and meta_data.get("dataset_sources") is not None:
 			meta_data["kernel_sources"] = meta_data.pop("dataset_sources")
@@ -102,16 +105,16 @@ class SessionsManager:
 			kernel: str,
 			account: Account,
 			meta_data: typing.Dict[str, typing.Any],
-			gpu: bool = False,
+			device: int,
 			close_others: bool = True,
 			sync_notebooks: bool = True
 	):
 		if sync_notebooks:
 			self.sync_notebooks()
-		print(f"Running {kernel} on {account.username}(gpu={gpu})...")
+		print(f"Running {kernel} on {account.username}(device={device})...")
 		self.__prepare_for_run(kernel)
-		self.__run_notebook(kernel, account, meta_data, gpu)
-		self.__register_session(kernel, account, gpu)
+		self.__run_notebook(kernel, account, meta_data, device)
+		self.__register_session(kernel, account, device)
 
 	def finish_session(self, kernel: str, multiple=False):
 		print(f"Finishing {kernel} with multiple={multiple}")

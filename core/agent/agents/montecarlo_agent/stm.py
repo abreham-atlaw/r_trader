@@ -76,6 +76,7 @@ class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 	def __compare_agent_states(self, state0: AgentState, state1: AgentState) -> bool:
 		return \
 			np.isclose(state0.get_balance(), state1.get_balance(), atol=self.__balance_tolerance) and \
+			len(state0.get_open_trades()) == len(state1.get_open_trades()) and \
 			np.all([self.__compare_trades(
 					trade0,
 					trade1

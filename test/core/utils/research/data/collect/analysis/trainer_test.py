@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.tree import export_text
 
+from core import Config
+from core.di import ResearchProvider
 from core.utils.research.data.collect.analysis import RunnerStatsTrainer, SVRModel, Model
 from core.utils.research.data.collect.analysis.datapreparer import RunnerStatsDataPreparer
 from core.utils.research.data.collect.analysis.models import XGBoostModel, RidgeModel, LassoModel
@@ -38,7 +40,8 @@ class TrainerTest(unittest.TestCase):
 		self.datapreparer = RunnerStatsDataPreparer(
 			bounds=self.bounds,
 			columns=columns,
-			min_sessions=1
+			min_sessions=1,
+			repository=ResearchProvider.provide_runner_stats_repository(Config.RunnerStatsBranches.ma_ews_dynamic_k_stm)
 		)
 		self.X, self.y = self.datapreparer.prepare()
 
