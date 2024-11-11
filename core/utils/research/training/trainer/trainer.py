@@ -72,6 +72,9 @@ class Trainer:
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
         self.__compiler = compiler
         self.__compile = compile
+        if self.__compile:
+            Logger.info(f"Using compiler: {self.__compiler}")
+
 
     @staticmethod
     def __get_device():
