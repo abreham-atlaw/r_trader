@@ -6,7 +6,8 @@ import numpy as np
 import torch
 import os
 
-from core.utils.research.data.load.data_pool import DataPool
+from core.utils.research.data.load.data_pool import TensorDataPool, MapDataPool
+from core.utils.research.data.load.data_pool.data_pool import DataPool
 
 
 class FileLoader:
@@ -31,7 +32,8 @@ class FileLoader:
 			y_dir: str = "y",
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
-			random_state=None
+			random_state=None,
+			use_pool: bool = True
 	):
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
@@ -40,9 +42,10 @@ class FileLoader:
 		self.random_state = random_state
 		self.__files, self.__root_dir_map = self.__get_files(size=num_files)
 		self.__pool_size = pool_size
+		self.__use_pool = use_pool
 
 		if pool is None:
-			pool = DataPool(pool_size)
+			pool = MapDataPool(pool_size)
 
 		self.__pool = pool
 		self.file_size = self.__get_file_size()
@@ -92,13 +95,15 @@ class FileLoader:
 		return X, y
 
 	def __load_files(self, idx: int):
-		cached = self.__pool[idx]
-		if cached is not None:
-			return cached
+		if self.__use_pool:
+			cached = self.__pool[idx]
+			if cached is not None:
+				return cached
 
 		X, y = self.__load_arrays(idx)
 
-		self.__pool[idx] = (X, y)
+		if self.__use_pool:
+			self.__pool[idx] = (X, y)
 
 		return X, y
 

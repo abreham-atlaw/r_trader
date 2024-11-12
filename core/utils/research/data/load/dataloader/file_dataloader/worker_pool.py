@@ -4,12 +4,16 @@ import torch
 import torch.multiprocessing as mp
 
 from core.utils.research.data.load.flm.file_loader import FileLoader
+from lib.utils.logger import Logger
 
 
 def load(args) -> typing.Tuple[torch.Tensor, torch.Tensor]:
-    idx, *loader_args = args  # Unpack idx and loader arguments
-    loader = FileLoader(*loader_args)
-    return loader[idx]
+	idx, *loader_args = args
+	loader = FileLoader(*loader_args, pool_size=1)
+	Logger.info("Loading Value")
+	value = loader[idx]
+	Logger.info("Returning Value")
+	return value
 
 
 class WorkerPool:
@@ -31,5 +35,6 @@ class WorkerPool:
 					for idx in idxs
 				]
 			)
+		Logger.info("Returning Results")
 		return results
 

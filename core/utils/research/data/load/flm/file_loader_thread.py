@@ -1,4 +1,5 @@
 import time
+from multiprocessing import Manager
 from threading import Thread
 
 from .file_loader import FileLoader
@@ -12,8 +13,9 @@ class FileLoaderThread(Thread):
 	):
 		super().__init__()
 		self.__file_loader = file_loader
-		self.__queue = self.__file_loader.manager.list()
-		self.__kill = self.__file_loader.manager.Value('i', False)
+		self.manager = Manager()
+		self.__queue = self.manager.list()
+		self.__kill = self.manager.Value('i', False)
 
 	def queue(self, idx, urgent=False):
 		if idx in self.__queue:
