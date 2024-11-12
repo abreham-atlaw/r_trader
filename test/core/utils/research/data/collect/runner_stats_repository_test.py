@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import pandas as pd
 
@@ -19,7 +18,7 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 

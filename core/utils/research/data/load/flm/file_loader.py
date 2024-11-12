@@ -28,7 +28,10 @@ class FileLoader:
 			y_dir: str = "y",
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
+			use_pool: bool = False,
+			use_torch: bool = True
 	):
+		self.__use_torch = use_torch
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
 		self.__X_dir = X_dir
@@ -36,9 +39,11 @@ class FileLoader:
 		self.random_state = None
 		self.__files, self.__root_dir_map = self.__get_files(size=num_files)
 		self.__pool_size = pool_size
-		self.manager = Manager()
-		self.__init_pool()
 		self.file_size = self.__get_file_size()
+		self.__use_pool = use_pool
+		if use_pool:
+			self.manager = Manager()
+			self.__init_pool()
 
 	@property
 	def random(self):
@@ -79,7 +84,9 @@ class FileLoader:
 		indexes = np.arange(out.shape[0])
 		if self.random is not None:
 			self.random.shuffle(indexes)
-
+		if not self.__use_torch:
+			return out[indexes]
+		
 		tensor = torch.from_numpy(out[indexes]).type(
 			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
 		)
@@ -106,21 +113,23 @@ class FileLoader:
 
 	def __load_files(self, idx: int):
 
-		slot = self.__get_free_slot()
 
 		X, y = self.__load_arrays(idx)
 
-		# X.share_memory_()
-		# y.share_memory_()
-		self.__pool_X[slot] = X
-		self.__pool_y[slot] = y
+		if self.__use_pool:
+			slot = self.__get_free_slot()
+			self.__pool_X[slot] = X
+			self.__pool_y[slot] = y
 
-		self.__pool_idxs[slot] = idx
+			self.__pool_idxs[slot] = idx
+
+		return X, y
 
 	def load(self, idx: int):
-		if idx in self.__pool_idxs:
-			return
-		self.__load_files(idx)
+		if self.__use_pool and idx in self.__pool_idxs:
+			slot = self.__get_slot(idx)
+			return self.__pool_X[slot], self.__pool_y[slot]
+		return self.__load_files(idx)
 
 	def shuffle(self):
 		print("[+]Shuffling dataset...")
@@ -129,10 +138,7 @@ class FileLoader:
 		self.random_state = random.randint(0, 1000)
 
 	def __getitem__(self, item: int) -> typing.Optional[typing.Tuple[torch.Tensor, torch.Tensor]]:
-		if not torch.any(self.__pool_idxs == item):
-			return None
-		slot = self.__get_slot(item)
-		return self.__pool_X[slot], self.__pool_y[slot]
+		return self.load(item)
 
 	def __len__(self):
 		return len(self.__files)
