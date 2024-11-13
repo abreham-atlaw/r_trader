@@ -196,7 +196,16 @@ class Trainer:
             self.model.train()
             running_loss = torch.zeros((3,))
             pbar = tqdm(dataloader) if progress else dataloader
-            for i, (X, y) in enumerate(pbar):
+
+            pbar_iter = iter(pbar)
+
+            for i in range(len(dataloader)):
+                # Measure time taken to retrieve a batch from the dataloader
+                X, y = performance.track_performance(
+                    key="dataloader_retrieval",
+                    func=lambda: next(pbar_iter)
+                )
+
                 if i < state.batch:
                     continue
                 state.batch = i
