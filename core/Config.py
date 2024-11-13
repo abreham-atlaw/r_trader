@@ -228,6 +228,7 @@ MODEL_TMP_PATH = os.path.abspath("./out/")
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
+TEMPERATURES = [0.1*i for i in range(1, 11)]
 
 
 class ResourceCategories:
