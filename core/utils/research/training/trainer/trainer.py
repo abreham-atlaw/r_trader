@@ -238,12 +238,12 @@ class Trainer:
 
                 gradients = performance.track_performance(
                     key="gather_gradients",
-                    func=[param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
+                    func=lambda: [param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
                 )
 
                 performance.track_performance(
                     key="tracker.on_batch_end",
-                    func=[
+                    func=lambda: [
                         tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
                         for tracker in self.__trackers
                     ]
