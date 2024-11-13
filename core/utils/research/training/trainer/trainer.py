@@ -13,6 +13,7 @@ from core.di import ResearchProvider
 from core.utils.research.training.callbacks import Callback
 from core.utils.research.training.data.state import TrainingState
 from core.utils.research.training.trackers.tracker import TorchTracker
+from lib.utils.devtools import performance
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .device import Device
@@ -144,6 +145,7 @@ class Trainer:
         else:
             self.optimizer.step()
 
+    @performance.track_func_performance()
     def train(
             self,
             dataloader: DataLoader,
@@ -182,6 +184,7 @@ class Trainer:
 
         train_losses = []
         val_losses = []
+
         for epoch in range(state.epoch, epochs):
             min_gradient = float('inf')
             max_gradient = float('-inf')
@@ -199,23 +202,54 @@ class Trainer:
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                X, y = X.to(self.device), y.to(self.device)
-                X, y = X.type(self.__dtype), y.type(self.__dtype)
+
+                X, y = performance.track_performance(
+                    key="to(device)",
+                    func=lambda: (X.to(self.device), y.to(self.device))
+                )
+                X, y = performance.track_performance(
+                    key="type(self.__dtype)",
+                    func=lambda: (X.type(self.__dtype), y.type(self.__dtype))
+                )
+
                 self.optimizer.zero_grad()
-                y_hat = self.model(X)
 
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+                y_hat = performance.track_performance(
+                    key="model(X)",
+                    func=lambda: self.model(X)
+                )
+
+                cls_loss, ref_loss, loss = performance.track_performance(
+                    key="loss(y_hat, y)",
+                    func=lambda: self.__loss(y_hat, y)
+                )
+
+                back_loss = loss
+
                 if cls_loss_only:
-                    cls_loss.backward()
+                    back_loss = cls_loss
                 elif reg_loss_only:
-                    ref_loss.backward()
-                else:
-                    loss.backward()
+                    back_loss = ref_loss
 
-                gradients = [param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
+                performance.track_performance(
+                    key="loss.backward()",
+                    func=lambda: back_loss.backward()
+                )
 
-                for tracker in self.__trackers:
-                    tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
+                gradients = performance.track_performance(
+                    key="gather_gradients",
+                    func=[param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
+                )
+
+                performance.track_performance(
+                    key="tracker.on_batch_end",
+                    func=[
+                        tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
+                        for tracker in self.__trackers
+                    ]
+                )
+                # for tracker in self.__trackers:
+                #     tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
 
                 if self.__max_norm is not None:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.__max_norm)
@@ -224,7 +258,10 @@ class Trainer:
                     torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=self.__clip_value)
 
                 # self.optimizer.step()
-                self.__optimizer_step()
+                performance.track_performance(
+                    key="optimizer_step()",
+                    func=lambda: self.__optimizer_step()
+                )
 
                 running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
                 if progress and i % progress_interval == 0:
@@ -241,7 +278,10 @@ class Trainer:
             losses = (epoch_loss,)
 
             if val_dataloader is not None:
-                val_loss = self.validate(val_dataloader)
+                val_loss = performance.track_performance(
+                    key="validate(val_dataloader)",
+                    func=lambda: self.validate(val_dataloader)
+                )
                 val_losses.append(val_loss)
                 print(f"Validation loss: {self.__format_loss(val_loss)}")
                 losses = (epoch_loss, val_loss)
