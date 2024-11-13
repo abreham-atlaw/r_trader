@@ -231,7 +231,7 @@ class AgentState:
 	def __units_for(self, margin: float, base_currency: str, quote_currency: str) -> int:
 		price = self.__market_state.get_current_price(base_currency, quote_currency)
 		in_quote = margin * self.__market_state.get_current_price(self.__currency, quote_currency)
-		return math.floor(in_quote/(self.__margin_rate * price))
+		return math.floor(in_quote/(self.__margin_rate * price + Config.DEFAULT_EPSILON))
 
 	def get_balance(self, original=False):
 		if original:

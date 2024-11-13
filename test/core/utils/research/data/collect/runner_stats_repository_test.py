@@ -160,6 +160,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					label=dps_names[j]
 				)
 			plt.axhline(y=0, color="black")
+			plt.axvline(x=4, color="black")
 			plt.legend()
 
 	def test_plot_profit_vs_loss(self):
@@ -282,7 +283,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.__filter_stats(
 				self.__get_valid_dps(),
 				time=datetime.now() - timedelta(hours=24),
-				model_losses=(4.5,),
+				model_losses=(4.0,),
 				max_profit=0
 			),
 			key=lambda dp: dp.model_losses[0]
@@ -581,7 +582,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_plot_compare_branches(self):
 
 		BRANCH0 = "main"
-		BRANCH1 = "ma_ews"
+		BRANCH1 = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
 
 		self.__plot_compare_branches(BRANCH0, BRANCH1)
 

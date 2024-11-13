@@ -60,10 +60,8 @@ class ResourcesManager:
 			resource.remaining_amount -= 12
 		self.__resources_repository.save_resources(resources)
 
-	def allocate_notebook(self, use_gpu=True) -> Account:
-		device = Resources.Devices.CPU
-		if use_gpu:
-			device = Resources.Devices.GPU
+	def allocate_notebook(self, device: int = Resources.Devices.CPU) -> Account:
+		device = device
 		accounts_resources = self.__get_resources()
 		sorted_resources = self._sort_resources(accounts_resources, device)
 		optimal_resources = sorted_resources[0]
