@@ -15,7 +15,7 @@ possible_state_visits = []
 valid_actions = []
 prediction_inputs = []
 
-stat_dump_path = os.path.join(BASE_DIR, f"temp/performance_dump/{datetime.now().timestamp()}.json")
+stat_dump_path = os.path.join(BASE_DIR, f"/kaggle/working/performance.{datetime.now().timestamp()}.json")
 
 
 def track_performance(key, func):
