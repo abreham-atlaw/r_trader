@@ -9,18 +9,21 @@ from core.utils.research.data.load.dataset import BaseDataset
 
 class BaseDatasetTest(unittest.TestCase):
 
-	def test_functionality(self):
-
-		dataset = BaseDataset(
+	def setUp(self):
+		self.dataset = BaseDataset(
 			[
 				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
-			num_files=3
+			num_files=3,
+			preload=True,
+			preload_size=5
 		)
 
-		X, y = dataset[1500]
-		self.assertEqual(X.shape[0], 1024)
-		self.assertEqual(y.shape[0], 449)
+	def test_functionality(self):
+
+		X, y = self.dataset[1500]
+		self.assertEqual(X.shape[0], 1148)
+		self.assertEqual(y.shape[0], 432)
 
 	def test_shuffle(self):
 		dataset = BaseDataset(
@@ -45,18 +48,12 @@ class BaseDatasetTest(unittest.TestCase):
 				self.assertFalse(torch.all(y == y_o))
 
 	def test_dataloader(self):
-		dataset = BaseDataset(
-			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-		)
-
 		dataloader = DataLoader(
-			dataset=dataset,
+			dataset=self.dataset,
 			batch_size=6
 		)
 
-		dataset.shuffle()
+		self.dataset.shuffle()
 
 		for X, y in dataloader:
 			self.assertIsNotNone(X)
