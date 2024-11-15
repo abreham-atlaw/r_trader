@@ -78,7 +78,6 @@ class MongoSessionsRepository(SessionsRepository):
 	def finish_session(self, session: Session):
 		session_json = session.__dict__.copy()
 		session_json["account"] = session.account.username
-		self.__collections.update_one(
+		self.__collections.delete_one(
 			session_json,
-			{"$set": {"active": False}}
 		)

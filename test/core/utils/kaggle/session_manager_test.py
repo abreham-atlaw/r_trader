@@ -10,12 +10,14 @@ from core.utils.kaggle.data.repositories import SessionsRepository, AccountsRepo
 
 class SessionManagerTest(unittest.TestCase):
 
-	def test_functionality(self):
+	def setUp(self):
 		init_di()
 
-		accounts_repository: AccountsRepository = ApplicationContainer.kaggle.accounts_repository()
-		manager: SessionsManager = ApplicationContainer.kaggle.sessions_manager()
-		account = (accounts_repository.get_by_username("abrehamatlaw0"))
+		self.accounts_repository: AccountsRepository = ApplicationContainer.kaggle.accounts_repository()
+		self.manager: SessionsManager = ApplicationContainer.kaggle.sessions_manager()
+
+	def test_functionality(self):
+		account = (self.accounts_repository.get_by_username("abrehamatlaw0"))
 		# account = Account(
 		# 	username='yosephmezemer',
 		# 	key='022b607f1ca94bc82cf68914eb6b0c4a'
@@ -25,7 +27,7 @@ class SessionManagerTest(unittest.TestCase):
 		# 	key='0c9625e07a328c93a9c27fb1dda49f1a'
 		# )
 		# manager.sync_notebooks()
-		manager.start_session(
+		self.manager.start_session(
 			kernel="abrehamalemu/rtrader-training-exp-0-cnn-151-cum-0-it-4-tot-tpu",
 			account=account,
 			meta_data={
@@ -37,3 +39,6 @@ class SessionManagerTest(unittest.TestCase):
 			device=Resources.Devices.GPU,
 			sync_notebooks=False
 		)
+
+	def test_sync(self):
+		self.manager.sync_notebooks()
