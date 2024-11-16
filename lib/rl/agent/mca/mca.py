@@ -369,7 +369,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		start_time = datetime.now()
 		for i in range(len(probability_distribution)):
-			possible_state_nodes[i].instant_value = self._get_expected_instant_reward(final_states[i])
+			possible_state_nodes[i].total_value = possible_state_nodes[i].instant_value = self._get_expected_instant_reward(final_states[i])
 			possible_state_nodes[i].weight = probability_distribution[i]
 			possible_state_nodes[i].depth = state_node.depth + 1
 			self._state_repository.store(possible_state_nodes[i].id, final_states[i])
@@ -419,10 +419,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if node.node_type == Node.NodeType.STATE:
 			node.set_total_value(node.instant_value)
 			if node.has_children():
-				node.add_value(
+				node.add_value(float(
 					self._get_discount_factor(node.depth) *
 					max([action_node.get_total_value() for action_node in node.get_children()])
-				)
+				))
 
 		else:
 			node.set_total_value(
