@@ -1,5 +1,4 @@
 import typing
-from datetime import datetime
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -9,7 +8,6 @@ from tensorflow import keras
 import os
 
 from lib.rl.environment import ModelBasedState
-from temp import stats
 from . import Model
 from .. import ModelBasedAgent
 
@@ -18,7 +16,14 @@ TRANSITION_MODEL_FILE_NAME = "transition_model.h5"
 
 class DNNTransitionAgent(ModelBasedAgent, ABC):
 
-	def __init__(self, *args, batch_update=True, update_batch_size=100,  clear_update_batch=True, **kwargs):
+	def __init__(
+			self,
+			*args,
+			batch_update=True,
+			update_batch_size=100,
+			clear_update_batch=True,
+			**kwargs
+	):
 		super().__init__(*args, **kwargs)
 		self._enable_batch_update = batch_update
 		self._update_batch_size = update_batch_size
@@ -27,19 +32,24 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		self._clear_update_batch = clear_update_batch
 
 		self.__transition_model: Union[Model or None] = None
-		self.__cache = {}
 		self._validation_dataset = ([], [])
 
 	@abstractmethod
-	def _prepare_dta_input(self, state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> np.ndarray:
+	def _prepare_dta_input(
+			self, state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]
+	) -> np.ndarray:
 		pass
 
 	@abstractmethod
-	def _prepare_dta_output(self, initial_state: List[ModelBasedState], output: np.ndarray, final_state: List[ModelBasedState]) -> List[float]:
+	def _prepare_dta_output(
+			self, initial_state: List[ModelBasedState], output: np.ndarray, final_state: List[ModelBasedState]
+	) -> List[float]:
 		pass
 
 	@abstractmethod
-	def _prepare_dta_train_output(self, initial_state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]) -> np.ndarray:
+	def _prepare_dta_train_output(
+			self, initial_state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]
+	) -> np.ndarray:
 		pass
 
 	@property
@@ -51,72 +61,31 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def set_transition_model(self, model: Model):
 		self.__transition_model = model
 
-	def __get_cached(self, inputs: np.ndarray) -> np.ndarray:
-		out = np.array([np.nan for _ in range(len(inputs))])
-		for i in range(len(inputs)):
-			cached = self.__cache.get(inputs[i].tobytes())
-			if cached is not None:
-				out[i] = cached
-		return out
-
-	def __cache_predictions(self, inputs: np.ndarray, predictions: np.ndarray):
-		for i in range(len(inputs)):
-			self.__cache[inputs[i].tobytes()] = predictions[i]
-
 	def _predict(self, model: Model, inputs: np.array) -> np.ndarray:
 		return model.predict(inputs)
 
 	def __get_unique_rows(self, array: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
-		start_time = datetime.now()
 		hashes = np.array([hash(x.tobytes()) for x in array])
-		stats.durations["hash"] += (datetime.now() - start_time).total_seconds()
-
-		start_time = datetime.now()
 		hashes, indices, inverse = np.unique(hashes, axis=0, return_inverse=True, return_index=True)
-		stats.durations["unique"] += (datetime.now() - start_time).total_seconds()
 		return array[indices], inverse
 
-	def _get_expected_transition_probability_distribution(self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]) -> List[float]:
+	def _get_expected_transition_probability_distribution(
+			self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]
+	) -> List[float]:
 
-		_start_time = datetime.now()
-
-		start_time = datetime.now()
 		prediction_input = self._prepare_dta_input(initial_states, action, final_states)
-		stats.durations["prepare_dta_input"] += (datetime.now() - start_time).total_seconds()
 
-		start_time = datetime.now()
-		prediction = self.__get_cached(prediction_input)
-		stats.durations["get_cached"] += (datetime.now() - start_time).total_seconds()
+		model_inputs, indices = self.__get_unique_rows(prediction_input)
 
-		not_cached_indexes = np.isnan(prediction)
-		if np.any(not_cached_indexes):
+		model_predictions = self._predict(self._transition_model, model_inputs)
 
-			start_time = datetime.now()
-			# model_inputs, indices = np.unique(prediction_input[not_cached_indexes], axis=0, return_inverse=True)
-			model_inputs, indices = self.__get_unique_rows(prediction_input[not_cached_indexes])
-			stats.durations["__get_unique_rows"] += (datetime.now() - start_time).total_seconds()
+		model_predictions = model_predictions[indices]
 
-			start_time = datetime.now()
-			model_predictions = self._predict(self._transition_model, model_inputs)
-			stats.durations["predict"] += (datetime.now() - start_time).total_seconds()
-
-			start_time = datetime.now()
-			model_predictions = model_predictions[indices]
-			stats.durations["model_predictions"] += (datetime.now() - start_time).total_seconds()
-
-			start_time = datetime.now()
-			prediction[not_cached_indexes] = self._prepare_dta_output(
-				initial_states,
-				model_predictions,
-				final_states
-			)
-			stats.durations["prepare_dta_output"] += (datetime.now() - start_time).total_seconds()
-
-			start_time = datetime.now()
-			self.__cache_predictions(prediction_input[not_cached_indexes], prediction[not_cached_indexes])
-			stats.durations["cache_predictions"] += (datetime.now() - start_time).total_seconds()
-
-		stats.durations["get_expected_transition_probability_distribution__"] += (datetime.now() - _start_time).total_seconds()
+		prediction = self._prepare_dta_output(
+			initial_states,
+			model_predictions,
+			final_states
+		)
 
 		return list(prediction)
 

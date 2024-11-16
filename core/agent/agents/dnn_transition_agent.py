@@ -19,6 +19,7 @@ from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from core.agent.trader_action import TraderAction
 from core.agent.utils.dnn_models import KerasModelHandler
+from lib.utils.math import softmax
 from temp import stats
 
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -75,11 +76,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__discount_function = discount_function
 		self.__use_softmax = use_softmax
 		self.__dta_output_cache = Cache()
-
-	@staticmethod
-	def __softmax(x):
-		e_x = np.exp(x - np.max(x))
-		return e_x / e_x.sum()
 
 	def _find_gap_index(self, number: float) -> int:
 		boundaries = self._state_change_delta_bounds
@@ -192,13 +188,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 					quote_currency
 				)
 				if self.__use_softmax:
-					probabilities = self.__softmax(probabilities)
+					probabilities = softmax(probabilities)
 
 				start_time = datetime.now()
 				idx = self._find_gap_index(percentage)
 				stats.durations["find_gap_index"] += (datetime.now() - start_time).total_seconds()
 
-				return probabilities[idx]
+				return float(probabilities[idx])
 		return self.__dta_output_cache.cached_or_execute((initial_state, output.tobytes(), final_state), lambda: compute(initial_state, output, final_state))
 
 	def __prediction_to_transition_probability_bound_mode(
