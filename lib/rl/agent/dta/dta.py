@@ -63,8 +63,8 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		return out
 
 	def __cache_predictions(self, initial_states: List[ModelBasedState], actions: List[Any], final_states: List[ModelBasedState], predictions: np.ndarray):
-		for i, initial_state, action, final_state in enumerate(zip(initial_states, actions, final_states, predictions)):
-			self.__cache[self.__get_cache_key(initial_state, action, final_state)] = predictions[i]
+		for i, (initial_state, action, final_state, prediction) in enumerate(zip(initial_states, actions, final_states, predictions)):
+			self.__cache[self.__get_cache_key(initial_state, action, final_state)] = prediction
 
 	def _predict(self, model: Model, inputs: np.array) -> np.ndarray:
 		return model.predict(inputs)
