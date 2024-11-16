@@ -29,7 +29,7 @@ class KaggleScraper:
 	@staticmethod
 	def _configure_driver():
 		driver = webdriver.Firefox()
-		driver.set_window_size(150, 800)
+		driver.set_window_size(600, 800)
 		driver.set_window_position(0, 1080)
 		return driver
 
@@ -88,19 +88,24 @@ class KaggleScraper:
 
 		elements = self.driver.find_elements(by=By.XPATH, value="//*[contains(text(), 'Can edit')]")
 		clickable_elements = [element for element in elements if element.is_enabled() and element.is_displayed()]
-		self._scroll_and_click(clickable_elements[0])
+		self._scroll_and_click(clickable_elements[-1])
 		time.sleep(2)
 
 		if len(dropdown_button) > 1:
 			self.__enable_edit()
 
 	def share_notebook(self, notebook_url, usernames, visit=False):
-		self.driver.get(os.path.join(notebook_url, "settings"))
+		self.driver.get(notebook_url)
+		share_button = WebDriverWait(self.driver, 5).until(
+			EC.element_to_be_clickable((By.XPATH, '//span[text()="Share"]'))
+		)
+		share_button.click()
+
 		for username in usernames:
 			self.__add_user(username)
 
 		self.__enable_edit()
-		share_action = self.driver.find_element(By.XPATH, "//*[contains(text(),'Save Changes')]")
+		share_action = self.driver.find_element(By.XPATH, "//*[contains(text(),'Save')]")
 		self._scroll_and_click(share_action)
 		time.sleep(5)
 		if not visit:
@@ -225,8 +230,8 @@ def share_notebooks():
 
 	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-4-tot'
-		for i in [146]
+		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-linear-{i}-cum-0-it-4-tot/'
+		for i in range(122, 128)
 	]
 	random.shuffle(notebook_urls)
 	threads = len(notebook_urls)
@@ -240,7 +245,8 @@ def share_notebooks():
 		# 'abrehamalemu',
 		'albertcamus0',
 		'birukay',
-		'nikolatesla0'
+		'nikolatesla0',
+		'friedrichnietzche0'
 	]
 
 	scrapper_threads = []
@@ -257,6 +263,34 @@ def share_notebooks():
 	for i, scrapper_thread in enumerate(scrapper_threads):
 		scrapper_thread.join()
 		print(f"Progress{(i+1)*100/len(scrapper_threads): .2f}%...")
+
+
+def share_raw():
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
+	notebook_urls = [
+		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-linear-{i}-cum-0-it-4-tot/'
+		for i in range(122, 128)
+	]
+	random.shuffle(notebook_urls)
+	threads = len(notebook_urls)
+	# threads = 1
+	usernames = [
+		'bemnetatlaw',
+		'abrehamatlaw0',
+		'yosephmezemer',
+		'napoleonbonaparte0',
+		'inkoops',
+		# 'abrehamalemu',
+		'albertcamus0',
+		'birukay',
+		'nikolatesla0',
+		'friedrichnietzche0'
+	]
+
+	scrapper = KaggleScraper(cookies_path)
+	scrapper.init()
+	for notebook in notebook_urls:
+		scrapper.share_notebook(notebook, usernames=usernames)
 
 
 def remove_inputs():
@@ -281,7 +315,8 @@ def visit():
 		'abrehamalemu',
 		'albertcamus0',
 		'biruk-ay',
-		'nikolatesla0'
+		'nikolatesla0',
+		'friedrichnietzche0'
 	]
 
 	cookie_container = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies"
@@ -302,8 +337,9 @@ def visit():
 
 def main():
 	# remove_inputs()
-	share_notebooks()
+	# share_notebooks()
 	# visit()
+	share_raw()
 
 
 if __name__ == '__main__':
