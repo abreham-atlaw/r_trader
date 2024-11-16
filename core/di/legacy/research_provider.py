@@ -40,21 +40,22 @@ class ResearchProvider:
 
 	@staticmethod
 	def provide_default_trackers(model_name: str) -> typing.List['TorchTracker']:
-		from core.utils.research.training.trackers.stats_tracker import DynamicStatsTracker
-		from core.utils.research.training.trackers.stats_tracker import Keys, WeightsStatsTracker, GradientsStatsTracker
-
-		return [
-			DynamicStatsTracker(
-				model_name=model_name,
-				label=key
-			)
-			for key in Keys.ALL
-		] + [
-			WeightsStatsTracker(
-				model_name=model_name
-			),
-			GradientsStatsTracker(
-				model_name=model_name
-			)
-		]
-
+		return []
+		# from core.utils.research.training.trackers.stats_tracker import DynamicStatsTracker
+		# from core.utils.research.training.trackers.stats_tracker import Keys, WeightsStatsTracker, GradientsStatsTracker
+		#
+		# return [
+		# 	DynamicStatsTracker(
+		# 		model_name=model_name,
+		# 		label=key
+		# 	)
+		# 	for key in Keys.ALL
+		# ] + [
+		# 	WeightsStatsTracker(
+		# 		model_name=model_name
+		# 	),
+		# 	GradientsStatsTracker(
+		# 		model_name=model_name
+		# 	)
+		# ]
+		#

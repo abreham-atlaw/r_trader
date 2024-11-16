@@ -17,6 +17,7 @@ class Resources:
 
 		CPU = 0
 		GPU = 1
+		TPU = 2
 
 	def __init__(self, account: Account, resources: typing.Optional[typing.List[Resource]] = None):
 		self.account = account

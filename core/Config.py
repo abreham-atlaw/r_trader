@@ -34,6 +34,8 @@ RECURSION_DEPTH = 10000
 NESTED_PROCESS = False
 MAIN_PID = os.getpid()
 
+DEFAULT_EPSILON = 1e-9
+
 MONGODB_URL = "mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.net/?retryWrites=true&w=majority"
 
 OPTIMIZER_PG_CONFIG = {
@@ -49,8 +51,8 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	# "XF5eu7ZfKQB7ZeXVhxX95vdV8zY123vs5gfnCUIbX",  # abrishatlaw@gmail.com +
-	# "7oUGTVZ6O9B7ZJB3ewVjpOnz8zSLT285MIV1ejtPk",  # abrishatlaw@yahoo.com +
+	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	"85G7LZ6O9B7Ztm1THvolvWfdTcxJ4XxuizyavtsX",  # abrishatlaw@yahoo.com +
 	# "KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
 	# "qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
 	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
@@ -164,6 +166,7 @@ AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
@@ -173,6 +176,7 @@ with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
+TPU_OS_KEY = "COLAB_TPU_ADDR"
 
 
 MC_WORKER_STEP_TIME = 1 * 60
