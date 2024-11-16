@@ -407,10 +407,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		if node.node_type == Node.NodeType.STATE:
 			node.set_total_value(node.instant_value)
 			if node.has_children():
-				node.add_value(
+				node.add_value(float(
 					self._get_discount_factor(node.depth) *
 					max([action_node.get_total_value() for action_node in node.get_children()])
-				)
+				))
 
 		else:
 			node.set_total_value(
