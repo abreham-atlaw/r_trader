@@ -16,7 +16,9 @@ class ModelHandler:
 	__MODEL_PREFIX = "__model__"
 
 	@staticmethod
-	def save(model, path):
+	def save(model, path, to_cpu=True):
+		if to_cpu:
+			model = model.to(torch.device('cpu'))
 		# Export model config
 		model_config = model.export_config()
 		# Add the class name to the config
