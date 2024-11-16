@@ -51,17 +51,20 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	def set_transition_model(self, model: Model):
 		self.__transition_model = model
 
-	def __get_cached(self, inputs: np.ndarray) -> np.ndarray:
-		out = np.array([np.nan for _ in range(len(inputs))])
-		for i in range(len(inputs)):
-			cached = self.__cache.get(inputs[i].tobytes())
+	def __get_cache_key(self, initial_state: ModelBasedState, action: Any, final_state: ModelBasedState):
+		return initial_state, action, final_state
+
+	def __get_cached(self, initial_states: List[ModelBasedState], actions: List[Any], final_states: List[ModelBasedState]) -> np.ndarray:
+		out = np.array([np.nan for _ in range(len(initial_states))])
+		for i, (initial_state, action, final_state) in enumerate(zip(initial_states, actions, final_states)):
+			cached = self.__cache.get(self.__get_cache_key(initial_state, action, final_state))
 			if cached is not None:
 				out[i] = cached
 		return out
 
-	def __cache_predictions(self, inputs: np.ndarray, predictions: np.ndarray):
-		for i in range(len(inputs)):
-			self.__cache[inputs[i].tobytes()] = predictions[i]
+	def __cache_predictions(self, initial_states: List[ModelBasedState], actions: List[Any], final_states: List[ModelBasedState], predictions: np.ndarray):
+		for i, (initial_state, action, final_state, prediction) in enumerate(zip(initial_states, actions, final_states, predictions)):
+			self.__cache[self.__get_cache_key(initial_state, action, final_state)] = prediction
 
 	def _predict(self, model: Model, inputs: np.array) -> np.ndarray:
 		return model.predict(inputs)
@@ -81,15 +84,20 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		_start_time = datetime.now()
 
 		start_time = datetime.now()
-		prediction_input = self._prepare_dta_input(initial_states, action, final_states)
-		stats.durations["prepare_dta_input"] += (datetime.now() - start_time).total_seconds()
-
-		start_time = datetime.now()
-		prediction = self.__get_cached(prediction_input)
+		prediction = self.__get_cached(initial_states, action, final_states)
 		stats.durations["get_cached"] += (datetime.now() - start_time).total_seconds()
 
 		not_cached_indexes = np.isnan(prediction)
 		if np.any(not_cached_indexes):
+
+			initial_states, action, final_states = [
+				[arr[i] for i, is_not_cached in enumerate(not_cached_indexes) if is_not_cached]
+				for arr in [initial_states, action, final_states]
+			]
+
+			start_time = datetime.now()
+			prediction_input = self._prepare_dta_input(initial_states, action, final_states)
+			stats.durations["prepare_dta_input"] += (datetime.now() - start_time).total_seconds()
 
 			start_time = datetime.now()
 			# model_inputs, indices = np.unique(prediction_input[not_cached_indexes], axis=0, return_inverse=True)
@@ -113,7 +121,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			stats.durations["prepare_dta_output"] += (datetime.now() - start_time).total_seconds()
 
 			start_time = datetime.now()
-			self.__cache_predictions(prediction_input[not_cached_indexes], prediction[not_cached_indexes])
+			self.__cache_predictions(initial_states, action, final_states, prediction)
 			stats.durations["cache_predictions"] += (datetime.now() - start_time).total_seconds()
 
 		stats.durations["get_expected_transition_probability_distribution__"] += (datetime.now() - _start_time).total_seconds()
