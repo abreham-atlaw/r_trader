@@ -27,8 +27,12 @@ class ModelHandler:
 
 	@staticmethod
 	def save(model, path, to_cpu=True):
+		original_device = None
 		if to_cpu:
-			original_device = ModelHandler.get_model_device(model)
+			try:
+				original_device = ModelHandler.get_model_device(model)
+			except ValueError:
+				pass
 			model = model.to(torch.device('cpu'))
 		# Export model config
 		model_config = model.export_config()
@@ -68,7 +72,7 @@ class ModelHandler:
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				os.remove(value)
 
-		if to_cpu:
+		if to_cpu and original_device is not None:
 			model.to(original_device)
 
 	@staticmethod
