@@ -18,6 +18,7 @@ class ModelHandler:
 	@staticmethod
 	def save(model, path, to_cpu=True):
 		if to_cpu:
+			original_device = model.device
 			model = model.to(torch.device('cpu'))
 		# Export model config
 		model_config = model.export_config()
@@ -56,6 +57,9 @@ class ModelHandler:
 		for key, value in model_config.items():
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				os.remove(value)
+
+		if to_cpu:
+			model.to(original_device)
 
 	@staticmethod
 	def load(path, dtype=torch.float32):
