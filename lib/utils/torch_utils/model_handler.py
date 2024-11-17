@@ -18,7 +18,7 @@ class ModelHandler:
 	@staticmethod
 	def save(model, path, to_cpu=True):
 		if to_cpu:
-			original_device = model.device
+			original_device = next(model.parameters()).device
 			model = model.to(torch.device('cpu'))
 		# Export model config
 		model_config = model.export_config()
