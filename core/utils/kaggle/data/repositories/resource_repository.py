@@ -18,8 +18,12 @@ class ResourcesRepository(ABC):
 	def get_resources(self, account: Account) -> Resources:
 		pass
 
-	@abstractmethod
 	def save_resources(self, resources: Resources):
+		for resources in resources:
+			self.save_resource(resources)
+
+	@abstractmethod
+	def save_resource(self, resource: Resource):
 		pass
 
 
@@ -55,12 +59,12 @@ class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 		resources.get_resource(Resources.Devices.CPU).remaining_instances = self.__allowed_cpu_instances - len(
 			self.__sessions_repository.filter(device=Resources.Devices.CPU, active=True, account=account))
 
-		active_gpu_sessions = self.__sessions_repository.filter(device=Resources.Devices.GPU, active=True, account=account)
-		for session in active_gpu_sessions:
-			resources.get_resource(Resources.Devices.GPU).remaining_amount += max(
-				0,
-				self.__gpu_instance_usage - (datetime.now() - session.start_datetime).total_seconds()//3600
-			)
+		# active_gpu_sessions = self.__sessions_repository.filter(device=Resources.Devices.GPU, active=True, account=account)
+		# for session in active_gpu_sessions:
+		# 	resources.get_resource(Resources.Devices.GPU).remaining_amount += max(
+		# 		0,
+		# 		self.__gpu_instance_usage - (datetime.now() - session.start_datetime).total_seconds()//3600
+		# 	)
 		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_gpu_instances - len(
 			self.__sessions_repository.filter(device=Resources.Devices.GPU, active=True, account=account))
 		resources.get_resource(Resources.Devices.TPU).remaining_instances = self.__allowed_tpu_instances - len(
