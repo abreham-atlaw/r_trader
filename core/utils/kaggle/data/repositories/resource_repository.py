@@ -18,12 +18,8 @@ class ResourcesRepository(ABC):
 	def get_resources(self, account: Account) -> Resources:
 		pass
 
-	def save_resources(self, resources: Resources):
-		for resources in resources:
-			self.save_resource(resources)
-
 	@abstractmethod
-	def save_resource(self, resource: Resource):
+	def save_resources(self, resources: Resources):
 		pass
 
 
