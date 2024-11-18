@@ -16,8 +16,23 @@ class ModelHandler:
 	__MODEL_PREFIX = "__model__"
 
 	@staticmethod
+	def get_model_device(model):
+		try:
+			return next(model.parameters()).device
+		except StopIteration:
+			try:
+				return next(model.buffers()).device
+			except StopIteration:
+				raise ValueError("The model has no parameters or buffers to infer the device.")
+
+	@staticmethod
 	def save(model, path, to_cpu=True):
+		original_device = None
 		if to_cpu:
+			try:
+				original_device = ModelHandler.get_model_device(model)
+			except ValueError:
+				pass
 			model = model.to(torch.device('cpu'))
 		# Export model config
 		model_config = model.export_config()
@@ -56,6 +71,9 @@ class ModelHandler:
 		for key, value in model_config.items():
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				os.remove(value)
+
+		if to_cpu and original_device is not None:
+			model.to(original_device)
 
 	@staticmethod
 	def load(path, dtype=torch.float32):
