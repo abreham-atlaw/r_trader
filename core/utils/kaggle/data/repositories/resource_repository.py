@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from core.agent.utils.cache import Cache
 from core.utils.kaggle.data.models.resource import Resource, Resources
 from core.utils.kaggle.data.models.resource import Account
+from lib.utils.logger import Logger
 from . import SessionsRepository
 
 
@@ -93,3 +94,4 @@ class MongoResourcesRepository(SessionBasedResourcesRepository):
 				{"device": resource.device, "account": resources.account.username},
 				{"$set": resource.__dict__.copy()}
 			)
+			Logger.info(f"Saved {resource.device} for {resources.account.username}: {resource.__dict__}")
