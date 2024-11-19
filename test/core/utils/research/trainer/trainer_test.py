@@ -102,36 +102,35 @@ class TrainerTest(unittest.TestCase):
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
-
-
 	def test_cnn_model(self):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
-		CHANNELS = [128, 128] + [64 for _ in range(2)]
+		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0.3
+		DROPOUT_RATE = 0
 		ACTIVATION = nn.LeakyReLU()
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [True] + [True for _ in CHANNELS[1:]]
-		LR = 1e-3
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+		LR = 1e-4
 
+		POSITIONAL_ENCODING = True
 		INDICATORS_DELTA = True
-		INDICATORS_SO = [14]
-		INDICATORS_RSI = [14]
+		INDICATORS_SO = []
+		INDICATORS_RSI = []
 
 		USE_FF = True
-		FF_LINEAR_LAYERS = [1024, 1024, VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = nn.ReLU()
+		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_DROPOUT = 0.5
+		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_DROPOUT = 0
 
 		if USE_FF:
 			ff = LinearModel(
@@ -163,19 +162,9 @@ class TrainerTest(unittest.TestCase):
 			norm=NORM,
 			ff_block=ff,
 			indicators=indicators,
-			input_size=BLOCK_SIZE
+			input_size=BLOCK_SIZE,
+			positional_encoding=POSITIONAL_ENCODING
 		)
-		# model = LinearModel(
-		# 	block_size=1028,
-		# 	vocab_size=432,
-		# 	dropout_rate=0.0,
-		# 	layer_sizes=[
-		# 		64,
-		# 		64,
-		# 	]
-		# )
-
-		# ModelHandler.save(model, SAVE_PATH)
 
 		dataset = BaseDataset(
 			[
@@ -197,7 +186,6 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		trainer = Trainer(model)
-		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
 		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)

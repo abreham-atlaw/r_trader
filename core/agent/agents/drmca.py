@@ -14,6 +14,7 @@ from core.utils.research.model.model.utils import TransitionOnlyModel
 from core.utils.research.model.model.utils import WrappedModel
 
 from core.utils.research.model.model.utils import TemperatureScalingModel
+from core.utils.research.model.model.utils.cached_model import CachedModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
 from lib.rl.agent.dta import Model, TorchModel
 from lib.rl.environment import ModelBasedState
@@ -64,6 +65,10 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			temperature=Config.AGENT_MODEL_TEMPERATURE
 		)
 		print(f"Using Temperature: {Config.AGENT_MODEL_TEMPERATURE}")
+		if Config.AGENT_MODEL_USE_CACHED_MODEL:
+			model = CachedModel(
+				model=model,
+			)
 		if Config.AGENT_MODEL_USE_TRANSITION_ONLY:
 			model = TransitionOnlyModel(
 				model=model,

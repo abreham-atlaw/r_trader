@@ -24,13 +24,14 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/results_10/abrehamalemu-rtrader-training-exp-0-linear-97-cum-0-it-4-tot_1.zip"),
-			temperature=0.9
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-152-cum-0-it-4-tot.zip"),
+			temperature=1.0
 		)
 		self.model.eval()
 		self.X = np.load(
 			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/X/1727815242.844215.npy").astype(
-			NP_DTYPE)
+			NP_DTYPE
+		)
 		self.y = np.load(
 			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/y/1727815242.844215.npy").astype(
 			NP_DTYPE)
@@ -39,7 +40,9 @@ class LinearTest(unittest.TestCase):
 			extra_len=Config.AGENT_MODEL_EXTRA_LEN
 		)
 		self.wrapped_model = WrappedModel(
-			self.tom_model
+			self.tom_model,
+			seq_len=Config.MARKET_STATE_MEMORY,
+			window_size=Config.AGENT_MA_WINDOW_SIZE
 		)
 		self.torch_model = TorchModel(
 			self.wrapped_model
@@ -192,9 +195,9 @@ class LinearTest(unittest.TestCase):
 
 	def test_multiple(self):
 
-		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_10/graph_dumps"
+		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_27/graph_dumps"
 
-		BOUNDS = (38, 43)
+		BOUNDS = (12, 18)
 
 		DUMP_PATHS = [
 			os.path.join(CONTAINER_PATH, filename)
