@@ -280,4 +280,4 @@ class RunnerStatsBranches:
 		cma_dynamic_k_stm,
 	]
 
-	default = main
+	default = cma_dynamic_k_stm
