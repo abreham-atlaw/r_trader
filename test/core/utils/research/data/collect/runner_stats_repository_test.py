@@ -19,7 +19,7 @@ from core.utils.research.data.collect.runner_stats_serializer import RunnerStats
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -149,6 +149,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			"OutputBatchVariance(softmax=True)",
 			"OutputBatchClassVariance(softmax=True)",
 		]
+		X_THRESHOLD = [
+			3.8,
+			14.5,
+			None,
+			None,
+			None,
+			None,
+			None,
+			None,
+		]
 		for i in range(len(losses[0])):
 			print(f"Plotting {names[i]}")
 			plt.figure()
@@ -160,7 +170,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					label=dps_names[j]
 				)
 			plt.axhline(y=0, color="black")
-			plt.axvline(x=4, color="black")
+			if X_THRESHOLD[i] is not None:
+				plt.axvline(x=X_THRESHOLD[i], color="black")
 			plt.legend()
 
 	def test_plot_profit_vs_loss(self):
@@ -285,7 +296,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.__get_valid_dps(),
-				time=datetime.now() - timedelta(hours=24),
+				time=datetime.now() - timedelta(hours=48),
 				model_losses=(4.0,),
 				max_profit=0
 			),
