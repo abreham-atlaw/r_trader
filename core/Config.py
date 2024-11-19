@@ -255,6 +255,8 @@ MODEL_TMP_PATH = os.path.abspath("./out/")
 TIMEOUT = 3*60*60
 
 
+TIMEOUT = 8*60*60
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
