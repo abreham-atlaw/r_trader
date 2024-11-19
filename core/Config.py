@@ -230,6 +230,9 @@ PREDICTION_MODELS = [
 WEIGHTED_MSE_ALPHA = 1e-3
 
 
+TIMEOUT = 8*60*60
+
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
