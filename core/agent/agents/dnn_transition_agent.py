@@ -6,9 +6,6 @@ from abc import ABC
 import tensorflow as tf
 import numpy as np
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-
 from core import Config
 from core.agent.utils.cache import Cache
 from core.utils.research.model.model.utils import WrappedModel
@@ -19,7 +16,7 @@ from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from core.agent.trader_action import TraderAction
 from core.agent.utils.dnn_models import KerasModelHandler
-from lib.utils.math import softmax
+from lib.utils.math import softmax, counter_moving_average
 from temp import stats
 
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -290,6 +287,17 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
+	@staticmethod
+	def __process_new_value(sequence: np.ndarray, value: float):
+
+		new_value = counter_moving_average(
+			sequence,
+			value,
+			Config.AGENT_MA_WINDOW_SIZE
+		)
+
+		return new_value
+
 	def __simulate_instrument_change_bound_mode(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
 		states = []
 
@@ -301,7 +309,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				np.array(original_value[-1]*np.mean(self._state_change_delta_bounds[j: j+2])).reshape(1)
+				np.array(self.__process_new_value(
+					new_state.get_market_state().get_state_of(base_currency, quote_currency),
+					original_value[-1] * np.mean(self._state_change_delta_bounds[j: j + 2])
+				)).reshape(1)
 			)
 			states.append(new_state)
 

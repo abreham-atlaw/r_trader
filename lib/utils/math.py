@@ -20,5 +20,5 @@ def softmax(x):
 
 
 def counter_moving_average(sequence: np.ndarray, value: float, window_size: int):
-	return (value * window_size) - np.sum(sequence[:, -window_size + 1:])
+	return (value * window_size) - np.sum(sequence[-window_size + 1:])
 
