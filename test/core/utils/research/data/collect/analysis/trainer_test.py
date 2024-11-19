@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.tree import export_text
 
+from core import Config
+from core.di import ResearchProvider
 from core.utils.research.data.collect.analysis import RunnerStatsTrainer, SVRModel, Model
 from core.utils.research.data.collect.analysis.datapreparer import RunnerStatsDataPreparer
 from core.utils.research.data.collect.analysis.models import XGBoostModel, RidgeModel, LassoModel
@@ -14,8 +16,9 @@ class TrainerTest(unittest.TestCase):
 
 	def setUp(self):
 		columns_size = 8
-		omitted_columns = [2]
+		omitted_columns = []
 		columns = [i for i in range(columns_size) if i not in omitted_columns]
+		columns = [0, 4, 6]
 
 		self.bounds = (-5, 5)
 
@@ -31,26 +34,16 @@ class TrainerTest(unittest.TestCase):
 				"OutputBatchVariance(softmax=True)",
 				"OutputBatchClassVariance(softmax=True)",
 			])
-			if i not in omitted_columns
+			if i in columns
 		]
 
 		self.datapreparer = RunnerStatsDataPreparer(
 			bounds=self.bounds,
 			columns=columns,
-			min_sessions=1
+			min_sessions=1,
+			repository=ResearchProvider.provide_runner_stats_repository(Config.RunnerStatsBranches.ma_ews_dynamic_k_stm)
 		)
 		self.X, self.y = self.datapreparer.prepare()
-
-		self.column_names = [
-			"nn.CrossEntropyLoss()",
-			"ProximalMaskedLoss",
-			# "MeanSquaredClassError",
-			"ReverseMAWeightLoss(window_size=10, softmax=True)",
-			"PredictionConfidenceScore(softmax=True)",
-			"OutputClassesVariance(softmax=True)",
-			"OutputBatchVariance(softmax=True)",
-			"OutputBatchClassVariance(softmax=True)",
-		]
 
 	def __visualize_result(self, model: Model, detailed=False, name=None):
 		y_hat = model.predict(self.X)
@@ -86,22 +79,21 @@ class TrainerTest(unittest.TestCase):
 
 	def test_svr(self):
 		model = SVRModel(
-			kernel='rbf',
-			C=10**5,
-			gamma=10**5
+			kernel='linear',
+			C=100,
+			gamma=10**0
 		)
 		self.__test_model(model)
-		coef = model.model.dual_coef_
+		coef = model.model.coef_
 		for i in range(len(coef)):
 			print(f"Feature {self.column_names[i]}: {coef[i]}")
-
 
 		plt.show()
 
 	def test_optimal_svr_config(self):
 		KERNELS = ['linear']
-		Cs = [10**i for i in range(2, 6)]
-		gammas = [10**i for i in range(-2, 2)]
+		Cs = [10**i for i in range(0, 3)]
+		gammas = [10**i for i in range(0, 3)]
 
 		for kernel in KERNELS:
 
@@ -198,8 +190,8 @@ class TrainerTest(unittest.TestCase):
 
 	def test_optimal_model(self):
 		models = [
-			SVRModel(),
-			DecisionTreeModel(max_depth=4),
+			SVRModel(kernel="linear"),
+			DecisionTreeModel(max_depth=3),
 			XGBoostModel(),
 			RidgeModel(alpha=0),
 			LassoModel(alpha=0),

@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from core.agent.utils.cache import Cache
 from core.utils.kaggle.data.models.resource import Resource, Resources
 from core.utils.kaggle.data.models.resource import Account
+from lib.utils.logger import Logger
 from . import SessionsRepository
 
 
@@ -28,13 +29,17 @@ class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 			self,
 			sessions_repository: SessionsRepository,
 			allowed_gpu_instances=2,
+			allowed_tpu_instances=1,
 			allowed_cpu_instances=5,
-			gpu_instance_usage=12
+			gpu_instance_usage=12,
+			tpu_instance_usage=12
 	):
 		self.__sessions_repository = sessions_repository
 		self.__allowed_gpu_instances = allowed_gpu_instances
 		self.__allowed_cpu_instances = allowed_cpu_instances
+		self.__allowed_tpu_instances = allowed_tpu_instances
 		self.__gpu_instance_usage = gpu_instance_usage
+		self.__tpu_instance_usage = tpu_instance_usage
 		self.__cache = Cache()
 
 	@abstractmethod
@@ -48,16 +53,18 @@ class SessionBasedResourcesRepository(ResourcesRepository, ABC):
 	def get_resources(self, account: Account) -> Resources:
 		resources = deepcopy(self.__cache.cached_or_execute(key=account.username, func=lambda: self._get_resources(account)))
 		resources.get_resource(Resources.Devices.CPU).remaining_instances = self.__allowed_cpu_instances - len(
-			self.__sessions_repository.filter(gpu=False, active=True, account=account))
+			self.__sessions_repository.filter(device=Resources.Devices.CPU, active=True, account=account))
 
-		active_gpu_sessions = self.__sessions_repository.filter(gpu=True, active=True, account=account)
-		for session in active_gpu_sessions:
-			resources.get_resource(Resources.Devices.GPU).remaining_amount += max(
-				0,
-				self.__gpu_instance_usage - (datetime.now() - session.start_datetime).total_seconds()//3600
-			)
+		# active_gpu_sessions = self.__sessions_repository.filter(device=Resources.Devices.GPU, active=True, account=account)
+		# for session in active_gpu_sessions:
+		# 	resources.get_resource(Resources.Devices.GPU).remaining_amount += max(
+		# 		0,
+		# 		self.__gpu_instance_usage - (datetime.now() - session.start_datetime).total_seconds()//3600
+		# 	)
 		resources.get_resource(Resources.Devices.GPU).remaining_instances = self.__allowed_gpu_instances - len(
-			self.__sessions_repository.filter(gpu=True, active=True, account=account))
+			self.__sessions_repository.filter(device=Resources.Devices.GPU, active=True, account=account))
+		resources.get_resource(Resources.Devices.TPU).remaining_instances = self.__allowed_tpu_instances - len(
+			self.__sessions_repository.filter(device=Resources.Devices.TPU, active=True, account=account))
 		return resources
 
 	def save_resources(self, resources: Resources):
@@ -87,3 +94,4 @@ class MongoResourcesRepository(SessionBasedResourcesRepository):
 				{"device": resource.device, "account": resources.account.username},
 				{"$set": resource.__dict__.copy()}
 			)
+			Logger.info(f"Saved {resource.device} for {resources.account.username}: {resource.__dict__}")

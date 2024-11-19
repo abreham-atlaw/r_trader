@@ -13,6 +13,12 @@ def moving_average(x: np.ndarray, window_size: int):
 	return x_final
 
 
+def softmax(x):
+	exp_x = np.exp(x - np.max(x))
+	softmax_x = exp_x / np.sum(exp_x)
+	return softmax_x
+
+
 def counter_moving_average(sequence: np.ndarray, value: float, window_size: int):
 	return (value * window_size) - np.sum(sequence[:, -window_size + 1:])
 
