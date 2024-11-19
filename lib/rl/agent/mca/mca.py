@@ -37,6 +37,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			probability_correction: bool = False,
 			min_probability: typing.Optional[float] = None,
 			top_k_nodes: typing.Optional[int] = None,
+			dynamic_k_threshold: float = None,
 			dump_nodes: bool = False,
 			dump_path: str = "./",
 			dump_visited_only: bool = False,
@@ -71,10 +72,11 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__dump_visited_only = dump_visited_only
 		self.__serializer = node_serializer
 		self.__squash_epsilon = squash_epsilon
+		self.__dynamic_k_threshold = dynamic_k_threshold
 
 	@property
 	def trim_mode(self) -> bool:
-		return self.__top_k_nodes is not None
+		return self.__top_k_nodes is not None or self.__dynamic_k_threshold is not None
 
 	def set_repository(self, repository: StateRepository):
 		self._state_repository = repository
@@ -337,8 +339,17 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return states_inputs, actions_inputs, final_states_inputs, state_nodes
 
+	def __get_k(self, node: 'Node') -> int:
+		if not self.__dynamic_k_threshold:
+			return self.__top_k_nodes
+		weights = np.array([child.weight for child in node.get_children()])
+		weights = weights / np.sum(weights)
+		importance = weights / np.max(weights)
+		return np.sum(importance > self.__dynamic_k_threshold)
+
 	def __trim_node(self, node: 'Node'):
-		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:self.__top_k_nodes]
+		k = self.__get_k(node)
+		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:k]
 
 	def _expand(self, state_node: 'Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
