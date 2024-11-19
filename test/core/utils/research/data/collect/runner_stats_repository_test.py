@@ -294,7 +294,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.__filter_stats(
 				self.__get_valid_dps(),
 				time=datetime.now() - timedelta(hours=48),
-				model_losses=(4.0,),
+				model_losses=(
+					4.0,
+					14.5
+				),
 				max_profit=0
 			),
 			key=lambda dp: dp.model_losses[0]
