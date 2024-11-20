@@ -36,11 +36,5 @@ class FusedManager(SessionsManager):
 				Resources.Devices.TPU: Resources.Devices.CPU
 			}.get(device)
 			return self.start_session(kernel, meta_data, device, raise_exception, sync_notebooks=False)
-			# try:
-			# 	account = self.__resources_manager.allocate_notebook(device=device)
-			# except ResourceUnavailableException:
-			# 	if raise_exception:
-			# 		raise ResourceUnavailableException()
-			# 	return
 
 		super().start_session(kernel, account, meta_data, device=device, sync_notebooks=False)
