@@ -14,12 +14,13 @@ from core import Config
 from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
+from lib.utils.logger import Logger
 
 
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -149,6 +150,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			"OutputBatchVariance(softmax=True)",
 			"OutputBatchClassVariance(softmax=True)",
 		]
+		X_THRESHOLD = [
+			3.8,
+			14.5,
+			None,
+			None,
+			None,
+			None,
+			None,
+			None,
+		]
 		for i in range(len(losses[0])):
 			print(f"Plotting {names[i]}")
 			plt.figure()
@@ -160,7 +171,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					label=dps_names[j]
 				)
 			plt.axhline(y=0, color="black")
-			plt.axvline(x=4, color="black")
+			if X_THRESHOLD[i] is not None:
+				plt.axvline(x=X_THRESHOLD[i], color="black")
 			plt.legend()
 
 	def test_plot_profit_vs_loss(self):
@@ -282,8 +294,11 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.__get_valid_dps(),
-				time=datetime.now() - timedelta(hours=24),
-				model_losses=(4.0,),
+				time=datetime.now() - timedelta(hours=48),
+				model_losses=(
+					4.0,
+					14.5
+				),
 				max_profit=0
 			),
 			key=lambda dp: dp.model_losses[0]
@@ -597,3 +612,44 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				continue
 			self.__plot_compare_branches(BRANCH, branch)
 		plt.show()
+
+	def __copy_database(self, old_db_name, new_db_name):
+		print(f"Copying '{old_db_name}' to '{new_db_name}'")
+		client = ServiceProvider.provide_mongo_client()
+
+		old_db = client[old_db_name]
+		new_db = client[new_db_name]
+
+		for collection_name in old_db.list_collection_names():
+			old_collection = old_db[collection_name]
+			new_collection = new_db[collection_name]
+
+			documents = list(old_collection.find())
+			new_collection.insert_many(documents)
+
+			print(f"Copied collection '{collection_name}' to the new database.({len(documents)} Documents)")
+
+	def __reset_branch_sessions(self, repository):
+		print(f"Resetting '{repository.branch}'")
+		stats = repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			stat.profits = []
+			stat.session_timestamps = []
+			stat.duration = 0
+			self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+		print(f"'{repository.branch}' reset complete")
+
+	def test_backup_and_reset_stats(self):
+		name = "runner_stats"
+		new_name = f"{name}-old[{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}]"
+
+		self.__copy_database(old_db_name=name, new_db_name=new_name)
+		for repository in self.branch_repositories.values():
+			self.__reset_branch_sessions(repository=repository)
+
+	def test_recover_backup(self):
+		backup_name = "runner_stats-old[2024-11-21-05-10-21]"
+		name = "runner_stats"
+
+		self.__copy_database(old_db_name=backup_name, new_db_name=name)
