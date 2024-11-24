@@ -21,23 +21,20 @@ class FusedManager(SessionsManager):
 	):
 		if sync_notebooks:
 			self.sync_notebooks()
+
+
 		try:
 			account = self.__resources_manager.allocate_notebook(device=device)
 		except ResourceUnavailableException:
 			if device == Resources.Devices.CPU:
 				if raise_exception:
 					raise ResourceUnavailableException()
+				print("[-]Resource Unavailable. Exiting...")
 				return
 			device = {
 				Resources.Devices.GPU: Resources.Devices.TPU,
 				Resources.Devices.TPU: Resources.Devices.CPU
 			}.get(device)
-			try:
-				account = self.__resources_manager.allocate_notebook(device=device)
-			except ResourceUnavailableException:
-				if raise_exception:
-					raise ResourceUnavailableException()
-				print("[-]Resource Unavailable. Exiting...")
-				return
+			return self.start_session(kernel, meta_data, device, raise_exception, sync_notebooks=False)
 
 		super().start_session(kernel, account, meta_data, device=device, sync_notebooks=False)
