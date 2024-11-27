@@ -118,6 +118,7 @@ class TrainerTest(unittest.TestCase):
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [False] + [False for _ in CHANNELS[1:]]
+		LEARNABLE_NORM = True
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -163,7 +164,8 @@ class TrainerTest(unittest.TestCase):
 			ff_block=ff,
 			indicators=indicators,
 			input_size=BLOCK_SIZE,
-			positional_encoding=POSITIONAL_ENCODING
+			positional_encoding=POSITIONAL_ENCODING,
+			learnable_norm=LEARNABLE_NORM
 		)
 
 		dataset = BaseDataset(
