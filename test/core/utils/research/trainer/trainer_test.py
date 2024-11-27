@@ -111,7 +111,8 @@ class TrainerTest(unittest.TestCase):
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0
+		DROPOUT_RATE = 0.3
+		BRIDGE_DROPOUT_RATE = 0.5
 		ACTIVATION = nn.LeakyReLU()
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
@@ -163,7 +164,8 @@ class TrainerTest(unittest.TestCase):
 			ff_block=ff,
 			indicators=indicators,
 			input_size=BLOCK_SIZE,
-			positional_encoding=POSITIONAL_ENCODING
+			positional_encoding=POSITIONAL_ENCODING,
+			bridge_dropout=BRIDGE_DROPOUT_RATE
 		)
 
 		dataset = BaseDataset(

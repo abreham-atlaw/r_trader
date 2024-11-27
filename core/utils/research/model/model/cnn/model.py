@@ -27,7 +27,8 @@ class CNN(SpinozaModule):
 			linear_collapse=False,
 			input_size: int = 1028,
 			norm: typing.Union[bool, typing.List[bool]] = False,
-			positional_encoding: bool = False
+			positional_encoding: bool = False,
+			bridge_dropout: float = 0
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -45,7 +46,8 @@ class CNN(SpinozaModule):
 			'input_size': input_size,
 			'norm': norm,
 			'indicators': indicators,
-			'positional_encoding': positional_encoding
+			'positional_encoding': positional_encoding,
+			'bridge_dropout': bridge_dropout
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -97,6 +99,9 @@ class CNN(SpinozaModule):
 			self.dropout = nn.Dropout(dropout_rate)
 		else:
 			self.dropout = nn.Identity()
+
+		self.bridge_dropout = nn.Dropout(bridge_dropout) if bridge_dropout > 0 else nn.Identity()
+
 		self.ff_block = ff_block
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
 
@@ -128,7 +133,7 @@ class CNN(SpinozaModule):
 			out = self.dropout(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		out = self.bridge_dropout(out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.ff_block(out)
 		return out
