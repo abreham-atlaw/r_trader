@@ -121,11 +121,11 @@ class CNN(SpinozaModule):
 		out = self.indicators(seq)
 		out = self.pos(out)
 		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
-			out = norm(out)
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
 			out = self.dropout(out)
+			out = norm(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
 		out = self.dropout(out)
