@@ -21,7 +21,8 @@ class ResearchProvider:
 		return RunnerStatsRepository(
 			client=ServiceProvider.provide_mongo_client(),
 			profit_based_selection=False,
-			branch=branch
+			branch=branch,
+			max_loss=Config.MAX_LOSSES
 		)
 
 	@staticmethod

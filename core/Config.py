@@ -246,6 +246,8 @@ AGENT_CRA_SIZE = 0
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear"
 TIMEOUT = 8*60*60
 
+MAX_LOSSES = (None, 14.5)
+
 
 class ResourceCategories:
 
