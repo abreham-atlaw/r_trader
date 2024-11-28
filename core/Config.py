@@ -244,7 +244,7 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear"
-TIMEOUT = 5*60*60
+TIMEOUT = 8*60*60
 
 
 class ResourceCategories:
