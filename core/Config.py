@@ -246,7 +246,7 @@ DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 
-MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/linear"
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn"
 TIMEOUT = 8*60*60
 
 MAX_LOSSES = (None, 14.5)
