@@ -22,7 +22,8 @@ class ResearchProvider:
 			client=ServiceProvider.provide_mongo_client(),
 			profit_based_selection=False,
 			branch=branch,
-			max_loss=Config.MAX_LOSSES
+			max_loss=Config.MAX_LOSSES,
+			model_name_key=Config.MAPLOSS_KEY
 		)
 
 	@staticmethod
