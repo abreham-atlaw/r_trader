@@ -78,11 +78,15 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self,
 			dps: typing.List[RunnerStats],
 			time: datetime = None,
-			model_losses: typing.Tuple[float, float] = None,
+			max_model_losses: typing.Tuple[float, float] = None,
+			min_model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
 			max_profit: float = None,
 			model_key: str = None,
-			min_duration: float = None
+			min_duration: float = None,
+			sessions: int = None,
+			max_temperature: float = None,
+			min_temperature: float = None
 	) -> typing.List[RunnerStats]:
 
 		if model_key is not None:
@@ -98,14 +102,42 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				for dp in dps
 				if dp.session_timestamps[-1] > time
 			]
-		if model_losses is not None:
 
-			for i in range(len(model_losses)):
-				if model_losses[i] is not None:
+		if sessions is not None:
+			dps = [
+				dp
+				for dp in dps
+				if len(dp.session_timestamps) >= sessions
+			]
+
+		if max_model_losses is not None:
+
+			for i in range(len(max_model_losses)):
+				if max_model_losses[i] is not None:
 					dps = list(filter(
-						lambda dp: dp.model_losses[i] < model_losses[i],
+						lambda dp: dp.model_losses[i] < max_model_losses[i],
 						dps
 					))
+
+		if min_model_losses is not None:
+			for i in range(len(min_model_losses)):
+				if min_model_losses[i] is not None:
+					dps = list(filter(
+						lambda dp: dp.model_losses[i] > min_model_losses[i],
+						dps
+					))
+
+		if max_temperature is not None:
+			dps = list(filter(
+				lambda dp: dp.temperature <= max_temperature,
+				dps
+			))
+
+		if min_temperature is not None:
+			dps = list(filter(
+				lambda dp: dp.temperature >= min_temperature,
+				dps
+			))
 
 		if min_profit is not None:
 			dps = list(filter(
@@ -178,8 +210,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_plot_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
 				self.__get_valid_dps(),
-				min_profit=-5,
-				max_profit=5
+				# max_temperature=0.5,
+				min_temperature=1.0,
+				# min_profit=-5,
+				# max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
 				# model_losses=(1.5, None, None)
 			),
@@ -249,7 +283,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_single_allocate(self):
 		stat = self.repository.allocate_for_runlive(
-			allow_locked=False
+			allow_locked=True
 		)
 		print(f"Allocated {stat.id}")
 		self.repository.finish_session(stat, 0)
@@ -294,14 +328,32 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(
 			self.__filter_stats(
 				self.__get_valid_dps(),
-				time=datetime.now() - timedelta(hours=48),
-				model_losses=(
-					4.0,
-					14.5
+				# time=datetime.now() - timedelta(hours=48),
+				max_model_losses=(
+					3.8,
+					14.5,
 				),
-				max_profit=0
+				max_profit=0,
+				min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
+		)
+
+		self.__print_dps(dps)
+
+	def test_get_greatest_loss_winning_stats(self):
+		dps = sorted(
+			self.__filter_stats(
+				self.__get_valid_dps(),
+				# time=datetime.now() - timedelta(hours=48),
+				min_model_losses=(
+					None,  # 3.8,
+					17
+				),
+				min_profit=0,
+				sessions=3
+			),
+			key=lambda dp: -dp.model_losses[0]
 		)
 
 		self.__print_dps(dps)
@@ -323,12 +375,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_custom_sorted(self):
 		dps = sorted(
 			self.__filter_stats(
-				self.repository.retrieve_valid(),
-				model_key='linear',
+				self.repository.retrieve_all(),
+				# model_key='linear',
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: dp.profit,
+			key=lambda dp: len(dp.real_profits),
 			reverse=True
 		)
 
@@ -596,8 +648,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def test_plot_compare_branches(self):
 
-		BRANCH0 = "main"
-		BRANCH1 = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
+		BRANCH0 = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
+		BRANCH1 = Config.RunnerStatsBranches.cma_dynamic_k_stm
 
 		self.__plot_compare_branches(BRANCH0, BRANCH1)
 
