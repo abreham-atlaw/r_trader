@@ -12,7 +12,7 @@ class LinearModel(SpinozaModule):
 	def __init__(
 			self,
 			layer_sizes: typing.List[int],
-			dropout_rate: float = 0,
+			dropout_rate: typing.Union[float, typing.List[float]] = 0,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			init_fn: typing.Optional[typing.Callable] = None,
 			norm: typing.Union[bool, typing.List[bool]] = False,
@@ -40,14 +40,21 @@ class LinearModel(SpinozaModule):
 		if len(self.norms_mask) != (len(self.layers_sizes) - 1):
 			raise ValueError("Norm size doesn't match layers size")
 
+		if isinstance(dropout_rate, float):
+			dropout_rate = [dropout_rate for _ in range(len(self.layers_sizes) - 1)]
+		dropout_rate.append(0)
+		if len(dropout_rate) != (len(self.layers_sizes) - 1):
+			raise ValueError("Dropout size doesn't match layers size")
+
+		self.dropouts = nn.ModuleList([
+			nn.Dropout(rate) if rate > 0 else nn.Identity()
+			for rate in dropout_rate
+		])
+
 		if hidden_activation is None:
 			hidden_activation = nn.Identity()
 		self.hidden_activation = hidden_activation
 
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
 		if input_size is not None:
 			self.init()
 
@@ -76,13 +83,13 @@ class LinearModel(SpinozaModule):
 
 	def call(self, x):
 		out = x
-		for norm, layer, i in zip(self.norms, self.layers, range(len(self.layers))):
+		for norm, layer, dropout, i in zip(self.norms, self.layers, self.dropouts, range(len(self.layers))):
 			out = norm(out)
 			out = layer.forward(out)
 			if i == len(self.layers) - 1:
 				continue
 			out = self.hidden_activation(out)
-			out = self.dropout(out)
+			out = dropout(out)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:

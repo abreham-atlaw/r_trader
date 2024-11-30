@@ -130,7 +130,7 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_DROPOUT = 0
+		FF_DROPOUT = [0.2, 0.3, 0.4, 0.5, ]
 
 		if USE_FF:
 			ff = LinearModel(
