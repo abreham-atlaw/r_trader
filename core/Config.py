@@ -250,6 +250,7 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 MAPLOSS_BRANCH = "ma_ews"
 MAPLOSS_KEY = "cnn"
+MAX_LOSSES = (None, 14.5)
 
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn/"
 MODEL_TMP_PATH = os.path.abspath("./out/")
