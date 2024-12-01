@@ -125,6 +125,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
+		INDICATORS_IDENTITIES = 4
 
 		USE_FF = True
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
@@ -149,7 +150,8 @@ class TrainerTest(unittest.TestCase):
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
+			rsi=INDICATORS_RSI,
+			identities=INDICATORS_IDENTITIES,
 		)
 
 		model = CNN(
