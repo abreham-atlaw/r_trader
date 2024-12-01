@@ -130,7 +130,8 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_DROPOUT = [0.2, 0.3, 0.4, 0.5, ]
+		FF_NORM_LEARNABLE = False
+		FF_DROPOUT = 0.12
 
 		if USE_FF:
 			ff = LinearModel(
@@ -138,7 +139,8 @@ class TrainerTest(unittest.TestCase):
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
 				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
+				norm=FF_LINEAR_NORM,
+				norm_learnable=FF_NORM_LEARNABLE
 			)
 		else:
 			ff = None
