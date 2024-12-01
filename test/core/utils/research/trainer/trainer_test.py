@@ -121,9 +121,11 @@ class TrainerTest(unittest.TestCase):
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
+		POSITIONAL_ENCODING_NORM = True
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
+		INDICATORS_IDENTITIES = 4
 
 		USE_FF = True
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
@@ -148,7 +150,8 @@ class TrainerTest(unittest.TestCase):
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
+			rsi=INDICATORS_RSI,
+			identities=INDICATORS_IDENTITIES,
 		)
 
 		model = CNN(
@@ -165,7 +168,8 @@ class TrainerTest(unittest.TestCase):
 			ff_block=ff,
 			indicators=indicators,
 			input_size=BLOCK_SIZE,
-			positional_encoding=POSITIONAL_ENCODING
+			positional_encoding=POSITIONAL_ENCODING,
+			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 		)
 
 		dataset = BaseDataset(
