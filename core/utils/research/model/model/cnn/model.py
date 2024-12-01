@@ -27,7 +27,8 @@ class CNN(SpinozaModule):
 			linear_collapse=False,
 			input_size: int = 1028,
 			norm: typing.Union[bool, typing.List[bool]] = False,
-			positional_encoding: bool = False
+			positional_encoding: bool = False,
+			norm_positional_encoding: bool = False
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -45,7 +46,8 @@ class CNN(SpinozaModule):
 			'input_size': input_size,
 			'norm': norm,
 			'indicators': indicators,
-			'positional_encoding': positional_encoding
+			'positional_encoding': positional_encoding,
+			'norm_positional_encoding': norm_positional_encoding
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -101,8 +103,13 @@ class CNN(SpinozaModule):
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
 
 		self.pos_layer = None
+
+		self.pos_norm = DynamicLayerNorm() if norm_positional_encoding else nn.Identity()
+		self.pos = self.positional_encoding if positional_encoding else nn.Identity()
+
 		if positional_encoding:
 			self.pos = self.positional_encoding
+
 		else:
 			self.pos = nn.Identity()
 
@@ -111,6 +118,7 @@ class CNN(SpinozaModule):
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
 			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
+		inputs = self.pos_norm(inputs)
 		return inputs + self.pos_layer(inputs)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
@@ -119,7 +127,9 @@ class CNN(SpinozaModule):
 	def call(self, x):
 		seq = x[:, :-self.extra_len]
 		out = self.indicators(seq)
+
 		out = self.pos(out)
+
 		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
 			out = norm(out)
 			out = layer.forward(out)
