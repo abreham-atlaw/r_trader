@@ -20,7 +20,7 @@ class CNN(SpinozaModule):
 			indicators: typing.Optional[Indicators] = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
-			dropout_rate: float = 0,
+			dropout_rate: typing.Union[float, typing.List[float]] = 0,
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
 			avg_pool=True,
@@ -70,6 +70,11 @@ class CNN(SpinozaModule):
 		if len(norm) != len(conv_channels) - 1:
 			raise ValueError("Norm size doesn't match layers size")
 
+		if isinstance(dropout_rate, (int, float)):
+			dropout_rate = [dropout_rate for _ in range(len(conv_channels))]
+		if len(dropout_rate) != len(conv_channels):
+			raise ValueError("Dropout size doesn't match layers size")
+
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
 				self.norm_layers.append(DynamicLayerNorm())
@@ -95,10 +100,12 @@ class CNN(SpinozaModule):
 			else:
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
+
+		self.dropouts = nn.ModuleList([
+			nn.Dropout(rate) if rate > 0 else nn.Identity()
+			for rate in dropout_rate
+		])
+
 		self.ff_block = ff_block
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
 
@@ -130,15 +137,15 @@ class CNN(SpinozaModule):
 
 		out = self.pos(out)
 
-		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
+		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
 			out = norm(out)
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
-			out = self.dropout(out)
+			out = dropout(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		out = self.dropouts[-1](out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.ff_block(out)
 		return out
