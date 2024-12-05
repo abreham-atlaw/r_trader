@@ -82,6 +82,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			min_model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
 			max_profit: float = None,
+			min_real_profit: float = None,
+			max_real_profit: float = None,
 			model_key: str = None,
 			min_duration: float = None,
 			sessions: int = None,
@@ -149,6 +151,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				lambda dp: dp.profit <= max_profit,
 				dps
 			))
+
 
 		if min_duration is not None:
 			dps = list(filter(
@@ -324,6 +327,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"Completed: {len(completed)}")
 		print(f"Percentage: {len(completed) / len(all)}")
 
+
 	def test_get_least_loss_losing_stats(self):
 		dps = sorted(
 			self.__filter_stats(
@@ -334,7 +338,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					14.5,
 				),
 				max_profit=0,
-				min_temperature=1.0
+				# min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
 		)
@@ -354,6 +358,23 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				sessions=3
 			),
 			key=lambda dp: -dp.model_losses[0]
+		)
+
+		self.__print_dps(dps)
+
+	def test_get_least_loss_real_losing_stats(self):
+		dps = sorted(
+			self.__filter_stats(
+				self.__get_valid_dps(),
+				# time=datetime.now() - timedelta(hours=48),
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+				max_real_profit=0,
+				# min_temperature=1.0
+			),
+			key=lambda dp: dp.model_losses[0]
 		)
 
 		self.__print_dps(dps)
