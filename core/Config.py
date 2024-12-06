@@ -234,14 +234,14 @@ AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 ]
 AGENT_FRICTION_TIME = 4
-AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
+AGENT_STEP_TIME = (10 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_MEMORY = 1033
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
-# UPDATE_SAVE_PATH = "/kaggle/working/outs"
-# DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
-# AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+UPDATE_SAVE_PATH = "/kaggle/working/outs"
+DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
