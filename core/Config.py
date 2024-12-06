@@ -226,7 +226,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.path = "/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
 CORE_MODEL_CONFIG.download = False
 # OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
 AGENT_USE_STATIC_INSTRUMENTS = True
