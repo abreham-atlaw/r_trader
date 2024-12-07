@@ -152,6 +152,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				dps
 			))
 
+		if max_real_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.real_profit <= max_real_profit,
+				dps
+			))
+		if min_real_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.real_profit >= min_real_profit,
+				dps
+			))
 
 		if min_duration is not None:
 			dps = list(filter(
@@ -360,7 +370,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					3.8,
 					14.5,
 				),
-				max_profit=0,
+				min_profit=0,
 				# min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
@@ -394,12 +404,27 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					3.8,
 					14.5,
 				),
-				max_real_profit=0,
+				min_real_profit=0,
 				# min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
 		)
 
+		self.__print_dps(dps)
+
+	def test_get_highest_pl_discrepancy_stats(self):
+
+		dps = sorted(
+			self.__filter_stats(
+				self.__get_valid_dps(),
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+			),
+			key=lambda stat: abs(stat.profit - stat.real_profit),
+			reverse=True
+		)
 		self.__print_dps(dps)
 
 	def test_get_sessions(self):
