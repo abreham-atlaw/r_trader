@@ -24,6 +24,9 @@ class RunnerStatsSerializer(Serializer):
 		if json_.get("branch"):
 			json_.pop("branch")
 
+		if "real_profits" in json_.keys():
+			json_.pop("real_profits")
+
 		if "profits" not in json_.keys():
 			json_["profits"] = [json_.pop("profit")] + [0 for _ in range(len(json_["session_timestamps"]) - 1)]
 
