@@ -152,6 +152,16 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				dps
 			))
 
+		if max_real_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.real_profit <= max_real_profit,
+				dps
+			))
+		if min_real_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.real_profit >= min_real_profit,
+				dps
+			))
 
 		if min_duration is not None:
 			dps = list(filter(
@@ -161,7 +171,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		return dps
 
-	def __plot_profit_vs_loss(self, dps_list, dps_names=None):
+	def __plot_profit_vs_loss(self, dps_list, dps_names=None, real: bool = False):
+
+		def get_profit(dp: RunnerStats) -> float:
+			if real:
+				return dp.real_profit
+			return dp.profit
+
 		if dps_names is None:
 			dps_names = ["" for _ in range(len(dps_list))]
 		for dps in dps_list:
@@ -202,7 +218,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			for j, dps in enumerate(dps_list):
 				plt.scatter(
 					losses[j][i],
-					[dp.profit for dp in dps],
+					[get_profit(dp) for dp in dps],
 					label=dps_names[j]
 				)
 			plt.axhline(y=0, color="black")
@@ -225,6 +241,23 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		)
 		self.__plot_profit_vs_loss([dps])
 		plt.show()
+
+	def test_plot_real_profit_vs_loss(self):
+		dps = sorted(self.__filter_stats(
+				self.__get_valid_dps(),
+				# max_temperature=0.5,
+				min_temperature=1.0,
+				# min_profit=-5,
+				# max_profit=5
+				# time=datetime.now() - timedelta(hours=33),
+				# model_losses=(1.5, None, None)
+			),
+			key=lambda dp: dp.profit,
+			reverse=True
+		)
+		self.__plot_profit_vs_loss([dps], real=True)
+		plt.show()
+
 
 	def test_plot_losses(self):
 		dps = self.repository.retrieve_by_loss_complete()
@@ -337,7 +370,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					3.8,
 					14.5,
 				),
-				max_profit=0,
+				min_profit=0,
 				# min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
@@ -371,12 +404,27 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					3.8,
 					14.5,
 				),
-				max_real_profit=0,
+				min_real_profit=0,
 				# min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
 		)
 
+		self.__print_dps(dps)
+
+	def test_get_highest_pl_discrepancy_stats(self):
+
+		dps = sorted(
+			self.__filter_stats(
+				self.__get_valid_dps(),
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+			),
+			key=lambda stat: abs(stat.profit - stat.real_profit),
+			reverse=True
+		)
 		self.__print_dps(dps)
 
 	def test_get_sessions(self):
