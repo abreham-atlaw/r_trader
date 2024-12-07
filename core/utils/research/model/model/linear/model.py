@@ -45,7 +45,7 @@ class LinearModel(SpinozaModule):
 
 		if isinstance(dropout_rate, (int, float)):
 			dropout_rate = [dropout_rate for _ in range(len(self.layers_sizes) - 2)]
-		dropout_rate.append(0)
+		dropout_rate += [0]
 		if len(dropout_rate) != (len(self.layers_sizes) - 1):
 			raise ValueError("Dropout size doesn't match layers size")
 
