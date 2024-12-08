@@ -15,7 +15,8 @@ class Indicators(SpinozaModule):
             msa: typing.Optional[typing.List[int]] = None,
             msd: typing.Optional[typing.List[int]] = None,
             rsi: typing.Optional[typing.List[int]] = None,
-            so: typing.Optional[typing.List[int]] = None
+            so: typing.Optional[typing.List[int]] = None,
+            identities: int = 0
     ):
         super().__init__()
         self.__args = {
@@ -25,7 +26,8 @@ class Indicators(SpinozaModule):
             "msa": msa,
             "msd": msd,
             "rsi": rsi,
-            "so": so
+            "so": so,
+            "identities": identities
         }
         self.delta = Delta() if delta else None
         self.ksf = [KalmanStaticFilter(alpha, beta) for alpha, beta in ksf] if ksf else None
@@ -34,6 +36,7 @@ class Indicators(SpinozaModule):
         self.msd = [MovingStandardDeviation(size) for size in msd] if msd else None
         self.rsi = [RelativeStrengthIndex(size) for size in rsi] if rsi else None
         self.so = [StochasticOscillator(size) for size in so] if so else None
+        self.identities = [nn.Identity() for _ in range(identities)]
         self.combiner = OverlaysCombiner()
 
     @property
@@ -53,6 +56,7 @@ class Indicators(SpinozaModule):
             count += len(self.rsi)
         if self.so:
             count += len(self.so)
+        count += len(self.identities)
         return count
 
     def call(self, inputs):
@@ -76,6 +80,12 @@ class Indicators(SpinozaModule):
         if self.so:
             for so in self.so:
                 outputs.append(so(inputs))
+
+        outputs.extend([
+            identity(inputs)
+            for identity in self.identities
+        ])
+
         return self.combiner(outputs)
 
     def export_config(self) -> typing.Dict[str, typing.Any]:

@@ -11,7 +11,7 @@ class DynamicLayerNorm(nn.Module):
 
 	def norm(self, x: torch.Tensor):
 		if self.norm_layer is None:
-			self.norm_layer = nn.LayerNorm(x.size()[1:], elementwise_affine=self.elementwise_affine)
+			self.norm_layer = nn.LayerNorm(x.size()[-1:], elementwise_affine=self.elementwise_affine)
 		return self.norm_layer(x)
 
 	def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -118,20 +118,22 @@ class TrainerTest(unittest.TestCase):
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [False] + [False for _ in CHANNELS[1:]]
-		LEARNABLE_NORM = True
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
+		POSITIONAL_ENCODING_NORM = True
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
+		INDICATORS_IDENTITIES = 4
 
 		USE_FF = True
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_DROPOUT = 0
+		FF_NORM_LEARNABLE = False
+		FF_DROPOUT = 0.12
 
 		if USE_FF:
 			ff = LinearModel(
@@ -139,7 +141,8 @@ class TrainerTest(unittest.TestCase):
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
 				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
+				norm=FF_LINEAR_NORM,
+				norm_learnable=FF_NORM_LEARNABLE
 			)
 		else:
 			ff = None
@@ -147,7 +150,8 @@ class TrainerTest(unittest.TestCase):
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
+			rsi=INDICATORS_RSI,
+			identities=INDICATORS_IDENTITIES,
 		)
 
 		model = CNN(
@@ -165,7 +169,7 @@ class TrainerTest(unittest.TestCase):
 			indicators=indicators,
 			input_size=BLOCK_SIZE,
 			positional_encoding=POSITIONAL_ENCODING,
-			learnable_norm=LEARNABLE_NORM
+			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 		)
 
 		dataset = BaseDataset(
