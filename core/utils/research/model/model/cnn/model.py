@@ -20,14 +20,15 @@ class CNN(SpinozaModule):
 			indicators: typing.Optional[Indicators] = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
-			dropout_rate: float = 0,
+			dropout_rate: typing.Union[float, typing.List[float]] = 0,
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
 			avg_pool=True,
 			linear_collapse=False,
 			input_size: int = 1028,
 			norm: typing.Union[bool, typing.List[bool]] = False,
-			positional_encoding: bool = False
+			positional_encoding: bool = False,
+			norm_positional_encoding: bool = False
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -45,7 +46,8 @@ class CNN(SpinozaModule):
 			'input_size': input_size,
 			'norm': norm,
 			'indicators': indicators,
-			'positional_encoding': positional_encoding
+			'positional_encoding': positional_encoding,
+			'norm_positional_encoding': norm_positional_encoding
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -67,6 +69,11 @@ class CNN(SpinozaModule):
 			norm = [norm for _ in range(len(conv_channels) - 1)]
 		if len(norm) != len(conv_channels) - 1:
 			raise ValueError("Norm size doesn't match layers size")
+
+		if isinstance(dropout_rate, (int, float)):
+			dropout_rate = [dropout_rate for _ in range(len(conv_channels))]
+		if len(dropout_rate) != len(conv_channels):
+			raise ValueError("Dropout size doesn't match layers size")
 
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
@@ -93,16 +100,23 @@ class CNN(SpinozaModule):
 			else:
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
+
+		self.dropouts = nn.ModuleList([
+			nn.Dropout(rate) if rate > 0 else nn.Identity()
+			for rate in dropout_rate
+		])
+
 		self.ff_block = ff_block
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
 
 		self.pos_layer = None
+
+		self.pos_norm = DynamicLayerNorm() if norm_positional_encoding else nn.Identity()
+		self.pos = self.positional_encoding if positional_encoding else nn.Identity()
+
 		if positional_encoding:
 			self.pos = self.positional_encoding
+
 		else:
 			self.pos = nn.Identity()
 
@@ -111,6 +125,7 @@ class CNN(SpinozaModule):
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
 			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
+		inputs = self.pos_norm(inputs)
 		return inputs + self.pos_layer(inputs)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
@@ -119,16 +134,18 @@ class CNN(SpinozaModule):
 	def call(self, x):
 		seq = x[:, :-self.extra_len]
 		out = self.indicators(seq)
+
 		out = self.pos(out)
-		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
+
+		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
 			out = norm(out)
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
-			out = self.dropout(out)
+			out = dropout(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		out = self.dropouts[-1](out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.ff_block(out)
 		return out
