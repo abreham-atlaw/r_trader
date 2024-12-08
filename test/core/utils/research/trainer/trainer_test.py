@@ -15,6 +15,7 @@ from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
 	MSCECrossEntropyLoss, LogLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.ensemble.stacked import LinearMSM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
@@ -170,6 +171,63 @@ class TrainerTest(unittest.TestCase):
 			input_size=BLOCK_SIZE,
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
+		]
+
+		trainer = Trainer(model)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(
+			dataloader,
+			epochs=10,
+			progress=True,
+			cls_loss_only=False
+		)
+
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+	def test_linear_msm(self):
+
+		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/ensemble_stacked.zip"
+		LR = 1e-3
+		MODELS = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/results_4/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-4-tot_1.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_3/abrehamalemu-rtrader-training-exp-0-cnn-173-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
+			]
+		]
+
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
+			np.float32)
+
+		model = LinearMSM(
+			models=MODELS,
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			)
 		)
 
 		dataset = BaseDataset(
