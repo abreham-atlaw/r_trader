@@ -15,6 +15,7 @@ from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
 	MSCECrossEntropyLoss, LogLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.ensemble.stacked import LinearMSM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
@@ -102,36 +103,38 @@ class TrainerTest(unittest.TestCase):
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
-
-
 	def test_cnn_model(self):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
-		CHANNELS = [128, 128] + [64 for _ in range(2)]
+		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0.3
+		DROPOUT_RATE = 0
 		ACTIVATION = nn.LeakyReLU()
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [True] + [True for _ in CHANNELS[1:]]
-		LR = 1e-3
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+		LR = 1e-4
 
+		POSITIONAL_ENCODING = True
+		POSITIONAL_ENCODING_NORM = True
 		INDICATORS_DELTA = True
-		INDICATORS_SO = [14]
-		INDICATORS_RSI = [14]
+		INDICATORS_SO = []
+		INDICATORS_RSI = []
+		INDICATORS_IDENTITIES = 4
 
 		USE_FF = True
-		FF_LINEAR_LAYERS = [1024, 1024, VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = nn.ReLU()
+		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_DROPOUT = 0.5
+		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_NORM_LEARNABLE = False
+		FF_DROPOUT = 0.12
 
 		if USE_FF:
 			ff = LinearModel(
@@ -139,7 +142,8 @@ class TrainerTest(unittest.TestCase):
 				layer_sizes=FF_LINEAR_LAYERS,
 				hidden_activation=FF_LINEAR_ACTIVATION,
 				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
+				norm=FF_LINEAR_NORM,
+				norm_learnable=FF_NORM_LEARNABLE
 			)
 		else:
 			ff = None
@@ -147,7 +151,8 @@ class TrainerTest(unittest.TestCase):
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
+			rsi=INDICATORS_RSI,
+			identities=INDICATORS_IDENTITIES,
 		)
 
 		model = CNN(
@@ -163,19 +168,10 @@ class TrainerTest(unittest.TestCase):
 			norm=NORM,
 			ff_block=ff,
 			indicators=indicators,
-			input_size=BLOCK_SIZE
+			input_size=BLOCK_SIZE,
+			positional_encoding=POSITIONAL_ENCODING,
+			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 		)
-		# model = LinearModel(
-		# 	block_size=1028,
-		# 	vocab_size=432,
-		# 	dropout_rate=0.0,
-		# 	layer_sizes=[
-		# 		64,
-		# 		64,
-		# 	]
-		# )
-
-		# ModelHandler.save(model, SAVE_PATH)
 
 		dataset = BaseDataset(
 			[
@@ -197,7 +193,63 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		trainer = Trainer(model)
-		# trainer.cls_loss_function = WeightedMSELoss(VOCAB_SIZE-1, softmax=True)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(
+			dataloader,
+			epochs=10,
+			progress=True,
+			cls_loss_only=False
+		)
+
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+	def test_linear_msm(self):
+
+		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/ensemble_stacked.zip"
+		LR = 1e-3
+		MODELS = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/results_4/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-4-tot_1.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_3/abrehamalemu-rtrader-training-exp-0-cnn-173-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
+			]
+		]
+
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
+			np.float32)
+
+		model = LinearMSM(
+			models=MODELS,
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			)
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
+		]
+
+		trainer = Trainer(model)
 		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)

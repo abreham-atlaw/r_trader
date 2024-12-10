@@ -119,6 +119,7 @@ class CandleStick:
 	volume: int = attr.ib()
 	mid: Dict = attr.ib()
 	time: datetime.datetime
+	complete: bool = attr.ib()
 
 	def get_open(self) -> float:
 		return float(self.mid.get("o"))
