@@ -106,21 +106,29 @@ class Trader:
 		return self.__timezone.localize(dt)
 
 	def get_candlestick(self, instrument: Tuple[str, str], from_: datetime = None, to: datetime = None,
-							granularity: str = None, count: int = None) -> List[CandleStick]:
+							granularity: str = None, count: int = None, complete: bool = True) -> List[CandleStick]:
 		if from_ is not None and from_.tzinfo is None:
 			from_ = self.__localize_datetime(from_)
 		if to is not None and to.tzinfo is None:
 			to = self.__localize_datetime(to)
 
-		return self.__client.execute(
+		candlesticks = self.__client.execute(
 			GetCandleSticksRequest(
 				instrument,
 				from_=from_,
 				to=to,
 				granularity=granularity,
-				count=count
+				count=count+1
 			)
 		)
+
+		if complete:
+			candlesticks = list(filter(
+				lambda cd: cd.complete,
+				candlesticks
+			))
+
+		return candlesticks[-count:]
 
 	def get_spread_price(self, instrument: Tuple[str, str]) -> SpreadPrice:
 		return self.__client.execute(
