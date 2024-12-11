@@ -29,7 +29,8 @@ class CNN(SpinozaModule):
 			norm: typing.Union[bool, typing.List[bool]] = False,
 			positional_encoding: bool = False,
 			learnable_norm: bool = True,
-			norm_positional_encoding: bool = False
+			norm_positional_encoding: bool = False,
+			learnable_norm_positional_encoding: bool = True
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -49,7 +50,8 @@ class CNN(SpinozaModule):
 			'indicators': indicators,
 			'positional_encoding': positional_encoding,
 			'norm_positional_encoding': norm_positional_encoding,
-			'learnable_norm': learnable_norm
+			'learnable_norm': learnable_norm,
+			'learnable_norm_positional_encoding': learnable_norm_positional_encoding
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -113,7 +115,7 @@ class CNN(SpinozaModule):
 
 		self.pos_layer = None
 
-		self.pos_norm = DynamicLayerNorm() if norm_positional_encoding else nn.Identity()
+		self.pos_norm = DynamicLayerNorm(elementwise_affine=learnable_norm_positional_encoding) if norm_positional_encoding else nn.Identity()
 		self.pos = self.positional_encoding if positional_encoding else nn.Identity()
 
 		if positional_encoding:

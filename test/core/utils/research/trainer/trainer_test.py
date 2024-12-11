@@ -124,6 +124,7 @@ class TrainerTest(unittest.TestCase):
 
 		POSITIONAL_ENCODING = True
 		POSITIONAL_ENCODING_NORM = True
+		POSITIONAL_ENCODING_NORM_LEARNABLE = False
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
@@ -173,6 +174,7 @@ class TrainerTest(unittest.TestCase):
 			input_size=BLOCK_SIZE,
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
+			learnable_norm_positional_encoding=POSITIONAL_ENCODING_NORM_LEARNABLE
 		)
 
 		dataset = BaseDataset(
