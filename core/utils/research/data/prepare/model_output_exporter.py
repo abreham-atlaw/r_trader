@@ -1,4 +1,5 @@
 import os.path
+import typing
 from datetime import datetime
 
 import numpy as np
@@ -14,24 +15,41 @@ class ModelOutputExporter:
 	def __init__(
 			self,
 			model: SpinozaModule,
-			export_path: str
+			export_path: str,
+			X_dir: str = "X",
+			y_dir: str = "y"
 	):
 		self.model = model
 		self.export_path = export_path
+		self.__X_dir = X_dir
+		self.__y_dir = y_dir
 
-	def __generate_path(self):
-		return os.path.join(self.export_path, f"{datetime.now().timestamp()}.npy")
+	def __setup_export_dirs(self):
+		for path in [self.export_path, os.path.join(self.export_path, self.__X_dir), os.path.join(self.export_path, self.__y_dir)]:
+			if not os.path.exists(path):
+				Logger.info(f"[+]Creating {path}...")
+				os.makedirs(path)
 
-	def __export_output(self, output: torch.Tensor):
-		np.save(
-			self.__generate_path(),
-			output.detach().numpy()
-		)
+	def __generate_path(self) -> typing.Tuple[str, str]:
+		filename = f"{datetime.now().timestamp()}.npy"
+		return tuple([
+			os.path.join(self.export_path, dir_name, filename)
+			for dir_name in [self.__X_dir, self.__y_dir]
+		])
+
+	@staticmethod
+	def __export_array(array: torch.Tensor, path: str):
+		np.save(path, array.detach().numpy())
+
+	def __export_output(self, X: torch.Tensor, y: torch.Tensor):
+		for array, path in zip([X, y], self.__generate_path()):
+			self.__export_array(array, path)
 
 	def export(self, dataloader: DataLoader):
+		self.__setup_export_dirs()
 		self.model.eval()
 		with torch.no_grad():
 			for i, (X, y) in enumerate(dataloader):
 				out = self.model(X)
-				self.__export_output(out)
+				self.__export_output(out, y)
 				Logger.info(f"Exported {(i+1)*100/len(dataloader):.2f}%...")
