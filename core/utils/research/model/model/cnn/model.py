@@ -117,6 +117,7 @@ class CNN(SpinozaModule):
 
 		self.pos_norm = DynamicLayerNorm(elementwise_affine=learnable_norm_positional_encoding) if norm_positional_encoding else nn.Identity()
 		self.pos = self.positional_encoding if positional_encoding else nn.Identity()
+		self.pos_weight = None
 
 		if positional_encoding:
 			self.pos = self.positional_encoding
@@ -129,7 +130,9 @@ class CNN(SpinozaModule):
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
 			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
+			self.pos_weight = nn.Parameter(torch.ones((inputs.shape[1], 1), dtype=torch.float32))
 		inputs = self.pos_norm(inputs)
+		inputs = self.pos_weight * inputs
 		return inputs + self.pos_layer(inputs)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
