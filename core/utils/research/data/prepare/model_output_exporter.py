@@ -52,4 +52,4 @@ class ModelOutputExporter:
 			for i, (X, y) in enumerate(dataloader):
 				out = self.model(X)
 				self.__export_output(out, y)
-				Logger.info(f"Exported {(i+1)*100/len(dataloader):.2f}%...")
+				Logger.info(f"Exported {(i+1)*100/len(dataloader):.2f}%...", end="\r")
