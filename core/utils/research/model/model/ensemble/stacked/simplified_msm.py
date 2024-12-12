@@ -1,0 +1,28 @@
+import typing
+
+import torch
+from torch import nn
+
+from lib.utils.torch_utils.tensor_collection import TensorCollection
+from lib.utils.torch_utils.tensor_merger import TensorMerger
+from .masked_stacked_model import MaskedStackedModel
+from ...savable import SpinozaModule
+
+
+class SimplifiedMSM(SpinozaModule):
+
+	def __init__(self, model: MaskedStackedModel, merger: TensorMerger):
+		super().__init__(input_size=(None, *merger.target_shape), auto_build=False)
+		self.model = model
+		self.merger = merger
+		self.init()
+
+	def call(self, X) -> torch.Tensor:
+		X, y = self.merger.split(X)
+		X = torch.squeeze(X, dim=1)
+		return self.model.get_and_apply_mask(X, y)
+
+	def export_config(self) -> typing.Dict[str, typing.Any]:
+		return {
+			"model": self.model
+		}

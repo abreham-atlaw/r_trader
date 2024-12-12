@@ -11,11 +11,12 @@ from torch.optim import Adam
 from core import Config
 from core.di import ServiceProvider
 from core.utils.research.data.load.dataset import BaseDataset
+from core.utils.research.data.load.ensemble import EnsembleStackedDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
 	MSCECrossEntropyLoss, LogLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.ensemble.stacked import LinearMSM
+from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
@@ -206,16 +207,44 @@ class TrainerTest(unittest.TestCase):
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
-	def test_linear_msm(self):
+	def __train_model(self, model, dataloader):
 
 		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/ensemble_stacked.zip"
 		LR = 1e-3
+
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
+		]
+
+		trainer = Trainer(model)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(
+			dataloader,
+			epochs=10,
+			progress=True,
+			cls_loss_only=False
+		)
+
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
+	def test_linear_msm(self):
+
 		MODELS = [
 			ModelHandler.load(path)
 			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/results_4/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-4-tot_1.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_3/abrehamalemu-rtrader-training-exp-0-cnn-173-cum-0-it-4-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
 			]
 		]
 
@@ -249,19 +278,52 @@ class TrainerTest(unittest.TestCase):
 			# WeightStatsCallback()
 		]
 
-		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+		self.__train_model(model, dataloader)
 
-		trainer.train(
-			dataloader,
-			epochs=10,
-			progress=True,
-			cls_loss_only=False
+	def test_simplified_msm(self):
+
+		MODELS = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+			]
+		]
+
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
+			np.float32)
+
+		model = LinearMSM(
+			models=MODELS,
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			)
 		)
 
-		ModelHandler.save(trainer.model, SAVE_PATH)
+		dataset = EnsembleStackedDataset(
+			root_dirs=[
+				["/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-192"],
+				["/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-240"]
+			]
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		model = SimplifiedMSM(model=model, merger=dataset.merger)
+
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
+		]
+
+		self.__train_model(model, dataloader)
 
 	def test_functionality(self):
 
