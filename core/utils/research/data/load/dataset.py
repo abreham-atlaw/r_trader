@@ -78,12 +78,17 @@ class BaseDataset(Dataset):
 		return first_file_data.shape[0]
 
 	def __check_last_file(self):
-		last_filename = sorted(self.__files)[-1]
-		last_file_size = self.__load_array(os.path.join(self.__root_dir_map[last_filename], self.__X_dir, last_filename)).shape[0]
-		if last_file_size == self.data_points_per_file:
-			return
-		Logger.warning(f"[+]Last file has {last_file_size} data points. Expected {self.data_points_per_file}, Removing...")
-		self.__files.pop(-1)
+		last_files = [
+			sorted(os.listdir(os.path.join(root_dir, self.__X_dir)))[-1]
+			for root_dir in self.root_dirs
+		]
+
+		for last_filename in last_files:
+			last_file_size = self.__load_array(os.path.join(self.__root_dir_map[last_filename], self.__X_dir, last_filename)).shape[0]
+			if last_file_size == self.data_points_per_file:
+				return
+			Logger.warning(f"[+]Last file({last_filename}) has {last_file_size} data points. Expected {self.data_points_per_file}, Removing...")
+			self.__files.remove(last_filename)
 
 	def __get_files(self, size=None):
 		files_map = {}
