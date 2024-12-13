@@ -3,6 +3,7 @@ import typing
 
 import torch
 from torch.utils.data import Dataset
+import numpy as np
 
 from core.utils.research.data.load import BaseDataset
 from lib.utils.torch_utils.tensor_merger import TensorMerger
@@ -16,8 +17,10 @@ class EnsembleStackedDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			y_hat_dir: str = "y_hat",
+			out_dtypes: typing.Type = np.float32,
 	):
 		super().__init__()
+		self.__out_dtypes = out_dtypes
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
 		self.__y_hat_dir = y_hat_dir
@@ -29,8 +32,7 @@ class EnsembleStackedDataset(Dataset):
 	def __create_datasets(self, root_dirs: typing.List[typing.List[str]]):
 		xy_dataset = BaseDataset(
 			root_dirs=root_dirs[0],
-			# X_dir=self.__X_dir,
-			# y_dir=self.__y_dir
+			out_dtypes=self.__out_dtypes
 		)
 
 		models_datasets = [
