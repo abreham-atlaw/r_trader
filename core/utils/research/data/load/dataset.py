@@ -79,7 +79,7 @@ class BaseDataset(Dataset):
 
 	def __check_last_file(self):
 		last_filename = sorted(self.__files)[-1]
-		last_file_size = self.__load_array(os.path.join(self.root_dirs[0], self.__X_dir, last_filename)).shape[0]
+		last_file_size = self.__load_array(os.path.join(self.__root_dir_map[last_filename], self.__X_dir, last_filename)).shape[0]
 		if last_file_size == self.data_points_per_file:
 			return
 		Logger.warning(f"[+]Last file has {last_file_size} data points. Expected {self.data_points_per_file}, Removing...")
