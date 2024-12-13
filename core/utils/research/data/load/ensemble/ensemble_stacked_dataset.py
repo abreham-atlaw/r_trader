@@ -32,13 +32,16 @@ class EnsembleStackedDataset(Dataset):
 	def __create_datasets(self, root_dirs: typing.List[typing.List[str]]):
 		xy_dataset = BaseDataset(
 			root_dirs=root_dirs[0],
-			out_dtypes=self.__out_dtypes
+			out_dtypes=self.__out_dtypes,
+			check_last_file=True
 		)
 
 		models_datasets = [
 			BaseDataset(
 				root_dirs=root_dir,
 				X_dir=self.__y_hat_dir,
+				out_dtypes=self.__out_dtypes,
+				check_last_file=True
 			)
 			for root_dir in root_dirs
 		]

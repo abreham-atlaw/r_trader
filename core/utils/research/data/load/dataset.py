@@ -9,6 +9,7 @@ import threading
 import os
 
 from lib.utils.decorators.thread_decorator import thread_method
+from lib.utils.logger import Logger
 
 
 class BaseDataset(Dataset):
@@ -35,6 +36,7 @@ class BaseDataset(Dataset):
 			preload: bool = False,
 			preload_size: int = 3,
 			device=torch.device("cpu"),
+			check_last_file: bool = False
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
@@ -48,6 +50,9 @@ class BaseDataset(Dataset):
 		self.cache = OrderedDict()
 		self.cache_size = cache_size
 		self.data_points_per_file = self.__get_dp_per_file()
+
+		if check_last_file:
+			self.__check_last_file()
 
 		self.__preload = preload
 		self.__preload_size = preload_size
@@ -71,6 +76,14 @@ class BaseDataset(Dataset):
 		first_file_name = self.__files[0]
 		first_file_data = self.__load_array(os.path.join(self.root_dirs[0], self.__X_dir, first_file_name))
 		return first_file_data.shape[0]
+
+	def __check_last_file(self):
+		last_filename = sorted(self.__files)[-1]
+		last_file_size = self.__load_array(os.path.join(self.root_dirs[0], self.__X_dir, last_filename)).shape[0]
+		if last_file_size == self.data_points_per_file:
+			return
+		Logger.warning(f"[+]Last file has {last_file_size} data points. Expected {self.data_points_per_file}, Removing...")
+		self.__files.pop(-1)
 
 	def __get_files(self, size=None):
 		files_map = {}
