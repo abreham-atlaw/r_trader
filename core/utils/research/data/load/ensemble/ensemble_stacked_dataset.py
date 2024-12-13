@@ -78,6 +78,7 @@ class EnsembleStackedDataset(Dataset):
 				if not torch.all(X == Xs[0]) or not torch.all(y == ys[0]):
 					Logger.error(f"[-]Data integrity check failed at index {i}!")
 					raise ValueError("Data integrity check failed!")
+			Logger.info(f"[+]Integrity Check Done: {(i+1)*100/len(indexes):.2f}%...", end="\r")
 		Logger.info(f"[+]Data Integrity Check Passed!")
 
 	def __len__(self):
