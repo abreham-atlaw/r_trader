@@ -5,7 +5,6 @@ import torch
 from torch.utils.data import Dataset
 
 from core.utils.research.data.load import BaseDataset
-from lib.utils.torch_utils.tensor_collection import TensorCollection
 from lib.utils.torch_utils.tensor_merger import TensorMerger
 
 
