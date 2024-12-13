@@ -34,6 +34,8 @@ class RunnerStatsRepository:
 		self.__serializer = RunnerStatsSerializer()
 		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
 		self.__select_weight = select_weight
+		if isinstance(max_loss, float):
+			max_loss = (max_loss, )
 		self.__max_loss = max_loss
 		self.__model_name_key = model_name_key
 		self.__population_size = population_size
@@ -58,7 +60,13 @@ class RunnerStatsRepository:
 	def __filter_select(self, stats: typing.List[RunnerStats]):
 		selected = list(filter(
 			lambda stat:
-			(self.__max_loss is None or stat.model_losses[0] <= self.__max_loss) and
+			(
+					self.__max_loss is None or
+					(False not in [
+						(loss is None or model_loss <= loss)
+						for loss, model_loss in zip(self.__max_loss, stat.model_losses)]
+					)
+			) and
 			self.__model_name_key in stat.model_name and
 			0 not in stat.model_losses,
 			stats
