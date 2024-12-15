@@ -235,11 +235,22 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				# max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
 				# model_losses=(1.5, None, None)
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
 			),
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
-		self.__plot_profit_vs_loss([dps])
+		self.__plot_profit_vs_loss(
+			[
+				dps,
+				list(
+					filter(lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
+						   dps))
+			],
+		)
 		plt.show()
 
 	def test_plot_real_profit_vs_loss(self):
@@ -255,7 +266,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
-		self.__plot_profit_vs_loss([dps], real=True)
+		self.__plot_profit_vs_loss(
+			[
+				dps,
+				list(filter(lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip', dps))
+			],
+			# real=True
+		)
 		plt.show()
 
 
@@ -359,7 +376,6 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"All: {len(all)}")
 		print(f"Completed: {len(completed)}")
 		print(f"Percentage: {len(completed) / len(all)}")
-
 
 	def test_get_least_loss_losing_stats(self):
 		dps = sorted(
