@@ -10,6 +10,19 @@ class FusedManager(SessionsManager):
 	def __init__(self, resources_manager: ResourcesManager, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.__resources_manager = resources_manager
+		self.__downgrade_map = {
+			Resources.Devices.GPU: Resources.Devices.TPU,
+			Resources.Devices.TPU: Resources.Devices.CPU
+		}
+
+	def __downgrade_device(self, device, allowed_devices: typing.Optional[typing.List[int]]):
+		if allowed_devices is None:
+			allowed_devices = list(self.__downgrade_map.values())
+		return {
+			key: value
+			for key, value in self.__downgrade_map.items()
+			if value in allowed_devices
+		}.get(device)
 
 	def start_session(
 			self,
@@ -17,24 +30,33 @@ class FusedManager(SessionsManager):
 			meta_data: typing.Dict[str, typing.Any],
 			device: int = Resources.Devices.CPU,
 			raise_exception=False,
-			sync_notebooks=True
+			sync_notebooks=True,
+			allowed_devices: typing.Optional[typing.List[int]] = None
 	):
 		if sync_notebooks:
 			self.sync_notebooks()
-
-
 		try:
 			account = self.__resources_manager.allocate_notebook(device=device)
 		except ResourceUnavailableException:
-			if device == Resources.Devices.CPU:
+			device = self.__downgrade_device(device, allowed_devices)
+			if device is None:
 				if raise_exception:
 					raise ResourceUnavailableException()
 				print("[-]Resource Unavailable. Exiting...")
 				return
-			device = {
-				Resources.Devices.GPU: Resources.Devices.TPU,
-				Resources.Devices.TPU: Resources.Devices.CPU
-			}.get(device)
-			return self.start_session(kernel, meta_data, device, raise_exception, sync_notebooks=False)
+			return self.start_session(
+				kernel=kernel,
+				meta_data=meta_data,
+				device=device,
+				raise_exception=raise_exception,
+				sync_notebooks=False,
+				allowed_devices=allowed_devices
+			)
 
-		super().start_session(kernel, account, meta_data, device=device, sync_notebooks=False)
+		super().start_session(
+			kernel=kernel,
+			account=account,
+			meta_data=meta_data,
+			device=device,
+			sync_notebooks=False
+		)
