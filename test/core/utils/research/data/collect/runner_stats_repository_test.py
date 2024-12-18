@@ -102,7 +102,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			dps = [
 				dp
 				for dp in dps
-				if dp.session_timestamps[-1] > time
+				if len(dp.session_timestamps) > 0 and dp.session_timestamps[-1] > time
 			]
 
 		if sessions is not None:
@@ -467,7 +467,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.repository.retrieve_all(),
 				# model_key='linear',
 				# model_losses=(1.5,None),
-				# time=datetime.now() - timedelta(hours=9),
+				time=datetime.now() - timedelta(hours=24),
 			),
 			key=lambda dp: dp.profit,
 			reverse=True
