@@ -230,7 +230,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(self.__filter_stats(
 				self.__get_valid_dps(),
 				# max_temperature=0.5,
-				min_temperature=1.0,
+				# min_temperature=1.0,
 				# min_profit=-5,
 				# max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
@@ -239,6 +239,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					3.8,
 					14.5,
 				),
+				sessions=2
 			),
 			key=lambda dp: dp.profit,
 			reverse=True
@@ -247,8 +248,11 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			[
 				dps,
 				list(
-					filter(lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
-						   dps))
+					filter(
+						lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
+						dps
+					)
+				)
 			],
 		)
 		plt.show()
@@ -465,7 +469,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				# model_losses=(1.5,None),
 				# time=datetime.now() - timedelta(hours=9),
 			),
-			key=lambda dp: len(dp.real_profits),
+			key=lambda dp: dp.profit,
 			reverse=True
 		)
 
