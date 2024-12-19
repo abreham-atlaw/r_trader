@@ -7,4 +7,5 @@ __all__ = [
 	"LinearUSM",
 	"LinearMSM",
 	"SimplifiedMSM",
+	"PlainMSM"
 ]
