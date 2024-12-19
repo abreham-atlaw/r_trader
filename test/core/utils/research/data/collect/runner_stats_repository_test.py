@@ -88,7 +88,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			min_duration: float = None,
 			sessions: int = None,
 			max_temperature: float = None,
-			min_temperature: float = None
+			min_temperature: float = None,
+			min_min_profit: float = None
 	) -> typing.List[RunnerStats]:
 
 		if model_key is not None:
@@ -166,6 +167,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		if min_duration is not None:
 			dps = list(filter(
 				lambda dp: dp.duration >= min_duration,
+				dps
+			))
+
+		if min_min_profit is not None:
+			dps = list(filter(
+				lambda dp: len(dp.profits) > 0 and (False not in [profit >= min_min_profit for profit in dp.profits]),
 				dps
 			))
 
@@ -467,7 +474,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.repository.retrieve_all(),
 				# model_key='linear',
 				# model_losses=(1.5,None),
-				time=datetime.now() - timedelta(hours=24),
+				# time=datetime.now() - timedelta(hours=24),
+				sessions=2,
+				min_profit=0,
+				min_min_profit=0
 			),
 			key=lambda dp: dp.profit,
 			reverse=True
