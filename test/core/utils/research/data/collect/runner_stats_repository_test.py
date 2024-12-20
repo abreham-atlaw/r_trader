@@ -88,7 +88,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			min_duration: float = None,
 			sessions: int = None,
 			max_temperature: float = None,
-			min_temperature: float = None
+			min_temperature: float = None,
+			min_min_profit: float = None
 	) -> typing.List[RunnerStats]:
 
 		if model_key is not None:
@@ -102,7 +103,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			dps = [
 				dp
 				for dp in dps
-				if dp.session_timestamps[-1] > time
+				if len(dp.session_timestamps) > 0 and dp.session_timestamps[-1] > time
 			]
 
 		if sessions is not None:
@@ -169,6 +170,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				dps
 			))
 
+		if min_min_profit is not None:
+			dps = list(filter(
+				lambda dp: len(dp.profits) > 0 and (False not in [profit >= min_min_profit for profit in dp.profits]),
+				dps
+			))
+
 		return dps
 
 	def __plot_profit_vs_loss(self, dps_list, dps_names=None, real: bool = False):
@@ -230,16 +237,31 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		dps = sorted(self.__filter_stats(
 				self.__get_valid_dps(),
 				# max_temperature=0.5,
-				min_temperature=1.0,
+				# min_temperature=1.0,
 				# min_profit=-5,
 				# max_profit=5
 				# time=datetime.now() - timedelta(hours=33),
 				# model_losses=(1.5, None, None)
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+				sessions=2
 			),
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
-		self.__plot_profit_vs_loss([dps])
+		self.__plot_profit_vs_loss(
+			[
+				dps,
+				list(
+					filter(
+						lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
+						dps
+					)
+				)
+			],
+		)
 		plt.show()
 
 	def test_plot_real_profit_vs_loss(self):
@@ -255,7 +277,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
-		self.__plot_profit_vs_loss([dps], real=True)
+		self.__plot_profit_vs_loss(
+			[
+				dps,
+				list(filter(lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip', dps))
+			],
+			# real=True
+		)
 		plt.show()
 
 
@@ -360,7 +388,6 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		print(f"Completed: {len(completed)}")
 		print(f"Percentage: {len(completed) / len(all)}")
 
-
 	def test_get_least_loss_losing_stats(self):
 		dps = sorted(
 			self.__filter_stats(
@@ -447,9 +474,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.repository.retrieve_all(),
 				# model_key='linear',
 				# model_losses=(1.5,None),
-				# time=datetime.now() - timedelta(hours=9),
+				# time=datetime.now() - timedelta(hours=24),
+				sessions=2,
+				min_profit=0,
+				min_min_profit=0
 			),
-			key=lambda dp: len(dp.real_profits),
+			key=lambda dp: dp.profit,
 			reverse=True
 		)
 

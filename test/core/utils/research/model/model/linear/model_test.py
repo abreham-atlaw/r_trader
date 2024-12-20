@@ -24,7 +24,7 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/results_5/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-190-cum-0-it-4-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
@@ -150,7 +150,8 @@ class LinearTest(unittest.TestCase):
 		node, repo = stats.load_node_repo(
 			dump_path
 		)
-		node = get_node(node, path)
+		if path is not None:
+			node = get_node(node, path)
 		state = repo.retrieve(node.id)
 
 		X = np.expand_dims(
@@ -196,8 +197,8 @@ class LinearTest(unittest.TestCase):
 
 		self.__call_from_state(
 			self.tom_model,
-			"/home/abrehamatlaw/Downloads/Compressed/results_5/graph_dumps/1733612405.539753",
-			path=[1, 8]
+			"/home/abrehamatlaw/Downloads/Compressed/results_3/graph_dumps/1733612405.539753",
+			# path=[1, 8]
 		)
 		plt.show()
 
