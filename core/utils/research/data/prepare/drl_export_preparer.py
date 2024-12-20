@@ -23,7 +23,9 @@ class DRLExportPreparer:
 			X_dir_name: str = "X",
 			y_dir_name: str = "y",
 
-			test_split_size: float = 0.2
+			test_split_size: float = 0.2,
+
+			split_shuffle: bool = True
 
 	):
 		self.__input_size = input_size
@@ -34,6 +36,7 @@ class DRLExportPreparer:
 		self.__train_dir_name, self.__test_dir_name = train_dir_name, test_dir_name
 		self.__X_dir_name, self.__y_dir_name = X_dir_name, y_dir_name
 		self.__test_split_size = test_split_size
+		self.__split_shuffle = split_shuffle
 
 		self.__ma_layer = MovingAverage(self.__ma_window)
 
@@ -94,7 +97,7 @@ class DRLExportPreparer:
 	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str):
 		data_len = X.shape[0]
 
-		indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size)
+		indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size, shuffle=self.__split_shuffle)
 
 		for role_indices, is_test in zip(indices, [False, True]):
 			self.__save(

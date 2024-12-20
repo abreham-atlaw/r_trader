@@ -32,9 +32,9 @@ class ResourcesManager:
 			return res.remaining_instances
 
 		def eval_gpu(res: Resource):
-			if res.remaining_instances <= 0 or res.remaining_amount <= 0:
+			if res.remaining_instances <= 0 or res.total_remaining_amount <= 0:
 				return 0
-			return 1/((res.remaining_instances**1.5)*res.remaining_amount)
+			return 1/((res.remaining_instances**1.5) * res.total_remaining_amount)
 
 		def eval_tpu(res: Resource):
 			return res.remaining_instances
@@ -53,11 +53,11 @@ class ResourcesManager:
 
 	def __allocate_notebook(self, resources: Resources, device: int):
 		resource = resources.get_resource(device)
-		if resource.remaining_instances <= 0 or (resource.remaining_amount is not None and resource.remaining_amount <= 0):
+		if resource.remaining_instances <= 0 or (resource.total_remaining_amount is not None and resource.total_remaining_amount <= 0):
 			raise ResourceUnavailableException()
 		resource.remaining_instances -= 1
-		if resource.remaining_amount is not None:
-			resource.remaining_amount -= 12
+		if resource.total_remaining_amount is not None:
+			resource.total_remaining_amount -= 12
 		self.__resources_repository.save_resources(resources)
 
 	def allocate_notebook(self, device: int = Resources.Devices.CPU) -> Account:
@@ -91,9 +91,9 @@ class ResourcesManager:
 			resources = self.__resources_repository.get_resources(account)
 			resources.get_resource(Resources.Devices.CPU).remaining_instances = cpu_instances
 			resources.get_resource(Resources.Devices.GPU).remaining_instances = gpu_instances
-			resources.get_resource(Resources.Devices.GPU).remaining_amount = gpu_amount
+			resources.get_resource(Resources.Devices.GPU).total_remaining_amount = gpu_amount
 			resources.get_resource(Resources.Devices.TPU).remaining_instances = tpu_instances
-			resources.get_resource(Resources.Devices.TPU).remaining_amount = tpu_amount
+			resources.get_resource(Resources.Devices.TPU).total_remaining_amount = tpu_amount
 			self.__resources_repository.save_resources(resources)
 
 
