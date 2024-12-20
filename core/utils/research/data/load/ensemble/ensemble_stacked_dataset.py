@@ -88,7 +88,8 @@ class EnsembleStackedDataset(Dataset):
 		random.shuffle(self.__indexes)
 
 	def __getitem__(self, idx):
-		X, y = self.__Xy_dataset[self.__indexes[idx]]
+		idx = self.__indexes[idx]
+		X, y = self.__Xy_dataset[idx]
 		y_hat = torch.stack([dataset[idx][0] for dataset in self.__models_datasets], dim=0)
 
 		return self.merger.merge([torch.unsqueeze(X, dim=0), y_hat]), y
