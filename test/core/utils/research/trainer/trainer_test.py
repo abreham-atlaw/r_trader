@@ -224,6 +224,7 @@ class TrainerTest(unittest.TestCase):
 			[
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
+			check_file_sizes=True
 		)
 		dataloader = DataLoader(dataset, batch_size=8)
 
