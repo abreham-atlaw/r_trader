@@ -166,6 +166,7 @@ class TrainerTest(unittest.TestCase):
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [False] + [False for _ in CHANNELS[1:]]
+		STRIDE = 2
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -218,6 +219,7 @@ class TrainerTest(unittest.TestCase):
 			input_size=BLOCK_SIZE,
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
+			stride=STRIDE
 		)
 
 		dataset = BaseDataset(
