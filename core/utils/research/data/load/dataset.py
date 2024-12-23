@@ -37,7 +37,7 @@ class BaseDataset(Dataset):
 			preload_size: int = 3,
 			device=torch.device("cpu"),
 			check_last_file: bool = False,
-			check_file_sizes: bool = False
+			check_file_sizes: bool = True
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
