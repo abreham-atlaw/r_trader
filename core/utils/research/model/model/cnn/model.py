@@ -27,6 +27,7 @@ class CNN(SpinozaModule):
 			linear_collapse=False,
 			input_size: int = 1028,
 			norm: typing.Union[bool, typing.List[bool]] = False,
+			stride: typing.Union[int, typing.List[int]] = 1,
 			positional_encoding: bool = False,
 			norm_positional_encoding: bool = False
 	):
@@ -75,6 +76,11 @@ class CNN(SpinozaModule):
 		if len(dropout_rate) != len(conv_channels):
 			raise ValueError("Dropout size doesn't match layers size")
 
+		if isinstance(stride, int):
+			stride = [stride for _ in kernel_sizes]
+		if len(stride) != len(kernel_sizes):
+			raise ValueError("Stride size doesn't match layers size")
+
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
 				self.norm_layers.append(DynamicLayerNorm())
@@ -85,8 +91,8 @@ class CNN(SpinozaModule):
 					in_channels=conv_channels[i],
 					out_channels=conv_channels[i + 1],
 					kernel_size=kernel_sizes[i],
-					stride=1,
-					padding=padding
+					stride=stride[i],
+					padding=padding,
 				)
 			)
 			if init_fn is not None:
