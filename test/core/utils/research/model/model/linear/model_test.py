@@ -24,7 +24,7 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-152-cum-0-it-4-tot.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-190-cum-0-it-4-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
@@ -135,7 +135,14 @@ class LinearTest(unittest.TestCase):
 
 		self.assertIsNotNone(y_hat_classes)
 
-	def __call_from_state(self, model: nn.Module, dump_path: str, Ks=None, title: str = "", use_softmax=True):
+	def __call_from_state(self, model: nn.Module, dump_path: str, Ks=None, title: str = "", use_softmax=True, path=None):
+
+		def get_node(root, path):
+			path = path.copy()
+			node = root
+			while len(path) > 0:
+				node = node.get_children()[path.pop(0)]
+			return node
 
 		if Ks is None:
 			Ks = [len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) - 1]
@@ -143,6 +150,8 @@ class LinearTest(unittest.TestCase):
 		node, repo = stats.load_node_repo(
 			dump_path
 		)
+		if path is not None:
+			node = get_node(node, path)
 		state = repo.retrieve(node.id)
 
 		X = np.expand_dims(
@@ -180,24 +189,24 @@ class LinearTest(unittest.TestCase):
 
 		for k, arr, value in zip(Ks, thresholded, predicted_values):
 			plt.figure()
-			plt.title(f"{title}\nK: {k}, Predicted value: {value}")
+			plt.title(f"{title}\nK: {k}, Predicted value: {value}\nCurrent Price: {state.market_state.get_current_price('AUD', 'USD')}\nWeight: {node.weight}")
 			plt.plot(arr)
 			plt.pause(0.01)
 
 	def test_call_from_state(self):
 
 		self.__call_from_state(
-			self.torch_model,
-			"/home/abrehamatlaw/Downloads/Compressed/results_12/graph_dumps/1729672322.753734",
-			use_softmax=False
+			self.tom_model,
+			"/home/abrehamatlaw/Downloads/Compressed/results_3/graph_dumps/1733612405.539753",
+			# path=[1, 8]
 		)
 		plt.show()
 
 	def test_multiple(self):
 
-		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_27/graph_dumps"
+		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_5/graph_dumps"
 
-		BOUNDS = (12, 18)
+		BOUNDS = (6, 12)
 
 		DUMP_PATHS = [
 			os.path.join(CONTAINER_PATH, filename)
