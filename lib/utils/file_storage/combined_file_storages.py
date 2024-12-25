@@ -16,7 +16,7 @@ class CombinedFileStorage(FileStorage):
 		for i, child in enumerate(self.__children):
 			try:
 				child.get_url(path)
-				Logger.info(f"Using child {i}")
+				Logger.info(f"Using Storage {i} for {path}")
 				return child
 			except FileNotFoundException:
 				pass
