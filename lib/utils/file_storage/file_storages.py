@@ -11,6 +11,7 @@ from threading import Thread
 from lib.network.rest_interface.requests import Request
 from lib.network.rest_interface.NetworkApiClient import NetworkApiClient
 from .exceptions import FileNotFoundException
+from ..logger import Logger
 
 
 class FileStorage(ABC):
@@ -175,7 +176,7 @@ class PCloudClient(FileStorage):
 	def upload_file(self, file_path: str, upload_path: Union[str, None] = None):
 		if upload_path is None:
 			upload_path = ""
-		print(f"[+]Uploading {file_path} => {self.__get_complete_path(upload_path)}")
+		Logger.info(f"Uploading {file_path} => {self.__get_complete_path(upload_path)}")
 		self.__client.execute(
 			PCloudClient.UploadFileRequest(
 				file_path,
