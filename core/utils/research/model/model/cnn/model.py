@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, MinMaxNorm
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -29,7 +29,8 @@ class CNN(SpinozaModule):
 			norm: typing.Union[bool, typing.List[bool]] = False,
 			stride: typing.Union[int, typing.List[int]] = 1,
 			positional_encoding: bool = False,
-			norm_positional_encoding: bool = False
+			norm_positional_encoding: bool = False,
+			positional_encoding_alpha: int = 0.15
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -48,7 +49,8 @@ class CNN(SpinozaModule):
 			'norm': norm,
 			'indicators': indicators,
 			'positional_encoding': positional_encoding,
-			'norm_positional_encoding': norm_positional_encoding
+			'norm_positional_encoding': norm_positional_encoding,
+			'positional_encoding_alpha': positional_encoding_alpha
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -119,20 +121,21 @@ class CNN(SpinozaModule):
 
 		self.pos_norm = DynamicLayerNorm() if norm_positional_encoding else nn.Identity()
 		self.pos = self.positional_encoding if positional_encoding else nn.Identity()
-
-		if positional_encoding:
-			self.pos = self.positional_encoding
-
-		else:
-			self.pos = nn.Identity()
+		self.pe_alpha = positional_encoding_alpha
+		self.min_max_norm = MinMaxNorm()
 
 		self.init()
+
+	def pe_scale(self, inputs: torch.Tensor, pe: torch.Tensor) -> torch.Tensor:
+		inputs = self.min_max_norm(inputs)
+		pe = self.min_max_norm(pe)
+		return inputs + (pe * self.pe_alpha)
 
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
 			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
 		inputs = self.pos_norm(inputs)
-		return inputs + self.pos_layer(inputs)
+		return self.pe_scale(inputs, self.pos_layer(inputs))
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
 		return torch.flatten(out, 1, 2)
