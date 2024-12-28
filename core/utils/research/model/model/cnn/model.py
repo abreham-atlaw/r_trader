@@ -81,20 +81,18 @@ class CNN(SpinozaModule):
 		if len(stride) != len(kernel_sizes):
 			raise ValueError("Stride size doesn't match layers size")
 
+		self.layers = nn.ModuleList(self._build_conv_layers(
+			channels=conv_channels,
+			kernel_sizes=kernel_sizes,
+			stride=stride,
+			padding=padding
+		))
+
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
 				self.norm_layers.append(DynamicLayerNorm())
 			else:
 				self.norm_layers.append(nn.Identity())
-			self.layers.append(
-				nn.Conv1d(
-					in_channels=conv_channels[i],
-					out_channels=conv_channels[i + 1],
-					kernel_size=kernel_sizes[i],
-					stride=stride[i],
-					padding=padding,
-				)
-			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
 			if pool_sizes[i] > 0:
@@ -127,6 +125,24 @@ class CNN(SpinozaModule):
 			self.pos = nn.Identity()
 
 		self.init()
+
+	def _build_conv_layers(
+			self,
+			channels: typing.List[int],
+			kernel_sizes: typing.List[int],
+			stride: typing.List[int],
+			padding: int
+	) -> typing.List[nn.Module]:
+		return [
+			nn.Conv1d(
+				in_channels=channels[i],
+				out_channels=channels[i + 1],
+				kernel_size=kernel_sizes[i],
+				stride=stride[i],
+				padding=padding,
+			)
+			for i in range(len(channels) - 1)
+		]
 
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
