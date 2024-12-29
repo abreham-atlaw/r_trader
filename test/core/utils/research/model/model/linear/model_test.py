@@ -24,7 +24,7 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-190-cum-0-it-4-tot.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
@@ -197,16 +197,16 @@ class LinearTest(unittest.TestCase):
 
 		self.__call_from_state(
 			self.tom_model,
-			"/home/abrehamatlaw/Downloads/Compressed/results_3/graph_dumps/1733612405.539753",
+			"/home/abrehamatlaw/Downloads/Compressed/results_7/graph_dumps/1734423629.221778",
 			# path=[1, 8]
 		)
 		plt.show()
 
 	def test_multiple(self):
 
-		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_5/graph_dumps"
+		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_7/graph_dumps"
 
-		BOUNDS = (6, 12)
+		BOUNDS = (80, 85)
 
 		DUMP_PATHS = [
 			os.path.join(CONTAINER_PATH, filename)
