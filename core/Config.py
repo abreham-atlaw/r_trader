@@ -227,6 +227,8 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+TIMEOUT = 8*60*60
+
 
 class ResourceCategories:
 
