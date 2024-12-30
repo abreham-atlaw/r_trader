@@ -36,7 +36,8 @@ class BaseDataset(Dataset):
 			preload: bool = False,
 			preload_size: int = 3,
 			device=torch.device("cpu"),
-			check_last_file: bool = False
+			check_last_file: bool = False,
+			check_file_sizes: bool = False
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
@@ -53,6 +54,9 @@ class BaseDataset(Dataset):
 
 		if check_last_file:
 			self.__check_last_file()
+
+		if check_file_sizes:
+			self.__check_file_sizes()
 
 		self.__preload = preload
 		self.__preload_size = preload_size
@@ -77,6 +81,22 @@ class BaseDataset(Dataset):
 		first_file_data = self.__load_array(os.path.join(self.root_dirs[0], self.__X_dir, first_file_name))
 		return first_file_data.shape[0]
 
+	def __check_path_file_sizes(self, path):
+		Logger.info(f"Checking {path}...")
+		filenames = os.listdir(os.path.join(path, self.__X_dir))
+
+		for filename in filenames:
+			file_size = self.__load_array(os.path.join(path, self.__X_dir, filename)).shape[0]
+			if file_size == self.data_points_per_file:
+				continue
+			Logger.warning(f"[+]File({filename}) has {file_size} data points. Expected {self.data_points_per_file}, Removing...")
+			self.__files.remove(filename)
+
+	def __check_file_sizes(self):
+
+		for root_dir in self.root_dirs:
+			self.__check_path_file_sizes(root_dir)
+
 	def __check_last_file(self):
 		last_files = [
 			sorted(os.listdir(os.path.join(root_dir, self.__X_dir)))[-1]
@@ -86,7 +106,7 @@ class BaseDataset(Dataset):
 		for last_filename in last_files:
 			last_file_size = self.__load_array(os.path.join(self.__root_dir_map[last_filename], self.__X_dir, last_filename)).shape[0]
 			if last_file_size == self.data_points_per_file:
-				return
+				continue
 			Logger.warning(f"[+]Last file({last_filename}) has {last_file_size} data points. Expected {self.data_points_per_file}, Removing...")
 			self.__files.remove(last_filename)
 
