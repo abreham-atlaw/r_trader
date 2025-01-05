@@ -52,18 +52,18 @@ DROPBOX_FOLDER = "/RForexTrader"
 
 PCLOUD_TOKENS = [
 	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
-	"85G7LZ6O9B7Ztm1THvolvWfdTcxJ4XxuizyavtsX",  # abrishatlaw@yahoo.com +
-	# "KRVdTVZIO9B7Z1UeR69vE4XjjmPrlrElk3u8cKrby",  # abreham.atlaw@yahoo.com -
-	# "qSyuwZxDks7ZFndAH7ULFFjXkqoazz0r5BUlEd57",  # abrehamatlaw@outlook.com -
+	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
+	"TBa557ZIO9B7ZoRcWXn5J5GYPecBJdNKb6y5gebik",  # abreham.atlaw@yahoo.com -
+	# "9Wh8qXZxDks7ZeS1tu7foEpbnuuwy0lidWH0XiyFy",  # abrehamatlaw@outlook.com -
 	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
-	"bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
+	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
-	"BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
+	# "BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
 	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
-	"0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
+	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
-	"74KlVVZktF97ZlN8XWt32axY622ndH5eK7hBfIreV",  # abrehamalemu@outlook.com
+	# "74KlVVZktF97ZlN8XWt32axY622ndH5eK7hBfIreV",  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -166,6 +166,7 @@ AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
@@ -270,13 +271,20 @@ class RunnerStatsBranches:
 	ma_ews_trim_scaling = "ma_ews_trim_scaling"
 	ma_ews_dynamic_k = "ma_ews_dynamic_k"
 	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
+	cma_dynamic_k_stm = "cma_dynamic_k_stm"
+	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
+
+	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	all = [
 		main,
 		ma_ews,
 		ma_ews_trim_scaling,
 		ma_ews_dynamic_k,
-		ma_ews_dynamic_k_stm
+		ma_ews_dynamic_k_stm,
+		cma_dynamic_k_stm,
+		ma_ews_dynamic_k_stm_d_0_8,
+		real_ma_ews_dynamic_k_stm
 	]
 
 	default = ma_ews_dynamic_k_stm

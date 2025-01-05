@@ -16,7 +16,24 @@ class ModelHandler:
 	__MODEL_PREFIX = "__model__"
 
 	@staticmethod
-	def save(model, path):
+	def get_model_device(model):
+		try:
+			return next(model.parameters()).device
+		except StopIteration:
+			try:
+				return next(model.buffers()).device
+			except StopIteration:
+				raise ValueError("The model has no parameters or buffers to infer the device.")
+
+	@staticmethod
+	def save(model, path, to_cpu=True):
+		original_device = None
+		if to_cpu:
+			try:
+				original_device = ModelHandler.get_model_device(model)
+			except ValueError:
+				pass
+			model = model.to(torch.device('cpu'))
 		# Export model config
 		model_config = model.export_config()
 		# Add the class name to the config
@@ -25,7 +42,15 @@ class ModelHandler:
 
 		model_config_copy = {}
 		for key, value in model_config.items():
-			if isinstance(value, SpinozaModule):
+
+			if isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], SpinozaModule):
+				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = []
+				for i in range(len(value)):
+					filename = f"{key}_{i}.zip"
+					ModelHandler.save(value[i], filename)
+					model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"].append(filename)
+
+			elif isinstance(value, SpinozaModule):
 				filename = f"{key}.zip"
 				ModelHandler.save(value, filename)
 				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename
@@ -46,14 +71,25 @@ class ModelHandler:
 			zipf.write('model_state.pth')
 			for key, value in model_config.items():
 				if key.startswith(ModelHandler.__MODEL_PREFIX):
-					zipf.write(value)
+					if isinstance(value, (list, tuple)):
+						for i in range(len(value)):
+							zipf.write(value[i])
+					else:
+						zipf.write(value)
 
 		# Remove the temporary files
 		os.remove('model_config.json')
 		os.remove('model_state.pth')
 		for key, value in model_config.items():
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
-				os.remove(value)
+				if isinstance(value, (list, tuple)):
+					for i in range(len(value)):
+						os.remove(value[i])
+				else:
+					os.remove(value)
+
+		if to_cpu and original_device is not None:
+			model.to(original_device)
 
 	@staticmethod
 	def load(path, dtype=torch.float32):
@@ -82,8 +118,16 @@ class ModelHandler:
 		model_config_copy = {}
 		for key, value in model_config.items():
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
-				model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value))
-				os.remove(os.path.join(dirname, value))
+				if isinstance(value, (list, tuple)):
+					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = [
+						ModelHandler.load(os.path.join(dirname, value[i]))
+						for i in range(len(value))
+					]
+					for i in range(len(value)):
+						os.remove(os.path.join(dirname, value[i]))
+				else:
+					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value))
+					os.remove(os.path.join(dirname, value))
 			else:
 				model_config_copy[key] = value
 		model_config = model_config_copy
