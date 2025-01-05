@@ -47,7 +47,8 @@ class LinearTest(unittest.TestCase):
 		self.torch_model = TorchModel(
 			self.wrapped_model
 		)
-
+		self.bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND + [Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[-1] + Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON]
+		self.bounds_centered = [np.mean(self.bounds[i: i+2]) for i in range(len(self.bounds)-1)]
 	@staticmethod
 	def __plot_outputs(model: nn.Module, size: int):
 
@@ -194,7 +195,7 @@ class LinearTest(unittest.TestCase):
 			array = processed.copy()
 			array[array < threshold] = 0
 
-			predicted_value = np.sum(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND * (array[:-1]) / np.sum(array[:-1]))
+			predicted_value = self.__get_prediction_value(array)
 			predicted_values.append(predicted_value)
 
 			thresholded.append(array)
@@ -211,7 +212,7 @@ class LinearTest(unittest.TestCase):
 			self.tom_model,
 			"/home/abrehamatlaw/Downloads/Compressed/results_9/graph_dumps/1735916508.982354",
 			path=[0, 0],
-			Ks=[68, 430]
+			Ks=[67, 430]
 		)
 		plt.show()
 
@@ -234,7 +235,7 @@ class LinearTest(unittest.TestCase):
 		plt.show()
 
 	def __get_prediction_value(self, array: np.ndarray) -> float:
-		return np.sum(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND * (array[:-1]) / np.sum(array[:-1]))
+		return np.sum(self.bounds_centered * array[:-1] / np.sum(array[:-1]))
 
 	def __continue_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		X = np.expand_dims(
