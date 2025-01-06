@@ -24,7 +24,7 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-190-cum-0-it-4-tot.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
@@ -47,7 +47,8 @@ class LinearTest(unittest.TestCase):
 		self.torch_model = TorchModel(
 			self.wrapped_model
 		)
-
+		self.bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND + [Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[-1] + Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON]
+		self.bounds_centered = [np.mean(self.bounds[i: i+2]) for i in range(len(self.bounds)-1)]
 	@staticmethod
 	def __plot_outputs(model: nn.Module, size: int):
 
@@ -153,10 +154,22 @@ class LinearTest(unittest.TestCase):
 		if path is not None:
 			node = get_node(node, path)
 		state = repo.retrieve(node.id)
+		self.__plot_output_from_sequence(
+			model,
+			state.market_state.get_state_of("AUD", "USD"),
+			Ks=Ks,
+			title=title,
+			use_softmax=use_softmax,
+		)
+
+	def __plot_output_from_sequence(self, model: nn.Module, sequence: np.ndarray, Ks=None, title: str = "", use_softmax=True):
+		
+		if Ks is None:
+			Ks = [len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) - 1]
 
 		X = np.expand_dims(
 			np.concatenate([
-				state.market_state.get_state_of("AUD", "USD"),
+				sequence,
 				np.zeros(Config.AGENT_MODEL_EXTRA_LEN)
 			]),
 			axis=0
@@ -182,14 +195,14 @@ class LinearTest(unittest.TestCase):
 			array = processed.copy()
 			array[array < threshold] = 0
 
-			predicted_value = np.sum(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND * (array[:-1]) / np.sum(array[:-1]))
+			predicted_value = self.__get_prediction_value(array)
 			predicted_values.append(predicted_value)
 
 			thresholded.append(array)
 
 		for k, arr, value in zip(Ks, thresholded, predicted_values):
 			plt.figure()
-			plt.title(f"{title}\nK: {k}, Predicted value: {value}\nCurrent Price: {state.market_state.get_current_price('AUD', 'USD')}\nWeight: {node.weight}")
+			plt.title(f"{title}\nK: {k}, Predicted value: {value}\nCurrent Price: {sequence[-1]}")
 			plt.plot(arr)
 			plt.pause(0.01)
 
@@ -197,16 +210,18 @@ class LinearTest(unittest.TestCase):
 
 		self.__call_from_state(
 			self.tom_model,
-			"/home/abrehamatlaw/Downloads/Compressed/results_3/graph_dumps/1733612405.539753",
-			# path=[1, 8]
+			"/home/abrehamatlaw/Downloads/Compressed/results_9/graph_dumps/1735916508.982354",
+			path=[0, 0],
+			Ks=[67, 430]
 		)
 		plt.show()
 
 	def test_multiple(self):
 
-		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_5/graph_dumps"
+		CONTAINER_PATH = "/home/abrehamatlaw/Downloads/Compressed/results_8/graph_dumps"
 
-		BOUNDS = (6, 12)
+		START = 47
+		BOUNDS = (START, START + 12)
 
 		DUMP_PATHS = [
 			os.path.join(CONTAINER_PATH, filename)
@@ -216,5 +231,52 @@ class LinearTest(unittest.TestCase):
 		for i, path in enumerate(DUMP_PATHS):
 			print(f"Plotting: {path}, idx: {BOUNDS[0] + i}")
 			self.__call_from_state(self.tom_model, path, title=f"State: {BOUNDS[0] + i}")
+
+		plt.show()
+
+	def __get_prediction_value(self, array: np.ndarray) -> float:
+		return np.sum(self.bounds_centered * array[:-1] / np.sum(array[:-1]))
+
+	def __continue_sequence(self, sequence: np.ndarray) -> np.ndarray:
+		X = np.expand_dims(
+			np.concatenate([
+				sequence,
+				np.zeros(Config.AGENT_MODEL_EXTRA_LEN)
+			]),
+			axis=0
+		).astype(np.float32)
+
+		with torch.no_grad():
+			y_hat = self.tom_model(torch.from_numpy(X)).squeeze().detach().numpy()
+			y_hat = softmax(y_hat[:-1])
+
+		prediction = self.__get_prediction_value(y_hat)
+		value = prediction * sequence[-1]
+		return np.concatenate((sequence, np.array([value])), axis=0)[-len(sequence):]
+
+	def __plot_from_sequence(self, sequence: np.ndarray):
+
+		LENGTH = 3
+
+		for i in range(LENGTH):
+			sequence = self.__continue_sequence(sequence)
+
+		plt.figure()
+		plt.plot(sequence)
+		plt.axvline(x=len(sequence)-LENGTH-1, color="red")
+
+	def __get_state_sequence(self, path: str) -> np.ndarray:
+
+		node, repo = stats.load_node_repo(
+			path
+		)
+		state = repo.retrieve(node.id)
+		return state.market_state.get_state_of("AUD", "USD")
+
+	def test_plot_sequence_from_state(self):
+
+		sequence = self.__get_state_sequence("/home/abrehamatlaw/Downloads/Compressed/results_9/graph_dumps/1735916508.982354")
+
+		self.__plot_from_sequence(sequence)
 
 		plt.show()
