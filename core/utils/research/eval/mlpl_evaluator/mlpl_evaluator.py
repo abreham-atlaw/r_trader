@@ -12,7 +12,8 @@ class MLPLEvaluator:
 		self.__dataloader = dataloader
 
 	def __evaluate_model(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor) -> float:
-		y_hat = model(X)
+		y = y[:, 1:]
+		y_hat = model(X)[:, :-1]
 		return self.__loss(y_hat, y)
 
 	def __evaluate_batch(self, models: typing.List[nn.Module], X: torch.Tensor, y: torch.Tensor) -> float:
