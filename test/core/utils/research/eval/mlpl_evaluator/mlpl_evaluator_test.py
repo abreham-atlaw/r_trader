@@ -35,12 +35,12 @@ class MLPLEvaluatorTest(unittest.TestCase):
 		)
 		self.dataloader = DataLoader(self.dataset, batch_size=1)
 		self.evaluator = MLPLEvaluator(
-			# loss=ProximalMaskedLoss(
-			# 	n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-			# 	p=1,
-			# 	softmax=True,
-			# ),
-			loss=nn.CrossEntropyLoss(),
+			loss=ProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+				p=1,
+				softmax=True,
+			),
+			# loss=nn.CrossEntropyLoss(),
 			dataloader=self.dataloader
 		)
 
