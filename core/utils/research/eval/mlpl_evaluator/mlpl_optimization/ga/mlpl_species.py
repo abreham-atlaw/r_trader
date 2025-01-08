@@ -20,11 +20,11 @@ class MLPLSpecies(Species):
 	def reproduce(self, spouse: 'MLPLSpecies', preferred_offsprings: int) -> List['MLPLSpecies']:
 		return [
 			MLPLSpecies(
-				models=ChoiceUtils.list_select(
+				models=list(set(ChoiceUtils.list_select(
 					self.models,
 					spouse.models,
 					discrete=True
-				)
+				)))
 			)
 			for _ in range(preferred_offsprings)
 		]
