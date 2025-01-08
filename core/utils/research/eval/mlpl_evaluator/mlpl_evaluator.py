@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from lib.utils.logger import Logger
+
 
 class MLPLEvaluator:
 
@@ -26,8 +28,8 @@ class MLPLEvaluator:
 		for model in models:
 			model.eval()
 		with torch.no_grad():
-			losses = [
-				self.__evaluate_batch(models, X, y)
-				for X, y in self.__dataloader
-			]
+			losses = []
+			for i, (X, y) in enumerate(self.__dataloader):
+				losses.append(self.__evaluate_batch(models, X, y))
+				Logger.info(f"Evaluating: {i} / {len(self.__dataloader)}...", end="\r")
 			return torch.mean(torch.tensor(losses))
