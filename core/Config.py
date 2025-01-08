@@ -230,16 +230,16 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.path = "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip"
 CORE_MODEL_CONFIG.download = False
 # OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
-TIMEZONE = timezone("UTC")
+# TIMEZONE = timezone("UTC")
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 ]
 AGENT_FRICTION_TIME = 4
-AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
+AGENT_STEP_TIME = (60 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
