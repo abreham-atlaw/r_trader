@@ -3,7 +3,6 @@ import typing
 import torch
 from torch import nn
 
-from lib.utils.torch_utils.tensor_collection import TensorCollection
 from lib.utils.torch_utils.tensor_merger import TensorMerger
 from .masked_stacked_model import MaskedStackedModel
 from ...savable import SpinozaModule
