@@ -227,6 +227,9 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+POPULATION_UPLOAD_PATH = "/Apps/RTrader/mlpl-ga/"
+POPULATION_SAVE_PATH = "/kaggle/working/out/population.ga"
+
 
 class ResourceCategories:
 
