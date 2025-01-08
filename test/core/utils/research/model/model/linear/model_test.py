@@ -7,6 +7,7 @@ from torch import nn
 import os
 
 from core import Config
+from core.utils.research.eval.live_prediction.live_predictor import LivePredictor
 from core.utils.research.losses import WeightedMSELoss
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
@@ -48,7 +49,7 @@ class LinearTest(unittest.TestCase):
 			self.wrapped_model
 		)
 		self.bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND + [Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[-1] + Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON]
-		self.bounds_centered = [np.mean(self.bounds[i: i+2]) for i in range(len(self.bounds)-1)]
+		self.bounds_centered = np.array([np.mean(self.bounds[i: i+2]) for i in range(len(self.bounds)-1)], dtype=np.float32)
 	@staticmethod
 	def __plot_outputs(model: nn.Module, size: int):
 
@@ -210,9 +211,9 @@ class LinearTest(unittest.TestCase):
 
 		self.__call_from_state(
 			self.tom_model,
-			"/home/abrehamatlaw/Downloads/Compressed/results_9/graph_dumps/1735916508.982354",
+			"/home/abrehamatlaw/Downloads/Compressed/results_10/graph_dumps/1736044405.169263",
 			path=[0, 0],
-			Ks=[67, 430]
+			Ks=[429]
 		)
 		plt.show()
 
@@ -275,8 +276,16 @@ class LinearTest(unittest.TestCase):
 
 	def test_plot_sequence_from_state(self):
 
-		sequence = self.__get_state_sequence("/home/abrehamatlaw/Downloads/Compressed/results_9/graph_dumps/1735916508.982354")
+		sequence = self.__get_state_sequence("/home/abrehamatlaw/Downloads/Compressed/results_10/graph_dumps/1736044405.169263")
 
 		self.__plot_from_sequence(sequence)
 
 		plt.show()
+
+	def test_live_prediction(self):
+		sequence = self.__get_state_sequence(
+			"/home/abrehamatlaw/Downloads/Compressed/results_10/graph_dumps/1736044405.169263"
+		)
+		live_predictor = LivePredictor("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip")
+
+		live_predictor.start()

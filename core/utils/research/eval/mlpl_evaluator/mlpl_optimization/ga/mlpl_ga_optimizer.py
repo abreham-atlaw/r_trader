@@ -17,13 +17,15 @@ class MLPLGAOptimizer(GeneticAlgorithm):
 			self,
 			models: List[str],
 			population_size: int,
-			evaluator: MLPLEvaluator
+			evaluator: MLPLEvaluator,
+			initial_species_size: int
 	):
 		super().__init__()
 		self.__models = models
 		self.__population_size = population_size
 		self.__evaluator = evaluator
 		self.__fs = ServiceProvider.provide_file_storage()
+		self.__initial_species_size = initial_species_size
 
 	@CacheDecorators.cached_method()
 	def __get_model(self, name: str) -> SpinozaModule:
@@ -33,10 +35,11 @@ class MLPLGAOptimizer(GeneticAlgorithm):
 	def _generate_initial_generation(self) -> List[MLPLSpecies]:
 		return [
 			MLPLSpecies(
-				models=ChoiceUtils.list_select(
+				models=list(set(ChoiceUtils.list_select(
 					a=self.__models,
-					b=self.__models
-				)
+					b=self.__models,
+					size=self.__initial_species_size
+				)))
 			)
 			for _ in range(self.__population_size)
 		]

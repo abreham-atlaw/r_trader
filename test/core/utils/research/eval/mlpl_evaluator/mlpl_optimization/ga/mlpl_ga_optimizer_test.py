@@ -40,7 +40,8 @@ class MLPLGAOptimizerTest(unittest.TestCase):
 		self.optimizer = MLPLGAOptimizer(
 			models=MODEL_NAMES,
 			population_size=10,
-			evaluator=self.evaluator
+			evaluator=self.evaluator,
+			initial_species_size=2
 		)
 
 	def test_optimize(self):

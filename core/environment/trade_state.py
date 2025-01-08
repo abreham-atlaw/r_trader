@@ -46,10 +46,10 @@ class MarketState:
 
 		self.__spread_state = spread_state
 		if spread_state is None:
-			self.__spread_state = np.zeros((len(currencies), len(currencies))).astype('float32')
+			self.__spread_state = np.zeros((len(currencies), len(currencies))).astype('float64')
 
 	def __init_state(self, num_currencies, memory_len) -> np.ndarray:
-		state = np.zeros((num_currencies, num_currencies, memory_len)).astype('float32')
+		state = np.zeros((num_currencies, num_currencies, memory_len)).astype('float64')
 		for i in range(num_currencies):
 			state[i, i] = 1
 		return state
