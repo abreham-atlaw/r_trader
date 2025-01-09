@@ -24,6 +24,9 @@ class ProximalMaskedLoss(nn.Module):
 			ProximalMaskedLoss.__f(t, n, p) for t in range(n)
 		])
 
+	def collapse(self, loss: torch.Tensor) -> torch.Tensor:
+		return torch.mean(loss)
+
 	def forward(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		y_hat = self.activation(y_hat)
 
@@ -31,6 +34,7 @@ class ProximalMaskedLoss(nn.Module):
 			self.mask * torch.unsqueeze(y, dim=2),
 			dim=1
 		)
-		return torch.mean(
-			(1/(torch.sum(y_mask * y_hat, dim=1) - self.epsilon)) - 1
+
+		return self.collapse(
+			(1 / (torch.sum(y_mask * y_hat, dim=1) - self.epsilon)) - 1
 		)
