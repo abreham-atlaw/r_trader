@@ -1,11 +1,13 @@
 import unittest
 
+import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 
 from core import Config
 from core.utils.research.data.load import BaseDataset
 from core.utils.research.eval.mlpl_evaluator import MLPLEvaluator
+from core.utils.research.eval.mlpl_evaluator.losses.unbatched_pml_loss import UnbatchedProximalMaskedLoss
 from core.utils.research.losses import ProximalMaskedLoss
 from lib.utils.torch_utils.model_handler import ModelHandler
 
@@ -34,14 +36,25 @@ class MLPLEvaluatorTest(unittest.TestCase):
 			],
 		)
 		self.dataloader = DataLoader(self.dataset, batch_size=1)
+		self.dataloader_b4 = DataLoader(self.dataset, batch_size=4)
 		self.evaluator = MLPLEvaluator(
-			loss=ProximalMaskedLoss(
+			loss=UnbatchedProximalMaskedLoss(
 				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 				p=1,
 				softmax=True,
 			),
 			# loss=nn.CrossEntropyLoss(),
-			dataloader=self.dataloader
+			dataloader=self.dataloader,
+			progress_interval=20
+		)
+		self.evaluator_b4 = MLPLEvaluator(
+			loss=UnbatchedProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+				p=1,
+				softmax=True,
+			),
+			dataloader=self.dataloader_b4,
+			progress_interval=20
 		)
 
 	def test_evaluate(self):
@@ -58,3 +71,15 @@ class MLPLEvaluatorTest(unittest.TestCase):
 		print(losses)
 		self.assertGreater(1, 0)
 		self.assertGreater(losses[0], losses[1])
+
+	def test_batchsize_equivalence(self):
+
+		losses = [
+			evaluator.evaluate(self.models2)
+			for evaluator in [
+				self.evaluator,
+				self.evaluator_b4
+			]
+		]
+
+		self.assertTrue(losses[0], losses[1])
