@@ -41,7 +41,8 @@ class MLPLEvaluatorTest(unittest.TestCase):
 				softmax=True,
 			),
 			# loss=nn.CrossEntropyLoss(),
-			dataloader=self.dataloader
+			dataloader=self.dataloader,
+			progress_interval=20
 		)
 
 	def test_evaluate(self):
