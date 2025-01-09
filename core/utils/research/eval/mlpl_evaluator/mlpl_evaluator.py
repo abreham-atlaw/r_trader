@@ -9,9 +9,15 @@ from lib.utils.logger import Logger
 
 class MLPLEvaluator:
 
-	def __init__(self, loss: nn.Module, dataloader: DataLoader):
+	def __init__(
+			self,
+			loss: nn.Module,
+			dataloader: DataLoader,
+			progress_interval: int = 100
+	):
 		self.__loss = loss
 		self.__dataloader = dataloader
+		self.__progress_interval = progress_interval
 
 	def __evaluate_model(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor) -> float:
 		y = y[:, 1:]
@@ -31,5 +37,6 @@ class MLPLEvaluator:
 			losses = []
 			for i, (X, y) in enumerate(self.__dataloader):
 				losses.append(self.__evaluate_batch(models, X, y))
-				Logger.info(f"Evaluating: {i} / {len(self.__dataloader)}...", end="\r")
+				if i % self.__progress_interval == 0:
+					Logger.info(f"Evaluating: {i} / {len(self.__dataloader)}...", end="\r")
 			return torch.mean(torch.tensor(losses))
