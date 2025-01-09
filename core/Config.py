@@ -277,6 +277,8 @@ class RunnerStatsBranches:
 	cma_dynamic_k_stm = "cma_dynamic_k_stm"
 	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
 
+	ma_ews_dynamic_k_stm_seen = "ma_ews_dynamic_k_stm_seen"
+
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	all = [
@@ -287,6 +289,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm,
 		cma_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_d_0_8,
+		ma_ews_dynamic_k_stm_seen,
 		real_ma_ews_dynamic_k_stm
 	]
 
