@@ -23,8 +23,14 @@ class MLPLEvaluator:
 	@performance.track_func_performance()
 	def __evaluate_model(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor) -> float:
 		y = y[:, 1:]
-		y_hat = model(X)[:, :-1]
-		return self.__loss(y_hat, y)
+		y_hat = performance.track_performance(
+			key="model(X)[:, :-1]",
+			func=lambda: model(X)[:, :-1]
+		)
+		return performance.track_performance(
+			key="loss(y_hat, y)",
+			func=lambda: self.__loss(y_hat, y)
+		)
 
 	@performance.track_func_performance()
 	def __evaluate_batch(self, models: typing.List[nn.Module], X: torch.Tensor, y: torch.Tensor) -> float:
