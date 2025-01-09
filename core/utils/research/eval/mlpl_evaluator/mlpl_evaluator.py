@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from lib.utils.devtools import performance
 from lib.utils.logger import Logger
 
 
@@ -19,18 +20,20 @@ class MLPLEvaluator:
 		self.__dataloader = dataloader
 		self.__progress_interval = progress_interval
 
+	@performance.track_func_performance()
 	def __evaluate_model(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor) -> float:
 		y = y[:, 1:]
 		y_hat = model(X)[:, :-1]
 		return self.__loss(y_hat, y)
 
+	@performance.track_func_performance()
 	def __evaluate_batch(self, models: typing.List[nn.Module], X: torch.Tensor, y: torch.Tensor) -> float:
-
 		return torch.stack([
 			self.__evaluate_model(model, X,  y)
 			for model in models
 		], dim=1)
 
+	@performance.track_func_performance()
 	def __collapse_losses(self, losses: torch.Tensor) -> torch.Tensor:
 		return torch.min(
 			losses,
@@ -42,6 +45,7 @@ class MLPLEvaluator:
 			return len(self.__dataloader.dataset)
 		return len(self.__dataloader) * self.__dataloader.batch_size
 
+	@performance.track_func_performance()
 	def evaluate(self, models: typing.List[nn.Module]):
 		for model in models:
 			model.eval()
