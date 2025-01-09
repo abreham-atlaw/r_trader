@@ -243,7 +243,7 @@ AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M5"
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 64
-UPDATE_SAVE_PATH = "/kaggle/working/outs"
+UPDATE_SAVE_PATH = "/kaggle/working/out"
 DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
@@ -257,7 +257,7 @@ with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn/"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
-TIMEOUT = 6*60*60
+TIMEOUT = 10*60*60
 
 
 class ResourceCategories:
