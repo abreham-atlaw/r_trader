@@ -168,7 +168,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -247,6 +247,8 @@ class RunnerStatsBranches:
 	cma_dynamic_k_stm = "cma_dynamic_k_stm"
 	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
 
+	runlive_sim_cum_0_it_8 = "runlive_sim_cum_0_it_8"
+
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	all = [
@@ -257,6 +259,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm,
 		cma_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_d_0_8,
+		runlive_sim_cum_0_it_8,
 		real_ma_ews_dynamic_k_stm
 	]
 
