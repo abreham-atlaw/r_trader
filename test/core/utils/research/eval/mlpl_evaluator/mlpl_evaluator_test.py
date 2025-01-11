@@ -35,7 +35,7 @@ class MLPLEvaluatorTest(unittest.TestCase):
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 			],
 		)
-		self.dataloader = DataLoader(self.dataset, batch_size=1)
+		self.dataloader = DataLoader(self.dataset, batch_size=64)
 		self.dataloader_b4 = DataLoader(self.dataset, batch_size=4)
 		self.evaluator = MLPLEvaluator(
 			loss=UnbatchedProximalMaskedLoss(
@@ -54,7 +54,7 @@ class MLPLEvaluatorTest(unittest.TestCase):
 				softmax=True,
 			),
 			dataloader=self.dataloader_b4,
-			progress_interval=20
+			progress_interval=1
 		)
 
 	def test_evaluate(self):
