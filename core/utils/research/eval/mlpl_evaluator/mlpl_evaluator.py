@@ -17,10 +17,19 @@ def evaluate_batch(args):
 
 
 class MLPLEvaluator:
-    def __init__(self, loss: nn.Module, dataloader: DataLoader, progress_interval: int = 100):
+    def __init__(
+            self,
+            loss: nn.Module,
+            dataloader: DataLoader,
+            workers: int = None,
+            progress_interval: int = 100
+    ):
         self.__loss = loss
         self.__dataloader = dataloader
         self.__progress_interval = progress_interval
+        if workers is None:
+            workers = mp.cpu_count()
+        self.__workers = workers
 
     def __get_data_size(self):
         if hasattr(self.__dataloader, "dataset"):
@@ -30,7 +39,7 @@ class MLPLEvaluator:
     @performance.track_func_performance()
     def __start_evaluators(self, models: typing.List[nn.Module]) -> typing.List[torch.Tensor]:
         Logger.info("Starting evaluators...")
-        pool = mp.Pool(mp.cpu_count())
+        pool = mp.Pool(self.__workers)
         tasks = [
             (models, X, y, self.__loss)
             for i, (X, y) in enumerate(self.__dataloader)
