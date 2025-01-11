@@ -34,10 +34,11 @@ class MLPLEvaluator:
 
 	@performance.track_func_performance()
 	def __evaluate_batch(self, models: typing.List[nn.Module], X: torch.Tensor, y: torch.Tensor) -> float:
-		return torch.stack([
+		losses = torch.stack([
 			self.__evaluate_model(model, X,  y)
 			for model in models
 		], dim=1)
+		return self.__collapse_losses(losses)
 
 	@performance.track_func_performance()
 	def __collapse_losses(self, losses: torch.Tensor) -> torch.Tensor:
@@ -57,7 +58,7 @@ class MLPLEvaluator:
 			model.eval()
 		with torch.no_grad():
 
-			losses = torch.zeros((self.__get_data_size(), len(models)))
+			losses = torch.zeros((self.__get_data_size(),))
 
 			for i, (X, y) in enumerate(self.__dataloader):
 
@@ -66,5 +67,4 @@ class MLPLEvaluator:
 				if i % self.__progress_interval == 0:
 					Logger.info(f"Evaluating: {i} / {len(self.__dataloader)}...", end="\r")
 
-		losses = self.__collapse_losses(losses)
 		return torch.mean(losses)
