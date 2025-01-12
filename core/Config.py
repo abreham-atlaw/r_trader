@@ -28,7 +28,7 @@ LOGGING_FILE_PATH = os.path.abspath("output.log")
 MC_SERVER_PORT = 8000
 MC_SERVER_URL = "http://127.0.0.1:%s" % (MC_SERVER_PORT,)
 
-MIN_FREE_MEMORY = 10
+MIN_FREE_MEMORY = 2
 MAX_PROCESSES = 6
 RECURSION_DEPTH = 10000
 NESTED_PROCESS = False
@@ -112,7 +112,8 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 1033
+MARKET_STATE_MEMORY = 1024
+MARKET_STATE_USE_MA = True
 MARKET_STATE_GRANULARITY = "M5"
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
@@ -126,7 +127,7 @@ AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
 AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
-AGENT_STEP_TIME = (1 * 60) - AGENT_FRICTION_TIME
+AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -137,7 +138,7 @@ AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
 AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
-AGENT_STM = False
+AGENT_STM = True
 AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
 AGENT_STM_SIZE = int(1e5)
@@ -156,10 +157,12 @@ AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 10
+AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
-AGENT_TOP_K_NODES = 5
+AGENT_TOP_K_NODES = None
+AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
@@ -203,7 +206,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/results_12/abrehamalemu-rtrader-training-exp-0-linear-99-cum-0-it-4-tot_1.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-94-cum-0-it-4-tot.zip",
 	download=False
 )
 
@@ -226,6 +229,35 @@ PREDICTION_MODELS = [
 	DELTA_MODEL_CONFIG,
 	ARA_MODEL_CONFIG
 ]
+
+CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.download = False
+OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+TIMEZONE = timezone("UTC")
+AGENT_USE_STATIC_INSTRUMENTS = True
+AGENT_STATIC_INSTRUMENTS = [
+	("AUD", "USD"),
+]
+AGENT_FRICTION_TIME = 4
+AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
+MARKET_STATE_GRANULARITY = "M5"
+UPDATE_AGENT = True
+UPDATE_EXPORT_BATCH_SIZE = 64
+UPDATE_SAVE_PATH = "/kaggle/working/outs"
+DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+AGENT_DUMP_NODES = True
+UPDATE_TRAIN = False
+AGENT_CRA_SIZE = 0
+MAPLOSS_BRANCH = "ma_ews"
+MAPLOSS_KEY = "cnn"
+with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn/"
+MODEL_TMP_PATH = os.path.abspath("./out/")
+
+TIMEOUT = 6*60*60
 
 
 class ResourceCategories:
@@ -261,4 +293,4 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm
 	]
 
-	default = main
+	default = ma_ews_dynamic_k_stm
