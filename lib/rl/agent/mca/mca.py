@@ -14,6 +14,7 @@ import psutil
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import ModelBasedAgent
 from lib.rl.environment import ModelBasedState
+from lib.utils.devtools import performance
 from lib.utils.logger import Logger
 from lib.utils.math import sigmoid
 from lib.utils.staterepository import StateRepository, SectionalDictStateRepository
@@ -297,6 +298,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._state_repository.clear()
 		self.__manage_resources(end=True)
 
+	@performance.track_func_performance()
 	def _select(self, parent_state_node: 'Node') -> 'Node':
 
 		promising_action_node: Node = max(
@@ -311,6 +313,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		return self._select(chosen_state_node)
 
+	@performance.track_func_performance()
 	def __collect_transition_inputs(
 			self,
 			state_node: 'Node'
@@ -351,6 +354,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		k = self.__get_k(node)
 		node.children = sorted(node.children, key=lambda n: n.weight, reverse=True)[:k]
 
+	@performance.track_func_performance()
 	def _expand(self, state_node: 'Node', stm=True):
 		if self._get_environment().is_episode_over(self._state_repository.retrieve(state_node.id)):
 			return
@@ -382,6 +386,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 				self.__trim_node(action_node)
 		stats.durations["trim"] += (datetime.now() - start_time).total_seconds()
 
+	@performance.track_func_performance()
 	def __simulate(self, state_node: 'Node') -> 'Node':
 
 		if not state_node.has_children():
@@ -412,6 +417,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self.__legacy_backpropagate(node.parent, reward)
 
+	@performance.track_func_performance()
 	def __logical_backpropagate(self, node: 'Node') -> None:
 		node.increment_visits()
 
@@ -433,6 +439,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self.__logical_backpropagate(node.parent)
 
+	@performance.track_func_performance()
 	def _monte_carlo_simulation(self, root_node: 'Node'):
 		self._expand(root_node)
 
@@ -458,6 +465,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
+	@performance.track_func_performance()
 	def _monte_carlo_tree_search(self, state) -> None:
 		root_node = Node(None, None, Node.NodeType.STATE)
 		self._state_repository.store(root_node.id, state)

@@ -8,6 +8,7 @@ from tensorflow import keras
 import os
 
 from lib.rl.environment import ModelBasedState
+from lib.utils.devtools import performance
 from . import Model
 from .. import ModelBasedAgent
 
@@ -69,6 +70,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 		hashes, indices, inverse = np.unique(hashes, axis=0, return_inverse=True, return_index=True)
 		return array[indices], inverse
 
+	@performance.track_func_performance()
 	def _get_expected_transition_probability_distribution(
 			self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]
 	) -> List[float]:

@@ -14,6 +14,7 @@ from core.agent.utils.cache import Cache
 from core.utils.research.model.model.utils import WrappedModel
 from lib.rl.agent import DNNTransitionAgent
 from lib.rl.agent.dta import TorchModel
+from lib.utils.devtools import performance
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
@@ -263,6 +264,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			]
 		))
 
+	@performance.track_func_performance()
 	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
 
 		states = []
