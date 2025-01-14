@@ -5,6 +5,7 @@ from core.utils.research.model.model.savable import SpinozaModule
 from lib.ga import GeneticAlgorithm
 from lib.ga.choice_utils import ChoiceUtils
 from lib.utils.cache.decorators import CacheDecorators
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 from .mlpl_species import MLPLSpecies
@@ -45,7 +46,12 @@ class MLPLGAOptimizer(GeneticAlgorithm):
 		]
 
 	def _evaluate_species(self, species: MLPLSpecies) -> float:
-		return 1/self.__evaluator.evaluate([
-			self.__get_model(model)
-			for model in species.models
-		])
+		try:
+			return 1/self.__evaluator.evaluate([
+				self.__get_model(model)
+				for model in species.models
+			])
+		except Exception as e:
+			Logger.error(f"Failed to evaluate species: {species}")
+			Logger.error(f"An error occurred: {e}")
+			return -1
