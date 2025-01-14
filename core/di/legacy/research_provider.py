@@ -22,7 +22,6 @@ class ResearchProvider:
 			client=ServiceProvider.provide_mongo_client(),
 			profit_based_selection=False,
 			branch=branch,
-			model_name_key=Config.MAPLOSS_KEY
 		)
 
 	@staticmethod
