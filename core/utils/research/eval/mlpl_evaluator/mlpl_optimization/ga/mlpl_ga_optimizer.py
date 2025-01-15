@@ -36,9 +36,8 @@ class MLPLGAOptimizer(GeneticAlgorithm):
 	def _generate_initial_generation(self) -> List[MLPLSpecies]:
 		return [
 			MLPLSpecies(
-				models=list(set(ChoiceUtils.list_select(
+				models=list(set(ChoiceUtils.generate_list_from_list(
 					a=self.__models,
-					b=self.__models,
 					size=self.__initial_species_size
 				)))
 			)
