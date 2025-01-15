@@ -283,4 +283,4 @@ class RunnerStatsLossesBranches:
 		it_10
 	]
 
-	default = main
+	default = it_10
