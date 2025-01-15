@@ -106,6 +106,17 @@ class ChoiceUtils:
 		)
 
 	@staticmethod
+	def generate_list_from_list(
+			a: typing.List,
+			size: int,
+	):
+		# TODO: Add support for continuous values, round_mode, and random size
+		return random.choices(
+			a,
+			k=size
+		)
+
+	@staticmethod
 	def mutate_continuous(x, noise, *args, **kwargs):
 		a = (x + 3*x*noise)/(1+2*noise)
 		b = 2*x - a
