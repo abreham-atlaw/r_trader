@@ -22,14 +22,14 @@ class MaskedStackedModel(SpinozaModule, ABC):
 	def _get_mask(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		pass
 
-	def call(self, x: torch.Tensor) -> torch.Tensor:
-
+	def _get_model_outputs(self, x: torch.Tensor) -> torch.Tensor:
 		with torch.no_grad():
 			y = torch.stack([
 				m(x).detach() for m in self.models
 			], dim=1)
+		return y
 
-		mask = self._get_mask(x, y)
+	def _apply_mask(self, y: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
 		if mask.shape == y.shape[:-1]:
 			mask = torch.repeat_interleave(
 				torch.unsqueeze(
@@ -42,7 +42,16 @@ class MaskedStackedModel(SpinozaModule, ABC):
 
 		out = mask*y
 		out = torch.sum(out, dim=1)
+		return out
 
+	def get_and_apply_mask(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+		mask = self._get_mask(x, y)
+		out = self._apply_mask(y, mask)
+		return out
+
+	def call(self, x: torch.Tensor) -> torch.Tensor:
+		y = self._get_model_outputs(x)
+		out = self.get_and_apply_mask(x, y)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:

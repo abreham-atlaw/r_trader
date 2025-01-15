@@ -21,5 +21,6 @@ class FusedManagerTest(unittest.TestCase):
 				]
 			},
 			device=Resources.Devices.GPU,
-			sync_notebooks=False
+			sync_notebooks=False,
+			allowed_devices=[Resources.Devices.GPU, Resources.Devices.TPU]
 		)

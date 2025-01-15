@@ -10,7 +10,7 @@ class DynamicLayerNorm(nn.Module):
 
 	def norm(self, x: torch.Tensor):
 		if self.norm_layer is None:
-			self.norm_layer = nn.LayerNorm(x.size()[1:])
+			self.norm_layer = nn.LayerNorm(x.size()[-1:])
 		return self.norm_layer(x)
 
 	def forward(self, x: torch.Tensor) -> torch.Tensor:
