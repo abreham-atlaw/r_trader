@@ -267,3 +267,16 @@ class RunnerStatsBranches:
 	]
 
 	default = ma_ews_dynamic_k_stm
+
+
+class RunnerStatsLossesBranches:
+
+	main = "main"
+	it_10 = "it_10"
+
+	all = [
+		main,
+		it_10
+	]
+
+	default = main
