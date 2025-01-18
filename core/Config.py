@@ -1,6 +1,5 @@
 import json
 
-import numpy as np
 from pytz import timezone
 import os
 import random
@@ -51,14 +50,14 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
-	# "85G7LZ6O9B7Ztm1THvolvWfdTcxJ4XxuizyavtsX",  # abrishatlaw@yahoo.com +
-	"TBa557ZIO9B7ZoRcWXn5J5GYPecBJdNKb6y5gebik",  # abreham.atlaw@yahoo.com -
-	"9Wh8qXZxDks7ZeS1tu7foEpbnuuwy0lidWH0XiyFy",  # abrehamatlaw@outlook.com -
+	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
+	# "TBa557ZIO9B7ZoRcWXn5J5GYPecBJdNKb6y5gebik",  # abreham.atlaw@yahoo.com -
+	"NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
 	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
-	"BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
+	# "BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
 	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
 	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
@@ -273,6 +272,9 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k = "ma_ews_dynamic_k"
 	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
 	cma_dynamic_k_stm = "cma_dynamic_k_stm"
+	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
+
+	runlive_sim_cum_0_it_8 = "runlive_sim_cum_0_it_8"
 
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
@@ -283,7 +285,22 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k,
 		ma_ews_dynamic_k_stm,
 		cma_dynamic_k_stm,
+		ma_ews_dynamic_k_stm_d_0_8,
+		runlive_sim_cum_0_it_8,
 		real_ma_ews_dynamic_k_stm
 	]
 
 	default = real_ma_ews_dynamic_k_stm
+
+
+class RunnerStatsLossesBranches:
+
+	main = "main"
+	it_10 = "it_10"
+
+	all = [
+		main,
+		it_10
+	]
+
+	default = main

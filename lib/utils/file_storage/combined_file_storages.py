@@ -4,6 +4,7 @@ import typing
 
 from .file_storages import FileStorage, PCloudClient
 from .exceptions import FileNotFoundException
+from ..logger import Logger
 
 
 class CombinedFileStorage(FileStorage):
@@ -12,9 +13,10 @@ class CombinedFileStorage(FileStorage):
 		self.__children = children
 
 	def _get_storage(self, path) -> FileStorage:
-		for child in self.__children:
+		for i, child in enumerate(self.__children):
 			try:
 				child.get_url(path)
+				Logger.info(f"Using Storage {i} for {path}")
 				return child
 			except FileNotFoundException:
 				pass
