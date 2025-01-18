@@ -62,7 +62,6 @@ class ChoiceUtils:
 				round_mode=True,
 				noise=size_noise
 			)
-		print(f"New Len: {new_len}")
 		mixed_values = []
 
 		for i in range(min_len):
