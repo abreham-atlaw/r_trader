@@ -116,12 +116,6 @@ class MarketState:
 	def convert(self, value, from_, to):
 		return value * self.get_current_price(from_, to)
 
-	def get_price_matrix(self) -> np.ndarray:
-		return self.__state
-
-	def get_spread_matrix(self) -> np.ndarray:
-		return self.__spread_state
-
 	def __deepcopy__(self, memo=None):
 		return MarketState(
 			currencies=self.__currencies.copy(),
