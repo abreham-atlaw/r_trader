@@ -8,7 +8,6 @@ from core.utils.research.losses import ProximalMaskedLoss
 
 class ProximalMaskedLossTest(unittest.TestCase):
 
-
 	def test_functionality(self):
 		classes = (np.arange(5) + 10).astype(np.float32)
 

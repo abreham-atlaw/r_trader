@@ -1,5 +1,6 @@
 from typing import Dict
 
+from core import Config
 from core.utils.research.data.collect.runner_stats import RunnerStats
 from lib.network.rest_interface import Serializer
 
@@ -33,5 +34,10 @@ class RunnerStatsSerializer(Serializer):
 		if "profit" in json_.keys():
 			json_.pop("profit")
 
-		json_["model_losses"] = tuple(json_["model_losses"])
+		if "model_losses_map" not in json_.keys():
+			json_["model_losses_map"] = {Config.RunnerStatsLossesBranches.main: tuple(json_["model_losses"])}
+
+		if "model_losses" in json_.keys():
+			json_.pop("model_losses")
+
 		return RunnerStats(**json_)

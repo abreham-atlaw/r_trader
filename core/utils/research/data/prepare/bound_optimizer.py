@@ -8,6 +8,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from core.utils.research.data.prepare import DataPreparer
+from lib.utils.decorators import retry
 
 
 class BoundGenerator:
@@ -30,6 +31,7 @@ class BoundGenerator:
 		path = os.path.join(self.__tmp_path, f"{uuid.uuid4()}.bo")
 		return path
 
+	@retry(OverflowError, patience=10)
 	def __poly_generate(self, n):
 		p = 2*np.random.randint(0, 100) + 1
 		q = np.random.randint(n, n*10)

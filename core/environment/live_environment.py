@@ -15,6 +15,7 @@ from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
 from core.environment.trade_environment import TradeEnvironment
+from lib.utils.math import moving_average
 
 
 class LiveEnvironment(TradeEnvironment):
@@ -29,6 +30,8 @@ class LiveEnvironment(TradeEnvironment):
 			agent_use_static_instruments: bool = Config.AGENT_USE_STATIC_INSTRUMENTS,
 			market_state_granularity: str = Config.MARKET_STATE_GRANULARITY,
 			candlestick_dump_path: str = Config.DUMP_CANDLESTICKS_PATH,
+			moving_average_window: int = Config.AGENT_MA_WINDOW_SIZE,
+			use_ma: int = Config.MARKET_STATE_USE_MA,
 			**kwargs
 	):
 		super(LiveEnvironment, self).__init__(*args, **kwargs)
@@ -54,6 +57,8 @@ class LiveEnvironment(TradeEnvironment):
 					self.__instruments = self.__trader.get_instruments()
 		self.__all_instruments = self.__generate_all_instruments(self.__instruments, self.__agent_currency)
 		self.__candlestick_dump_path = candlestick_dump_path
+		self.__use_ma = use_ma
+		self.__moving_average_window = moving_average_window
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
 		valid_instruments = self.__trader.get_instruments()
@@ -156,24 +161,31 @@ class LiveEnvironment(TradeEnvironment):
 	def __candlesticks_to_dataframe(candlesticks: List[models.CandleStick]) -> pd.DataFrame:
 		df_list = []
 		for candlestick in candlesticks:
-			candle_dict = candlestick.mid
+			candle_dict = {key: float(value) for key, value in candlestick.mid.items()}
 			candle_dict["v"] = candlestick.volume
 			candle_dict["time"] = candlestick.time
 			df_list.append(candle_dict)
 
 		return pd.DataFrame(df_list)
 
+	def __process_instrument(self, sequence: np.ndarray) -> np.ndarray:
+		if self.__use_ma:
+			sequence = moving_average(sequence, self.__moving_average_window)
+		return sequence
+
 	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		candle_sticks = self.__trader.get_candlestick(
 			(base_currency, quote_currency),
-			count=size,
+			count=size + self.__moving_average_window - 1,
 			to=datetime.now(),
 			granularity=granularity
 		)
 		df = self.__candlesticks_to_dataframe(candle_sticks)
 		if self.__candlestick_dump_path is not None:
 			self.__dump_candlesticks(df)
-		return df["c"].to_numpy()
+		sequence = df["c"].to_numpy()
+		sequence = self.__process_instrument(sequence)
+		return sequence
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)

@@ -131,10 +131,10 @@ class RunnerStatsPopulater:
 			stats = RunnerStats(
 				id=id,
 				model_name=os.path.basename(path),
-				model_losses=losses,
 				session_timestamps=[],
 				temperature=temperature
 			)
+			stats.model_losses = losses
 		else:
 			print("[+]Updating...")
 			stats.model_losses = losses

@@ -28,7 +28,7 @@ class RunnerStatsRepository:
 			profit_predictor: 'ProfitPredictor' = None,
 			branch: str = Config.RunnerStatsBranches.default,
 	):
-		print(f"Using Branch {branch}")
+		print(f"Using Branch {branch} with key '{model_name_key}'")
 		db = client[db_name]
 		self._collection = db[f"{collection_name}-branch-{branch}"]
 		self.__serializer = RunnerStatsSerializer()

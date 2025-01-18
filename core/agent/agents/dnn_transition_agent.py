@@ -49,8 +49,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			**kwargs
 		)
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
+		if isinstance(state_change_delta_bounds, list):
+			state_change_delta_bounds = np.array(state_change_delta_bounds, dtype=np.float32)
 		self._state_change_delta_bounds = state_change_delta_bounds
-		self._simulation_state_change_delta_bounds = state_change_delta_bounds + [state_change_delta_bounds[-1] + state_change_delta_bounds_epsilon]
+		self._simulation_state_change_delta_bounds = np.concatenate(
+			(state_change_delta_bounds, [state_change_delta_bounds[-1] + state_change_delta_bounds_epsilon]),
+			dtype=np.float32
+		)
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
 
@@ -295,13 +300,14 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
 
-		for j in range(len(self._simulation_state_change_delta_bounds)):
+		for j in range(len(self._state_change_delta_bounds)):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
+			new_value = np.array(original_value[-1] * np.mean(self._simulation_state_change_delta_bounds[j: j + 2]), dtype=np.float32).reshape(1)
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
-				np.array(original_value[-1]*np.mean(self._state_change_delta_bounds[j: j+2])).reshape(1)
+				new_value
 			)
 			states.append(new_state)
 
