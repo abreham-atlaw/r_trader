@@ -420,7 +420,7 @@ class TrainerTest(unittest.TestCase):
 		model = Transformer(
 			extra_len=EXTRA_LEN,
 			decoder_block=DecoderBlock(
-				embedding_block=TransformerEmbeddingBlock(
+				transformer_embedding_block=TransformerEmbeddingBlock(
 					embedding_block=EmbeddingBlock(
 						positional_encoding=POSITIONAL_ENCODING,
 						norm_positional_encoding=POSITIONAL_ENCODING_NORM,
