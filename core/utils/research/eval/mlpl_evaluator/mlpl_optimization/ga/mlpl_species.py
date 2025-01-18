@@ -23,7 +23,8 @@ class MLPLSpecies(Species):
 				models=list(set(ChoiceUtils.list_select(
 					self.models,
 					spouse.models,
-					discrete=True
+					discrete=True,
+					size_noise=0.5
 				)))
 			)
 			for _ in range(preferred_offsprings)
