@@ -38,6 +38,7 @@ class CNN(SpinozaModule):
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
+			'stride': stride,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
