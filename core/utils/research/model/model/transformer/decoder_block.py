@@ -64,15 +64,15 @@ class DecoderBlock(SpinozaModule):
 
 	def __init__(
 			self,
-			embedding_block: TransformerEmbeddingBlock,
+			transformer_embedding_block: TransformerEmbeddingBlock,
 			num_heads: int
 	):
 		self.args = {
-			'embedding_block': embedding_block,
+			'transformer_embedding_block': transformer_embedding_block,
 			'num_heads': num_heads
 		}
 		super().__init__()
-		self.embedding_block = embedding_block
+		self.embedding_block = transformer_embedding_block
 		self.self_attention_layer = None
 		self.num_heads = num_heads
 
