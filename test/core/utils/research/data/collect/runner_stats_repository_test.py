@@ -254,12 +254,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.__plot_profit_vs_loss(
 			[
 				dps,
-				list(
-					filter(
-						lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
-						dps
-					)
-				)
+				# list(
+				# 	filter(
+				# 		lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
+				# 		dps
+				# 	)
+				# )
 			],
 		)
 		plt.show()
@@ -312,9 +312,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		stat = RunnerStats(
 			id=ID,
 			model_name="test",
-			profit=0.0,
 			duration=0.0,
-			model_losses=(3.0, 7.0),
 			session_timestamps=[datetime(year=2020, month=1, day=1)]
 		)
 

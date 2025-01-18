@@ -52,8 +52,8 @@ class StoreCheckpointCallback(CheckpointCallback):
 
 class RandomCheckpointStoreCallback(StoreCheckpointCallback):
 
-	def __init__(self, fs: FileStorage, probability: float, *args, **kwargs):
-		super().__init__(fs, *args, **kwargs)
+	def __init__(self, probability: float, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.__probability = probability
 
 	def on_epoch_end(self, model, epoch, loss, logs=None):
