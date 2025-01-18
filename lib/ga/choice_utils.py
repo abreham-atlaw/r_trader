@@ -25,7 +25,7 @@ class ChoiceUtils:
 	):
 
 		if noise is not None:
-			d = b - a
+			d = b - a + 1
 			a, b = a - d * noise, b + d * noise
 
 		value = random.uniform(a, b)
@@ -48,15 +48,20 @@ class ChoiceUtils:
 			discrete: bool = True,
 			round_mode: bool = False,
 			noise: float = None,
-			size: int = None
+			size: int = None,
+			size_noise=0
 	) -> typing.List:
 		min_len = min(len(a), len(b))
 		max_len = max(len(a), len(b))
 
 		new_len = size
 		if size is None:
-			new_len = random.randint(min_len, max_len)
-
+			new_len = ChoiceUtils.choice_continuous(
+				min_len,
+				max_len,
+				round_mode=True,
+				noise=size_noise
+			)
 		mixed_values = []
 
 		for i in range(min_len):
@@ -78,9 +83,14 @@ class ChoiceUtils:
 		larger_list = ChoiceUtils.__get_larger_list(a, b)
 
 		for i in range(min_len, new_len):
-			mixed_values.append(
-				larger_list[i]
-			)
+			if i >= len(larger_list):
+				mixed_values.append(
+					random.choice(a+b)
+				)
+			else:
+				mixed_values.append(
+					larger_list[i]
+				)
 
 		return mixed_values
 
