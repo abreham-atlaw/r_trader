@@ -257,7 +257,7 @@ with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 MODEL_OUT_PATH = "/Apps/RTrader/tmp"
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
-TIMEOUT = 6*60*60
+TIMEOUT = 2*60*60
 
 class ResourceCategories:
 
