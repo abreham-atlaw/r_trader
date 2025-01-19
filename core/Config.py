@@ -251,6 +251,8 @@ class RunnerStatsBranches:
 
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
+	tmp = "tmp"
+
 	all = [
 		main,
 		ma_ews,
@@ -263,7 +265,7 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm
 	]
 
-	default = ma_ews_dynamic_k_stm
+	default = tmp
 
 
 class RunnerStatsLossesBranches:
@@ -271,9 +273,11 @@ class RunnerStatsLossesBranches:
 	main = "main"
 	it_10 = "it_10"
 
+	tmp = "tmp"
+
 	all = [
 		main,
 		it_10
 	]
 
-	default = main
+	default = tmp
