@@ -230,6 +230,35 @@ PREDICTION_MODELS = [
 ]
 
 
+CORE_MODEL_CONFIG.path = "model.zip"
+CORE_MODEL_CONFIG.download = False
+OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+TIMEZONE = timezone("UTC")
+AGENT_USE_STATIC_INSTRUMENTS = True
+AGENT_STATIC_INSTRUMENTS = [
+	("AUD", "USD"),
+]
+AGENT_FRICTION_TIME = 4
+AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
+MARKET_STATE_GRANULARITY = "M5"
+UPDATE_AGENT = True
+UPDATE_EXPORT_BATCH_SIZE = 64
+UPDATE_SAVE_PATH = "/kaggle/working/outs"
+DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
+AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
+AGENT_DUMP_NODES = True
+UPDATE_TRAIN = False
+AGENT_CRA_SIZE = 0
+MAPLOSS_BRANCH = "ma_ews"
+MAPLOSS_KEY = "cnn"
+with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+
+MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn/"
+MODEL_TMP_PATH = os.path.abspath("./out/")
+
+TIMEOUT = 6*60*60
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
