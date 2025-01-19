@@ -62,7 +62,7 @@ PCLOUD_TOKENS = [
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
 	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
-	# "74KlVVZktF97ZlN8XWt32axY622ndH5eK7hBfIreV",  # abrehamalemu@outlook.com
+	"udLaL7ZktF97ZrU5gOh8Bt64MxRazUcG0YyN8O5RV",  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -258,6 +258,8 @@ class RunnerStatsBranches:
 
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
+	tmp = "tmp"
+
 	all = [
 		main,
 		ma_ews,
@@ -270,7 +272,7 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm
 	]
 
-	default = ma_ews_dynamic_k_stm
+	default = tmp
 
 
 class RunnerStatsLossesBranches:
@@ -278,9 +280,11 @@ class RunnerStatsLossesBranches:
 	main = "main"
 	it_10 = "it_10"
 
+	tmp = "tmp"
+
 	all = [
 		main,
 		it_10
 	]
 
-	default = main
+	default = tmp
