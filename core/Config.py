@@ -178,6 +178,8 @@ MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
 
 
+USE_BINDINGS = True
+
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8
 CURRENCIES = [
@@ -205,7 +207,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-94-cum-0-it-4-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip",
 	download=False
 )
 
@@ -277,3 +279,5 @@ class RunnerStatsLossesBranches:
 	]
 
 	default = main
+
+

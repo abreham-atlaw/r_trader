@@ -123,7 +123,15 @@ class LiveEnvironment(TradeEnvironment):
 					current_value=trade.get_current_price()
 				)
 			)
-		return AgentState(balance, market_state, open_trades=open_trades, margin_rate=self.__trader.get_margin_rate())
+		return AgentState(
+			balance,
+			market_state,
+			open_trades=open_trades,
+			margin_rate=self.__trader.get_margin_rate(),
+			currency=Config.AGENT_CURRENCY,
+			core_pricing=Config.AGENT_CORE_PRICING,
+			commission_cost=Config.AGENT_COMMISSION_COST,
+		)
 
 	def __get_currencies(self, pairs: List[Tuple[str, str]]) -> List[str]:
 		currencies = []
