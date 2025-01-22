@@ -229,7 +229,12 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-TIMEOUT = 8*60*60
+try:
+	import torch_xla
+	from torch_xla.distributed import parallel_loader
+	TIMEOUT = 8*60*60
+except ImportError:
+	TIMEOUT = 11*60*60
 
 
 class ResourceCategories:
