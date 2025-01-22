@@ -140,13 +140,26 @@ class TraderAgentTest(unittest.TestCase):
 		self.agent.loop()
 
 	def test_resume_mca(self):
+
+		def get_node(root, path):
+			path = path.copy()
+			node = root
+			while len(path) > 0:
+				node = node.get_children()[path.pop(0)]
+			return node
+
+		PATH = None
+
 		environment = LiveEnvironment()
 		environment.start()
 
 		agent = TraderAgent()
 		agent.set_environment(environment)
 
-		node, repo = stats.load_and_draw_graph("/home/abrehamatlaw/Downloads/Compressed/results_8/graph_dumps/1729381879.210845")
+		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results_10/graph_dumps/1736044405.169263")
+		if PATH is not None:
+			node = get_node(node, path=PATH)
+
 		state = repo.retrieve(node.id)
 
 		plt.figure()

@@ -231,7 +231,7 @@ def share_notebooks():
 	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
 		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-4-tot/'
-		for i in range(177, 179)
+		for i in [351, 352, 353, 354]
 	]
 	random.shuffle(notebook_urls)
 	threads = len(notebook_urls)
@@ -242,7 +242,7 @@ def share_notebooks():
 		'yosephmezemer',
 		'napoleonbonaparte0',
 		'inkoops',
-		# 'abrehamalemu',
+		'abrehamalemu',
 		'albertcamus0',
 		'birukay',
 		'nikolatesla0',

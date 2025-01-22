@@ -34,6 +34,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			encode_max_open_trade=Config.AGENT_MAX_OPEN_TRADES,
 			wp=Config.AGENT_DRMCA_WP,
 			top_k_nodes=Config.AGENT_TOP_K_NODES,
+			dynamic_k_threshold=Config.AGENT_DYNAMIC_K_THRESHOLD,
 			dump_nodes=Config.AGENT_DUMP_NODES,
 			dump_path=Config.AGENT_DUMP_NODES_PATH,
 			dump_visited_only=Config.AGENT_DUMP_VISITED_ONLY,
@@ -49,6 +50,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			save_path=save_path,
 			wp=wp,
 			top_k_nodes=top_k_nodes,
+			dynamic_k_threshold=dynamic_k_threshold,
 			dump_nodes=dump_nodes,
 			dump_path=dump_path,
 			dump_visited_only=dump_visited_only,
@@ -78,7 +80,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 				WrappedModel(
 					model,
 					seq_len=Config.MARKET_STATE_MEMORY,
-					window_size=Config.AGENT_MA_WINDOW_SIZE
+					window_size=Config.AGENT_MA_WINDOW_SIZE,
+					use_ma=Config.AGENT_USE_MA,
 				)
 			)
 

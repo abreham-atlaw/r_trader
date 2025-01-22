@@ -70,9 +70,9 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def __print_dps(self, dps: typing.List[RunnerStats]):
 		print(pd.DataFrame([
-			(dp.id, dp.model_name, dp.duration, dp.profit, dp.real_profit,  dp.model_losses, dp.session_timestamps, dp.profits, dp.real_profits)
+			(dp.id, dp.model_name, dp.duration, dp.profit,  dp.model_losses, dp.session_timestamps, dp.profits)
 			for dp in dps
-		], columns=["ID", "Model", "Duration", "Profit", "Real Profit", "Losses", "Sessions", "Profits", "Real Profits"]).to_string())
+		], columns=["ID", "Model", "Duration", "Real Profit", "Losses", "Sessions", "Profits"]).to_string())
 
 	def __filter_stats(
 			self,
@@ -82,11 +82,14 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			min_model_losses: typing.Tuple[float, float] = None,
 			min_profit: float = None,
 			max_profit: float = None,
+			min_real_profit: float = None,
+			max_real_profit: float = None,
 			model_key: str = None,
 			min_duration: float = None,
 			sessions: int = None,
 			max_temperature: float = None,
-			min_temperature: float = None
+			min_temperature: float = None,
+			min_min_profit: float = None
 	) -> typing.List[RunnerStats]:
 
 		if model_key is not None:
@@ -100,7 +103,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			dps = [
 				dp
 				for dp in dps
-				if dp.session_timestamps[-1] > time
+				if len(dp.session_timestamps) > 0 and dp.session_timestamps[-1] > time
 			]
 
 		if sessions is not None:
@@ -150,15 +153,38 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				dps
 			))
 
+		if max_real_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.real_profit <= max_real_profit,
+				dps
+			))
+		if min_real_profit is not None:
+			dps = list(filter(
+				lambda dp: dp.real_profit >= min_real_profit,
+				dps
+			))
+
 		if min_duration is not None:
 			dps = list(filter(
 				lambda dp: dp.duration >= min_duration,
 				dps
 			))
 
+		if min_min_profit is not None:
+			dps = list(filter(
+				lambda dp: len(dp.profits) > 0 and (False not in [profit >= min_min_profit for profit in dp.profits]),
+				dps
+			))
+
 		return dps
 
-	def __plot_profit_vs_loss(self, dps_list, dps_names=None):
+	def __plot_profit_vs_loss(self, dps_list, dps_names=None, real: bool = False):
+
+		def get_profit(dp: RunnerStats) -> float:
+			if real:
+				return dp.real_profit
+			return dp.profit
+
 		if dps_names is None:
 			dps_names = ["" for _ in range(len(dps_list))]
 		for dps in dps_list:
@@ -199,7 +225,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			for j, dps in enumerate(dps_list):
 				plt.scatter(
 					losses[j][i],
-					[dp.profit for dp in dps],
+					[get_profit(dp) for dp in dps],
 					label=dps_names[j]
 				)
 			plt.axhline(y=0, color="black")
@@ -208,6 +234,37 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			plt.legend()
 
 	def test_plot_profit_vs_loss(self):
+		dps = sorted(self.__filter_stats(
+				self.__get_valid_dps(),
+				# max_temperature=0.5,
+				# min_temperature=1.0,
+				# min_profit=-5,
+				# max_profit=5
+				# time=datetime.now() - timedelta(hours=33),
+				# model_losses=(1.5, None, None)
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+				sessions=2
+			),
+			key=lambda dp: dp.profit,
+			reverse=True
+		)
+		self.__plot_profit_vs_loss(
+			[
+				dps,
+				# list(
+				# 	filter(
+				# 		lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip',
+				# 		dps
+				# 	)
+				# )
+			],
+		)
+		plt.show()
+
+	def test_plot_real_profit_vs_loss(self):
 		dps = sorted(self.__filter_stats(
 				self.__get_valid_dps(),
 				# max_temperature=0.5,
@@ -220,8 +277,15 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			key=lambda dp: dp.profit,
 			reverse=True
 		)
-		self.__plot_profit_vs_loss([dps])
+		self.__plot_profit_vs_loss(
+			[
+				dps,
+				list(filter(lambda dp: dp.model_name == 'abrehamalemu-rtrader-training-exp-0-cnn-181-cum-0-it-4-tot.zip', dps))
+			],
+			# real=True
+		)
 		plt.show()
+
 
 	def test_plot_losses(self):
 		dps = self.repository.retrieve_by_loss_complete()
@@ -248,9 +312,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		stat = RunnerStats(
 			id=ID,
 			model_name="test",
-			profit=0.0,
 			duration=0.0,
-			model_losses=(3.0, 7.0),
 			session_timestamps=[datetime(year=2020, month=1, day=1)]
 		)
 
@@ -333,8 +395,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 					3.8,
 					14.5,
 				),
-				max_profit=0,
-				min_temperature=1.0
+				min_profit=0,
+				# min_temperature=1.0
 			),
 			key=lambda dp: dp.model_losses[0]
 		)
@@ -358,6 +420,38 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		self.__print_dps(dps)
 
+	def test_get_least_loss_real_losing_stats(self):
+		dps = sorted(
+			self.__filter_stats(
+				self.__get_valid_dps(),
+				# time=datetime.now() - timedelta(hours=48),
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+				min_real_profit=0,
+				# min_temperature=1.0
+			),
+			key=lambda dp: dp.model_losses[0]
+		)
+
+		self.__print_dps(dps)
+
+	def test_get_highest_pl_discrepancy_stats(self):
+
+		dps = sorted(
+			self.__filter_stats(
+				self.__get_valid_dps(),
+				max_model_losses=(
+					3.8,
+					14.5,
+				),
+			),
+			key=lambda stat: abs(stat.profit - stat.real_profit),
+			reverse=True
+		)
+		self.__print_dps(dps)
+
 	def test_get_sessions(self):
 		dps = sorted(
 			self.__filter_stats(
@@ -378,9 +472,12 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.repository.retrieve_all(),
 				# model_key='linear',
 				# model_losses=(1.5,None),
-				# time=datetime.now() - timedelta(hours=9),
+				# time=datetime.now() - timedelta(hours=24),
+				sessions=2,
+				min_profit=0,
+				min_min_profit=0
 			),
-			key=lambda dp: len(dp.real_profits),
+			key=lambda dp: dp.profit,
 			reverse=True
 		)
 

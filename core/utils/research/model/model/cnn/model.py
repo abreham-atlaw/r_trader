@@ -20,13 +20,14 @@ class CNN(SpinozaModule):
 			indicators: typing.Optional[Indicators] = None,
 			pool_sizes: typing.Optional[typing.List[int]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
-			dropout_rate: float = 0,
+			dropout_rate: typing.Union[float, typing.List[float]] = 0,
 			init_fn: typing.Optional[nn.Module] = None,
 			padding: int = 1,
 			avg_pool=True,
 			linear_collapse=False,
 			input_size: int = 1028,
 			norm: typing.Union[bool, typing.List[bool]] = False,
+			stride: typing.Union[int, typing.List[int]] = 1,
 			positional_encoding: bool = False,
 			norm_positional_encoding: bool = False
 	):
@@ -37,6 +38,7 @@ class CNN(SpinozaModule):
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
+			'stride': stride,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
@@ -70,20 +72,28 @@ class CNN(SpinozaModule):
 		if len(norm) != len(conv_channels) - 1:
 			raise ValueError("Norm size doesn't match layers size")
 
+		if isinstance(dropout_rate, (int, float)):
+			dropout_rate = [dropout_rate for _ in range(len(conv_channels))]
+		if len(dropout_rate) != len(conv_channels):
+			raise ValueError("Dropout size doesn't match layers size")
+
+		if isinstance(stride, int):
+			stride = [stride for _ in kernel_sizes]
+		if len(stride) != len(kernel_sizes):
+			raise ValueError("Stride size doesn't match layers size")
+
+		self.layers = nn.ModuleList(self._build_conv_layers(
+			channels=conv_channels,
+			kernel_sizes=kernel_sizes,
+			stride=stride,
+			padding=padding
+		))
+
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
 				self.norm_layers.append(DynamicLayerNorm())
 			else:
 				self.norm_layers.append(nn.Identity())
-			self.layers.append(
-				nn.Conv1d(
-					in_channels=conv_channels[i],
-					out_channels=conv_channels[i + 1],
-					kernel_size=kernel_sizes[i],
-					stride=1,
-					padding=padding
-				)
-			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
 			if pool_sizes[i] > 0:
@@ -95,10 +105,12 @@ class CNN(SpinozaModule):
 			else:
 				self.pool_layers.append(nn.Identity())
 		self.hidden_activation = hidden_activation
-		if dropout_rate > 0:
-			self.dropout = nn.Dropout(dropout_rate)
-		else:
-			self.dropout = nn.Identity()
+
+		self.dropouts = nn.ModuleList([
+			nn.Dropout(rate) if rate > 0 else nn.Identity()
+			for rate in dropout_rate
+		])
+
 		self.ff_block = ff_block
 		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
 
@@ -115,6 +127,24 @@ class CNN(SpinozaModule):
 
 		self.init()
 
+	def _build_conv_layers(
+			self,
+			channels: typing.List[int],
+			kernel_sizes: typing.List[int],
+			stride: typing.List[int],
+			padding: int
+	) -> typing.List[nn.Module]:
+		return [
+			nn.Conv1d(
+				in_channels=channels[i],
+				out_channels=channels[i + 1],
+				kernel_size=kernel_sizes[i],
+				stride=stride[i],
+				padding=padding,
+			)
+			for i in range(len(channels) - 1)
+		]
+
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
 			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
@@ -130,15 +160,15 @@ class CNN(SpinozaModule):
 
 		out = self.pos(out)
 
-		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
+		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
 			out = layer.forward(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
-			out = self.dropout(out)
+			out = dropout(out)
 			out = norm(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		out = self.dropouts[-1](out)
 		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
 		out = self.ff_block(out)
 		return out
