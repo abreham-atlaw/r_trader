@@ -133,9 +133,12 @@ class CNN(SpinozaModule):
 
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
-			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
+			self.pos_layer = PositionalEncodingPermute1D(1)
 		inputs = self.pos_norm(inputs)
-		return self.pe_scale(inputs, self.pos_layer(inputs))
+		return self.pe_scale(
+			inputs,
+			self.pos_layer(inputs[:, :1, :]).repeat(1, inputs.shape[1], 1)
+		)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
 		return torch.flatten(out, 1, 2)
