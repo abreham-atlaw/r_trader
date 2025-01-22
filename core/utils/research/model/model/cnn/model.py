@@ -66,7 +66,7 @@ class CNN(SpinozaModule):
 				0
 				for _ in kernel_sizes
 			]
-		conv_channels = [self.indicators.indicators_len] + conv_channels
+		conv_channels = [self.indicators.indicators_len * 2] + conv_channels
 
 		if isinstance(norm, bool):
 			norm = [norm for _ in range(len(conv_channels) - 1)]
@@ -129,7 +129,9 @@ class CNN(SpinozaModule):
 	def pe_scale(self, inputs: torch.Tensor, pe: torch.Tensor) -> torch.Tensor:
 		inputs = self.min_max_norm(inputs)
 		pe = self.min_max_norm(pe)
-		return inputs + (pe * self.pe_alpha)
+		return torch.concatenate((
+			inputs, pe*self.pe_alpha
+		), dim=1)
 
 	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
 		if self.pos_layer is None:
