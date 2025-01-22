@@ -39,6 +39,7 @@ class CNN(SpinozaModule):
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
+			'stride': stride,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
@@ -66,7 +67,7 @@ class CNN(SpinozaModule):
 				0
 				for _ in kernel_sizes
 			]
-		conv_channels = [self.indicators.indicators_len * 2] + conv_channels
+		conv_channels = [self.indicators.indicators_len] + conv_channels
 
 		if isinstance(norm, bool):
 			norm = [norm for _ in range(len(conv_channels) - 1)]
@@ -83,20 +84,18 @@ class CNN(SpinozaModule):
 		if len(stride) != len(kernel_sizes):
 			raise ValueError("Stride size doesn't match layers size")
 
+		self.layers = nn.ModuleList(self._build_conv_layers(
+			channels=conv_channels,
+			kernel_sizes=kernel_sizes,
+			stride=stride,
+			padding=padding
+		))
+
 		for i in range(len(conv_channels) - 1):
 			if norm[i]:
 				self.norm_layers.append(DynamicLayerNorm())
 			else:
 				self.norm_layers.append(nn.Identity())
-			self.layers.append(
-				nn.Conv1d(
-					in_channels=conv_channels[i],
-					out_channels=conv_channels[i + 1],
-					kernel_size=kernel_sizes[i],
-					stride=stride[i],
-					padding=padding,
-				)
-			)
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
 			if pool_sizes[i] > 0:
@@ -125,6 +124,24 @@ class CNN(SpinozaModule):
 		self.min_max_norm = MinMaxNorm()
 
 		self.init()
+
+	def _build_conv_layers(
+			self,
+			channels: typing.List[int],
+			kernel_sizes: typing.List[int],
+			stride: typing.List[int],
+			padding: int
+	) -> typing.List[nn.Module]:
+		return [
+			nn.Conv1d(
+				in_channels=channels[i],
+				out_channels=channels[i + 1],
+				kernel_size=kernel_sizes[i],
+				stride=stride[i],
+				padding=padding,
+			)
+			for i in range(len(channels) - 1)
+		]
 
 	def pe_scale(self, inputs: torch.Tensor, pe: torch.Tensor) -> torch.Tensor:
 		inputs = self.min_max_norm(inputs)
