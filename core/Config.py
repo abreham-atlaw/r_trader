@@ -272,10 +272,12 @@ class RunnerStatsLossesBranches:
 
 	main = "main"
 	it_10 = "it_10"
+	it_12 = "it_12"
 
 	all = [
 		main,
-		it_10
+		it_10,
+		it_12
 	]
 
 	default = main
