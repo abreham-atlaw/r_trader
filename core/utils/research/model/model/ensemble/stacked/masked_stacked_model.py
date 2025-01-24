@@ -12,15 +12,15 @@ class MaskedStackedModel(SpinozaModule, ABC):
 	def __init__(
 			self,
 			models: typing.List[SpinozaModule],
-			softmax_models: bool = False
+			pre_weight_softmax: bool = False
 	):
 		self.args = {
 			"models": models,
-			"softmax_models": softmax_models
+			"pre_weight_softmax": pre_weight_softmax
 		}
 		super().__init__(input_size=models[0].input_size, auto_build=False)
 		self.models = models
-		self.softmax = nn.Softmax(dim=-1) if softmax_models else nn.Identity()
+		self.softmax = nn.Softmax(dim=-1) if pre_weight_softmax else nn.Identity()
 
 	@abstractmethod
 	def _get_mask(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
