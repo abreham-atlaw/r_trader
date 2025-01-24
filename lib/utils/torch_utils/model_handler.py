@@ -92,7 +92,7 @@ class ModelHandler:
 			model.to(original_device)
 
 	@staticmethod
-	def load(path, dtype=torch.float32, load_state_dict=True):
+	def load(path, dtype=torch.float32):
 		dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
 		try:
@@ -120,13 +120,13 @@ class ModelHandler:
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				if isinstance(value, (list, tuple)):
 					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = [
-						ModelHandler.load(os.path.join(dirname, value[i]), load_state_dict=False)
+						ModelHandler.load(os.path.join(dirname, value[i]))
 						for i in range(len(value))
 					]
 					for i in range(len(value)):
 						os.remove(os.path.join(dirname, value[i]))
 				else:
-					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value), load_state_dict=False)
+					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value))
 					os.remove(os.path.join(dirname, value))
 			else:
 				model_config_copy[key] = value
@@ -138,8 +138,7 @@ class ModelHandler:
 		model: SpinozaModule = ModelClass(**model_config)
 
 		# Load the state dict
-		if load_state_dict:
-			model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
+		model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
 
 		shutil.rmtree(dirname, ignore_errors=True)
 
