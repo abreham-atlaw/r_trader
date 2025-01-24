@@ -25,6 +25,7 @@ class CNNBlock(SpinozaModule):
 	):
 
 		self.args = {
+			'input_channels': input_channels,
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
