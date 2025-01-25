@@ -12,10 +12,17 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class CheckpointCallback(Callback):
-	def __init__(self, path, save_state=False, ext=MODEL_SAVE_EXTENSION):
+	def __init__(
+			self,
+			path,
+			save_state=False,
+			ext=MODEL_SAVE_EXTENSION,
+			interval: int = None
+	):
 		self.path = path
 		self.save_state = save_state
 		self.ext = ext
+		self.interval = interval
 
 	def _generate_name(self) -> str:
 		return f"{datetime.now().timestamp()}.{self.ext}"
@@ -24,6 +31,8 @@ class CheckpointCallback(Callback):
 		ModelHandler.save(model, path)
 
 	def on_epoch_end(self, model, epoch, losses, logs=None):
+		if self.interval is not None and epoch % self.interval != 0:
+			return
 		path = self.path
 		if os.path.isdir(self.path):
 			path = os.path.join(self.path, self._generate_name())
