@@ -12,7 +12,7 @@ class LinearMSM(MaskedStackedModel):
 	def __init__(
 			self,
 			*args,
-			ff: typing.Optional[LinearModel] = None,
+			ff: typing.Optional[nn.Module] = None,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
