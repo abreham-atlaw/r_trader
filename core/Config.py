@@ -230,6 +230,9 @@ PREDICTION_MODELS = [
 ]
 
 
+TIMEOUT = 8*12*12
+
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
