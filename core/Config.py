@@ -251,11 +251,13 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 MAPLOSS_BRANCH = "ma_ews"
 MAPLOSS_KEY = "cnn"
-with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+# with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+# 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
 MODEL_OUT_PATH = "/Apps/RTrader/tmp"
 MODEL_TMP_PATH = os.path.abspath("./out/")
+
+MAPLOSS_POPULATION_SIZE = 100
 
 TIMEOUT = 2*60*60
 

@@ -22,6 +22,7 @@ class ResearchProvider:
 			client=ServiceProvider.provide_mongo_client(),
 			profit_based_selection=False,
 			branch=branch,
+			population_size=Config.MAPLOSS_POPULATION_SIZE
 		)
 
 	@staticmethod
