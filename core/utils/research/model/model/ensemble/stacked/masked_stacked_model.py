@@ -21,8 +21,7 @@ class MaskedStackedModel(SpinozaModule, ABC):
 			"extra_outputs_size": extra_outputs_size
 		}
 		super().__init__(input_size=models[0].input_size, auto_build=False)
-		# self.models = nn.ModuleList(models)
-		self.models = models
+		self.models = nn.ModuleList(models)
 		self.softmax = nn.Softmax(dim=-1) if pre_weight_softmax else nn.Identity()
 		self.extra_outputs_size = extra_outputs_size
 
