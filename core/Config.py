@@ -230,7 +230,7 @@ PREDICTION_MODELS = [
 ]
 
 
-TIMEOUT = 8*12*12
+TIMEOUT = 2*60*60
 
 
 class ResourceCategories:
