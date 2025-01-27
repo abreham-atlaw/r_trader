@@ -69,7 +69,8 @@ class ModelHandler:
 		# Zip the two files together
 		with zipfile.ZipFile(path, 'w') as zipf:
 			zipf.write('model_config.json')
-			zipf.write('model_state.pth')
+			if save_state:
+				zipf.write('model_state.pth')
 			for key, value in model_config.items():
 				if key.startswith(ModelHandler.__MODEL_PREFIX):
 					if isinstance(value, (list, tuple)):
@@ -80,7 +81,8 @@ class ModelHandler:
 
 		# Remove the temporary files
 		os.remove('model_config.json')
-		os.remove('model_state.pth')
+		if save_state:
+			os.remove('model_state.pth')
 		for key, value in model_config.items():
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				if isinstance(value, (list, tuple)):
