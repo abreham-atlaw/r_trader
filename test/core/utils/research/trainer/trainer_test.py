@@ -19,6 +19,7 @@ from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.cnn.resnet import ResNet
 from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM, PlainMSM
+from core.utils.research.model.model.ensemble.stacked.linear_3dmsm import Linear3dMSM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Decoder
 from core.utils.research.model.model.transformer import Transformer
@@ -80,8 +81,8 @@ class TrainerTest(unittest.TestCase):
 
 		SAMPLE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
 		ENSEMBLE_SAMPLE_PATHES = [
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-192",
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-240"
+				# "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-192",
+				# "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-240"
 		]
 
 		SAMPLE_PATHS = [SAMPLE_PATH] + ENSEMBLE_SAMPLE_PATHES
@@ -423,6 +424,49 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		self.__train_model(model, dataloader)
+
+	def test_linear_3d_msm(self):
+
+		MODELS = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+			]
+		]
+
+		X = np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
+			np.float32)
+
+		model = Linear3dMSM(
+			models=MODELS,
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			)
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
+		]
+
+		self.__train_model(model, dataloader)
+
 
 	def test_plain_msm(self):
 
