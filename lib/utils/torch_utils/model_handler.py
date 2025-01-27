@@ -26,7 +26,7 @@ class ModelHandler:
 				raise ValueError("The model has no parameters or buffers to infer the device.")
 
 	@staticmethod
-	def save(model, path, to_cpu=True):
+	def save(model, path, to_cpu=True, save_state=True):
 		original_device = None
 		if to_cpu:
 			try:
@@ -92,7 +92,7 @@ class ModelHandler:
 			model.to(original_device)
 
 	@staticmethod
-	def load(path, dtype=torch.float32):
+	def load(path, dtype=torch.float32, load_state=True):
 		dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
 		try:
@@ -120,13 +120,13 @@ class ModelHandler:
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				if isinstance(value, (list, tuple)):
 					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = [
-						ModelHandler.load(os.path.join(dirname, value[i]))
+						ModelHandler.load(os.path.join(dirname, value[i]), load_state=False)
 						for i in range(len(value))
 					]
 					for i in range(len(value)):
 						os.remove(os.path.join(dirname, value[i]))
 				else:
-					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value))
+					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value), load_state=False)
 					os.remove(os.path.join(dirname, value))
 			else:
 				model_config_copy[key] = value
@@ -138,7 +138,8 @@ class ModelHandler:
 		model: SpinozaModule = ModelClass(**model_config)
 
 		# Load the state dict
-		model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
+		if load_state:
+			model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
 
 		shutil.rmtree(dirname, ignore_errors=True)
 
