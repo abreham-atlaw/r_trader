@@ -47,12 +47,12 @@ class ModelHandler:
 				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = []
 				for i in range(len(value)):
 					filename = f"{key}_{i}.zip"
-					ModelHandler.save(value[i], filename)
+					ModelHandler.save(value[i], filename, save_state=False)
 					model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"].append(filename)
 
 			elif isinstance(value, SpinozaModule):
 				filename = f"{key}.zip"
-				ModelHandler.save(value, filename)
+				ModelHandler.save(value, filename, save_state=False)
 				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename
 			else:
 				model_config_copy[key] = value
@@ -63,7 +63,8 @@ class ModelHandler:
 			json.dump(model_config, f)
 
 		# Save model state dict
-		torch.save(model.state_dict(), 'model_state.pth')
+		if save_state:
+			torch.save(model.state_dict(), 'model_state.pth')
 
 		# Zip the two files together
 		with zipfile.ZipFile(path, 'w') as zipf:
