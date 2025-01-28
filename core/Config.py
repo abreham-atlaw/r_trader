@@ -50,19 +50,19 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
-	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
-	# "TBa557ZIO9B7ZoRcWXn5J5GYPecBJdNKb6y5gebik",  # abreham.atlaw@yahoo.com -
-	"NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
-	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
-	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
-	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
-	# "BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
-	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
-	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
-	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
-	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
-	# "74KlVVZktF97ZlN8XWt32axY622ndH5eK7hBfIreV",  # abrehamalemu@outlook.com
+	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	# "nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
+	# # "TBa557ZIO9B7ZoRcWXn5J5GYPecBJdNKb6y5gebik",  # abreham.atlaw@yahoo.com -
+	# "NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
+	# "6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
+	# # "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
+	# "DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
+	# # "BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
+	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
+	# "6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
+	# # "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
+	# "2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
+	"udLaL7ZktF97ZrU5gOh8Bt64MxRazUcG0YyN8O5RV",  # abrehamalemu@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -177,7 +177,6 @@ with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
 
-
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8
 CURRENCIES = [
@@ -229,12 +228,8 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-try:
-	import torch_xla
-	from torch_xla.distributed import parallel_loader
-	TIMEOUT = 8*60*60
-except ImportError:
-	TIMEOUT = 11*60*60
+MODEL_IN_PATH = "/Apps/RTrader/tmp"
+MODEL_TMP_PATH = os.path.abspath("./out/")
 
 
 class ResourceCategories:
@@ -258,6 +253,8 @@ class RunnerStatsBranches:
 
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
+	tmp = "tmp"
+
 	all = [
 		main,
 		ma_ews,
@@ -270,7 +267,7 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm
 	]
 
-	default = ma_ews_dynamic_k_stm
+	default = tmp
 
 
 class RunnerStatsLossesBranches:
@@ -279,10 +276,12 @@ class RunnerStatsLossesBranches:
 	it_10 = "it_10"
 	it_12 = "it_12"
 
+	tmp = "tmp"
+
 	all = [
 		main,
 		it_10,
 		it_12
 	]
 
-	default = main
+	default = tmp
