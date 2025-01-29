@@ -177,6 +177,7 @@ with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
 
+
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8
 CURRENCIES = [
@@ -279,12 +280,14 @@ class RunnerStatsLossesBranches:
 
 	main = "main"
 	it_10 = "it_10"
+	it_12 = "it_12"
 
 	tmp = "tmp"
 
 	all = [
 		main,
-		it_10
+		it_10,
+		it_12
 	]
 
 	default = tmp
