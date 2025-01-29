@@ -10,3 +10,4 @@ from .rsi import *
 from .so import *
 from .indicators import *
 from .dynamic_layer_norm import DynamicLayerNorm
+from .inverse_softmax import InverseSoftmax
