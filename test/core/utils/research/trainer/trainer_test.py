@@ -401,7 +401,8 @@ class TrainerTest(unittest.TestCase):
 			models=MODELS,
 			ff=LinearModel(
 				layer_sizes=[512, 256]
-			)
+			),
+			vote=True
 		)
 
 		dataset = BaseDataset(
@@ -443,7 +444,8 @@ class TrainerTest(unittest.TestCase):
 			models=MODELS,
 			ff=LinearModel(
 				layer_sizes=[512, 256]
-			)
+			),
+
 		)
 
 		dataset = BaseDataset(
