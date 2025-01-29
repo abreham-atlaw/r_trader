@@ -8,6 +8,7 @@ from core.Config import MODEL_SAVE_EXTENSION
 from core.di import ServiceProvider
 from core.utils.research.training.callbacks import Callback
 from lib.utils.file_storage import FileStorage
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -54,6 +55,8 @@ class StoreCheckpointCallback(CheckpointCallback):
 		if not self.__active:
 			return
 		path = super().on_epoch_end(model, epoch, logs)
+		if path is None:
+			return
 		self.__file_storage.upload_file(path)
 		if self.__delete_stored:
 			os.remove(path)
