@@ -325,7 +325,10 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.repository.remove(ID)
 
 	def test_clear_losses(self):
-		stats = self.repository.retrieve_all()
+		stats = self.__filter_stats(
+			self.repository.retrieve_all(),
+			model_key='cnn'
+		)
 		for i, stat in enumerate(stats):
 			stat.model_losses = [
 				0

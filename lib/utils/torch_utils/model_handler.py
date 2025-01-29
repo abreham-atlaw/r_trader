@@ -26,7 +26,7 @@ class ModelHandler:
 				raise ValueError("The model has no parameters or buffers to infer the device.")
 
 	@staticmethod
-	def save(model, path, to_cpu=True):
+	def save(model, path, to_cpu=True, save_state=True):
 		original_device = None
 		if to_cpu:
 			try:
@@ -47,12 +47,12 @@ class ModelHandler:
 				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = []
 				for i in range(len(value)):
 					filename = f"{key}_{i}.zip"
-					ModelHandler.save(value[i], filename)
+					ModelHandler.save(value[i], filename, save_state=False)
 					model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"].append(filename)
 
 			elif isinstance(value, SpinozaModule):
 				filename = f"{key}.zip"
-				ModelHandler.save(value, filename)
+				ModelHandler.save(value, filename, save_state=False)
 				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename
 			else:
 				model_config_copy[key] = value
@@ -63,12 +63,14 @@ class ModelHandler:
 			json.dump(model_config, f)
 
 		# Save model state dict
-		torch.save(model.state_dict(), 'model_state.pth')
+		if save_state:
+			torch.save(model.state_dict(), 'model_state.pth')
 
 		# Zip the two files together
 		with zipfile.ZipFile(path, 'w') as zipf:
 			zipf.write('model_config.json')
-			zipf.write('model_state.pth')
+			if save_state:
+				zipf.write('model_state.pth')
 			for key, value in model_config.items():
 				if key.startswith(ModelHandler.__MODEL_PREFIX):
 					if isinstance(value, (list, tuple)):
@@ -79,7 +81,8 @@ class ModelHandler:
 
 		# Remove the temporary files
 		os.remove('model_config.json')
-		os.remove('model_state.pth')
+		if save_state:
+			os.remove('model_state.pth')
 		for key, value in model_config.items():
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				if isinstance(value, (list, tuple)):
@@ -92,7 +95,7 @@ class ModelHandler:
 			model.to(original_device)
 
 	@staticmethod
-	def load(path, dtype=torch.float32):
+	def load(path, dtype=torch.float32, load_state=True):
 		dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
 		try:
@@ -120,13 +123,13 @@ class ModelHandler:
 			if key.startswith(ModelHandler.__MODEL_PREFIX):
 				if isinstance(value, (list, tuple)):
 					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = [
-						ModelHandler.load(os.path.join(dirname, value[i]))
+						ModelHandler.load(os.path.join(dirname, value[i]), load_state=False)
 						for i in range(len(value))
 					]
 					for i in range(len(value)):
 						os.remove(os.path.join(dirname, value[i]))
 				else:
-					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value))
+					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value), load_state=False)
 					os.remove(os.path.join(dirname, value))
 			else:
 				model_config_copy[key] = value
@@ -138,7 +141,8 @@ class ModelHandler:
 		model: SpinozaModule = ModelClass(**model_config)
 
 		# Load the state dict
-		model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
+		if load_state:
+			model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
 
 		shutil.rmtree(dirname, ignore_errors=True)
 

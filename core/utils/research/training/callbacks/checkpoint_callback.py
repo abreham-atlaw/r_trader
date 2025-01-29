@@ -8,14 +8,22 @@ from core.Config import MODEL_SAVE_EXTENSION
 from core.di import ServiceProvider
 from core.utils.research.training.callbacks import Callback
 from lib.utils.file_storage import FileStorage
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class CheckpointCallback(Callback):
-	def __init__(self, path, save_state=False, ext=MODEL_SAVE_EXTENSION):
+	def __init__(
+			self,
+			path,
+			save_state=False,
+			ext=MODEL_SAVE_EXTENSION,
+			interval: int = None
+	):
 		self.path = path
 		self.save_state = save_state
 		self.ext = ext
+		self.interval = interval
 
 	def _generate_name(self) -> str:
 		return f"{datetime.now().timestamp()}.{self.ext}"
@@ -24,6 +32,8 @@ class CheckpointCallback(Callback):
 		ModelHandler.save(model, path)
 
 	def on_epoch_end(self, model, epoch, losses, logs=None):
+		if self.interval is not None and epoch % self.interval != 0:
+			return
 		path = self.path
 		if os.path.isdir(self.path):
 			path = os.path.join(self.path, self._generate_name())
@@ -33,7 +43,7 @@ class CheckpointCallback(Callback):
 
 class StoreCheckpointCallback(CheckpointCallback):
 
-	def __init__(self, *args, fs: FileStorage = None, delete_stored=False, active=True, **kwargs):
+	def __init__(self, *args, fs: FileStorage = None, delete_stored=False, active=False, **kwargs):
 		super().__init__(*args, **kwargs)
 		if fs is None:
 			fs = ServiceProvider.provide_file_storage()
@@ -45,6 +55,8 @@ class StoreCheckpointCallback(CheckpointCallback):
 		if not self.__active:
 			return
 		path = super().on_epoch_end(model, epoch, logs)
+		if path is None:
+			return
 		self.__file_storage.upload_file(path)
 		if self.__delete_stored:
 			os.remove(path)
