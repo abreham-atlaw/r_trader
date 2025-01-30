@@ -30,7 +30,7 @@ class MLPLEvaluator:
 		return self.__losses_export_path
 
 	def __evaluate_model(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor) -> float:
-		y = y[:, 1:]
+		y = y[:, :-1]
 		y_hat = model(X)[:, :-1]
 		return self.__loss(y_hat, y)
 
