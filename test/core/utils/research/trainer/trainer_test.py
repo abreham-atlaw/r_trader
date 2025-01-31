@@ -401,7 +401,8 @@ class TrainerTest(unittest.TestCase):
 			models=MODELS,
 			ff=LinearModel(
 				layer_sizes=[512, 256]
-			)
+			),
+			softmax_mask=True
 		)
 
 		dataset = BaseDataset(
