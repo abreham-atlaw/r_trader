@@ -41,7 +41,7 @@ class EnsembleStackedDataset(Dataset):
 		xy_dataset = BaseDataset(
 			root_dirs=root_dirs[0],
 			out_dtypes=self.__out_dtypes,
-			check_last_file=True,
+			check_last_file=False,
 			num_files=num_files
 		)
 
@@ -50,7 +50,7 @@ class EnsembleStackedDataset(Dataset):
 				root_dirs=root_dir,
 				X_dir=self.__y_hat_dir,
 				out_dtypes=self.__out_dtypes,
-				check_last_file=True,
+				check_last_file=False,
 				num_files=num_files
 			)
 			for root_dir in root_dirs
