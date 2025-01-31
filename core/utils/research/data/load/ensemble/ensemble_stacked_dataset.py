@@ -19,14 +19,15 @@ class EnsembleStackedDataset(Dataset):
 			y_dir: str = "y",
 			y_hat_dir: str = "y_hat",
 			out_dtypes: typing.Type = np.float32,
-			integrity_checks: int = 5
+			integrity_checks: int = 5,
+			num_files: int = None
 	):
 		super().__init__()
 		self.__out_dtypes = out_dtypes
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
 		self.__y_hat_dir = y_hat_dir
-		self.__Xy_dataset, self.__models_datasets = self.__create_datasets(root_dirs)
+		self.__Xy_dataset, self.__models_datasets = self.__create_datasets(root_dirs, num_files=num_files)
 		self.merger = TensorMerger()
 		self.__indexes = list(range(len(self.__Xy_dataset)))
 		self.__initialize()
@@ -36,11 +37,12 @@ class EnsembleStackedDataset(Dataset):
 	def __initialize(self):
 		return self[0]
 
-	def __create_datasets(self, root_dirs: typing.List[typing.List[str]]):
+	def __create_datasets(self, root_dirs: typing.List[typing.List[str]], num_files: int):
 		xy_dataset = BaseDataset(
 			root_dirs=root_dirs[0],
 			out_dtypes=self.__out_dtypes,
-			check_last_file=True
+			check_last_file=True,
+			num_files=num_files
 		)
 
 		models_datasets = [
@@ -48,7 +50,8 @@ class EnsembleStackedDataset(Dataset):
 				root_dirs=root_dir,
 				X_dir=self.__y_hat_dir,
 				out_dtypes=self.__out_dtypes,
-				check_last_file=True
+				check_last_file=True,
+				num_files=num_files
 			)
 			for root_dir in root_dirs
 		]

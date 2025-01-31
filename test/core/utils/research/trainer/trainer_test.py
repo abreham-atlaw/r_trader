@@ -16,13 +16,16 @@ from core.utils.research.data.load.ensemble import EnsembleStackedDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
 	MSCECrossEntropyLoss, LogLoss
 from core.utils.research.model.layers import Indicators
+from core.utils.research.model.model.cnn.cnn_block import CNNBlock
+from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
+from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.cnn.resnet import ResNet
-from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM, PlainMSM
-from core.utils.research.model.model.ensemble.stacked.linear_3dmsm import Linear3dMSM
+from core.utils.research.model.model.ensemble.stacked.msm import LinearMSM, SimplifiedMSM, PlainMSM
+from core.utils.research.model.model.ensemble.stacked.msm.linear_3dmsm import Linear3dMSM
+
+from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel, EDFDecoder
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.transformer import Decoder
-from core.utils.research.model.model.transformer import Transformer
+from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.callbacks import WeightStatsCallback
 from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
 from core.utils.research.training.callbacks.metric_callback import MetricCallback
@@ -178,6 +181,8 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
+		COLLAPSE_DROPOUT = 0.3
+
 		USE_FF = True
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
@@ -207,21 +212,28 @@ class TrainerTest(unittest.TestCase):
 
 		model = CNN(
 			extra_len=EXTRA_LEN,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE,
-			padding=PADDING,
-			avg_pool=AVG_POOL,
-			linear_collapse=LINEAR_COLLAPSE,
-			norm=NORM,
-			ff_block=ff,
-			indicators=indicators,
+			embedding_block=EmbeddingBlock(
+				positional_encoding=POSITIONAL_ENCODING,
+				norm_positional_encoding=POSITIONAL_ENCODING_NORM,
+				indicators=indicators,
+			),
+			cnn_block=CNNBlock(
+				input_channels=indicators.indicators_len,
+				conv_channels=CHANNELS,
+				kernel_sizes=KERNEL_SIZES,
+				hidden_activation=ACTIVATION,
+				pool_sizes=POOL_SIZES,
+				dropout_rate=DROPOUT_RATE,
+				padding=PADDING,
+				avg_pool=AVG_POOL,
+				norm=NORM,
+				stride=STRIDE
+			),
+			collapse_block=CollapseBlock(
+				ff_block=ff,
+				dropout=COLLAPSE_DROPOUT
+			),
 			input_size=BLOCK_SIZE,
-			positional_encoding=POSITIONAL_ENCODING,
-			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
-			stride=STRIDE
 		)
 
 		dataset = BaseDataset(
@@ -352,6 +364,127 @@ class TrainerTest(unittest.TestCase):
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
+	def test_transformer(self):
+
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
+
+		CHANNELS = [128 for _ in range(4)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 431
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.LeakyReLU()
+		BLOCK_SIZE = 1024 + EXTRA_LEN
+		PADDING = 0
+		AVG_POOL = True
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+		STRIDE = 2
+		LR = 1e-4
+
+		POSITIONAL_ENCODING = True
+		POSITIONAL_ENCODING_NORM = True
+		INDICATORS_DELTA = True
+		INDICATORS_SO = []
+		INDICATORS_RSI = []
+		INDICATORS_IDENTITIES = 4
+
+		COLLAPSE_DROPOUT = 0.3
+
+		USE_FF = True
+		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_NORM_LEARNABLE = False
+		FF_DROPOUT = 0.12
+
+		ATTN_NUM_HEADS = 4
+
+		if USE_FF:
+			ff = LinearModel(
+				dropout_rate=FF_DROPOUT,
+				layer_sizes=FF_LINEAR_LAYERS,
+				hidden_activation=FF_LINEAR_ACTIVATION,
+				init_fn=FF_LINEAR_INIT,
+				norm=FF_LINEAR_NORM,
+				norm_learnable=FF_NORM_LEARNABLE
+			)
+		else:
+			ff = None
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI,
+			identities=INDICATORS_IDENTITIES,
+		)
+
+		model = Transformer(
+			extra_len=EXTRA_LEN,
+			decoder_block=DecoderBlock(
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					embedding_block=EmbeddingBlock(
+						positional_encoding=POSITIONAL_ENCODING,
+						norm_positional_encoding=POSITIONAL_ENCODING_NORM,
+						indicators=indicators,
+					),
+					cnn_block=CNNBlock(
+						input_channels=indicators.indicators_len,
+						conv_channels=CHANNELS,
+						kernel_sizes=KERNEL_SIZES,
+						hidden_activation=ACTIVATION,
+						pool_sizes=POOL_SIZES,
+						dropout_rate=DROPOUT_RATE,
+						padding=PADDING,
+						avg_pool=AVG_POOL,
+						norm=NORM,
+						stride=STRIDE
+					),
+				),
+				num_heads=ATTN_NUM_HEADS
+			),
+			collapse_block=CollapseBlock(
+				ff_block=ff,
+				dropout=COLLAPSE_DROPOUT
+			),
+			input_size=BLOCK_SIZE,
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+			check_file_sizes=True
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		# test_dataset = BaseDataset(
+		# 	[
+		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
+		# 	],
+		# )
+		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+		callbacks = [
+			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+			# WeightStatsCallback()
+		]
+
+		trainer = Trainer(model)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(
+			dataloader,
+			epochs=10,
+			progress=True,
+			cls_loss_only=False
+		)
+
+		ModelHandler.save(trainer.model, SAVE_PATH)
+
 	def __train_model(self, model, dataloader):
 
 		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/ensemble_stacked.zip"
@@ -467,7 +600,6 @@ class TrainerTest(unittest.TestCase):
 
 		self.__train_model(model, dataloader)
 
-
 	def test_plain_msm(self):
 
 		MODELS = [
@@ -554,6 +686,58 @@ class TrainerTest(unittest.TestCase):
 			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
 			# WeightStatsCallback()
 		]
+
+		self.__train_model(model, dataloader)
+
+	def test_encdec_fusion(self):
+		models = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+			]
+		]
+
+		CHANNELS = [128 for _ in range(4)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.LeakyReLU()
+		PADDING = 0
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+
+		model = EncDecFusionModel(
+			encoder=LinearModel(
+				layer_sizes=[512, 256]
+			),
+			decoder=EDFDecoder(
+				channel_block=CNNBlock(
+					input_channels=len(models),
+					conv_channels=CHANNELS,
+					kernel_sizes=KERNEL_SIZES,
+					pool_sizes=POOL_SIZES,
+					dropout_rate=DROPOUT_RATE,
+					hidden_activation=ACTIVATION,
+					norm=NORM,
+					padding=PADDING,
+				),
+				ff_block=LinearModel(
+					layer_sizes=[512, 256]
+				)
+			),
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			),
+			models=models
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
 
 		self.__train_model(model, dataloader)
 
