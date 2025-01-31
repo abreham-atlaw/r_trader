@@ -20,8 +20,10 @@ from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM, PlainMSM
-from core.utils.research.model.model.ensemble.stacked.linear_3dmsm import Linear3dMSM
+from core.utils.research.model.model.ensemble.stacked.msm import LinearMSM, SimplifiedMSM, PlainMSM
+from core.utils.research.model.model.ensemble.stacked.msm.linear_3dmsm import Linear3dMSM
+
+from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel, EDFDecoder
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.callbacks import WeightStatsCallback
@@ -598,7 +600,6 @@ class TrainerTest(unittest.TestCase):
 
 		self.__train_model(model, dataloader)
 
-
 	def test_plain_msm(self):
 
 		MODELS = [
@@ -685,6 +686,58 @@ class TrainerTest(unittest.TestCase):
 			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
 			# WeightStatsCallback()
 		]
+
+		self.__train_model(model, dataloader)
+
+	def test_encdec_fusion(self):
+		models = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+			]
+		]
+
+		CHANNELS = [128 for _ in range(4)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.LeakyReLU()
+		PADDING = 0
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+
+		model = EncDecFusionModel(
+			encoder=LinearModel(
+				layer_sizes=[512, 256]
+			),
+			decoder=EDFDecoder(
+				channel_block=CNNBlock(
+					input_channels=len(models),
+					conv_channels=CHANNELS,
+					kernel_sizes=KERNEL_SIZES,
+					pool_sizes=POOL_SIZES,
+					dropout_rate=DROPOUT_RATE,
+					hidden_activation=ACTIVATION,
+					norm=NORM,
+					padding=PADDING,
+				),
+				ff_block=LinearModel(
+					layer_sizes=[512, 256]
+				)
+			),
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			),
+			models=models
+		)
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
 
 		self.__train_model(model, dataloader)
 

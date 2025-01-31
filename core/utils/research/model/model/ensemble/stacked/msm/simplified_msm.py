@@ -3,9 +3,9 @@ import typing
 import torch
 from torch import nn
 
+from core.utils.research.model.model.savable import SpinozaModule
 from lib.utils.torch_utils.tensor_merger import TensorMerger
 from .masked_stacked_model import MaskedStackedModel
-from ...savable import SpinozaModule
 
 
 class SimplifiedMSM(SpinozaModule):
