@@ -32,6 +32,7 @@ from core.utils.research.training.trackers.stats_tracker import DynamicStatsTrac
 	GradientsStatsTracker
 from core.utils.research.training.trainer import Trainer
 from lib.utils.torch_utils.model_handler import ModelHandler
+from lib.utils.torch_utils.tensor_merger import TensorMerger
 
 
 class SineWaveDataset(Dataset):
@@ -512,8 +513,8 @@ class TrainerTest(unittest.TestCase):
 		MODELS = [
 			ModelHandler.load(path)
 			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
 			]
 		]
 
@@ -532,16 +533,18 @@ class TrainerTest(unittest.TestCase):
 			models=MODELS
 		)
 
-		dataset = EnsembleStackedDataset(
+		dataset = BaseDataset(
 			root_dirs=[
-				[dir_]
-				for dir_ in self.ENSEMBLE_GENERATED_PATH
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-148.cnn-168"
 			],
-			integrity_checks=0
+			check_last_file=True,
 		)
 		dataloader = DataLoader(dataset, batch_size=8)
 
-		model = SimplifiedMSM(model=model, merger=dataset.merger)
+		merger = TensorMerger()
+		merger.load_config(os.path.join(dataset.root_dirs[0], "merger.pkl"))
+
+		model = SimplifiedMSM(model=model, merger=merger)
 
 		# test_dataset = BaseDataset(
 		# 	[
