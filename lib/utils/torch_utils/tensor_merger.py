@@ -135,3 +135,9 @@ class TensorMerger:
 	def load_config(self, path: str):
 		with open(path, "rb") as f:
 			return self.import_config(pickle.load(f))
+
+	@staticmethod
+	def load_from_config(path: str) -> 'TensorMerger':
+		merger = TensorMerger()
+		merger.load_config(path)
+		return merger
