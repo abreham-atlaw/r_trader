@@ -24,6 +24,7 @@ from core.utils.research.model.model.ensemble.stacked.msm import LinearMSM, Simp
 from core.utils.research.model.model.ensemble.stacked.msm.linear_3dmsm import Linear3dMSM
 
 from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel, EDFDecoder
+from core.utils.research.model.model.ensemble.stacked.simplified_sem import SimplifiedSEM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.callbacks import WeightStatsCallback
@@ -741,6 +742,72 @@ class TrainerTest(unittest.TestCase):
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=8)
+
+		self.__train_model(model, dataloader)
+
+	def test_simplified_sem(self):
+		MODELS = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
+			]
+		]
+
+		models = [
+			ModelHandler.load(path)
+			for path in [
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+			]
+		]
+
+		CHANNELS = [128 for _ in range(4)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [3 for _ in CHANNELS]
+		DROPOUT_RATE = 0
+		ACTIVATION = nn.LeakyReLU()
+		PADDING = 0
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+
+		model = EncDecFusionModel(
+			encoder=LinearModel(
+				layer_sizes=[512, 256]
+			),
+			decoder=EDFDecoder(
+				channel_block=CNNBlock(
+					input_channels=len(models),
+					conv_channels=CHANNELS,
+					kernel_sizes=KERNEL_SIZES,
+					pool_sizes=POOL_SIZES,
+					dropout_rate=DROPOUT_RATE,
+					hidden_activation=ACTIVATION,
+					norm=NORM,
+					padding=PADDING,
+				),
+				ff_block=LinearModel(
+					layer_sizes=[512, 256]
+				)
+			),
+			ff=LinearModel(
+				layer_sizes=[512, 256]
+			),
+			models=models
+		)
+
+		dataset = BaseDataset(
+			root_dirs=[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-148.cnn-168"
+			],
+			check_last_file=True,
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		merger = TensorMerger()
+		merger.load_config(os.path.join(dataset.root_dirs[0], "merger.pkl"))
+
+		model = SimplifiedSEM(model=model, merger=merger)
 
 		self.__train_model(model, dataloader)
 
