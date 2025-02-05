@@ -11,7 +11,7 @@ from .masked_stacked_model import MaskedStackedModel
 class SimplifiedMSM(SpinozaModule):
 
 	def __init__(self, model: MaskedStackedModel, merger: TensorMerger):
-		super().__init__(input_size=(None, *merger.target_shape), auto_build=False)
+		super().__init__(input_size=(None, *merger.target_shape[1:]), auto_build=False)
 		self.model = model
 		self.merger = merger
 		self.init()
