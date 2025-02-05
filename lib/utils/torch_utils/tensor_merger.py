@@ -5,7 +5,6 @@ import torch
 import pickle
 
 from lib.utils.logger import Logger
-from .slice_serializer import SliceSerializer
 
 
 class TensorMerger:
