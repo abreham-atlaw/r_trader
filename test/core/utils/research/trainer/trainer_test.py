@@ -28,7 +28,7 @@ from core.utils.research.model.model.ensemble.stacked.simplified_sem import Simp
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.callbacks import WeightStatsCallback
-from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
+from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback, StoreCheckpointCallback
 from core.utils.research.training.callbacks.metric_callback import MetricCallback
 from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
 from core.utils.research.training.data.state import TrainingState
@@ -487,7 +487,10 @@ class TrainerTest(unittest.TestCase):
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
-	def __train_model(self, model, dataloader):
+	def __train_model(self, model, dataloader, callbacks=None):
+
+		if callbacks is None:
+			callbacks = []
 
 		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/ensemble_stacked.zip"
 		LR = 1e-3
@@ -499,12 +502,12 @@ class TrainerTest(unittest.TestCase):
 		# )
 		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
+		# callbacks = [
+		# 	# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
+		# 	# WeightStatsCallback()
+		# ]
 
-		trainer = Trainer(model)
+		trainer = Trainer(model, callbacks=callbacks)
 		trainer.cls_loss_function = nn.CrossEntropyLoss()
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
@@ -513,7 +516,7 @@ class TrainerTest(unittest.TestCase):
 			dataloader,
 			epochs=10,
 			progress=True,
-			cls_loss_only=False
+			cls_loss_only=False,
 		)
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
@@ -804,12 +807,21 @@ class TrainerTest(unittest.TestCase):
 		)
 		dataloader = DataLoader(dataset, batch_size=8)
 
+		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/sem_model.zip"
+		callbacks = [
+			StoreCheckpointCallback(
+				path=SAVE_PATH,
+				active=True,
+				simplified_mode=True
+			)
+		]
+
 		merger = TensorMerger()
 		merger.load_config(os.path.join(dataset.root_dirs[0], "merger.pkl"))
 
 		model = SimplifiedSEM(model=model, merger=merger)
 
-		self.__train_model(model, dataloader)
+		self.__train_model(model, dataloader, callbacks=callbacks)
 
 	def test_functionality(self):
 
