@@ -35,6 +35,7 @@ class CheckpointCallback(Callback):
 
 	def on_epoch_end(self, model, epoch, losses, logs=None):
 		if self.simplified_mode and hasattr(model, "model"):
+			Logger.info(f"Using internal model...")
 			model = model.model
 		if self.interval is not None and epoch % self.interval != 0:
 			return
