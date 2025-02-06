@@ -14,6 +14,7 @@ class SimplifiedSEM(SpinozaModule):
 		super().__init__(input_size=(None, *merger.target_shape[1:]), auto_build=False)
 		self.model = model
 		self.merger = merger
+		self.model.init()
 		self.init()
 
 	def call(self, X) -> torch.Tensor:
