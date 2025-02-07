@@ -24,15 +24,15 @@ class StackedEnsembleModel(SpinozaModule, ABC):
 	def _call(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		pass
 
-	def _get_model_outputs(self, x: torch.Tensor) -> torch.Tensor:
+	def _get_models_outputs(self, x: torch.Tensor) -> torch.Tensor:
 		with torch.no_grad():
 			y = torch.stack([
-				m(x).detach() for m in self.models
+				m.eval()(x).detach() for m in self.models
 			], dim=1)
 		return y
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
-		y = self._get_model_outputs(x)
+		y = self._get_models_outputs(x)
 		return self._call(x, y)
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
