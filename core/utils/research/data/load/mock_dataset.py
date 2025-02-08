@@ -20,3 +20,6 @@ class MockDataset(Dataset):
 			torch.rand(shape, dtype=self.__dtype)
 			for shape in self.__shape
 		]
+
+	def shuffle(self):
+		pass
