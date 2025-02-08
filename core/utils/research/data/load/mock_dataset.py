@@ -11,15 +11,16 @@ class MockDataset(Dataset):
 		self.__size = size
 		self.__shape = shapes
 		self.__dtype = dtype
+		self.__arrays = [
+			torch.rand(shape, dtype=self.__dtype)
+			for shape in self.__shape
+		]
 
 	def __len__(self):
 		return self.__size
 
 	def __getitem__(self, item):
-		return [
-			torch.rand(shape, dtype=self.__dtype)
-			for shape in self.__shape
-		]
+		return self.__arrays
 
 	def shuffle(self):
 		pass
