@@ -25,16 +25,25 @@ class SimpleTrainer:
 		loss = cls_loss + reg_loss
 		return cls_loss, reg_loss, loss
 
-	def train(self, dataloader: DataLoader, epochs: int):
+	def train(
+			self,
+			dataloader: DataLoader,
+			epochs: int,
+			loss: bool = True,
+			optimize: bool = True
+	):
 
 		for epoch in range(epochs):
 			pbar = tqdm(dataloader)
 			for i, (X, y) in enumerate(pbar):
-				self.optimizer.zero_grad()
+				if optimize:
+					self.optimizer.zero_grad()
 				y_hat = self.model(X)
-				cls_loss, reg_loss, loss = self.__loss(y_hat, y)
-				loss.backward()
-				self.optimizer.step()
+				if loss:
+					cls_loss, reg_loss, loss = self.__loss(y_hat, y)
+					loss.backward()
+				if optimize:
+					self.optimizer.step()
 
 				if i % 100 == 0:
 					pbar.set_description(f"Epoch {epoch + 1}")
