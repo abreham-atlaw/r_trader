@@ -30,7 +30,8 @@ class SimpleTrainer:
 			dataloader: DataLoader,
 			epochs: int,
 			loss: bool = True,
-			optimize: bool = True
+			optimize: bool = True,
+			gradient: bool = True
 	):
 
 		for epoch in range(epochs):
@@ -41,6 +42,7 @@ class SimpleTrainer:
 				y_hat = self.model(X)
 				if loss:
 					cls_loss, reg_loss, loss = self.__loss(y_hat, y)
+				if gradient:
 					loss.backward()
 				if optimize:
 					self.optimizer.step()
