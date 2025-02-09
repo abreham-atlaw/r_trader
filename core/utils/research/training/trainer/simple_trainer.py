@@ -1,4 +1,5 @@
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 
 class SimpleTrainer:
@@ -26,16 +27,14 @@ class SimpleTrainer:
 
 	def train(self, dataloader: DataLoader, epochs: int):
 
-		dataloader_size = len(dataloader)
-
 		for epoch in range(epochs):
-
-			for i, (X, y) in enumerate(dataloader):
+			pbar = tqdm(dataloader)
+			for i, (X, y) in enumerate(pbar):
 				self.optimizer.zero_grad()
 				y_hat = self.model(X)
 				cls_loss, reg_loss, loss = self.__loss(y_hat, y)
 				loss.backward()
 				self.optimizer.step()
 
-				if i % 10 == 0:
-					print(f"Epoch: {epoch}/{epochs}, Batch: {i}/{dataloader_size}, Loss: {loss}", end="\r")
+				if i % 100 == 0:
+					pbar.set_description(f"Epoch {epoch + 1}")
