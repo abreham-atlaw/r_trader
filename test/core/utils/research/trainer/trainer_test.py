@@ -23,7 +23,7 @@ from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.ensemble.stacked.msm import LinearMSM, SimplifiedMSM, PlainMSM
 from core.utils.research.model.model.ensemble.stacked.msm.linear_3dmsm import Linear3dMSM
 
-from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel, EDFDecoder
+from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel
 from core.utils.research.model.model.ensemble.stacked.simplified_sem import SimplifiedSEM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
@@ -705,38 +705,96 @@ class TrainerTest(unittest.TestCase):
 			]
 		]
 
-		CHANNELS = [128 for _ in range(4)]
-		EXTRA_LEN = 124
-		KERNEL_SIZES = [3 for _ in CHANNELS]
-		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
-		PADDING = 0
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		# ENCODER CONFIGS
+		ENC_CHANNELS = [64 for _ in range(2)]
+		ENC_KERNEL_SIZES = [3 for _ in ENC_CHANNELS]
+		ENC_POOL_SIZES = [0 for _ in ENC_CHANNELS]
+		ENC_DROPOUT_RATE = 0
+		ENC_ACTIVATION = nn.LeakyReLU()
+		ENC_PADDING = 0
+		ENC_NORM = [False] + [False for _ in ENC_CHANNELS[1:]]
+
+		ENC_INDICATORS_DELTA = True
+		ENC_INDICATORS_SO = []
+		ENC_INDICATORS_RSI = []
+
+		ENC_NUM_HEADS = 4
+
+		# DECODER CONFIGS
+		DEC_CHANNELS = [64 for _ in range(2)]
+		DEC_KERNEL_SIZES = [3 for _ in DEC_CHANNELS]
+		DEC_POOL_SIZES = [0 for _ in DEC_CHANNELS]
+		DEC_DROPOUT_RATE = 0
+		DEC_ACTIVATION = nn.LeakyReLU()
+		DEC_PADDING = 0
+		DEC_NORM = [False] + [False for _ in DEC_CHANNELS[1:]]
+
+		DEC_NUM_HEADS = 4
+
+		# FF Configs
+		FF_LINEAR_LAYERS = [1024 for _ in range(2)]
+		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_DROPOUT = 0
+
+		# ENCDECFUSION Configs
+		PRECONCAT_NORM = True
+
+		enc_indicators = Indicators(
+			delta=ENC_INDICATORS_DELTA,
+			so=ENC_INDICATORS_SO,
+			rsi=ENC_INDICATORS_RSI
+		)
 
 		model = EncDecFusionModel(
-			encoder=LinearModel(
-				layer_sizes=[512, 256]
-			),
-			decoder=EDFDecoder(
-				channel_block=CNNBlock(
-					input_channels=len(models),
-					conv_channels=CHANNELS,
-					kernel_sizes=KERNEL_SIZES,
-					pool_sizes=POOL_SIZES,
-					dropout_rate=DROPOUT_RATE,
-					hidden_activation=ACTIVATION,
-					norm=NORM,
-					padding=PADDING,
+			encoder=DecoderBlock(
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					embedding_block=EmbeddingBlock(
+						indicators=enc_indicators,
+					),
+					cnn_block=CNNBlock(
+						input_channels=enc_indicators.indicators_len,
+						conv_channels=ENC_CHANNELS,
+						kernel_sizes=ENC_KERNEL_SIZES,
+						pool_sizes=ENC_POOL_SIZES,
+						hidden_activation=ENC_ACTIVATION,
+						dropout_rate=ENC_DROPOUT_RATE,
+						norm=ENC_NORM,
+						padding=ENC_PADDING,
+					)
 				),
+				num_heads=ENC_NUM_HEADS,
+				embedding_last=True
+			),
+			decoder=DecoderBlock(
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					cnn_block=CNNBlock(
+						input_channels=len(models),
+						conv_channels=DEC_CHANNELS,
+						kernel_sizes=DEC_KERNEL_SIZES,
+						pool_sizes=DEC_POOL_SIZES,
+						hidden_activation=DEC_ACTIVATION,
+						dropout_rate=DEC_DROPOUT_RATE,
+						norm=DEC_NORM,
+						padding=DEC_PADDING,
+					)
+				),
+				num_heads=DEC_NUM_HEADS,
+				embedding_last=True
+			),
+			ff_block=CollapseBlock(
 				ff_block=LinearModel(
-					layer_sizes=[512, 256]
-				)
+					dropout_rate=FF_DROPOUT,
+					layer_sizes=FF_LINEAR_LAYERS,
+					hidden_activation=FF_LINEAR_ACTIVATION,
+					init_fn=FF_LINEAR_INIT,
+					norm=FF_LINEAR_NORM
+				),
+				extra_mode=False
 			),
-			ff=LinearModel(
-				layer_sizes=[512, 256]
-			),
-			models=models
+			models=models,
+			preconcat_norm=PRECONCAT_NORM
 		)
 
 		dataset = BaseDataset(
@@ -793,7 +851,7 @@ class TrainerTest(unittest.TestCase):
 					layer_sizes=[512, 256]
 				)
 			),
-			ff=LinearModel(
+			ff_block=LinearModel(
 				layer_sizes=[512, 256]
 			),
 			models=models

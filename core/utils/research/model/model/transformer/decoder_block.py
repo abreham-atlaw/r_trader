@@ -65,16 +65,19 @@ class DecoderBlock(SpinozaModule):
 	def __init__(
 			self,
 			transformer_embedding_block: TransformerEmbeddingBlock,
-			num_heads: int
+			num_heads: int,
+			embedding_last: bool = False
 	):
 		self.args = {
 			'transformer_embedding_block': transformer_embedding_block,
-			'num_heads': num_heads
+			'num_heads': num_heads,
+			"embedding_last": embedding_last
 		}
 		super().__init__()
 		self.embedding_block = transformer_embedding_block
 		self.self_attention_layer = None
 		self.num_heads = num_heads
+		self.embedding_last = embedding_last
 
 	def self_attention(self, x: torch.Tensor) -> torch.Tensor:
 		if self.self_attention_layer is None:
@@ -89,6 +92,8 @@ class DecoderBlock(SpinozaModule):
 	def call(self, x) -> torch.Tensor:
 		embedded = self.embedding_block(x)
 		out = self.self_attention(embedded)
+		if self.embedding_last:
+			out = torch.transpose(out, 1, 2)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
