@@ -783,7 +783,7 @@ class TrainerTest(unittest.TestCase):
 				num_heads=DEC_NUM_HEADS,
 				embedding_last=True
 			),
-			ff=CollapseBlock(
+			ff_block=CollapseBlock(
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
 					layer_sizes=FF_LINEAR_LAYERS,
@@ -851,7 +851,7 @@ class TrainerTest(unittest.TestCase):
 					layer_sizes=[512, 256]
 				)
 			),
-			ff=LinearModel(
+			ff_block=LinearModel(
 				layer_sizes=[512, 256]
 			),
 			models=models
