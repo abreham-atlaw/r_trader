@@ -17,7 +17,7 @@ class EncDecFusionModel(StackedEnsembleModel):
 			models: typing.List[SpinozaModule],
 			encoder: nn.Module,
 			decoder: nn.Module,
-			ff_block: CollapseBlock,
+			collapse_block: CollapseBlock,
 			channel_block: nn.Module = None,
 			preconcat_norm: bool = False,
 	):
@@ -26,7 +26,7 @@ class EncDecFusionModel(StackedEnsembleModel):
 			"encoder": encoder,
 			"decoder": decoder,
 			"channel_block": channel_block,
-			"ff_block": ff_block,
+			"collapse_block": collapse_block,
 			"preconcat_norm": preconcat_norm
 		})
 
@@ -35,7 +35,7 @@ class EncDecFusionModel(StackedEnsembleModel):
 		self.encoder_reshape_layer = None
 
 		self.channel_block = channel_block if channel_block is not None else nn.Identity()
-		self.ff_block = ff_block
+		self.ff_block = collapse_block
 		self.collapse_layer = None
 		self.encoder_norm, self.decoder_norm = [DynamicLayerNorm() if preconcat_norm else nn.Identity() for _ in range(2)]
 		self.init()
