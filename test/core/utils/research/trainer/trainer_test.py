@@ -731,6 +731,16 @@ class TrainerTest(unittest.TestCase):
 
 		DEC_NUM_HEADS = 4
 
+		# CHANNEL CONFIGS
+		CHANNEL_INPUT_CHANNELS = ENC_CHANNELS[-1] + DEC_CHANNELS[-1]
+		CHANNEL_CHANNELS = [64 for _ in range(2)]
+		CHANNEL_KERNEL_SIZES = [3 for _ in CHANNEL_CHANNELS]
+		CHANNEL_POOL_SIZES = [0 for _ in CHANNEL_CHANNELS]
+		CHANNEL_DROPOUT_RATE = 0
+		CHANNEL_ACTIVATION = nn.LeakyReLU()
+		CHANNEL_PADDING = 0
+		CHANNEL_NORM = [False] + [False for _ in DEC_CHANNELS[1:]]
+
 		# FF Configs
 		FF_LINEAR_LAYERS = [1024 for _ in range(2)]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
@@ -782,6 +792,16 @@ class TrainerTest(unittest.TestCase):
 				),
 				num_heads=DEC_NUM_HEADS,
 				embedding_last=True
+			),
+			channel_block=CNNBlock(
+				input_channels=CHANNEL_INPUT_CHANNELS,
+				conv_channels=CHANNEL_CHANNELS,
+				kernel_sizes=CHANNEL_KERNEL_SIZES,
+				pool_sizes=CHANNEL_POOL_SIZES,
+				hidden_activation=CHANNEL_ACTIVATION,
+				dropout_rate=CHANNEL_DROPOUT_RATE,
+				norm=CHANNEL_NORM,
+				padding=CHANNEL_PADDING
 			),
 			collapse_block=CollapseBlock(
 				ff_block=LinearModel(
