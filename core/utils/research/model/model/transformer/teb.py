@@ -12,7 +12,7 @@ class TransformerEmbeddingBlock(SpinozaModule):
 
 	def __init__(
 			self,
-			embedding_block: EmbeddingBlock,
+			embedding_block: EmbeddingBlock = None,
 			cnn_block: CNNBlock = None
 	):
 		self.args = {
@@ -21,9 +21,8 @@ class TransformerEmbeddingBlock(SpinozaModule):
 		}
 		super().__init__()
 
-		self.embedding = embedding_block
+		self.embedding = embedding_block if embedding_block is not None else nn.Identity()
 		self.cnn = cnn_block if cnn_block is not None else nn.Identity()
-
 
 	def call(self, *args, **kwargs) -> torch.Tensor:
 		embedded = self.embedding(*args, **kwargs)

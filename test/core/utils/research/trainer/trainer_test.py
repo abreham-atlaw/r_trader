@@ -19,11 +19,11 @@ from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
-from core.utils.research.model.model.cnn.cnn import CNN
+from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.ensemble.stacked.msm import LinearMSM, SimplifiedMSM, PlainMSM
 from core.utils.research.model.model.ensemble.stacked.msm.linear_3dmsm import Linear3dMSM
 
-from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel, EDFDecoder
+from core.utils.research.model.model.ensemble.stacked.encdec_fusion import EncDecFusionModel
 from core.utils.research.model.model.ensemble.stacked.simplified_sem import SimplifiedSEM
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
@@ -706,9 +706,7 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		# ENCODER CONFIGS
-		ENC_CHANNELS = [128 for _ in range(4)]
-		ENC_EXTRA_LEN = 124
-		ENC_BLOCK_SIZE = 1024 + ENC_EXTRA_LEN
+		ENC_CHANNELS = [64 for _ in range(2)]
 		ENC_KERNEL_SIZES = [3 for _ in ENC_CHANNELS]
 		ENC_POOL_SIZES = [0 for _ in ENC_CHANNELS]
 		ENC_DROPOUT_RATE = 0
@@ -720,33 +718,28 @@ class TrainerTest(unittest.TestCase):
 		ENC_INDICATORS_SO = []
 		ENC_INDICATORS_RSI = []
 
-		ENC_LINEAR_LAYERS = [256 for _ in range(4)]
-		ENC_LINEAR_ACTIVATION = nn.LeakyReLU()
-		ENC_LINEAR_INIT = None
-		ENC_LINEAR_NORM = [False] + [False for _ in ENC_LINEAR_LAYERS[:-1]]
-		ENC_FF_DROPOUT = 0
+		ENC_NUM_HEADS = 4
 
 		# DECODER CONFIGS
-		DEC_CHANNELS = [1 for _ in range(1)]
-		DEC_KERNEL_SIZES = [1 for _ in DEC_CHANNELS]
+		DEC_CHANNELS = [64 for _ in range(2)]
+		DEC_KERNEL_SIZES = [3 for _ in DEC_CHANNELS]
 		DEC_POOL_SIZES = [0 for _ in DEC_CHANNELS]
 		DEC_DROPOUT_RATE = 0
 		DEC_ACTIVATION = nn.LeakyReLU()
 		DEC_PADDING = 0
 		DEC_NORM = [False] + [False for _ in DEC_CHANNELS[1:]]
 
-		DEC_FF_LINEAR_LAYERS = [512 for _ in range(1)]
-		DEC_FF_LINEAR_ACTIVATION = nn.LeakyReLU()
-		DEC_FF_LINEAR_INIT = None
-		DEC_FF_LINEAR_NORM = [False] + [False for _ in DEC_FF_LINEAR_LAYERS[:-1]]
-		DEC_FF_DROPOUT = 0
+		DEC_NUM_HEADS = 4
 
 		# FF Configs
-		FF_LINEAR_LAYERS = [432]
+		FF_LINEAR_LAYERS = [1024 for _ in range(2)]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_DROPOUT = 0
+
+		# ENCDECFUSION Configs
+		PRECONCAT_NORM = True
 
 		enc_indicators = Indicators(
 			delta=ENC_INDICATORS_DELTA,
@@ -755,59 +748,53 @@ class TrainerTest(unittest.TestCase):
 		)
 
 		model = EncDecFusionModel(
-			encoder=CNN(
-				extra_len=ENC_EXTRA_LEN,
-				input_size=ENC_BLOCK_SIZE,
-				embedding_block=EmbeddingBlock(
-					indicators=enc_indicators
-				),
-				cnn_block=CNNBlock(
-					input_channels=enc_indicators.indicators_len,
-					conv_channels=ENC_CHANNELS,
-					kernel_sizes=ENC_KERNEL_SIZES,
-					pool_sizes=ENC_POOL_SIZES,
-					dropout_rate=ENC_DROPOUT_RATE,
-					hidden_activation=ENC_ACTIVATION,
-					norm=ENC_NORM,
-					padding=ENC_PADDING,
-				),
-				collapse_block=CollapseBlock(
-					ff_block=LinearModel(
-						dropout_rate=ENC_FF_DROPOUT,
-						layer_sizes=ENC_LINEAR_LAYERS,
-						hidden_activation=ENC_LINEAR_ACTIVATION,
-						init_fn=ENC_LINEAR_INIT,
-						norm=ENC_LINEAR_NORM
+			encoder=DecoderBlock(
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					embedding_block=EmbeddingBlock(
+						indicators=enc_indicators,
+					),
+					cnn_block=CNNBlock(
+						input_channels=enc_indicators.indicators_len,
+						conv_channels=ENC_CHANNELS,
+						kernel_sizes=ENC_KERNEL_SIZES,
+						pool_sizes=ENC_POOL_SIZES,
+						hidden_activation=ENC_ACTIVATION,
+						dropout_rate=ENC_DROPOUT_RATE,
+						norm=ENC_NORM,
+						padding=ENC_PADDING,
 					)
-				)
-			),
-			decoder=EDFDecoder(
-				channel_block=CNNBlock(
-					input_channels=len(models),
-					conv_channels=DEC_CHANNELS,
-					kernel_sizes=DEC_KERNEL_SIZES,
-					pool_sizes=DEC_POOL_SIZES,
-					dropout_rate=DEC_DROPOUT_RATE,
-					hidden_activation=DEC_ACTIVATION,
-					norm=DEC_NORM,
-					padding=DEC_PADDING,
 				),
+				num_heads=ENC_NUM_HEADS,
+				embedding_last=True
+			),
+			decoder=DecoderBlock(
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					cnn_block=CNNBlock(
+						input_channels=len(models),
+						conv_channels=DEC_CHANNELS,
+						kernel_sizes=DEC_KERNEL_SIZES,
+						pool_sizes=DEC_POOL_SIZES,
+						hidden_activation=DEC_ACTIVATION,
+						dropout_rate=DEC_DROPOUT_RATE,
+						norm=DEC_NORM,
+						padding=DEC_PADDING,
+					)
+				),
+				num_heads=DEC_NUM_HEADS,
+				embedding_last=True
+			),
+			ff_block=CollapseBlock(
 				ff_block=LinearModel(
-					dropout_rate=DEC_FF_DROPOUT,
-					layer_sizes=DEC_FF_LINEAR_LAYERS,
-					hidden_activation=DEC_FF_LINEAR_ACTIVATION,
-					init_fn=DEC_FF_LINEAR_INIT,
-					norm=DEC_FF_LINEAR_NORM
-				)
+					dropout_rate=FF_DROPOUT,
+					layer_sizes=FF_LINEAR_LAYERS,
+					hidden_activation=FF_LINEAR_ACTIVATION,
+					init_fn=FF_LINEAR_INIT,
+					norm=FF_LINEAR_NORM
+				),
+				extra_mode=False
 			),
-			ff=LinearModel(
-				dropout_rate=FF_DROPOUT,
-				layer_sizes=FF_LINEAR_LAYERS,
-				hidden_activation=FF_LINEAR_ACTIVATION,
-				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
-			),
-			models=models
+			models=models,
+			preconcat_norm=PRECONCAT_NORM
 		)
 
 		dataset = BaseDataset(
@@ -864,7 +851,7 @@ class TrainerTest(unittest.TestCase):
 					layer_sizes=[512, 256]
 				)
 			),
-			ff=LinearModel(
+			ff_block=LinearModel(
 				layer_sizes=[512, 256]
 			),
 			models=models
