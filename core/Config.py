@@ -231,6 +231,9 @@ PREDICTION_MODELS = [
 ]
 
 
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
+
+
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
@@ -267,7 +270,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_15
 	]
 
-	default = ma_ews_dynamic_k_stm
+	default = ma_ews_dynamic_k_stm_it_15
 
 
 class RunnerStatsLossesBranches:
@@ -284,4 +287,4 @@ class RunnerStatsLossesBranches:
 		it_15
 	]
 
-	default = main
+	default = it_15
