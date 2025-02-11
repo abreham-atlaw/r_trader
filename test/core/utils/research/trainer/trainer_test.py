@@ -720,6 +720,9 @@ class TrainerTest(unittest.TestCase):
 
 		ENC_NUM_HEADS = 4
 
+		ENC_SEQUENCE_ONLY_ENCODER = True
+		ENC_EXTRA_LEN = 124
+
 		# DECODER CONFIGS
 		DEC_CHANNELS = [64 for _ in range(2)]
 		DEC_KERNEL_SIZES = [3 for _ in DEC_CHANNELS]
@@ -814,7 +817,9 @@ class TrainerTest(unittest.TestCase):
 				extra_mode=False
 			),
 			models=models,
-			preconcat_norm=PRECONCAT_NORM
+			preconcat_norm=PRECONCAT_NORM,
+			sequence_only_encoding=ENC_SEQUENCE_ONLY_ENCODER,
+			encoder_extra_len=ENC_EXTRA_LEN
 		)
 
 		dataset = BaseDataset(
