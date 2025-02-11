@@ -97,7 +97,7 @@ class KaggleDataRepository:
 				Logger.error(f"Actual: {self.generate_checksum(download_path)}")
 				raise IntegrityFailException()
 
-		Logger.info(f"Downloaded {kernel} to {download_path}")
+		Logger.info(f"Downloaded {slug} to {download_path}")
 		Logger.info(f"Checksum: {self.generate_checksum(download_path)}")
 
 		return download_path
@@ -117,8 +117,16 @@ class KaggleDataRepository:
 	@staticmethod
 	def generate_checksum(path: str) -> str:
 		Logger.info(f"Generating checksum for '{path}'")
-		files_str = str(list(os.walk(path)))
-		return hashlib.sha256(files_str.encode('utf-8')).hexdigest()
+		directory_structure = []
+		for root, dirs, files in os.walk(path):
+			dirs.sort()  # Sort subdirectories
+			files.sort()  # Sort files
+			directory_structure.append(root)
+			directory_structure.extend(os.path.join(root, f) for f in files)
+
+		directory_string = "\n".join(directory_structure)
+
+		return hashlib.sha256(directory_string.encode('utf-8')).hexdigest()
 
 	def check_integrity(self, path, checksum: str) -> bool:
 		return self.generate_checksum(path) == checksum
