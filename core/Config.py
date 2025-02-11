@@ -229,9 +229,6 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MODEL_IN_PATH = "/Apps/RTrader/maploss/models/cnn"
-MODEL_TMP_PATH = os.path.abspath("./out/")
-
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
@@ -239,6 +236,9 @@ TEMPERATURES = [0.1*i for i in range(1, 11)] + [2.0]
 
 
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
+
+MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
+MODEL_TMP_PATH = os.path.abspath("./out/")
 
 
 class ResourceCategories:
