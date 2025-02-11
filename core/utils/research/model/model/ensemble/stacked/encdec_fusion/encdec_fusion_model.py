@@ -20,14 +20,20 @@ class EncDecFusionModel(StackedEnsembleModel):
 			collapse_block: CollapseBlock,
 			channel_block: nn.Module = None,
 			preconcat_norm: bool = False,
+			sequence_only_encoding: bool = False,
+			encoder_extra_len: int = None
 	):
 		super().__init__(models)
+		if sequence_only_encoding and encoder_extra_len is None:
+			raise ValueError("sequence_only_encoding requires extra_len to be specified")
 		self.args.update({
 			"encoder": encoder,
 			"decoder": decoder,
 			"channel_block": channel_block,
 			"collapse_block": collapse_block,
-			"preconcat_norm": preconcat_norm
+			"preconcat_norm": preconcat_norm,
+			"sequence_only_encoding": sequence_only_encoding,
+			"encoder_extra_len": encoder_extra_len
 		})
 
 		self.encoder = encoder
@@ -38,6 +44,10 @@ class EncDecFusionModel(StackedEnsembleModel):
 		self.ff_block = collapse_block
 		self.collapse_layer = None
 		self.encoder_norm, self.decoder_norm = [DynamicLayerNorm() if preconcat_norm else nn.Identity() for _ in range(2)]
+
+		self.sequence_only_encoding = sequence_only_encoding
+		self.encoder_extra_len = encoder_extra_len
+
 		self.init()
 
 	def collapse(self, y: torch.Tensor) -> torch.Tensor:
@@ -51,6 +61,8 @@ class EncDecFusionModel(StackedEnsembleModel):
 		return self.encoder_reshape_layer(encoded)
 
 	def _call(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+		if self.sequence_only_encoding:
+			x = x[:, :-self.encoder_extra_len]
 		encoded = self.encoder(x)
 		decoded = self.decoder(y)
 		encoded = self.encoder_reshape(encoded, decoded)
