@@ -13,21 +13,25 @@ class TransformerEmbeddingBlock(SpinozaModule):
 	def __init__(
 			self,
 			embedding_block: EmbeddingBlock = None,
-			cnn_block: CNNBlock = None
+			cnn_block: CNNBlock = None,
+			channel_last: bool = True
 	):
 		self.args = {
 			'embedding_block': embedding_block,
-			'cnn_block': cnn_block
+			'cnn_block': cnn_block,
+			'channel_last': channel_last
 		}
 		super().__init__()
 
 		self.embedding = embedding_block if embedding_block is not None else nn.Identity()
 		self.cnn = cnn_block if cnn_block is not None else nn.Identity()
+		self.channel_last = channel_last
 
 	def call(self, *args, **kwargs) -> torch.Tensor:
 		embedded = self.embedding(*args, **kwargs)
 		out = self.cnn(embedded)
-		out = out.transpose(1, 2)
+		if self.channel_last:
+			out = out.transpose(1, 2)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
