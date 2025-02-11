@@ -232,7 +232,7 @@ PREDICTION_MODELS = [
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
-TEMPERATURES = [0.1*i for i in range(1, 11)] + [2.0]
+TEMPERATURES = [0.05] + [0.2*i for i in range(1, 6)] + [2.0]
 
 
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
