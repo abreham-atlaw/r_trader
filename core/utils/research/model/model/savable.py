@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 import torch
 from torch import nn
 
+from lib.utils.logger import Logger
+
 
 class SpinozaModule(nn.Module, ABC):
 
@@ -26,11 +28,13 @@ class SpinozaModule(nn.Module, ABC):
 		out = self(init_data)
 		self.output_size = (None,) + out.size()[1:]
 
-	def __build(self, input_size: torch.Size):
+	def _build(self, input_size: torch.Size):
+		Logger.info(f"[{self.__class__.__name__}] Building...")
 		self.input_size = (None, ) + input_size[1:]
 		self.build(input_size)
 		self.built = True
 		if self.__state_dict_params is not None:
+			Logger.info(f"[{self.__class__.__name__}] Loading state dict...")
 			self.load_state_dict(*self.__state_dict_params[0], ** self.__state_dict_params[1])
 			self.__state_dict_params = None
 
@@ -47,7 +51,7 @@ class SpinozaModule(nn.Module, ABC):
 
 	def forward(self, *args, **kwargs) -> torch.Tensor:
 		if not self.built:
-			self.__build(self._get_input_size(*args, **kwargs))
+			self._build(self._get_input_size(*args, **kwargs))
 		return self.call(*args, **kwargs)
 
 	def load_state_dict_lazy(self, *args, **kwargs):

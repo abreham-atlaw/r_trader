@@ -10,3 +10,5 @@ from .rsi import *
 from .so import *
 from .indicators import *
 from .dynamic_layer_norm import DynamicLayerNorm
+from .linear_lazy import LinearLazy
+from .axis_ffn import AxisFFN

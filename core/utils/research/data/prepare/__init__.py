@@ -7,8 +7,7 @@ from .file_syncer import FileSyncer
 from .simulation_simulator import SimulationSimulator
 from .files_merger import FilesMerger
 from .batch_size_modifier import BatchSizeModifier
-from .model_output_exporter import ModelOutputExporter
-
+from .moe import ModelOutputExporter, MergedModelOutputExporter
 
 __all__ = [
 	"DataPreparer",
@@ -20,6 +19,7 @@ __all__ = [
 	"SimulationSimulator",
 	"FilesMerger",
 	"BatchSizeModifier",
-	"ModelOutputExporter"
+	"ModelOutputExporter",
+	"MergedModelOutputExporter"
 ]
 

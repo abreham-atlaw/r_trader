@@ -32,6 +32,7 @@ from core.utils.research.training.trackers.stats_tracker import DynamicStatsTrac
 	GradientsStatsTracker
 from core.utils.research.training.trainer import Trainer
 from lib.utils.torch_utils.model_handler import ModelHandler
+from lib.utils.torch_utils.tensor_merger import TensorMerger
 
 
 class SineWaveDataset(Dataset):
@@ -178,6 +179,13 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
+		USE_CHANNEL_FFN = True
+		CHANNEL_FFN_LAYERS = [CHANNELS[-1] for _ in range(4)]
+		CHANNEL_FFN_DROPOUT = 0.1
+		CHANNEL_FFN_ACTIVATION = nn.LeakyReLU()
+		CHANNEL_FFN_NORM = [False] + [False for _ in CHANNEL_FFN_LAYERS[:-1]]
+		CHANNEL_FFN_INIT = None
+
 		USE_FF = True
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
@@ -197,6 +205,17 @@ class TrainerTest(unittest.TestCase):
 			)
 		else:
 			ff = None
+
+		if USE_CHANNEL_FFN:
+			channel_ffn = LinearModel(
+				dropout_rate=CHANNEL_FFN_DROPOUT,
+				layer_sizes=CHANNEL_FFN_LAYERS,
+				hidden_activation=CHANNEL_FFN_ACTIVATION,
+				init_fn=CHANNEL_FFN_INIT,
+				norm=CHANNEL_FFN_NORM
+			)
+		else:
+			channel_ffn = None
 
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
@@ -221,7 +240,8 @@ class TrainerTest(unittest.TestCase):
 			input_size=BLOCK_SIZE,
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
-			stride=STRIDE
+			stride=STRIDE,
+			channel_ffn=channel_ffn
 		)
 
 		dataset = BaseDataset(
@@ -512,8 +532,8 @@ class TrainerTest(unittest.TestCase):
 		MODELS = [
 			ModelHandler.load(path)
 			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
 			]
 		]
 
@@ -532,16 +552,18 @@ class TrainerTest(unittest.TestCase):
 			models=MODELS
 		)
 
-		dataset = EnsembleStackedDataset(
+		dataset = BaseDataset(
 			root_dirs=[
-				[dir_]
-				for dir_ in self.ENSEMBLE_GENERATED_PATH
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-148.cnn-168"
 			],
-			integrity_checks=0
+			check_last_file=True,
 		)
 		dataloader = DataLoader(dataset, batch_size=8)
 
-		model = SimplifiedMSM(model=model, merger=dataset.merger)
+		merger = TensorMerger()
+		merger.load_config(os.path.join(dataset.root_dirs[0], "merger.pkl"))
+
+		model = SimplifiedMSM(model=model, merger=merger)
 
 		# test_dataset = BaseDataset(
 		# 	[
