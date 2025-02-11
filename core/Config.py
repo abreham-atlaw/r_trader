@@ -63,6 +63,7 @@ PCLOUD_TOKENS = [
 	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
 	# "74KlVVZktF97ZlN8XWt32axY622ndH5eK7hBfIreV",  # abrehamalemu@outlook.com
+	# "16InJVZWmKM7ZJ2Sdk8HNC7uyej1sCjlCdzPNqP2y"  # abreham-a@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -230,6 +231,9 @@ PREDICTION_MODELS = [
 ]
 
 
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
+
+
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
 OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
@@ -254,10 +258,11 @@ MAPLOSS_KEY = "cnn"
 with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
-MODEL_OUT_PATH = "/Apps/RTrader/maploss/models/cnn/"
+MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
 TIMEOUT = 6*60*60
+
 
 class ResourceCategories:
 
@@ -280,6 +285,8 @@ class RunnerStatsBranches:
 
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
+	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
+
 	all = [
 		main,
 		ma_ews,
@@ -289,20 +296,25 @@ class RunnerStatsBranches:
 		cma_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_d_0_8,
 		runlive_sim_cum_0_it_8,
-		real_ma_ews_dynamic_k_stm
+		real_ma_ews_dynamic_k_stm,
+		ma_ews_dynamic_k_stm_it_15
 	]
 
-	default = ma_ews_dynamic_k_stm
+	default = ma_ews_dynamic_k_stm_it_15
 
 
 class RunnerStatsLossesBranches:
 
 	main = "main"
 	it_10 = "it_10"
+	it_12 = "it_12"
+	it_15 = "it_15"
 
 	all = [
 		main,
-		it_10
+		it_10,
+		it_12,
+		it_15
 	]
 
-	default = main
+	default = it_15
