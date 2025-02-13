@@ -179,6 +179,13 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
+		USE_CHANNEL_FFN = True
+		CHANNEL_FFN_LAYERS = [CHANNELS[-1] for _ in range(4)]
+		CHANNEL_FFN_DROPOUT = 0.1
+		CHANNEL_FFN_ACTIVATION = nn.LeakyReLU()
+		CHANNEL_FFN_NORM = [False] + [False for _ in CHANNEL_FFN_LAYERS[:-1]]
+		CHANNEL_FFN_INIT = None
+
 		USE_FF = True
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
@@ -198,6 +205,17 @@ class TrainerTest(unittest.TestCase):
 			)
 		else:
 			ff = None
+
+		if USE_CHANNEL_FFN:
+			channel_ffn = LinearModel(
+				dropout_rate=CHANNEL_FFN_DROPOUT,
+				layer_sizes=CHANNEL_FFN_LAYERS,
+				hidden_activation=CHANNEL_FFN_ACTIVATION,
+				init_fn=CHANNEL_FFN_INIT,
+				norm=CHANNEL_FFN_NORM
+			)
+		else:
+			channel_ffn = None
 
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
@@ -222,7 +240,8 @@ class TrainerTest(unittest.TestCase):
 			input_size=BLOCK_SIZE,
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
-			stride=STRIDE
+			stride=STRIDE,
+			channel_ffn=channel_ffn
 		)
 
 		dataset = BaseDataset(

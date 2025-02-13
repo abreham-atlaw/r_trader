@@ -7,9 +7,8 @@ class DRLExportPreparerTest(unittest.TestCase):
 
 	def test_functionality(self):
 
-
 		INPUT_DIRS = [
-			"/home/abrehamatlaw/Downloads/Compressed/results/out"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data"
 		]
 
 		INPUT_SIZE = 1157
@@ -21,7 +20,8 @@ class DRLExportPreparerTest(unittest.TestCase):
 			INPUT_SIZE,
 			SEQ_LEN,
 			MA_WINDOW,
-			OUT_DIR
+			OUT_DIR,
+			test_split_size=0
 		)
 
 		for input_dir in INPUT_DIRS:
