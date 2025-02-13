@@ -253,6 +253,7 @@ class RunnerStatsBranches:
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
+	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_16"
 
 	all = [
 		main,
@@ -264,7 +265,8 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_d_0_8,
 		runlive_sim_cum_0_it_8,
 		real_ma_ews_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_it_15
+		ma_ews_dynamic_k_stm_it_15,
+		ma_ews_dynamic_k_stm_it_16
 	]
 
 	default = ma_ews_dynamic_k_stm
@@ -276,12 +278,14 @@ class RunnerStatsLossesBranches:
 	it_10 = "it_10"
 	it_12 = "it_12"
 	it_15 = "it_15"
+	it_16 = "it_16"
 
 	all = [
 		main,
 		it_10,
 		it_12,
-		it_15
+		it_15,
+		it_16
 	]
 
 	default = main
