@@ -23,12 +23,12 @@ class RunnerStatsRepository:
 			select_weight: float = 0.5,
 			max_loss: float = None,
 			model_name_key: str = "",
-			population_size: int = 160,
+			population_size: int = None,
 			profit_based_selection: bool = False,
 			profit_predictor: 'ProfitPredictor' = None,
 			branch: str = Config.RunnerStatsBranches.default,
 	):
-		print(f"Using Branch {branch} with key '{model_name_key}'")
+		print(f"Using Branch {branch} with key '{model_name_key}', population size: {population_size}")
 		db = client[db_name]
 		self._collection = db[f"{collection_name}-branch-{branch}"]
 		self.__serializer = RunnerStatsSerializer()
