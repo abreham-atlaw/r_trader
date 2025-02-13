@@ -235,7 +235,7 @@ WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [0.05] + [0.2*i for i in range(1, 6)] + [2.0]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-16/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -263,6 +263,7 @@ class RunnerStatsBranches:
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
+	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_16"
 
 	all = [
 		main,
@@ -274,7 +275,8 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_d_0_8,
 		runlive_sim_cum_0_it_8,
 		real_ma_ews_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_it_15
+		ma_ews_dynamic_k_stm_it_15,
+		ma_ews_dynamic_k_stm_it_16
 	]
 
 	default = ma_ews_dynamic_k_stm_it_15
@@ -286,12 +288,14 @@ class RunnerStatsLossesBranches:
 	it_10 = "it_10"
 	it_12 = "it_12"
 	it_15 = "it_15"
+	it_16 = "it_16"
 
 	all = [
 		main,
 		it_10,
 		it_12,
-		it_15
+		it_15,
+		it_16
 	]
 
 	default = it_15
