@@ -256,7 +256,7 @@ class RunnerStatsBranches:
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
-	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_16"
+	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 
 	all = [
 		main,
