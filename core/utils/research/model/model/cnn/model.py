@@ -68,6 +68,8 @@ class CNN(SpinozaModule):
 				for _ in kernel_sizes
 			]
 		conv_channels = [self.indicators.indicators_len] + conv_channels
+		if positional_encoding:
+			conv_channels[0] *= 2
 
 		if isinstance(norm, bool):
 			norm = [norm for _ in range(len(conv_channels) - 1)]
