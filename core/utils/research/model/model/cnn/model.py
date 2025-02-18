@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -31,7 +31,8 @@ class CNN(SpinozaModule):
 			norm: typing.Union[bool, typing.List[bool]] = False,
 			stride: typing.Union[int, typing.List[int]] = 1,
 			positional_encoding: bool = False,
-			norm_positional_encoding: bool = False
+			norm_positional_encoding: bool = False,
+			channel_ffn: typing.Optional[nn.Module] = None
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -51,7 +52,8 @@ class CNN(SpinozaModule):
 			'norm': norm,
 			'indicators': indicators,
 			'positional_encoding': positional_encoding,
-			'norm_positional_encoding': norm_positional_encoding
+			'norm_positional_encoding': norm_positional_encoding,
+			'channel_ffn': channel_ffn
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -127,6 +129,8 @@ class CNN(SpinozaModule):
 		else:
 			self.pos = nn.Identity()
 
+		self.channel_ffn = AxisFFN(channel_ffn, axis=1) if channel_ffn else nn.Identity()
+
 		self.init()
 
 	def _build_conv_layers(
@@ -168,6 +172,7 @@ class CNN(SpinozaModule):
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
 			out = dropout(out)
+		out = self.channel_ffn(out)
 		out = self.collapse(out)
 		out = out.reshape(out.size(0), -1)
 		out = self.dropouts[-1](out)
