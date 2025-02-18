@@ -21,7 +21,9 @@ class EncDecFusionModel(StackedEnsembleModel):
 			channel_block: nn.Module = None,
 			preconcat_norm: bool = False,
 			sequence_only_encoding: bool = False,
-			encoder_extra_len: int = None
+			encoder_extra_len: int = None,
+			encoder_dropout: float = 0,
+			decoder_dropout: float = 0
 	):
 		super().__init__(models)
 		if sequence_only_encoding and encoder_extra_len is None:
@@ -33,12 +35,20 @@ class EncDecFusionModel(StackedEnsembleModel):
 			"collapse_block": collapse_block,
 			"preconcat_norm": preconcat_norm,
 			"sequence_only_encoding": sequence_only_encoding,
-			"encoder_extra_len": encoder_extra_len
+			"encoder_extra_len": encoder_extra_len,
+			"encoder_dropout": encoder_dropout,
+			"decoder_dropout": decoder_dropout
 		})
 
 		self.encoder = encoder
 		self.decoder = decoder
 		self.encoder_reshape_layer = None
+
+		self.encoder_dropout, self.decoder_dropout = [
+			nn.Dropout(p=dropout)
+			if dropout else nn.Identity()
+			for dropout in [encoder_dropout, decoder_dropout]
+		]
 
 		self.channel_block = channel_block if channel_block is not None else nn.Identity()
 		self.ff_block = collapse_block
@@ -63,6 +73,10 @@ class EncDecFusionModel(StackedEnsembleModel):
 	def _call(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		if self.sequence_only_encoding:
 			x = x[:, :-self.encoder_extra_len]
+
+		x = self.encoder_dropout(x)
+		y = self.decoder_dropout(y)
+
 		encoded = self.encoder(x)
 		decoded = self.decoder(y)
 		encoded = self.encoder_reshape(encoded, decoded)

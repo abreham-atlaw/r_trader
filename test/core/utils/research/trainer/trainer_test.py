@@ -753,6 +753,8 @@ class TrainerTest(unittest.TestCase):
 
 		# ENCDECFUSION Configs
 		PRECONCAT_NORM = True
+		ENCODER_DROPOUT = 0.3
+		DECODER_DROPOUT = 0.3
 
 		enc_indicators = Indicators(
 			delta=ENC_INDICATORS_DELTA,
@@ -819,7 +821,9 @@ class TrainerTest(unittest.TestCase):
 			models=models,
 			preconcat_norm=PRECONCAT_NORM,
 			sequence_only_encoding=ENC_SEQUENCE_ONLY_ENCODER,
-			encoder_extra_len=ENC_EXTRA_LEN
+			encoder_extra_len=ENC_EXTRA_LEN,
+			encoder_dropout=ENCODER_DROPOUT,
+			decoder_dropout=DECODER_DROPOUT
 		)
 
 		dataset = BaseDataset(
