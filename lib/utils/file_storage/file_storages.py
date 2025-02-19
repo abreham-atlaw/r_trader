@@ -10,7 +10,7 @@ from threading import Thread
 
 from lib.network.rest_interface.requests import Request
 from lib.network.rest_interface.NetworkApiClient import NetworkApiClient
-from .exceptions import FileNotFoundException
+from .exceptions import FileNotFoundException, FileSystemException
 from ..logger import Logger
 
 
@@ -26,6 +26,10 @@ class FileStorage(ABC):
 
 	@abstractmethod
 	def listdir(self, path: str) -> typing.List[str]:
+		pass
+
+	@abstractmethod
+	def delete(self, path: str):
 		pass
 
 	def exists(self, path: str) -> bool:
@@ -69,6 +73,9 @@ class DropboxClient(FileStorage):
 	def listdir(self, path: str) -> typing.List[str]:
 		res = self.__client.files_list_folder(path)
 		return [entry.name for entry in res.entries]
+
+	def delete(self, path: str):
+		pass
 
 
 class PCloudClient(FileStorage):
@@ -154,6 +161,27 @@ class PCloudClient(FileStorage):
 				for content in self._filter_response(response)
 			]
 
+	class DeleteFileRequest(Request):
+
+		def __init__(self, path: str):
+			super().__init__(
+				"/deletefile",
+				method=Request.Method.POST,
+				get_params={
+					"path": path
+				}
+			)
+			self.__path = path
+
+		def _filter_response(self, response):
+			if response["result"] == 0:
+				return response
+
+			if response["result"] == 2009:
+				raise FileNotFoundException()
+
+			raise FileSystemException(f"Failed to delete file of path={self.__path}. {response}")
+
 	def __init__(self, token, folder, pcloud_base_url="https://api.pcloud.com/"):
 		self.__base_path = folder
 		self.__client = PCloudClient.PCloudNetworkClient(token=token, url=pcloud_base_url)
@@ -194,6 +222,12 @@ class PCloudClient(FileStorage):
 		except KeyError as ex:
 			raise FileNotFoundException()
 
+	def delete(self, path: str):
+		self.__client.execute(
+			PCloudClient.DeleteFileRequest(
+				self.__get_complete_path(path)
+			)
+		)
 
 class LocalStorage(FileStorage):
 
