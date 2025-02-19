@@ -24,7 +24,7 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-es-edf-5-cum-0-it-4-tot_1.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-es-edf2-11-cum-0-it-4-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
