@@ -49,6 +49,15 @@ class CombinedFileStorage(FileStorage):
 				pass
 		return sorted(list(set(files)))
 
+	def delete(self, path: str):
+		Logger.info(f"Deleting {path}...")
+		for i, child in enumerate(self.__children):
+			try:
+				child.delete(path)
+				Logger.info(f"Deleted from Storage {i} for {path}")
+			except FileNotFoundException:
+				pass
+
 
 class PCloudCombinedFileStorage(CombinedFileStorage):
 
