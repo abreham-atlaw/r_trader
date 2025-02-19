@@ -20,7 +20,8 @@ from lib.utils.logger import Logger
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm
+		self.fs = ServiceProvider.provide_file_storage(path=Config.MAPLOSS_FS_MODELS_PATH)
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_16
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -802,3 +803,73 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		name = "runner_stats"
 
 		self.__copy_database(old_db_name=backup_name, new_db_name=name)
+
+	def __get_strided_stats(self, stats: typing.List[RunnerStats], stride: float, loss_idx: int) -> typing.List[typing.List[RunnerStats]]:
+
+		losses = [stat.model_losses[loss_idx] for stat in stats]
+		min_loss = min(losses)
+		max_loss = max(losses)
+
+		bounds = list(np.arange(min_loss, max_loss, stride)) + [max_loss]
+
+		strided_stats = []
+		for i in range(len(bounds) - 1):
+			strided_stats.append(
+				list(filter(
+					lambda stat: bounds[i] <= stat.model_losses[loss_idx] < bounds[i + 1],
+					stats
+				))
+			)
+
+		return strided_stats
+
+	def __permanently_delete_stat(self, stat: RunnerStats):
+		print("Deleting stat", stat)
+		self.repository.delete(stat.id)
+		self.fs.delete(stat.model_name)
+
+	def test_get_density_stats(self):
+
+		DENSITY = 2
+		STRIDE = 0.5
+		LOSS_IDX = 1
+
+		stats = list(filter(
+			lambda stat: 0 not in stat.model_losses,
+			self.repository.retrieve_all()
+		))
+
+		strided_stats = self.__get_strided_stats(stats=stats, stride=STRIDE, loss_idx=LOSS_IDX)
+
+		print(f"Strided: {[len(s) for s in strided_stats]}")
+
+	def test_trim_stats_density(self):
+
+		def trim_stats(stats: typing.List[RunnerStats], density: float, stride: float) -> typing.List[RunnerStats]:
+			remaining_size = round(density * stride)
+			if len(stats) <= remaining_size:
+				return
+
+			remaining = random.sample(stats, remaining_size)
+			to_remove = list(filter(
+				lambda stat: stat not in remaining,
+				stats
+			))
+			print(f"Removing {len(to_remove)} out of {len(stats)}")
+			for stat in to_remove:
+				self.__permanently_delete_stat(stat=stat)
+			return
+
+		DENSITY = 2
+		STRIDE = 0.5
+		LOSS_IDX = 1
+
+		strided_stats = self.__get_strided_stats(stats=self.repository.retrieve_all(), stride=STRIDE, loss_idx=LOSS_IDX)
+
+		print(f"Strided: {[len(s) for s in strided_stats]}")
+		print(f"Total: {sum([len(s) for s in strided_stats])}")
+
+		for stats in strided_stats:
+			trim_stats(stats=stats, density=DENSITY, stride=STRIDE)
+
+
