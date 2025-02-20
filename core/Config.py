@@ -53,11 +53,11 @@ PCLOUD_TOKENS = [
 	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
 	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
 	# "TBa557ZIO9B7ZoRcWXn5J5GYPecBJdNKb6y5gebik",  # abreham.atlaw@yahoo.com -
-	"NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
+	# "NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
 	"6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
-	# "BtU5eZkqQs7ZsLeOXAVgrBR430z4c72EdpGqnjU7",  # abrehama@outlook.com +
+	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
 	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
 	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
@@ -114,7 +114,7 @@ UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
 MARKET_STATE_USE_MA = True
-MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_GRANULARITY = "M30"
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
@@ -156,7 +156,7 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
-AGENT_MA_WINDOW_SIZE = 10
+AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -286,6 +286,7 @@ class RunnerStatsBranches:
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
+	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 
 	all = [
 		main,
@@ -297,7 +298,8 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_d_0_8,
 		runlive_sim_cum_0_it_8,
 		real_ma_ews_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_it_15
+		ma_ews_dynamic_k_stm_it_15,
+		ma_ews_dynamic_k_stm_it_16
 	]
 
 	default = ma_ews_dynamic_k_stm_it_15
@@ -309,12 +311,14 @@ class RunnerStatsLossesBranches:
 	it_10 = "it_10"
 	it_12 = "it_12"
 	it_15 = "it_15"
+	it_16 = "it_16"
 
 	all = [
 		main,
 		it_10,
 		it_12,
-		it_15
+		it_15,
+		it_16
 	]
 
 	default = it_15

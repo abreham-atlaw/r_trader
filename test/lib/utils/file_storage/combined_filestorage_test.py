@@ -13,3 +13,18 @@ class FileStorageTest(unittest.TestCase):
 		files = self.fs.listdir("/")
 		self.assertTrue(len(files) > 0)
 
+	def test_delete(self):
+		FILES = [
+			"/0.txt",
+			"/1.txt",
+			"/2.txt"
+		]
+		files = self.fs.listdir("/")
+
+		for file in FILES:
+			self.assertTrue(file in files)
+		for file in FILES:
+			self.fs.delete(file)
+		files = self.fs.listdir("/")
+		for file in FILES:
+			self.assertTrue(file not in files)
