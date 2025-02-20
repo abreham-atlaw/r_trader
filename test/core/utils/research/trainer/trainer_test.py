@@ -244,7 +244,7 @@ class TrainerTest(unittest.TestCase):
 			],
 			check_file_sizes=True
 		)
-		dataloader = DataLoader(dataset, batch_size=8)
+		dataloader = DataLoader(dataset, batch_size=64)
 
 		# test_dataset = BaseDataset(
 		# 	[
@@ -1013,6 +1013,26 @@ class TrainerTest(unittest.TestCase):
 
 		new_state = trainer.state
 		self.assertIsNotNone(new_state)
+
+	def test_validate(self):
+
+		dataset = BaseDataset(
+			[
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+			],
+			check_file_sizes=True
+		)
+		dataloader = DataLoader(dataset, batch_size=8)
+
+		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip")
+
+		trainer = Trainer(model)
+		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(model.parameters(), lr=1e-3)
+
+		print("Loss", trainer.validate(dataloader))
+	# 	[10.343830108642578, 0.0007124464027583599, 10.34454345703125]
 
 	def test_sinwave_prediction(self):
 
