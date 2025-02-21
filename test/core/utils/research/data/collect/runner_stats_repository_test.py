@@ -828,6 +828,19 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.repository.delete(stat.id)
 		self.fs.delete(stat.model_name)
 
+	def test_delete_stats(self):
+
+		IDS = [
+			"1739484248.407139."
+		]
+		stats = [
+			self.repository.retrieve(id)
+			for id in IDS
+		]
+		for i, stat in enumerate(stats):
+			self.__permanently_delete_stat(stat=stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
 	def test_get_density_stats(self):
 
 		DENSITY = 2
