@@ -249,7 +249,6 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
 
 	runlive_sim_cum_0_it_8 = "runlive_sim_cum_0_it_8"
-	runlive_sim_cum_0_it_18 = "runlive_sim_cum_0_it_18"
 
 	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
 
@@ -268,7 +267,6 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
-		runlive_sim_cum_0_it_18
 	]
 
 	default = ma_ews_dynamic_k_stm
