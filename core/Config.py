@@ -231,9 +231,6 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
-
-
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
 OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
@@ -246,8 +243,8 @@ AGENT_FRICTION_TIME = 4
 AGENT_STEP_TIME = (3 * 60) - AGENT_FRICTION_TIME
 MARKET_STATE_GRANULARITY = "M30"
 UPDATE_AGENT = True
-UPDATE_EXPORT_BATCH_SIZE = 64
-UPDATE_SAVE_PATH = "/kaggle/working/outs"
+UPDATE_EXPORT_BATCH_SIZE = 16
+UPDATE_SAVE_PATH = "/kaggle/working/out"
 DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
@@ -258,8 +255,8 @@ MAPLOSS_KEY = "cnn"
 with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
-MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
+MODEL_PATH = "/Apps/RTrader/abrehamalemu-rtrader-training-exp-0-cnn-28-cum-0-it-15-tot.zip"
 
 TIMEOUT = 6*60*60
 
