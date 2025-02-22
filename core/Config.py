@@ -301,7 +301,7 @@ class RunnerStatsBranches:
 		runlive_sim_cum_0_it_18
 	]
 
-	default = ma_ews_dynamic_k_stm_it_15
+	default = runlive_sim_cum_0_it_18
 
 
 class RunnerStatsLossesBranches:
