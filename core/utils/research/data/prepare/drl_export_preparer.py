@@ -2,6 +2,7 @@ import numpy as np
 
 import os
 from datetime import datetime
+import random
 
 import torch
 from sklearn.model_selection import train_test_split
@@ -78,6 +79,8 @@ class DRLExportPreparer:
 			path: str,
 			is_test: bool
 	) -> str:
+		if X.shape[0] == 0:
+			return
 		filename = self.__generate_filename()
 		role_dir_name = self.__train_dir_name
 		if is_test:
@@ -97,7 +100,13 @@ class DRLExportPreparer:
 	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str):
 		data_len = X.shape[0]
 
-		indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size, shuffle=self.__split_shuffle)
+		if self.__test_split_size == 0:
+			indices = list(np.arange(X.shape[0])), []
+			if self.__split_shuffle:
+				random.shuffle(indices[0])
+
+		else:
+			indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size, shuffle=self.__split_shuffle)
 
 		for role_indices, is_test in zip(indices, [False, True]):
 			self.__save(
