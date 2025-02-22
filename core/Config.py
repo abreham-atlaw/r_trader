@@ -159,7 +159,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
-AGENT_CRA_DISCOUNT = 0.7
+AGENT_CRA_DISCOUNT = 0.9
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
@@ -249,9 +249,6 @@ DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
 AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
 AGENT_DUMP_NODES = True
 UPDATE_TRAIN = False
-AGENT_CRA_SIZE = 0
-MAPLOSS_BRANCH = "ma_ews"
-MAPLOSS_KEY = "cnn"
 with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
@@ -301,7 +298,7 @@ class RunnerStatsBranches:
 		runlive_sim_cum_0_it_18
 	]
 
-	default = runlive_sim_cum_0_it_18
+	default = ma_ews_dynamic_k_stm_it_15
 
 
 class RunnerStatsLossesBranches:
