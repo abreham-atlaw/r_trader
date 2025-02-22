@@ -231,9 +231,6 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-15/cnn"
-
-
 class ResourceCategories:
 
 	TEST_RESOURCE = "test"
