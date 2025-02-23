@@ -39,7 +39,11 @@ class DRLExportPreparer:
 		self.__test_split_size = test_split_size
 		self.__split_shuffle = split_shuffle
 
-		self.__ma_layer = MovingAverage(self.__ma_window)
+		self.__ma_layer = MovingAverage(self.__ma_window) if self.__use_ma else None
+
+	@property
+	def __use_ma(self) -> bool:
+		return self.__ma_window > 1
 
 	@staticmethod
 	def __generate_filename() -> str:
@@ -50,6 +54,8 @@ class DRLExportPreparer:
 		np.save(path, arr)
 
 	def __ma(self, sequence: np.ndarray):
+		if self.__use_ma:
+			return sequence
 		return self.__ma_layer(
 			torch.from_numpy(sequence.astype(np.float32))
 		).detach().numpy()
@@ -117,7 +123,8 @@ class DRLExportPreparer:
 			)
 
 	def __process_set(self, X: np.ndarray, y: np.ndarray):
-		X = np.concatenate([self.__ma(X[:, :self.__seq_len]), X[:, self.__seq_len:]], axis=1)
+		if self.__use_ma:
+			X = np.concatenate([self.__ma(X[:, :self.__seq_len]), X[:, self.__seq_len:]], axis=1)
 		self.__split_and_save(X, y, self.__export_path)
 
 	def start(
