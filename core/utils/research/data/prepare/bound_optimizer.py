@@ -19,6 +19,7 @@ class BoundGenerator:
 			end: float,
 			csv_path: str,
 			threshold=None,
+			average_window=10,
 			tmp_path="/tmp",
 	):
 		self.__start = start
@@ -26,6 +27,7 @@ class BoundGenerator:
 		self.__threshold = threshold
 		self.__df = pd.read_csv(csv_path)
 		self.__tmp_path = tmp_path
+		self.__average_window = average_window
 
 	def __prepare_tmp_path(self):
 		path = os.path.join(self.__tmp_path, f"{uuid.uuid4()}.bo")
@@ -52,7 +54,7 @@ class BoundGenerator:
 		datapreparer = DataPreparer(
 			boundaries=bounds,
 			block_size=20,
-			ma_window_size=10,
+			ma_window_size=self.__average_window,
 			test_split_size=0.1,
 			granularity=5,
 			batch_size=int(1e9),

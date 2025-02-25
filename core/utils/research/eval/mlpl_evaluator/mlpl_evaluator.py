@@ -1,5 +1,8 @@
+import os.path
 import typing
+from datetime import datetime
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -13,14 +16,21 @@ class MLPLEvaluator:
 			self,
 			loss: nn.Module,
 			dataloader: DataLoader,
-			progress_interval: int = 100
+			progress_interval: int = 100,
+			losses_export_path: str = None
 	):
 		self.__loss = loss
 		self.__dataloader = dataloader
 		self.__progress_interval = progress_interval
+		self.__losses_export_path = losses_export_path
+
+	def __generate_save_path(self):
+		if os.path.isdir(self.__losses_export_path):
+			return os.path.join(self.__losses_export_path, f"{datetime.now().timestamp()}.npy")
+		return self.__losses_export_path
 
 	def __evaluate_model(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor) -> float:
-		y = y[:, 1:]
+		y = y[:, :-1]
 		y_hat = model(X)[:, :-1]
 		return self.__loss(y_hat, y)
 
@@ -42,6 +52,11 @@ class MLPLEvaluator:
 			return len(self.__dataloader.dataset)
 		return len(self.__dataloader) * self.__dataloader.batch_size
 
+	def __export_losses(self, losses: torch.Tensor):
+		path = self.__generate_save_path()
+		Logger.info(f"Exporting losses to {path}...")
+		np.save(path, losses.cpu().numpy())
+
 	def evaluate(self, models: typing.List[nn.Module]):
 		for model in models:
 			model.eval()
@@ -55,6 +70,9 @@ class MLPLEvaluator:
 
 				if i % self.__progress_interval == 0:
 					Logger.info(f"Evaluating: {i} / {len(self.__dataloader)}...", end="\r")
+
+		if self.__losses_export_path is not None:
+			self.__export_losses(losses)
 
 		losses = self.__collapse_losses(losses)
 		return torch.mean(losses)

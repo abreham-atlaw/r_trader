@@ -37,7 +37,7 @@ class ModelOutputExporter:
 				Logger.info(f"[+]Creating {path}...")
 				os.makedirs(path)
 
-	def __generate_path(self) -> typing.Tuple[str, str, str]:
+	def _generate_path(self) -> typing.Tuple[str, str, str]:
 		filename = f"{datetime.now().timestamp()}.npy"
 		return tuple([
 			os.path.join(self.export_path, dir_name, filename)
@@ -45,12 +45,12 @@ class ModelOutputExporter:
 		])
 
 	@staticmethod
-	def __export_array(array: torch.Tensor, path: str):
+	def _export_array(array: torch.Tensor, path: str):
 		np.save(path, array.detach().numpy())
 
-	def __export_output(self, X: torch.Tensor, y: torch.Tensor, y_hat: torch.Tensor):
-		for array, path in zip([X, y, y_hat], self.__generate_path()):
-			self.__export_array(array, path)
+	def _export_output(self, X: torch.Tensor, y: torch.Tensor, y_hat: torch.Tensor):
+		for array, path in zip([X, y, y_hat], self._generate_path()):
+			self._export_array(array, path)
 
 	def export(self, dataloader: DataLoader):
 		self.__setup_export_dirs()
@@ -58,5 +58,5 @@ class ModelOutputExporter:
 		with torch.no_grad():
 			for i, (X, y) in enumerate(dataloader):
 				y_hat = self.model(X)
-				self.__export_output(X, y, y_hat)
+				self._export_output(X, y, y_hat)
 				Logger.info(f"Exported {(i+1)*100/len(dataloader):.2f}%...", end="\r")

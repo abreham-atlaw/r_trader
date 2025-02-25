@@ -45,7 +45,8 @@ class MLPLEvaluatorTest(unittest.TestCase):
 			),
 			# loss=nn.CrossEntropyLoss(),
 			dataloader=self.dataloader,
-			progress_interval=20
+			progress_interval=20,
+			losses_export_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/losses_export"
 		)
 		self.evaluator_b4 = MLPLEvaluator(
 			loss=UnbatchedProximalMaskedLoss(
@@ -54,7 +55,8 @@ class MLPLEvaluatorTest(unittest.TestCase):
 				softmax=True,
 			),
 			dataloader=self.dataloader_b4,
-			progress_interval=20
+			progress_interval=20,
+			losses_export_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/losses_export"
 		)
 
 	def test_evaluate(self):
