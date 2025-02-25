@@ -34,6 +34,7 @@ class RunnerStatsPopulater:
 			ma_window: int = 10,
 			shuffle_order: bool = True,
 			raise_exception: bool = False,
+			exception_exceptions: typing.List[typing.Type] = None,
 			temperatures: typing.Tuple[float,...] = (1.0,)
 	):
 		self.__in_filestorage = in_filestorage
@@ -46,6 +47,10 @@ class RunnerStatsPopulater:
 		self.__raise_exception = raise_exception
 		self.__temperatures = temperatures
 		self.__junk = set([])
+
+		if exception_exceptions is None:
+			exception_exceptions = []
+		self.__exception_exceptions = exception_exceptions
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -161,7 +166,7 @@ class RunnerStatsPopulater:
 					self._process_model(file, temperature)
 				except Exception as ex:
 					print(f"[-]Error Occurred processing {file}\n{ex}")
-					if self.__raise_exception:
+					if self.__raise_exception or True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]:
 						raise ex
 
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")

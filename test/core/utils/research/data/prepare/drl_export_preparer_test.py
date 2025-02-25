@@ -21,7 +21,8 @@ class DRLExportPreparerTest(unittest.TestCase):
 			SEQ_LEN,
 			MA_WINDOW,
 			OUT_DIR,
-			test_split_size=0
+			test_split_size=0,
+			batch_size=2
 		)
 
 		for input_dir in INPUT_DIRS:

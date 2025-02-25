@@ -1,3 +1,5 @@
+import typing
+
 import numpy as np
 
 import os
@@ -26,13 +28,15 @@ class DRLExportPreparer:
 
 			test_split_size: float = 0.2,
 
-			split_shuffle: bool = True
+			split_shuffle: bool = True,
+			batch_size: int = None
 
 	):
 		self.__input_size = input_size
 		self.__seq_len = seq_len
 		self.__ma_window = ma_window
 		self.__export_path = export_path
+		self.__batch_size = batch_size
 
 		self.__train_dir_name, self.__test_dir_name = train_dir_name, test_dir_name
 		self.__X_dir_name, self.__y_dir_name = X_dir_name, y_dir_name
@@ -45,6 +49,10 @@ class DRLExportPreparer:
 	def __use_ma(self) -> bool:
 		return self.__ma_window > 1
 
+	@property
+	def __is_batched(self) -> bool:
+		return self.__batch_size is not None
+
 	@staticmethod
 	def __generate_filename() -> str:
 		return f"{datetime.now().timestamp()}.npy"
@@ -52,6 +60,13 @@ class DRLExportPreparer:
 	@staticmethod
 	def __save_array(arr: np.ndarray, path: str):
 		np.save(path, arr)
+
+	def __batch_array(self, array: np.ndarray) -> typing.List[np.ndarray]:
+		arrays = np.array_split(array, self.__batch_size)
+		for i in range(len(arrays)):
+			if arrays[i].shape[0] > self.__batch_size:
+				arrays[i] = arrays[i][:self.__batch_size]
+		return arrays
 
 	def __ma(self, sequence: np.ndarray):
 		if self.__use_ma:
@@ -103,6 +118,26 @@ class DRLExportPreparer:
 
 		return filename
 
+	def __batch_and_save(self, X: np.ndarray, y: np.ndarray, path: str, is_test: bool):
+		if not self.__is_batched:
+			self.__save(
+				X=X,
+				y=y,
+				path=path,
+				is_test=is_test
+			)
+			return
+		X_batches = self.__batch_array(X)
+		y_batches = self.__batch_array(y)
+
+		for X_batch, y_batch in zip(X_batches, y_batches):
+			self.__save(
+				X=X_batch,
+				y=y_batch,
+				path=path,
+				is_test=is_test
+			)
+
 	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str):
 		data_len = X.shape[0]
 
@@ -115,11 +150,11 @@ class DRLExportPreparer:
 			indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size, shuffle=self.__split_shuffle)
 
 		for role_indices, is_test in zip(indices, [False, True]):
-			self.__save(
-				X=X[role_indices],
-				y=y[role_indices],
-				path=path,
-				is_test=is_test
+			self.__batch_and_save(
+				X[role_indices],
+				y[role_indices],
+				path,
+				is_test
 			)
 
 	def __process_set(self, X: np.ndarray, y: np.ndarray):
