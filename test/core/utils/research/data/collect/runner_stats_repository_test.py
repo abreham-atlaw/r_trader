@@ -828,6 +828,19 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		self.repository.delete(stat.id)
 		self.fs.delete(stat.model_name)
 
+	def test_delete_stats(self):
+
+		IDS = [
+			"1739484248.407139."
+		]
+		stats = [
+			self.repository.retrieve(id)
+			for id in IDS
+		]
+		for i, stat in enumerate(stats):
+			self.__permanently_delete_stat(stat=stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
 	def test_get_density_stats(self):
 
 		DENSITY = 2
@@ -872,4 +885,15 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		for stats in strided_stats:
 			trim_stats(stats=stats, density=DENSITY, stride=STRIDE)
 
+	def test_reset_model_losses(self):
 
+		# IDS = ["1739484248.407139."]
+		# stats = [self.repository.retrieve(id) for id in IDS]
+
+		stats = self.repository.retrieve_all()
+
+		for i, stat in enumerate(stats):
+			stat.model_losses = tuple([0.0] * len(stat.model_losses))
+			self.repository.store(stat)
+
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
