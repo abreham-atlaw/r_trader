@@ -191,7 +191,8 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
-            running_loss = torch.zeros((3,))
+            self.model = self.model.to(self.device).float()
+            running_loss, running_size = torch.zeros((3,)), 0
             pbar = tqdm(dataloader) if progress else dataloader
             for i, (X, y) in enumerate(pbar):
                 if i < state.batch:
@@ -226,13 +227,14 @@ class Trainer:
                 # self.optimizer.step()
                 self.__optimizer_step()
 
-                running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
+                running_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
+                running_size += X.shape[0]
                 if progress and i % progress_interval == 0:
-                    pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/(i+1))}")
+                    pbar.set_description(f"Epoch {epoch + 1} {self.__format_loss(running_loss/running_size)}")
                 for callback in self.callbacks:
                     callback.on_batch_end(self.model, i)
             state.batch = 0
-            epoch_loss = (running_loss / len(dataloader)).tolist()
+            epoch_loss = (running_loss / running_size).tolist()
             print(f"Epoch {epoch + 1} completed, {self.__format_loss(epoch_loss)}")
             if self.__log_gradient_stats:
                 print(f"Min gradient: {min_gradient}, Max gradient: {max_gradient}")
@@ -253,14 +255,16 @@ class Trainer:
             callback.on_train_end(self.model)
         return train_losses, val_losses
 
-    def validate(self, dataloader):
+    def validate(self, dataloader: DataLoader):
         self.model.eval()
         total_loss = torch.zeros((3,))
+        total_size = 0
         with torch.no_grad():
             for X, y in dataloader:
                 X, y = X.to(self.device), y.to(self.device)
                 y_hat = self.model(X)
                 cls_loss, ref_loss, loss = self.__loss(y_hat, y)
 
-                total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]])
-        return (total_loss / len(dataloader)).tolist()
+                total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
+                total_size += X.shape[0]
+        return (total_loss / total_size).tolist()
