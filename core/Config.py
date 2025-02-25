@@ -253,7 +253,7 @@ with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
 MODEL_TMP_PATH = os.path.abspath("./out/")
-MODEL_PATH = "/Apps/RTrader/abrehamalemu-rtrader-training-exp-0-cnn-28-cum-0-it-15-tot.zip"
+MODEL_PATH = "/Apps/RTrader/abrehamalemu-rtrader-training-exp-0-cnn-2-cum-0-it-15-tot.zip"
 
 TIMEOUT = 6*60*60
 
