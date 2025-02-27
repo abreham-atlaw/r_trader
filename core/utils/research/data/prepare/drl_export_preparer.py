@@ -10,6 +10,7 @@ import torch
 from sklearn.model_selection import train_test_split
 
 from core.utils.research.model.layers import MovingAverage
+from lib.utils.logger import Logger
 
 
 class DRLExportPreparer:
@@ -44,6 +45,7 @@ class DRLExportPreparer:
 		self.__split_shuffle = split_shuffle
 
 		self.__ma_layer = MovingAverage(self.__ma_window) if self.__use_ma else None
+		Logger.info(f"Using Moving Average: {self.__use_ma}")
 
 	@property
 	def __use_ma(self) -> bool:
