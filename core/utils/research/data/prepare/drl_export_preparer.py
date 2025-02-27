@@ -71,7 +71,7 @@ class DRLExportPreparer:
 		return arrays
 
 	def __ma(self, sequence: np.ndarray):
-		if self.__use_ma:
+		if not self.__use_ma:
 			return sequence
 		return self.__ma_layer(
 			torch.from_numpy(sequence.astype(np.float32))
