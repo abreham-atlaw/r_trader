@@ -129,7 +129,7 @@ class SessionsManager:
 		try:
 			return api.kernel_status(username, slug)
 		except ApiException as ex:
-			if ex.status == 429 and tries < self.__retry_patience:
+			if ex.status in [429, 404] and tries < self.__retry_patience:
 				print("Rate limited. Waiting 30 seconds...")
 				time.sleep(30)
 				return self.__get_notebook_status(api, username, slug, tries=tries+1)
