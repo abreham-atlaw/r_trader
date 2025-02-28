@@ -1,3 +1,5 @@
+import typing
+
 import numpy as np
 
 import os
@@ -8,6 +10,7 @@ import torch
 from sklearn.model_selection import train_test_split
 
 from core.utils.research.model.layers import MovingAverage
+from lib.utils.logger import Logger
 
 
 class DRLExportPreparer:
@@ -25,21 +28,34 @@ class DRLExportPreparer:
 			y_dir_name: str = "y",
 
 			test_split_size: float = 0.2,
+			file_based_split: bool = False,
 
-			split_shuffle: bool = True
+			split_shuffle: bool = True,
+			batch_size: int = None
 
 	):
 		self.__input_size = input_size
 		self.__seq_len = seq_len
 		self.__ma_window = ma_window
 		self.__export_path = export_path
+		self.__batch_size = batch_size
 
 		self.__train_dir_name, self.__test_dir_name = train_dir_name, test_dir_name
 		self.__X_dir_name, self.__y_dir_name = X_dir_name, y_dir_name
 		self.__test_split_size = test_split_size
+		self.__file_based_split = file_based_split
 		self.__split_shuffle = split_shuffle
 
-		self.__ma_layer = MovingAverage(self.__ma_window)
+		self.__ma_layer = MovingAverage(self.__ma_window) if self.__use_ma else None
+		Logger.info(f"Using Moving Average: {self.__use_ma}")
+
+	@property
+	def __use_ma(self) -> bool:
+		return self.__ma_window > 1
+
+	@property
+	def __is_batched(self) -> bool:
+		return self.__batch_size is not None
 
 	@staticmethod
 	def __generate_filename() -> str:
@@ -49,7 +65,16 @@ class DRLExportPreparer:
 	def __save_array(arr: np.ndarray, path: str):
 		np.save(path, arr)
 
+	def __batch_array(self, array: np.ndarray) -> typing.List[np.ndarray]:
+		arrays = np.array_split(array, self.__batch_size)
+		for i in range(len(arrays)):
+			if arrays[i].shape[0] > self.__batch_size:
+				arrays[i] = arrays[i][:self.__batch_size]
+		return arrays
+
 	def __ma(self, sequence: np.ndarray):
+		if not self.__use_ma:
+			return sequence
 		return self.__ma_layer(
 			torch.from_numpy(sequence.astype(np.float32))
 		).detach().numpy()
@@ -97,28 +122,62 @@ class DRLExportPreparer:
 
 		return filename
 
-	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str):
-		data_len = X.shape[0]
-
-		if self.__test_split_size == 0:
-			indices = list(np.arange(X.shape[0])), []
-			if self.__split_shuffle:
-				random.shuffle(indices[0])
-
-		else:
-			indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size, shuffle=self.__split_shuffle)
-
-		for role_indices, is_test in zip(indices, [False, True]):
+	def __batch_and_save(self, X: np.ndarray, y: np.ndarray, path: str, is_test: bool):
+		if not self.__is_batched:
 			self.__save(
-				X=X[role_indices],
-				y=y[role_indices],
+				X=X,
+				y=y,
+				path=path,
+				is_test=is_test
+			)
+			return
+		X_batches = self.__batch_array(X)
+		y_batches = self.__batch_array(y)
+
+		for X_batch, y_batch in zip(X_batches, y_batches):
+			self.__save(
+				X=X_batch,
+				y=y_batch,
 				path=path,
 				is_test=is_test
 			)
 
-	def __process_set(self, X: np.ndarray, y: np.ndarray):
-		X = np.concatenate([self.__ma(X[:, :self.__seq_len]), X[:, self.__seq_len:]], axis=1)
-		self.__split_and_save(X, y, self.__export_path)
+	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str, test_split_size: float = None):
+		if test_split_size is None:
+			test_split_size = self.__test_split_size
+
+		data_len = X.shape[0]
+
+		if test_split_size == 0:
+			indices = list(np.arange(X.shape[0])), []
+			if self.__split_shuffle:
+				random.shuffle(indices[0])
+
+		elif test_split_size == 1:
+			indices = [], list(np.arange(X.shape[0]))
+			if self.__split_shuffle:
+				random.shuffle(indices[1])
+
+		else:
+			indices = train_test_split(np.arange(data_len), test_size=test_split_size, shuffle=self.__split_shuffle)
+
+		for role_indices, is_test in zip(indices, [False, True]):
+			self.__batch_and_save(
+				X[role_indices],
+				y[role_indices],
+				path,
+				is_test
+			)
+
+	def __file_split(self, filenames: typing.List[str]) -> typing.Tuple[typing.List[str], typing.List[str]]:
+		train_filenames = filenames[:int(len(filenames) * (1 - self.__test_split_size))]
+		test_filenames = filenames[int(len(filenames) * (1 - self.__test_split_size)):]
+		return train_filenames, test_filenames
+
+	def __process_set(self, X: np.ndarray, y: np.ndarray, test_split_size: float = None):
+		if self.__use_ma:
+			X = np.concatenate([self.__ma(X[:, :self.__seq_len]), X[:, self.__seq_len:]], axis=1)
+		self.__split_and_save(X, y, self.__export_path, test_split_size=test_split_size)
 
 	def start(
 			self,
@@ -127,7 +186,13 @@ class DRLExportPreparer:
 
 		self.__setup_save_path(self.__export_path)
 		filenames = os.listdir(os.path.join(input_path, self.__X_dir_name))
+		train_files, test_files = self.__file_split(filenames) if self.__file_based_split else (None, None)
+
 		for i, filename in enumerate(filenames):
 			X, y = [np.load(os.path.join(input_path, inner_path, filename)) for inner_path in [self.__X_dir_name, self.__y_dir_name]]
-			self.__process_set(X, y)
+			self.__process_set(
+				X,
+				y,
+				test_split_size=None if not self.__file_based_split else 1 if filename in test_files else 0
+			)
 			print(f"Completed {(i+1)*100/len(filenames) :.2f}%...", end="\r")
