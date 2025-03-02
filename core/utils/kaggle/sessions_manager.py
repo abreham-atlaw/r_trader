@@ -5,6 +5,7 @@ import os
 import json
 from datetime import datetime
 
+from lib.utils.logger import Logger
 from .data.repositories import SessionsRepository, AccountsRepository
 from .data.models import Account, Session, Resources
 
@@ -78,7 +79,7 @@ class SessionsManager:
 			meta_data: typing.Dict[str, typing.Any],
 			device: int
 	):
-		print(f"Starting {kernel} on {account.username}(device={device})...")
+		Logger.info(f"Starting {kernel} on {account.username}(device={device})...")
 		meta_data = meta_data.copy()
 
 		meta_data["enable_gpu"] = device == Resources.Devices.GPU
@@ -97,7 +98,7 @@ class SessionsManager:
 			self.__clean(path)
 
 	def __prepare_for_run(self, kernel: str):
-		print(f"Preparing to run {kernel}...")
+		Logger.info(f"Preparing to run {kernel}...")
 		self.finish_session(kernel, multiple=True)
 
 	def start_session(
@@ -111,13 +112,13 @@ class SessionsManager:
 	):
 		if sync_notebooks:
 			self.sync_notebooks()
-		print(f"Running {kernel} on {account.username}(device={device})...")
+		Logger.info(f"Running {kernel} on {account.username}(device={device})...")
 		self.__prepare_for_run(kernel)
 		self.__run_notebook(kernel, account, meta_data, device)
 		self.__register_session(kernel, account, device)
 
 	def finish_session(self, kernel: str, multiple=False):
-		print(f"Finishing {kernel} with multiple={multiple}")
+		Logger.info(f"Finishing {kernel} with multiple={multiple}")
 		active_sessions = self.__session_repository.filter(kernel=kernel, active=True)
 		if not multiple:
 			active_sessions = active_sessions[:1]
@@ -129,15 +130,15 @@ class SessionsManager:
 		try:
 			return api.kernel_status(username, slug)
 		except ApiException as ex:
-			if ex.status == 429 and tries < self.__retry_patience:
-				print("Rate limited. Waiting 30 seconds...")
+			if ex.status in [429, 404] and tries < self.__retry_patience:
+				Logger.warning(f"Rate limited[{ex.status}]. Waiting 30 seconds...")
 				time.sleep(30)
 				return self.__get_notebook_status(api, username, slug, tries=tries+1)
 			else:
 				raise ex
 
 	def is_notebook_running(self, notebook_id):
-		print(f"Checking {notebook_id}")
+		Logger.info(f"Checking {notebook_id}")
 		username, slug = notebook_id.split("/")
 		api = self.__create_api(self.__account_repository.get_accounts()[0])
 		status = self.__get_notebook_status(api, username, slug)
@@ -145,16 +146,16 @@ class SessionsManager:
 
 	def sync_notebooks(self):
 		sessions = self.__session_repository.filter(active=True)
-		print(f"Syncing {len(sessions)} sessions")
+		Logger.info(f"Syncing {len(sessions)} sessions")
 		for session in sessions:
-			print(f"Syncing {session.kernel}...")
+			Logger.info(f"Syncing {session.kernel}...")
 			if session.account is None:
-				print(f"Invalid session skipping...")
+				Logger.info(f"Invalid session skipping...")
 				continue
 			try:
 				if not self.is_notebook_running(session.kernel):
-					print(f"Finishing session")
+					Logger.info(f"Finishing session")
 					self.finish_session(session.kernel, multiple=True)
 			except Exception as ex:
-				print(f"Failed to finish session {session.kernel}")
-				print(ex)
+				Logger.error(f"Failed to finish session {session.kernel}")
+				Logger.error(ex)

@@ -231,7 +231,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-16/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -287,6 +287,7 @@ class RunnerStatsBranches:
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
+	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 
 	all = [
 		main,
@@ -300,9 +301,10 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
+		ma_ews_dynamic_k_stm_it_23
 	]
 
-	default = ma_ews_dynamic_k_stm_it_16
+	default = ma_ews_dynamic_k_stm_it_23
 
 
 class RunnerStatsLossesBranches:
@@ -312,13 +314,17 @@ class RunnerStatsLossesBranches:
 	it_12 = "it_12"
 	it_15 = "it_15"
 	it_16 = "it_16"
+	it_20 = "it_20"
+	it_23 = "it_23"
 
 	all = [
 		main,
 		it_10,
 		it_12,
 		it_15,
-		it_16
+		it_16,
+		it_20,
+		it_23
 	]
 
-	default = it_16
+	default = it_23
