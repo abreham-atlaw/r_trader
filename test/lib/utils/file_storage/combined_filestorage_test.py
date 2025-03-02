@@ -28,3 +28,8 @@ class FileStorageTest(unittest.TestCase):
 		files = self.fs.listdir("/")
 		for file in FILES:
 			self.assertTrue(file not in files)
+
+	def test_create_folder(self):
+		self.fs.create_folder("/test")
+		files = self.fs.listdir("/")
+		self.assertTrue("/test" in files)
