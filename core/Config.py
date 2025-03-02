@@ -114,7 +114,7 @@ UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
 MARKET_STATE_USE_MA = True
-MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_GRANULARITY = "M30"
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
@@ -156,7 +156,7 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
-AGENT_MA_WINDOW_SIZE = 10
+AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -235,7 +235,7 @@ WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [1.0]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-16/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -264,6 +264,7 @@ class RunnerStatsBranches:
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
+	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 
 	all = [
 		main,
@@ -277,9 +278,10 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
+		ma_ews_dynamic_k_stm_it_23
 	]
 
-	default = ma_ews_dynamic_k_stm_it_16
+	default = ma_ews_dynamic_k_stm_it_23
 
 
 class RunnerStatsLossesBranches:
@@ -290,6 +292,7 @@ class RunnerStatsLossesBranches:
 	it_15 = "it_15"
 	it_16 = "it_16"
 	it_20 = "it_20"
+	it_23 = "it_23"
 
 	all = [
 		main,
@@ -297,7 +300,8 @@ class RunnerStatsLossesBranches:
 		it_12,
 		it_15,
 		it_16,
-		it_20
+		it_20,
+		it_23
 	]
 
-	default = it_16
+	default = it_23
