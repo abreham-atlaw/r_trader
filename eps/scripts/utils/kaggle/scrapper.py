@@ -62,7 +62,7 @@ class KaggleScraper:
 		self._scroll_down()
 
 		username_input = WebDriverWait(self.driver, 5).until(
-			EC.element_to_be_clickable((By.XPATH, "//input[contains(@placeholder,'Search collaborators')]"))
+			EC.element_to_be_clickable((By.XPATH, "//input[contains(@placeholder,'Share with people or groups')]"))
 		)
 		username_input.clear()
 		time.sleep(5)
@@ -228,10 +228,10 @@ class VisitProcess(Process):
 
 def share_notebooks():
 
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamatlaw0.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-4-tot/'
-		for i in range(177, 179)
+		f'https://www.kaggle.com/code/abrehamatlaw0/rtrader-datapreparer-simsim-cum-0-it-20-0/'
+		# for i in range(40)
 	]
 	random.shuffle(notebook_urls)
 	threads = len(notebook_urls)
@@ -242,7 +242,7 @@ def share_notebooks():
 		'yosephmezemer',
 		'napoleonbonaparte0',
 		'inkoops',
-		# 'abrehamalemu',
+		'abrehamalemu',
 		'albertcamus0',
 		'birukay',
 		'nikolatesla0',
