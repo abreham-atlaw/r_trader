@@ -58,6 +58,10 @@ class CombinedFileStorage(FileStorage):
 			except FileNotFoundException:
 				pass
 
+	def create_folder(self, path: str):
+		for child in self.__children:
+			child.create_folder(path)
+
 
 class PCloudCombinedFileStorage(CombinedFileStorage):
 

@@ -58,9 +58,9 @@ PCLOUD_TOKENS = [
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
-	"2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
+	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
-	# "0HMhfXZPays7ZDVL1C2BAY4QwxbRj7N3x6842k9ck",  # hiwotahab12@gmail.com +
+	"TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
 	# "16InJVZWmKM7ZJ2Sdk8HNC7uyej1sCjlCdzPNqP2y"  # abreham-a@outlook.com
@@ -281,6 +281,7 @@ class RunnerStatsBranches:
 
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
+	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 
 	all = [
 		main,
@@ -294,6 +295,7 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
+		ma_ews_dynamic_k_stm_it_23
 	]
 
 	default = ma_ews_dynamic_k_stm_it_15
@@ -306,13 +308,17 @@ class RunnerStatsLossesBranches:
 	it_12 = "it_12"
 	it_15 = "it_15"
 	it_16 = "it_16"
+	it_20 = "it_20"
+	it_23 = "it_23"
 
 	all = [
 		main,
 		it_10,
 		it_12,
 		it_15,
-		it_16
+		it_16,
+		it_20,
+		it_23
 	]
 
 	default = it_15
