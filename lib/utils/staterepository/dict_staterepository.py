@@ -30,8 +30,6 @@ class DictStateRepository(StateRepository):
 
 class SectionalDictStateRepository(StateRepository):
 
-
-
 	def __init__(self, len_: int, depth: int = 1, serializer: Serializer = None):
 		super().__init__(serializer)
 		self.__len = len_
@@ -69,7 +67,10 @@ class SectionalDictStateRepository(StateRepository):
 
 	def retrieve(self, key: str) -> object:
 		try:
-			return self.__retrieve(key, self.__states, self.__depth)
+			value = self.__retrieve(key, self.__states, self.__depth)
+			if value is None:
+				raise StateNotFoundException()
+			return value
 		except KeyError:
 			raise StateNotFoundException
 

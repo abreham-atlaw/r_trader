@@ -17,7 +17,7 @@ class AutoStateRepository(StateRepository):
 	):
 		super().__init__(*args, **kwargs)
 		if in_memory_repository is None:
-			in_memory_repository = SectionalDictStateRepository(2, 15, serializer=self._serializer)
+			in_memory_repository = SectionalDictStateRepository(memory_size, serializer=self._serializer)
 		if disk_repository is None:
 			disk_repository = PickleStateRepository(serializer=self._serializer)
 
