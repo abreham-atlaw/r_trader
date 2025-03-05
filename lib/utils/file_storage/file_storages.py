@@ -32,6 +32,10 @@ class FileStorage(ABC):
 	def delete(self, path: str):
 		pass
 
+	@abstractmethod
+	def create_folder(self, path: str):
+		pass
+
 	def exists(self, path: str) -> bool:
 		try:
 			files = self.listdir(os.path.dirname(path))
@@ -75,6 +79,9 @@ class DropboxClient(FileStorage):
 		return [entry.name for entry in res.entries]
 
 	def delete(self, path: str):
+		pass
+
+	def create_folder(self, path: str):
 		pass
 
 
@@ -182,6 +189,24 @@ class PCloudClient(FileStorage):
 
 			raise FileSystemException(f"Failed to delete file of path={self.__path}. {response}")
 
+	class CreateFolderRequest(Request):
+
+		def __init__(self, path: str):
+			super().__init__(
+				"/createfolderifnotexists",
+				method=Request.Method.POST,
+				get_params={
+					"path": path
+				}
+			)
+			self.__path = path
+
+		def _filter_response(self, response):
+			if response["result"] == 0:
+				return response
+
+			raise FileSystemException(f"Failed to create folder of path={self.__path}. {response}")
+
 	def __init__(self, token, folder, pcloud_base_url="https://api.pcloud.com/"):
 		self.__base_path = folder
 		self.__client = PCloudClient.PCloudNetworkClient(token=token, url=pcloud_base_url)
@@ -228,6 +253,14 @@ class PCloudClient(FileStorage):
 				self.__get_complete_path(path)
 			)
 		)
+
+	def create_folder(self, path: str):
+		self.__client.execute(
+			PCloudClient.CreateFolderRequest(
+				self.__get_complete_path(path)
+			)
+		)
+
 
 class LocalStorage(FileStorage):
 
