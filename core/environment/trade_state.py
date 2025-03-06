@@ -197,6 +197,7 @@ class AgentState:
 			open_trades=None,
 			core_pricing=Config.AGENT_CORE_PRICING,
 			commission_cost=Config.AGENT_COMMISSION_COST,
+			trade_penalty=Config.AGENT_TRADE_PENALTY
 	):
 		self.__balance = balance
 		self.__market_state = market_state
@@ -204,6 +205,7 @@ class AgentState:
 		self.__margin_rate = margin_rate
 		self.__core_pricing = core_pricing
 		self.__commission_cost = commission_cost
+		self.__trade_penalty = trade_penalty
 		self.__open_trades: List[AgentState.OpenTrade] = open_trades
 		if open_trades is None:
 			self.__open_trades: List[AgentState.OpenTrade] = []
@@ -279,6 +281,8 @@ class AgentState:
 
 		if self.__core_pricing:
 			self.__balance -= self.__commission_cost
+
+		self.__balance -= self.__trade_penalty
 
 		self.__open_trades.append(
 			AgentState.OpenTrade(action, enter_value)
