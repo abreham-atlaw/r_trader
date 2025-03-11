@@ -60,10 +60,10 @@ PCLOUD_TOKENS = [
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
-	"TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
+	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
-	# "16InJVZWmKM7ZJ2Sdk8HNC7uyej1sCjlCdzPNqP2y"  # abreham-a@outlook.com
+	"lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -265,6 +265,9 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
+	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
+	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
+	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
 
 	all = [
 		main,
@@ -278,7 +281,10 @@ class RunnerStatsBranches:
 		real_ma_ews_dynamic_k_stm,
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
-		ma_ews_dynamic_k_stm_it_23
+		ma_ews_dynamic_k_stm_it_23,
+		ma_ews_dynamic_k_stm_it_23_tp_0,
+		ma_ews_dynamic_k_stm_it_24,
+		ma_ews_dynamic_k_stm_it_25
 	]
 
 	default = ma_ews_dynamic_k_stm_it_23
@@ -293,6 +299,8 @@ class RunnerStatsLossesBranches:
 	it_16 = "it_16"
 	it_20 = "it_20"
 	it_23 = "it_23"
+	it_24 = "it_24"
+	it_25 = "it_25"
 
 	all = [
 		main,
@@ -301,7 +309,9 @@ class RunnerStatsLossesBranches:
 		it_15,
 		it_16,
 		it_20,
-		it_23
+		it_23,
+		it_24,
+		it_25
 	]
 
 	default = it_23
