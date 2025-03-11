@@ -1,5 +1,6 @@
 import unittest
 
+from core import Config
 from core.di import ResearchProvider, ServiceProvider
 from core.utils.research.data.collect.runner_stats_branch_manager import RunnerStatsBranchManager
 
@@ -12,6 +13,14 @@ class RunnerStatsBranchManagerTest(unittest.TestCase):
 
 	def test_sync_all(self):
 		self.manager.sync_branches()
+
+	def test_sync_branches(self):
+		self.manager.sync_branches(
+			branches=[
+				Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_23,
+				Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_23_tp_0,
+			]
+		)
 
 	def test_import(self):
 
