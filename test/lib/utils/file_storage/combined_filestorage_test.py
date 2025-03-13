@@ -33,3 +33,8 @@ class FileStorageTest(unittest.TestCase):
 		self.fs.create_folder("/test")
 		files = self.fs.listdir("/")
 		self.assertTrue("/test" in files)
+
+	def test_get_metadata(self):
+		metadata = self.fs.get_metadata("/test/0.txt")
+		print(metadata)
+		self.assertIsNotNone(metadata.size)
