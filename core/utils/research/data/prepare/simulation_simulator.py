@@ -5,6 +5,8 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+from lib.utils.math import moving_average
+
 
 class SimulationSimulator:
 
@@ -16,7 +18,8 @@ class SimulationSimulator:
 			extra_len: int,
 			batch_size: int,
 			output_path: str,
-			granularity: int
+			granularity: int,
+			ma_window: int = None
 	):
 		self.__df = self.__process_df(df)
 		self.__bounds = bounds
@@ -25,6 +28,11 @@ class SimulationSimulator:
 		self.__batch_size = batch_size
 		self.__output_path = output_path
 		self.__granularity = granularity
+		self.__ma_window = ma_window
+
+	@property
+	def __use_ma(self):
+		return self.__ma_window not in [None, 0, 1]
 
 	@staticmethod
 	def __process_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -139,6 +147,8 @@ class SimulationSimulator:
 
 		for i in range(self.__granularity):
 			gran_sequence = df["c"].to_numpy()[i::self.__granularity]
+			if self.__use_ma:
+				gran_sequence = moving_average(gran_sequence, self.__ma_window)
 			gran_X, gran_y = self.__prepare_sequence(gran_sequence)
 
 			if X is None:

@@ -44,8 +44,9 @@ class SimulationSimulatorTest(unittest.TestCase):
 			seq_len=1033,
 			extra_len=124,
 			batch_size=10,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data",
-			granularity=5
+			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/ma_20",
+			granularity=5,
+			ma_window=20
 		)
 
 		simulator.start()
