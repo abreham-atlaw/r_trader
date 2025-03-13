@@ -202,7 +202,7 @@ class PCloudClient(FileStorage):
 			)
 		)
 
-	def create_folder(self, path: str):
+	def mkdir(self, path: str):
 		self.__client.execute(
 			PCloudClient.CreateFolderRequest(
 				self.__get_complete_path(path)

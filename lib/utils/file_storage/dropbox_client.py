@@ -38,7 +38,7 @@ class DropboxClient(FileStorage):
 	def delete(self, path: str):
 		pass
 
-	def create_folder(self, path: str):
+	def mkdir(self, path: str):
 		pass
 
 	def get_metadata_raw(self, path: str) -> typing.Dict[str, typing.Any]:

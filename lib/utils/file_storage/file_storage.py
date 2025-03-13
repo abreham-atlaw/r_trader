@@ -34,7 +34,7 @@ class FileStorage(ABC):
 		pass
 
 	@abstractmethod
-	def create_folder(self, path: str):
+	def mkdir(self, path: str):
 		pass
 
 	@abstractmethod

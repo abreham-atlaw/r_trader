@@ -59,9 +59,9 @@ class CombinedFileStorage(FileStorage):
 			except FileNotFoundException:
 				pass
 
-	def create_folder(self, path: str):
+	def mkdir(self, path: str):
 		for child in self.__children:
-			child.create_folder(path)
+			child.mkdir(path)
 
 	def get_metadata_raw(self, path: str) -> typing.Dict[str, typing.Any]:
 		storage = self._get_storage(path)
