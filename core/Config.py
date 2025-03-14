@@ -115,6 +115,7 @@ UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
 MARKET_STATE_USE_MA = True
 MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
@@ -206,7 +207,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-94-cum-0-it-4-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-4-cum-0-it-15-tot.zip",
 	download=False
 )
 
