@@ -115,6 +115,7 @@ UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
 MARKET_STATE_USE_MA = True
 MARKET_STATE_GRANULARITY = "M30"
+MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
@@ -156,7 +157,7 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
-AGENT_MA_WINDOW_SIZE = 64
+AGENT_MA_WINDOW_SIZE = 10
 AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -205,7 +206,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-linear-94-cum-0-it-4-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-4-cum-0-it-15-tot.zip",
 	download=False
 )
 
@@ -235,7 +236,7 @@ WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [0.25, 0.5, 0.75, 1.0, 2.0]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-25/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -268,6 +269,8 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
+	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
+	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
 
 	all = [
 		main,
@@ -284,10 +287,12 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_23,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
-		ma_ews_dynamic_k_stm_it_25
+		ma_ews_dynamic_k_stm_it_25,
+		ma_ews_dynamic_k_stm_it_26,
+		ma_ews_dynamic_k_stm_it_27
 	]
 
-	default = ma_ews_dynamic_k_stm_it_25
+	default = ma_ews_dynamic_k_stm_it_27
 
 
 class RunnerStatsLossesBranches:
@@ -301,6 +306,8 @@ class RunnerStatsLossesBranches:
 	it_23 = "it_23"
 	it_24 = "it_24"
 	it_25 = "it_25"
+	it_26 = "it_26"
+	it_27 = "it_27"
 
 	all = [
 		main,
@@ -311,7 +318,9 @@ class RunnerStatsLossesBranches:
 		it_20,
 		it_23,
 		it_24,
-		it_25
+		it_25,
+		it_26,
+		it_27
 	]
 
-	default = it_25
+	default = it_27

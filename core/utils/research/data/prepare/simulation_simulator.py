@@ -19,7 +19,8 @@ class SimulationSimulator:
 			batch_size: int,
 			output_path: str,
 			granularity: int,
-			ma_window: int = None
+			ma_window: int = None,
+			order_gran: bool = True
 	):
 		self.__df = self.__process_df(df)
 		self.__bounds = bounds
@@ -29,6 +30,7 @@ class SimulationSimulator:
 		self.__output_path = output_path
 		self.__granularity = granularity
 		self.__ma_window = ma_window
+		self.__order_gran = order_gran
 
 	@property
 	def __use_ma(self):
@@ -140,10 +142,22 @@ class SimulationSimulator:
 
 		return X, y
 
+	def __concatenate_grans(self, arrays: typing.List[np.ndarray]) -> np.ndarray:
+
+		def p(g, i, G):
+			return g + G*i
+
+		if not self.__order_gran:
+			return np.concatenate(arrays, axis=0)
+		new_arr = np.zeros((sum(arr.shape[0] for arr in arrays), arrays[0].shape[1]))
+		for i in range(len(arrays)):
+			new_arr[p(i, np.arange(arrays[i].shape[0]), len(arrays))] = arrays[i]
+		return new_arr
+
 	def __prepare_data(self, df: pd.DataFrame) -> typing.Tuple[np.ndarray, np.ndarray]:
 		print(f"Preparing Data...")
 
-		X, y = None, None
+		Xs, ys = [], []
 
 		for i in range(self.__granularity):
 			gran_sequence = df["c"].to_numpy()[i::self.__granularity]
@@ -151,13 +165,10 @@ class SimulationSimulator:
 				gran_sequence = moving_average(gran_sequence, self.__ma_window)
 			gran_X, gran_y = self.__prepare_sequence(gran_sequence)
 
-			if X is None:
-				X = gran_X
-				y = gran_y
-			else:
-				X = np.concatenate((X, gran_X), axis=0)
-				y = np.concatenate((y, gran_y), axis=0)
+			Xs.append(gran_X)
+			ys.append(gran_y)
 
+		X, y = [self.__concatenate_grans(arrays) for arrays in [Xs, ys]]
 		return X, y
 
 	def start(self, start_date: datetime = None, end_date: datetime = None):
