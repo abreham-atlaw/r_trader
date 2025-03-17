@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+from lib.utils.logger import Logger
 from lib.utils.math import moving_average
 
 
@@ -12,7 +13,7 @@ class SimulationSimulator:
 
 	def __init__(
 			self,
-			df: pd.DataFrame,
+			dfs: typing.Union[pd.DataFrame, typing.List[pd.DataFrame]],
 			bounds: typing.List[float],
 			seq_len: int,
 			extra_len: int,
@@ -22,7 +23,9 @@ class SimulationSimulator:
 			ma_window: int = None,
 			order_gran: bool = True
 	):
-		self.__df = self.__process_df(df)
+		if isinstance(dfs, pd.DataFrame):
+			dfs = [dfs]
+		self.__dfs = self.__common_out_dfs([self.__process_df(df) for df in dfs])
 		self.__bounds = bounds
 		self.__seq_len = seq_len
 		self.__extra_len = extra_len
@@ -43,6 +46,22 @@ class SimulationSimulator:
 		df = df.sort_values(by="time")
 		return df
 
+	@staticmethod
+	def __get_common_datetimes(dfs: typing.List[pd.DataFrame]) -> typing.List[datetime]:
+		dates = np.concatenate([
+			df["time"].to_numpy()
+			for df in dfs
+		])
+		unique_dates, counts = np.unique(dates, return_counts=True)
+		return unique_dates[counts == len(dfs)]
+
+	def __common_out_dfs(self, dfs: typing.List[pd.DataFrame]) -> typing.List[pd.DataFrame]:
+		if len(dfs) == 1:
+			return dfs
+		common_dates = self.__get_common_datetimes(dfs)
+		Logger.info(f"Found {len(common_dates)} common dates.")
+		return [df[df["time"].isin(common_dates)] for df in dfs]
+
 	def __find_gap_index(self, number: float) -> int:
 		boundaries = self.__bounds
 		for i in range(len(boundaries)):
@@ -61,9 +80,8 @@ class SimulationSimulator:
 	def __generate_filename() -> np.ndarray:
 		return f"{datetime.now().timestamp()}.npy"
 
-	def __filter_df(self, start_date: datetime = None, end_date: datetime = None) -> pd.DataFrame:
+	def __filter_df(self, df: pd.DataFrame, start_date: datetime = None, end_date: datetime = None) -> pd.DataFrame:
 		print(f"Filtering Dataframe...")
-		df = self.__df
 		if start_date is not None:
 			df = df[df["time"] >= start_date]
 		if end_date is not None:
@@ -171,8 +189,35 @@ class SimulationSimulator:
 		X, y = [self.__concatenate_grans(arrays) for arrays in [Xs, ys]]
 		return X, y
 
+	def __merge_instruments_data(self, data: typing.List[typing.Tuple[np.ndarray, np.ndarray]]) -> typing.Tuple[np.ndarray, np.ndarray]:
+
+		def merge_arrays(arrays: typing.List[np.ndarray]) -> np.ndarray:
+			return np.concatenate([
+				np.expand_dims(a, axis=1)
+				for a in arrays
+			], axis=1)
+
+		if len(data) == 1:
+			return data[0]
+
+		X, y = [
+			merge_arrays([
+				instrument_data[axis]
+				for instrument_data in data
+			])
+			for axis in [0, 1]
+		]
+		return X, y
+
 	def start(self, start_date: datetime = None, end_date: datetime = None):
-		df = self.__filter_df(start_date, end_date)
-		X, y = self.__prepare_data(df)
+		dfs = [
+			self.__filter_df(df, start_date, end_date)
+			for df in self.__dfs
+		]
+		data = [
+			self.__prepare_data(df)
+			for df in dfs
+		]
+		X, y = self.__merge_instruments_data(data)
 		X_batches, y_batches = self.__batch_array(X, y)
 		self.__save_batches(X_batches, y_batches)
