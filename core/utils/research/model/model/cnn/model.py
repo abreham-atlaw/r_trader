@@ -4,6 +4,9 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
+from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers.cnn_block import CNNBlock
+from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
@@ -32,14 +35,13 @@ class CNN(SpinozaModule):
 			norm_positional_encoding: bool = False,
 			channel_ffn: typing.Optional[nn.Module] = None
 	):
-		super(CNN, self).__init__(input_size=input_size, auto_build=False)
+		super(CNN, self).__init__()
 		self.args = {
 			'extra_len': extra_len,
 			'ff_block': ff_block,
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
-			'stride': stride,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'dropout_rate': dropout_rate,
@@ -48,134 +50,42 @@ class CNN(SpinozaModule):
 			'linear_collapse': linear_collapse,
 			'input_size': input_size,
 			'norm': norm,
-			'indicators': indicators,
-			'positional_encoding': positional_encoding,
-			'norm_positional_encoding': norm_positional_encoding,
-			'channel_ffn': channel_ffn
+			'indicators': indicators
 		}
 		self.extra_len = extra_len
-		self.layers = nn.ModuleList()
-		self.pool_layers = nn.ModuleList()
-		self.norm_layers = nn.ModuleList()
+		self.input_size = input_size
 
-		if indicators is None:
-			indicators = Indicators()
-		self.indicators = indicators
+		self.cnn_block = CNNBlock(
+			conv_channels,
+			kernel_sizes,
+			indicators,
+			pool_sizes,
+			hidden_activation,
+			dropout_rate,
+			init_fn,
+			padding,
+			avg_pool,
+			input_size,
+			norm,
+		)
 
-		if pool_sizes is None:
-			pool_sizes = [
-				0
-				for _ in kernel_sizes
-			]
-		conv_channels = [self.indicators.indicators_len] + conv_channels
+		self.collapse_block = CollapseFFBlock(
+			num_classes,
+			conv_channels[-1],
+			extra_len,
+			ff_linear,
+			linear_collapse,
+		)
+		self.__init()
 
-		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(conv_channels) - 1)]
-		if len(norm) != len(conv_channels) - 1:
-			raise ValueError("Norm size doesn't match layers size")
+	def __init(self):
+		init_data = torch.rand((1, self.input_size))
+		self(init_data)
 
-		if isinstance(dropout_rate, (int, float)):
-			dropout_rate = [dropout_rate for _ in range(len(conv_channels))]
-		if len(dropout_rate) != len(conv_channels):
-			raise ValueError("Dropout size doesn't match layers size")
-
-		if isinstance(stride, int):
-			stride = [stride for _ in kernel_sizes]
-		if len(stride) != len(kernel_sizes):
-			raise ValueError("Stride size doesn't match layers size")
-
-		self.layers = nn.ModuleList(self._build_conv_layers(
-			channels=conv_channels,
-			kernel_sizes=kernel_sizes,
-			stride=stride,
-			padding=padding
-		))
-
-		for i in range(len(conv_channels) - 1):
-			if norm[i]:
-				self.norm_layers.append(DynamicLayerNorm())
-			else:
-				self.norm_layers.append(nn.Identity())
-			if init_fn is not None:
-				init_fn(self.layers[-1].weight)
-			if pool_sizes[i] > 0:
-				if avg_pool:
-					pool = nn.AvgPool1d(kernel_size=pool_sizes[i], stride=2)
-				else:
-					pool = nn.MaxPool1d(kernel_size=pool_sizes[i], stride=2)
-				self.pool_layers.append(pool)
-			else:
-				self.pool_layers.append(nn.Identity())
-		self.hidden_activation = hidden_activation
-
-		self.dropouts = nn.ModuleList([
-			nn.Dropout(rate) if rate > 0 else nn.Identity()
-			for rate in dropout_rate
-		])
-
-		self.ff_block = ff_block
-		self.collapse_layer = None if linear_collapse else nn.AdaptiveAvgPool1d((1,))
-
-		self.pos_layer = None
-
-		self.pos_norm = DynamicLayerNorm() if norm_positional_encoding else nn.Identity()
-		self.pos = self.positional_encoding if positional_encoding else nn.Identity()
-
-		if positional_encoding:
-			self.pos = self.positional_encoding
-
-		else:
-			self.pos = nn.Identity()
-
-		self.channel_ffn = AxisFFN(channel_ffn, axis=1) if channel_ffn else nn.Identity()
-
-		self.init()
-
-	def _build_conv_layers(
-			self,
-			channels: typing.List[int],
-			kernel_sizes: typing.List[int],
-			stride: typing.List[int],
-			padding: int
-	) -> typing.List[nn.Module]:
-		return [
-			nn.Conv1d(
-				in_channels=channels[i],
-				out_channels=channels[i + 1],
-				kernel_size=kernel_sizes[i],
-				stride=stride[i],
-				padding=padding,
-			)
-			for i in range(len(channels) - 1)
-		]
-
-	def positional_encoding(self, inputs: torch.Tensor) -> torch.Tensor:
-		if self.pos_layer is None:
-			self.pos_layer = PositionalEncodingPermute1D(inputs.shape[1])
-		inputs = self.pos_norm(inputs)
-		return inputs + self.pos_layer(inputs)
-
-	def collapse(self, out: torch.Tensor) -> torch.Tensor:
-		return torch.flatten(out, 1, 2)
-
-	def call(self, x):
+	def forward(self, x):
 		seq = x[:, :-self.extra_len]
-		out = self.indicators(seq)
-
-		out = self.pos(out)
-
-		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
-			out = norm(out)
-			out = layer.forward(out)
-			out = self.hidden_activation(out)
-			out = pool_layer(out)
-			out = dropout(out)
-		out = self.channel_ffn(out)
-		out = self.collapse(out)
-		out = out.reshape(out.size(0), -1)
-		out = self.dropouts[-1](out)
-		out = torch.cat((out, x[:, -self.extra_len:]), dim=1)
-		out = self.ff_block(out)
+		out = self.cnn_block(seq)
+		out = self.collapse_block(out, x[:, -self.extra_len:])
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
