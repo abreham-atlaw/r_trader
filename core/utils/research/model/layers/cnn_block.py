@@ -5,10 +5,10 @@ import torch.nn as nn
 
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
-class CNNBlock(SavableModule):
+class CNNBlock(SpinozaModule):
 
 	def __init__(
 			self,
@@ -89,7 +89,7 @@ class CNNBlock(SavableModule):
 		else:
 			self.dropout = nn.Identity()
 
-	def forward(self, x):
+	def call(self, x):
 		out = self.indicators(x)
 		for layer, pool_layer, norm in zip(self.layers, self.pool_layers, self.norm_layers):
 			out = norm(out)

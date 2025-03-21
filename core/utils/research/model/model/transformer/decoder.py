@@ -5,14 +5,14 @@ import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncoding1D
 
 from core.utils.research.model.layers.ffn import FeedForwardNetwork
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
-class Decoder(SavableModule):
+class Decoder(SpinozaModule):
 
 	def __init__(
 			self,
-			embedding: SavableModule,
+			embedding: SpinozaModule,
 			input_size: int,
 			emb_size: int,
 			num_heads: int,

@@ -5,11 +5,11 @@ import torch.nn as nn
 
 from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.model.model.transformer import Decoder
 
 
-class Transformer(SavableModule):
+class Transformer(SpinozaModule):
 
 	def __init__(
 			self,

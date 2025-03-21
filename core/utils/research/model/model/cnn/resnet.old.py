@@ -4,10 +4,10 @@ import torch.nn as nn
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.residual_block import ResidualBlock
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.savable import SavableModule
+from core.utils.research.model.model.savable import SpinozaModule
 
 
-class ResNet(SavableModule):
+class ResNet(SpinozaModule):
     def __init__(
             self,
             num_classes: int,
