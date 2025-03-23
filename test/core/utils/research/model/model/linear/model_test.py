@@ -30,11 +30,11 @@ class LinearTest(unittest.TestCase):
 		)
 		self.model.eval()
 		self.X = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/X/1727815242.844215.npy").astype(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/2/train/X/1742052998.359666.npy").astype(
 			NP_DTYPE
 		)
 		self.y = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/drl_export/2/test/y/1727815242.844215.npy").astype(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/2/train/y/1742052998.359666.npy").astype(
 			NP_DTYPE)
 		self.tom_model = TransitionOnlyModel(
 			model=self.model,
