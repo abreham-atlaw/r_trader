@@ -10,7 +10,7 @@ from torch.optim import Adam
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss
+from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, ProximalMaskedLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.layers.cnn_block import CNNBlock
 from core.utils.research.model.layers.collapse_ff_block import CollapseFFBlock
@@ -56,47 +56,40 @@ class TrainerTest(unittest.TestCase):
 
 		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
+		EXTRA_LEN = 124
+		BLOCK_SIZE = 1024 + EXTRA_LEN
+		INSTRUMENTS = 2
+		INPUT_SHAPE = (INSTRUMENTS, BLOCK_SIZE)
+
 		CHANNELS = [32 for _ in range(7)]
-		EXTRA_LEN = 4
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [3 for _ in CHANNELS]
 		DROPOUT_RATE = 0
 		ACTIVATION = nn.LeakyReLU()
-		BLOCK_SIZE = 1028
 		PADDING = 0
-		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [True] + [False for _ in CHANNELS[1:]]
-		GRAD_MAX_NORM = 1.0
-		GRAD_CLIP_VALUE = None
 		LR = 1e-4
 
 		INDICATORS_DELTA = False
-		INDICATORS_SO = None
-		INDICATORS_RSI = [14]
+		INDICATORS_SO = []
+		INDICATORS_RSI = []
 
-		USE_FF = True
-		FF_LINEAR_BLOCK_SIZE = 256
-		FF_LINEAR_OUTPUT_SIZE = 256
-		FF_LINEAR_LAYERS = []
+		FF_LINEAR_LAYERS = [256, VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.ReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS]
+		FF_LINEAR_NORM = [True] + [False for _ in FF_LINEAR_LAYERS[:-1]]
 
 		BATCH_SIZE = 64
-		if USE_FF:
-			ff = LinearModel(
-				block_size=FF_LINEAR_BLOCK_SIZE,
-				vocab_size=FF_LINEAR_OUTPUT_SIZE,
-				dropout_rate=DROPOUT_RATE,
-				layer_sizes=FF_LINEAR_LAYERS,
-				hidden_activation=FF_LINEAR_ACTIVATION,
-				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM
-			)
-		else:
-			ff = None
+
+		ff = LinearModel(
+			dropout_rate=DROPOUT_RATE,
+			layer_sizes=FF_LINEAR_LAYERS,
+			hidden_activation=FF_LINEAR_ACTIVATION,
+			init_fn=FF_LINEAR_INIT,
+			norm=FF_LINEAR_NORM
+		)
 
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
@@ -105,57 +98,46 @@ class TrainerTest(unittest.TestCase):
 		)
 
 		model = CNN(
+			input_shape=INPUT_SHAPE,
 			extra_len=EXTRA_LEN,
-			num_classes=VOCAB_SIZE + 1,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE,
-			padding=PADDING,
-			avg_pool=AVG_POOL,
-			linear_collapse=LINEAR_COLLAPSE,
-			norm=NORM,
-			ff_linear=ff,
-			indicators=indicators
+			cnn_block=CNNBlock(
+				input_channels=INSTRUMENTS,
+				conv_channels=CHANNELS,
+				kernel_sizes=KERNEL_SIZES,
+				hidden_activation=ACTIVATION,
+				pool_sizes=POOL_SIZES,
+				dropout_rate=DROPOUT_RATE,
+				norm=NORM,
+				padding=PADDING,
+				indicators=indicators
+			),
+			collapse_block=CollapseFFBlock(
+				target_channels=INSTRUMENTS,
+				ff_block=ff
+			)
 		)
-
-
-		# ModelHandler.save(model, SAVE_PATH)
 
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/inputs/drmca-datapreparer/out/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/3/train"
 			],
 		)
 		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
 
-		test_dataset = BaseDataset(
-			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/inputs/drmca-datapreparer/out/test"
-			],
-		)
-		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			WeightStatsCallback()
-		]
-
 		trainer = Trainer(
 			model,
-			max_norm=GRAD_MAX_NORM,
-			clip_value=GRAD_CLIP_VALUE,
-			log_gradient_stats=True
-		)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(
-			trainer.model.parameters(),
-			lr=LR
 		)
 
-		trainer.train(dataloader, val_dataloader=test_dataloader, epochs=5, progress=True)
+		trainer.cls_loss_function = ProximalMaskedLoss(
+			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+			p=1,
+			softmax=True,
+			device=trainer.device
+		)
+		trainer.reg_loss_function = nn.MSELoss()
+		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
+
+		trainer.train(dataloader, epochs=5, progress=True, progress_interval=100, cls_loss_only=False)
 		ModelHandler.save(trainer.model, SAVE_PATH)
 
 	def test_transformer_model(self):

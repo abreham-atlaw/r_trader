@@ -18,6 +18,6 @@ class OverlayIndicator(nn.Module, ABC):
         pass
 
     def forward(self, inputs, *args, **kwargs):
-        windows = inputs.unfold(dimension=1, size=self.__window_size, step=1)
+        windows = inputs.unfold(dimension=-1, size=self.__window_size, step=1)
         output = self._on_time_point(windows)
         return output

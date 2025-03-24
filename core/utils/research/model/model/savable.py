@@ -15,7 +15,9 @@ class SpinozaModule(nn.Module, ABC):
 		self.built = False
 
 		if isinstance(input_size, int):
-			input_size = (None, input_size)
+			input_size = (input_size,)
+		if isinstance(input_size, tuple) and input_size[0] is not None:
+			input_size = (None,) + input_size
 
 		self.output_size = output_size
 		self.input_size = input_size

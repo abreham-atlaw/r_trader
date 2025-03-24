@@ -16,23 +16,23 @@ class CNN(SpinozaModule):
 
 	def __init__(
 			self,
-			block_size: int,
+			input_shape: typing.Tuple[int, int],
 			extra_len: int,
 			cnn_block: CNNBlock,
-			channel_ff_block: LinearModel,
-			collapse_block: CollapseFFBlock
+			collapse_block: CollapseFFBlock,
+			channel_ff_block: LinearModel = None,
 	):
-		super(CNN, self).__init__(input_size=block_size)
+		super(CNN, self).__init__(input_size=input_shape, auto_build=False)
 		self.args = {
 			'extra_len': extra_len,
-			'block_size': block_size,
+			'input_shape': input_shape,
 			'cnn_block': cnn_block,
 			'channel_ff_block': channel_ff_block,
 			'collapse_block': collapse_block
 		}
 		self.extra_len = extra_len
 		self.cnn_block = cnn_block
-		self.channel_ff_block = AxisFFN(channel_ff_block, axis=1)
+		self.channel_ff_block = AxisFFN(channel_ff_block, axis=1) if channel_ff_block is not None else nn.Identity()
 		self.collapse_block = collapse_block
 		self.init()
 
