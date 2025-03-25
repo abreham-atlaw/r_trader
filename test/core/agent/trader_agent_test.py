@@ -10,6 +10,7 @@ from copy import deepcopy
 
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
 from core.agent.agents import TraderMonteCarloAgent, TraderAgent
+from lib.utils.math import moving_average
 from temp import stats
 
 
@@ -126,6 +127,31 @@ class TraderAgentTest(unittest.TestCase):
 				len(p_state.agent_state.get_open_trades()),
 				0
 			)
+
+	def test_get_cma_possible_states(self):
+		sequence = np.sum([(i+1)*np.sin(np.linspace(0, 2*np.pi, 8)[:8] + i) for i in range(10)], axis=0) + 1000
+		sequence_ma = moving_average(sequence, 3)
+
+		market_state = MarketState(
+			currencies=["USD", "AUD"],
+			tradable_pairs=[
+				("USD", "AUD")
+			],
+			memory_len=7
+		)
+		market_state.update_state_of("USD", "AUD", sequence[:-1])
+
+		initial_balance = 100
+		agent_state = AgentState(initial_balance, market_state)
+
+		state = TradeState(market_state, agent_state)
+
+		result = self.agent._get_possible_states(
+			state,
+			None
+		)
+
+		self.assertIsNotNone(result)
 
 	def test_perform_timestep(self):
 		environment = LiveEnvironment()
