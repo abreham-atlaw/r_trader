@@ -319,7 +319,7 @@ class RunnerStatsBranches:
 		ma_cma_dynamic_k_stm_it_27,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_27
+	default = ma_cma_dynamic_k_stm_it_27
 
 
 class RunnerStatsLossesBranches:
