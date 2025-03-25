@@ -19,7 +19,7 @@ from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
 from core.agent.trader_action import TraderAction
 from core.agent.utils.dnn_models import KerasModelHandler
-from lib.utils.math import softmax
+from lib.utils.math import softmax, moving_average, counter_moving_average
 from temp import stats
 
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -39,6 +39,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			core_model=None,
 			delta_model=None,
 			use_softmax=Config.AGENT_USE_SOFTMAX,
+			use_cma=Config.MARKET_STATE_USE_CMA,
+			ma_window=Config.AGENT_MA_WINDOW_SIZE,
 			**kwargs
 	):
 		super().__init__(
@@ -65,7 +67,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				WrappedModel(
 					ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
 					seq_len=Config.MARKET_STATE_MEMORY,
-					window_size=Config.AGENT_MA_WINDOW_SIZE
+					window_size=ma_window,
+					use_ma=Config.AGENT_USE_MA
 				)
 			)
 		self.set_transition_model(core_model)
@@ -80,6 +83,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta_cache = {}
 		self.__discount_function = discount_function
 		self.__use_softmax = use_softmax
+		self.__use_cma = use_cma
+		self.__ma_window = ma_window
 		self.__dta_output_cache = Cache()
 
 	def _find_gap_index(self, number: float) -> int:
@@ -289,15 +294,32 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
+	def __generate_new_value(self, original_value: np.ndarray, current_value: float, delta: float) -> float:
+		new_value = current_value * delta
+		if self.__use_cma:
+			new_value = counter_moving_average(original_value, new_value, self.__ma_window)
+		return new_value
+
 	def __simulate_instrument_change_bound_mode(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
 		states = []
 
 		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
 
+		current_value = original_value[-1]
+		if self.__use_cma:
+			current_value = moving_average(original_value, self.__ma_window)[-1]
+
 		for j in range(len(self._state_change_delta_bounds)):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
-			new_value = np.array(original_value[-1] * np.mean(self._simulation_state_change_delta_bounds[j: j + 2]), dtype=np.float32).reshape(1)
+			new_value = np.array(
+				self.__generate_new_value(
+					original_value,
+					current_value,
+					np.mean(self._simulation_state_change_delta_bounds[j: j + 2])
+				),
+				dtype=np.float32
+			).reshape(1)
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,

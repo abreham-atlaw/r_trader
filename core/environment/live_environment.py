@@ -174,9 +174,11 @@ class LiveEnvironment(TradeEnvironment):
 		return sequence
 
 	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+		if self.__use_ma:
+			size += self.__moving_average_window - 1
 		candle_sticks = self.__trader.get_candlestick(
 			(base_currency, quote_currency),
-			count=size + self.__moving_average_window - 1,
+			count=size,
 			to=datetime.now(),
 			granularity=granularity
 		)
