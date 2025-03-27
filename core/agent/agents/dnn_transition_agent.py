@@ -161,6 +161,14 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return return_value
 
+	def __calc_percentage(self, final_state: np.ndarray, initial_state: np.ndarray) -> float:
+		if self.__use_cma:
+			final_state, initial_state = [
+				moving_average(x, self.__ma_window)
+				for x in [final_state, initial_state]
+			]
+		return final_state[-1]/initial_state[-1]
+
 	def _single_prediction_to_transition_probability_bound_mode(
 			self,
 			initial_state: TradeState,
@@ -186,13 +194,17 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				):
 					continue
 
-				percentage = final_state.get_market_state().get_current_price(
-					base_currency,
-					quote_currency
-				) / initial_state.get_market_state().get_current_price(
-					base_currency,
-					quote_currency
+				percentage = self.__calc_percentage(
+					final_state=final_state.get_market_state().get_state_of(
+						base_currency,
+						quote_currency
+					),
+					initial_state=initial_state.get_market_state().get_state_of(
+						base_currency,
+						quote_currency
+					)
 				)
+
 				if self.__use_softmax:
 					probabilities = softmax(probabilities)
 
