@@ -158,7 +158,7 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
-AGENT_MA_WINDOW_SIZE = 64
+AGENT_MA_WINDOW_SIZE = 10
 AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -233,7 +233,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-29/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -295,6 +295,8 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
 	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
 	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
+	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
 
 	all = [
 		main,
@@ -313,10 +315,12 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_25,
 		ma_ews_dynamic_k_stm_it_26,
-		ma_ews_dynamic_k_stm_it_27
+		ma_ews_dynamic_k_stm_it_27,
+		ma_cma_dynamic_k_stm_it_27,
+		ma_ews_dynamic_k_stm_it_29,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_27
+	default = ma_ews_dynamic_k_stm_it_29
 
 
 class RunnerStatsLossesBranches:
@@ -332,6 +336,7 @@ class RunnerStatsLossesBranches:
 	it_25 = "it_25"
 	it_26 = "it_26"
 	it_27 = "it_27"
+	it_29 = "it_29"
 
 	all = [
 		main,
@@ -344,7 +349,8 @@ class RunnerStatsLossesBranches:
 		it_24,
 		it_25,
 		it_26,
-		it_27
+		it_27,
+		it_29
 	]
 
-	default = it_27
+	default = it_29
