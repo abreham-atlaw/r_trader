@@ -237,8 +237,8 @@ MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
-TIMEZONE = timezone("UTC")
+# OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+# TIMEZONE = timezone("UTC")
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
@@ -256,8 +256,8 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 MAPLOSS_BRANCH = "ma_ews"
 MAPLOSS_KEY = "cnn"
-with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+# with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
+# 	OANDA_TRADING_ACCOUNT_ID = json.load(f)
 
 MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
