@@ -2,9 +2,10 @@ import os.path
 import random
 import typing
 
-from .file_storages import FileStorage, PCloudClient
+from .file_storage import FileStorage, MetaData
+from .pcloud_client import PCloudClient
 from .exceptions import FileNotFoundException
-from ..logger import Logger
+from lib.utils.logger import Logger
 
 
 class CombinedFileStorage(FileStorage):
@@ -57,6 +58,18 @@ class CombinedFileStorage(FileStorage):
 				Logger.info(f"Deleted from Storage {i} for {path}")
 			except FileNotFoundException:
 				pass
+
+	def mkdir(self, path: str):
+		for child in self.__children:
+			child.mkdir(path)
+
+	def get_metadata_raw(self, path: str) -> typing.Dict[str, typing.Any]:
+		storage = self._get_storage(path)
+		return storage.get_metadata_raw(path)
+
+	def get_metadata(self, path: str) -> MetaData:
+		storage = self._get_storage(path)
+		return storage.get_metadata(path)
 
 
 class PCloudCombinedFileStorage(CombinedFileStorage):

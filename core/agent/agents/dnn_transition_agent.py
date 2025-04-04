@@ -169,8 +169,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 			probabilities = output.flatten()
 
-			start_time = datetime.now()
-
 			for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
 				if np.all(
@@ -183,8 +181,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				):
 					continue
 
-				stats.durations['state_comparison'] += (datetime.now() - start_time).total_seconds()
-
 				percentage = final_state.get_market_state().get_current_price(
 					base_currency,
 					quote_currency
@@ -195,9 +191,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				if self.__use_softmax:
 					probabilities = softmax(probabilities)
 
-				start_time = datetime.now()
 				idx = self._find_gap_index(percentage)
-				stats.durations["find_gap_index"] += (datetime.now() - start_time).total_seconds()
 
 				return float(probabilities[idx])
 		return self.__dta_output_cache.cached_or_execute((initial_state, output.tobytes(), final_state), lambda: compute(initial_state, output, final_state))
@@ -340,15 +334,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			return
 
 		if action.action == TraderAction.Action.CLOSE:
-			start_time = datetime.now()
 			state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
-			stats.durations['state.get_agent_state().close_trades'] += (
-						datetime.now() - start_time).total_seconds()
 			return
 
-		start_time = datetime.now()
 		state.get_agent_state().open_trade(
 			action,
 			state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
 		)
-		stats.durations['state.get_market_state().get_current_price'] += (datetime.now() - start_time).total_seconds()

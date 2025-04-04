@@ -10,6 +10,7 @@ import torch
 from sklearn.model_selection import train_test_split
 
 from core.utils.research.model.layers import MovingAverage
+from lib.utils.logger import Logger
 
 
 class DRLExportPreparer:
@@ -27,6 +28,7 @@ class DRLExportPreparer:
 			y_dir_name: str = "y",
 
 			test_split_size: float = 0.2,
+			file_based_split: bool = False,
 
 			split_shuffle: bool = True,
 			batch_size: int = None
@@ -41,9 +43,11 @@ class DRLExportPreparer:
 		self.__train_dir_name, self.__test_dir_name = train_dir_name, test_dir_name
 		self.__X_dir_name, self.__y_dir_name = X_dir_name, y_dir_name
 		self.__test_split_size = test_split_size
+		self.__file_based_split = file_based_split
 		self.__split_shuffle = split_shuffle
 
 		self.__ma_layer = MovingAverage(self.__ma_window) if self.__use_ma else None
+		Logger.info(f"Using Moving Average: {self.__use_ma}")
 
 	@property
 	def __use_ma(self) -> bool:
@@ -69,7 +73,7 @@ class DRLExportPreparer:
 		return arrays
 
 	def __ma(self, sequence: np.ndarray):
-		if self.__use_ma:
+		if not self.__use_ma:
 			return sequence
 		return self.__ma_layer(
 			torch.from_numpy(sequence.astype(np.float32))
@@ -138,16 +142,24 @@ class DRLExportPreparer:
 				is_test=is_test
 			)
 
-	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str):
+	def __split_and_save(self, X: np.ndarray, y: np.ndarray, path: str, test_split_size: float = None):
+		if test_split_size is None:
+			test_split_size = self.__test_split_size
+
 		data_len = X.shape[0]
 
-		if self.__test_split_size == 0:
+		if test_split_size == 0:
 			indices = list(np.arange(X.shape[0])), []
 			if self.__split_shuffle:
 				random.shuffle(indices[0])
 
+		elif test_split_size == 1:
+			indices = [], list(np.arange(X.shape[0]))
+			if self.__split_shuffle:
+				random.shuffle(indices[1])
+
 		else:
-			indices = train_test_split(np.arange(data_len), test_size=self.__test_split_size, shuffle=self.__split_shuffle)
+			indices = train_test_split(np.arange(data_len), test_size=test_split_size, shuffle=self.__split_shuffle)
 
 		for role_indices, is_test in zip(indices, [False, True]):
 			self.__batch_and_save(
@@ -157,10 +169,15 @@ class DRLExportPreparer:
 				is_test
 			)
 
-	def __process_set(self, X: np.ndarray, y: np.ndarray):
+	def __file_split(self, filenames: typing.List[str]) -> typing.Tuple[typing.List[str], typing.List[str]]:
+		train_filenames = filenames[:int(len(filenames) * (1 - self.__test_split_size))]
+		test_filenames = filenames[int(len(filenames) * (1 - self.__test_split_size)):]
+		return train_filenames, test_filenames
+
+	def __process_set(self, X: np.ndarray, y: np.ndarray, test_split_size: float = None):
 		if self.__use_ma:
 			X = np.concatenate([self.__ma(X[:, :self.__seq_len]), X[:, self.__seq_len:]], axis=1)
-		self.__split_and_save(X, y, self.__export_path)
+		self.__split_and_save(X, y, self.__export_path, test_split_size=test_split_size)
 
 	def start(
 			self,
@@ -168,8 +185,14 @@ class DRLExportPreparer:
 	):
 
 		self.__setup_save_path(self.__export_path)
-		filenames = os.listdir(os.path.join(input_path, self.__X_dir_name))
+		filenames = sorted(os.listdir(os.path.join(input_path, self.__X_dir_name)))
+		train_files, test_files = self.__file_split(filenames) if self.__file_based_split else (None, None)
+
 		for i, filename in enumerate(filenames):
 			X, y = [np.load(os.path.join(input_path, inner_path, filename)) for inner_path in [self.__X_dir_name, self.__y_dir_name]]
-			self.__process_set(X, y)
+			self.__process_set(
+				X,
+				y,
+				test_split_size=None if not self.__file_based_split else 1 if filename in test_files else 0
+			)
 			print(f"Completed {(i+1)*100/len(filenames) :.2f}%...", end="\r")

@@ -25,14 +25,15 @@ class RunnerStatsBranchManager:
 	def __sync_branch(
 			self,
 			branch: str,
-			synced_stats: typing.List[RunnerStats]
+			synced_stats: typing.List[RunnerStats],
+			branches: typing.List[str]
 	) -> typing.List[RunnerStats]:
 
 		synced_ids = [stat.id for stat in synced_stats]
 
 		stats = self.__get_repository(branch=branch).retrieve_all()
 
-		for target_branch in self.__all_branches:
+		for target_branch in branches:
 			if target_branch == branch:
 				continue
 
@@ -65,5 +66,5 @@ class RunnerStatsBranchManager:
 
 		for source_stat in branches:
 
-			new_syncs = self.__sync_branch(source_stat, synced_stats)
+			new_syncs = self.__sync_branch(source_stat, synced_stats, branches)
 			synced_stats.extend(new_syncs)
