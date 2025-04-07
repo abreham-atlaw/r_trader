@@ -291,7 +291,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_31,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_23
+	default = ma_ews_dynamic_k_stm_it_31
 
 
 class RunnerStatsLossesBranches:
@@ -326,4 +326,4 @@ class RunnerStatsLossesBranches:
 		it_31,
 	]
 
-	default = it_23
+	default = it_31
