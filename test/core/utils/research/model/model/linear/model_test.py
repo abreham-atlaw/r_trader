@@ -25,16 +25,16 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-6-cum-0-it-29-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
 		self.X = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/2/train/X/1742052998.359666.npy").astype(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/X/1743180011.758194.npy").astype(
 			NP_DTYPE
 		)
 		self.y = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/2/train/y/1742052998.359666.npy").astype(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/y/1743180011.758194.npy").astype(
 			NP_DTYPE)
 		self.tom_model = TransitionOnlyModel(
 			model=self.model,

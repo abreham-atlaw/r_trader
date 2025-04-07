@@ -290,11 +290,16 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
+	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
 	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
 	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_27_mts_0 = "ma_ews_dynamic_k_stm_it_27_mts_0"
+	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 
 	all = [
 		main,
@@ -309,11 +314,16 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
+		ma_ews_dynamic_k_stm_it_23_mts_0,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_25,
 		ma_ews_dynamic_k_stm_it_26,
-		ma_ews_dynamic_k_stm_it_27
+		ma_ews_dynamic_k_stm_it_27,
+		ma_ews_dynamic_k_stm_it_27_mts_0,
+		ma_cma_dynamic_k_stm_it_27,
+		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_31,
 	]
 
 	default = ma_ews_dynamic_k_stm_it_27
@@ -332,6 +342,8 @@ class RunnerStatsLossesBranches:
 	it_25 = "it_25"
 	it_26 = "it_26"
 	it_27 = "it_27"
+	it_29 = "it_29"
+	it_31 = "it_31"
 
 	all = [
 		main,
@@ -344,7 +356,9 @@ class RunnerStatsLossesBranches:
 		it_24,
 		it_25,
 		it_26,
-		it_27
+		it_27,
+		it_29,
+		it_31,
 	]
 
 	default = it_27
