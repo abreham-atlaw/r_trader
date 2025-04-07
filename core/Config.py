@@ -50,20 +50,20 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
 	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
 	# "QL3dHVZIO9B7Z3luRCUxoFefoSYQb1LRwkbOdFjoX",  # abreham.atlaw@yahoo.com -
-	# "NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
+	"aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	# "6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
-	"TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
+	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
-	# "16InJVZWmKM7ZJ2Sdk8HNC7uyej1sCjlCdzPNqP2y"  # abreham-a@outlook.com
+	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -115,6 +115,7 @@ UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
 MARKET_STATE_USE_MA = True
 MARKET_STATE_GRANULARITY = "M30"
+MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
@@ -157,7 +158,7 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
-AGENT_MA_WINDOW_SIZE = 64
+AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_MA = not MARKET_STATE_USE_MA
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -232,7 +233,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-31/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -291,6 +292,12 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
+	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
+	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
+	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
+	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 
 	all = [
 		main,
@@ -307,9 +314,15 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_23,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
+		ma_ews_dynamic_k_stm_it_25,
+		ma_ews_dynamic_k_stm_it_26,
+		ma_ews_dynamic_k_stm_it_27,
+		ma_cma_dynamic_k_stm_it_27,
+		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_31,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_23
+	default = ma_ews_dynamic_k_stm_it_31
 
 
 class RunnerStatsLossesBranches:
@@ -322,6 +335,11 @@ class RunnerStatsLossesBranches:
 	it_20 = "it_20"
 	it_23 = "it_23"
 	it_24 = "it_24"
+	it_25 = "it_25"
+	it_26 = "it_26"
+	it_27 = "it_27"
+	it_29 = "it_29"
+	it_31 = "it_31"
 
 	all = [
 		main,
@@ -331,7 +349,12 @@ class RunnerStatsLossesBranches:
 		it_16,
 		it_20,
 		it_23,
-		it_24
+		it_24,
+		it_25,
+		it_26,
+		it_27,
+		it_29,
+		it_31,
 	]
 
-	default = it_23
+	default = it_31
