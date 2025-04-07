@@ -12,6 +12,7 @@ class RunnerStats:
 	id: str
 	model_name: str
 	session_timestamps: typing.List[datetime]
+	simulated_timestamps: typing.List[datetime] = field(default_factory=lambda: [])
 	profits: typing.List[float] = field(default_factory=lambda: [])
 	duration: float = 0.0
 	model_losses_map: typing.Dict[str, typing.Tuple[float, ...]] = field(default_factory=lambda: {})
