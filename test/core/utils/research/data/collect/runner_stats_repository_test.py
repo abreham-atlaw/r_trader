@@ -9,11 +9,13 @@ from datetime import datetime, timedelta
 from pprint import pprint
 
 import pandas as pd
+from pymongo.errors import AutoReconnect
 
 from core import Config
 from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
+from lib.utils.decorators import retry
 from lib.utils.logger import Logger
 
 
@@ -21,7 +23,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
 		self.fs = ServiceProvider.provide_file_storage(path=Config.MAPLOSS_FS_MODELS_PATH)
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_16
+		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_29
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -340,10 +342,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_add_empty_loss(self):
+		size = 10
 		stats = self.repository.retrieve_all()
 		for i, stat in enumerate(stats):
-			if len(stat.model_losses) == 7:
-				stat.model_losses += (0.0,)
+			if len(stat.model_losses) != size:
+				remaining = size - len(stat.model_losses)
+				print(f"Adding {remaining} empty losses to {stat.id}")
+				stat.model_losses += tuple([0]*(remaining))
 				self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
@@ -847,7 +852,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_density_stats(self):
 
 		DENSITY = 2
-		STRIDE = 0.5
+		STRIDE = 1
 		LOSS_IDX = 1
 
 		stats = list(filter(
@@ -859,6 +864,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		print(f"Strided: {[len(s) for s in strided_stats]}")
 
+	@retry(exception_cls=(AutoReconnect,), patience=10)
 	def test_trim_stats_density(self):
 
 		def trim_stats(stats: typing.List[RunnerStats], density: float, stride: float) -> typing.List[RunnerStats]:
@@ -876,8 +882,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.__permanently_delete_stat(stat=stat)
 			return
 
-		DENSITY = 2
-		STRIDE = 0.5
+		DENSITY = 5
+		STRIDE = 1
 		LOSS_IDX = 1
 
 		strided_stats = self.__get_strided_stats(stats=self.repository.retrieve_all(), stride=STRIDE, loss_idx=LOSS_IDX)
