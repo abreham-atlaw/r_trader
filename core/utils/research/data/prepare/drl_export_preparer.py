@@ -185,7 +185,7 @@ class DRLExportPreparer:
 	):
 
 		self.__setup_save_path(self.__export_path)
-		filenames = os.listdir(os.path.join(input_path, self.__X_dir_name))
+		filenames = sorted(os.listdir(os.path.join(input_path, self.__X_dir_name)))
 		train_files, test_files = self.__file_split(filenames) if self.__file_based_split else (None, None)
 
 		for i, filename in enumerate(filenames):
