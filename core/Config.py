@@ -53,8 +53,8 @@ PCLOUD_TOKENS = [
 	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
 	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
 	# "QL3dHVZIO9B7Z3luRCUxoFefoSYQb1LRwkbOdFjoX",  # abreham.atlaw@yahoo.com -
-	"aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
-	# "6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
+	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
+	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
@@ -290,13 +290,17 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
+	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
 	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
 	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_27_mts_0 = "ma_ews_dynamic_k_stm_it_27_mts_0"
 	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
+	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 
 	all = [
 		main,
@@ -311,13 +315,17 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_15,
 		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
+		ma_ews_dynamic_k_stm_it_23_mts_0,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_25,
 		ma_ews_dynamic_k_stm_it_26,
 		ma_ews_dynamic_k_stm_it_27,
+		ma_ews_dynamic_k_stm_it_27_mts_0,
 		ma_cma_dynamic_k_stm_it_27,
 		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_31,
+		ma_ews_dynamic_k_stm_it_33,
 	]
 
 	default = ma_ews_dynamic_k_stm_it_29
@@ -337,6 +345,8 @@ class RunnerStatsLossesBranches:
 	it_26 = "it_26"
 	it_27 = "it_27"
 	it_29 = "it_29"
+	it_31 = "it_31"
+	it_33 = "it_33"
 
 	all = [
 		main,
@@ -350,7 +360,9 @@ class RunnerStatsLossesBranches:
 		it_25,
 		it_26,
 		it_27,
-		it_29
+		it_29,
+		it_31,
+		it_33,
 	]
 
 	default = it_29
