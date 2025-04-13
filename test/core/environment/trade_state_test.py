@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import *
 
 import unittest
@@ -7,6 +8,7 @@ import numpy as np
 
 from core.environment.trade_state import MarketState, AgentState, TradeState
 from core.agent.trader_action import TraderAction
+from lib.utils.logger import Logger
 
 
 class MarketStateTest(unittest.TestCase):
@@ -55,6 +57,47 @@ class MarketStateTest(unittest.TestCase):
 			self.market_state.get_state_of(MarketStateTest.CURRENCIES[0], MarketStateTest.CURRENCIES[1])[0],
 			values[0, 1]
 		)
+
+	def test_anchored_state_update_state(self):
+		original_state = np.arange(self.MEMORY_LEN) + 1
+		instrument = ("AUD", "USD")
+		self.market_state.update_state_of(*instrument, original_state)
+
+		new_state = np.arange(3) + 6
+		anchored_state = deepcopy(self.market_state)
+		anchored_state.update_state_of(*instrument, new_state)
+
+		anchored_return_state = anchored_state.get_state_of(*instrument)
+		expected_state = np.concatenate((original_state, new_state))[-self.MEMORY_LEN:]
+		self.assertTrue(np.all(
+			anchored_return_state == expected_state
+		))
+
+		new_new_state = np.arange(3) + 9
+		anchored_anchored_state = deepcopy(anchored_state)
+		anchored_anchored_state.update_state_of(*instrument, new_new_state)
+
+		anchored_anchored_return_state = anchored_anchored_state.get_state_of(*instrument)
+		expected_state = np.concatenate((anchored_return_state, new_new_state))[-self.MEMORY_LEN:]
+		self.assertTrue(np.all(
+			anchored_anchored_return_state == expected_state
+		))
+
+	def test_anchored_state_update_state_layer(self):
+		original_state = np.arange(self.MEMORY_LEN) + 1
+		instrument = ("AUD", "USD")
+		self.market_state.update_state_of(*instrument, original_state)
+
+		new_state_layer = np.random.random((len(MarketStateTest.CURRENCIES), len(MarketStateTest.CURRENCIES)))
+		for i in range(new_state_layer.shape[0]):
+			new_state_layer[i, i] = 1
+		anchored_state = deepcopy(self.market_state)
+		anchored_state.update_state_layer(new_state_layer)
+		Logger.info(f"New State Layer:\n\n", new_state_layer)
+		Logger.info(f"Returned State Layer:\n\n", anchored_state.get_price_matrix()[:, :, -1])
+		self.assertTrue(np.all(
+			new_state_layer == anchored_state.get_price_matrix()[:, :, -1]
+		))
 
 
 class OpenTradeTest(unittest.TestCase):

@@ -12,11 +12,13 @@ class SimulationSimulatorTest(unittest.TestCase):
 
 	def test_mock_data(self):
 
+		SIZE = 1000
+
 		df = pd.DataFrame(
 			data=np.concatenate(
 				(
-					np.expand_dims(np.arange(100), axis=1),
-					np.expand_dims(np.array([datetime.now() + timedelta(days=i) for i in range(100)]), axis=1)
+					np.expand_dims(np.arange(SIZE), axis=1),
+					np.expand_dims(np.array([datetime.now() + timedelta(days=i) for i in range(SIZE)]), axis=1)
 				),
 				axis=1
 			),
@@ -30,7 +32,9 @@ class SimulationSimulatorTest(unittest.TestCase):
 			extra_len=2,
 			batch_size=8,
 			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data",
-			granularity=1
+			granularity=3,
+			ma_window=3,
+			order_gran=False
 		)
 		simulator.start()
 
