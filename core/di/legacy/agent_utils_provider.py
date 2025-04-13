@@ -1,5 +1,6 @@
 from core import Config
 from lib.network.rest_interface import Serializer
+from lib.utils.logger import Logger
 from lib.utils.staterepository import StateRepository, AutoStateRepository, SectionalDictStateRepository, \
 	PickleStateRepository
 
@@ -17,9 +18,11 @@ class AgentUtilsProvider:
 	@staticmethod
 	def provide_state_repository() -> StateRepository:
 		if Config.AGENT_USE_AUTO_STATE_REPOSITORY:
+			Logger.info("Using auto state repository...")
 			return AutoStateRepository(
 				Config.AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE,
 				in_memory_repository=AgentUtilsProvider.provide_in_memory_state_repository(),
 				disk_repository=AgentUtilsProvider.provide_disk_state_repository()
 			)
+		Logger.info("Using in-memory state repository...")
 		return AgentUtilsProvider.provide_in_memory_state_repository()
