@@ -16,8 +16,10 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_state_repository() -> StateRepository:
-		return AutoStateRepository(
-			Config.AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE,
-			in_memory_repository=AgentUtilsProvider.provide_in_memory_state_repository(),
-			disk_repository=AgentUtilsProvider.provide_disk_state_repository()
-		)
+		if Config.AGENT_USE_AUTO_STATE_REPOSITORY:
+			return AutoStateRepository(
+				Config.AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE,
+				in_memory_repository=AgentUtilsProvider.provide_in_memory_state_repository(),
+				disk_repository=AgentUtilsProvider.provide_disk_state_repository()
+			)
+		return AgentUtilsProvider.provide_in_memory_state_repository()
