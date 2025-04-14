@@ -168,6 +168,8 @@ AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_USE_AUTO_STATE_REPOSITORY = False
+AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
@@ -291,6 +293,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
+	ma_ews_dynamic_k_stm_it_23_mts_0_b_0 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_0"  # ma_ews_dynamic_k_stm_it_23_mts_0 with UCT Explore Weight = 1.5
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
@@ -299,6 +302,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_27_mts_0 = "ma_ews_dynamic_k_stm_it_27_mts_0"
 	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 
@@ -316,6 +320,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
 		ma_ews_dynamic_k_stm_it_23_mts_0,
+		ma_ews_dynamic_k_stm_it_23_mts_0_b_0,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_25,
@@ -324,6 +329,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_27_mts_0,
 		ma_cma_dynamic_k_stm_it_27,
 		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_29_dm_0,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
 	]
