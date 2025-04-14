@@ -170,6 +170,7 @@ class TrainerTest(unittest.TestCase):
 		AVG_POOL = True
 		NORM = [False] + [False for _ in CHANNELS[1:]]
 		STRIDE = 2
+		INPUT_DROPOUT = 0.2
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -241,7 +242,8 @@ class TrainerTest(unittest.TestCase):
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 			stride=STRIDE,
-			channel_ffn=channel_ffn
+			channel_ffn=channel_ffn,
+			input_dropout=INPUT_DROPOUT
 		)
 
 		dataset = BaseDataset(
