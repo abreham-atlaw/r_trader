@@ -267,6 +267,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
 	ma_ews_dynamic_k_stm_it_23_mts_0_b_0 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_0"  # ma_ews_dynamic_k_stm_it_23_mts_0 with UCT Explore Weight = 1.5
+	ma_ews_dynamic_k_stm_it_23_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_1"  # Setup based
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
@@ -294,6 +295,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_23,
 		ma_ews_dynamic_k_stm_it_23_mts_0,
 		ma_ews_dynamic_k_stm_it_23_mts_0_b_0,
+		ma_ews_dynamic_k_stm_it_23_mts_0_b_1,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_25,
