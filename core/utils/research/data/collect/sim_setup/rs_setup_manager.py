@@ -45,6 +45,7 @@ class RSSetupManager:
 
 		Logger.info(f"Allocating Time...")
 		start_time = self._allocate_time(stat)
+		Logger.info(f"Allocated Start Time: {start_time}")
 		stat.simulated_timestamps.append(self.__serialize_time(start_time))
 
 		Logger.info(f"Setting up Simulation Trading...")
