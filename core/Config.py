@@ -104,6 +104,13 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
+OANDA_SIM_DELTA_MULTIPLIER = 10
+OANDA_SIM_MARGIN_RATE = 0.01
+OANDA_SIM_BALANCE = 100
+OANDA_SIM_ALIAS = "Sim Account 0"
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
+OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
@@ -168,6 +175,8 @@ AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_USE_AUTO_STATE_REPOSITORY = False
+AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
@@ -291,14 +300,18 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
+	ma_ews_dynamic_k_stm_it_23_mts_0_b_0 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_0"  # ma_ews_dynamic_k_stm_it_23_mts_0 with UCT Explore Weight = 1.5
+	ma_ews_dynamic_k_stm_it_23_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_1"  # Setup based
 	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
 	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
 	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
 	ma_ews_dynamic_k_stm_it_27_mts_0 = "ma_ews_dynamic_k_stm_it_27_mts_0"
+	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
 	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 
@@ -316,14 +329,18 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
 		ma_ews_dynamic_k_stm_it_23_mts_0,
+		ma_ews_dynamic_k_stm_it_23_mts_0_b_0,
+		ma_ews_dynamic_k_stm_it_23_mts_0_b_1,
 		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_25,
 		ma_ews_dynamic_k_stm_it_26,
 		ma_ews_dynamic_k_stm_it_27,
 		ma_ews_dynamic_k_stm_it_27_mts_0,
+		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
 		ma_cma_dynamic_k_stm_it_27,
 		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_29_dm_0,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
 	]
