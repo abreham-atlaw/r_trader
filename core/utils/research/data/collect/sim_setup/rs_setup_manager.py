@@ -36,6 +36,7 @@ class RSSetupManager:
 	def setup(self):
 		Logger.info(f"Allocating Runner Stat...")
 		stat = self.__rs_repo.allocate_for_runlive()
+		Logger.info(f"Allocated Runner Stat: {stat}")
 
 		Logger.info(f"Downloading {stat.model_name}...")
 		self.__fs.download(stat.model_name, os.path.abspath(stat.model_name))
