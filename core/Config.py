@@ -266,8 +266,9 @@ UPDATE_TRAIN = False
 AGENT_CRA_SIZE = 0
 MAPLOSS_BRANCH = "ma_ews"
 MAPLOSS_KEY = "cnn"
-with open("/kaggle/working/oanda-simulation/res/local_account.json", "r") as f:
-	OANDA_TRADING_ACCOUNT_ID = json.load(f)
+
+OANDA_TRADING_ACCOUNT_ID = ""
+OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
 MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
