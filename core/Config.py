@@ -286,31 +286,11 @@ class ResourceCategories:
 class RunnerStatsBranches:
 
 	main = "main"
-	ma_ews = "ma_ews"
-	ma_ews_trim_scaling = "ma_ews_trim_scaling"
-	ma_ews_dynamic_k = "ma_ews_dynamic_k"
-	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
-	cma_dynamic_k_stm = "cma_dynamic_k_stm"
-	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
 
-	runlive_sim_cum_0_it_8 = "runlive_sim_cum_0_it_8"
-
-	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
-
-	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
-	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
-	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
-	ma_ews_dynamic_k_stm_it_23_mts_0_b_0 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_0"  # ma_ews_dynamic_k_stm_it_23_mts_0 with UCT Explore Weight = 1.5
-	ma_ews_dynamic_k_stm_it_23_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_23_mts_0_b_1"  # Setup based
-	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
-	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
-	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
-	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
-	ma_ews_dynamic_k_stm_it_27_mts_0 = "ma_ews_dynamic_k_stm_it_27_mts_0"
 	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
-	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
+	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
 	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
@@ -318,49 +298,23 @@ class RunnerStatsBranches:
 
 	all = [
 		main,
-		ma_ews,
-		ma_ews_trim_scaling,
-		ma_ews_dynamic_k,
-		ma_ews_dynamic_k_stm,
-		cma_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_d_0_8,
-		runlive_sim_cum_0_it_8,
-		real_ma_ews_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_it_15,
-		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
-		ma_ews_dynamic_k_stm_it_23_mts_0,
-		ma_ews_dynamic_k_stm_it_23_mts_0_b_0,
-		ma_ews_dynamic_k_stm_it_23_mts_0_b_1,
-		ma_ews_dynamic_k_stm_it_23_tp_0,
 		ma_ews_dynamic_k_stm_it_24,
-		ma_ews_dynamic_k_stm_it_25,
-		ma_ews_dynamic_k_stm_it_26,
-		ma_ews_dynamic_k_stm_it_27,
-		ma_ews_dynamic_k_stm_it_27_mts_0,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
-		ma_cma_dynamic_k_stm_it_27,
 		ma_ews_dynamic_k_stm_it_29,
 		ma_ews_dynamic_k_stm_it_29_dm_0,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_27_mts_0_b_1
+	default = main
 
 
 class RunnerStatsLossesBranches:
 
 	main = "main"
-	it_10 = "it_10"
-	it_12 = "it_12"
-	it_15 = "it_15"
-	it_16 = "it_16"
-	it_20 = "it_20"
 	it_23 = "it_23"
 	it_24 = "it_24"
-	it_25 = "it_25"
-	it_26 = "it_26"
 	it_27 = "it_27"
 	it_29 = "it_29"
 	it_31 = "it_31"
@@ -368,15 +322,8 @@ class RunnerStatsLossesBranches:
 
 	all = [
 		main,
-		it_10,
-		it_12,
-		it_15,
-		it_16,
-		it_20,
 		it_23,
 		it_24,
-		it_25,
-		it_26,
 		it_27,
 		it_29,
 		it_31,
