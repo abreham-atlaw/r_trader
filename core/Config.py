@@ -301,6 +301,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_23,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
+		it_27_0,
 		ma_ews_dynamic_k_stm_it_29,
 		ma_ews_dynamic_k_stm_it_29_dm_0,
 		ma_ews_dynamic_k_stm_it_31,
