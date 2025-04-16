@@ -9,6 +9,7 @@ from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.trader_action import TraderAction
 from core.agent.utils.cache import Cache
+from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.model.model.utils import TransitionOnlyModel
 from core.utils.research.model.model.utils import WrappedModel
@@ -56,6 +57,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_visited_only=dump_visited_only,
 			node_serializer=TraderNodeSerializer(),
 			discount=discount,
+			state_repository=AgentUtilsProvider.provide_state_repository(),
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
