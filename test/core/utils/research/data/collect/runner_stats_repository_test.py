@@ -22,8 +22,8 @@ from lib.utils.logger import Logger
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.fs = ServiceProvider.provide_file_storage(path=Config.MAPLOSS_FS_MODELS_PATH)
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_29
+		self.fs = ServiceProvider.provide_file_storage(path=Config.OANDA_SIM_MODEL_IN_PATH)
+		self.branch = Config.RunnerStatsBranches.it_27_0
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -689,6 +689,17 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.repository.store(stat)
 
 			print(f"{i+1} of {len(stats)}... Done")
+
+	def test_sync_sim_timestamps(self):
+
+		def sync_stat(stat: RunnerStats):
+			stat.simulated_timestamps = stat.simulated_timestamps[-len(stat.session_timestamps):]
+			self.repository.store(stat)
+
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			sync_stat(stat)
+			Logger.info(f"{i+1} of {len(stats)}... Done")
 
 	def test_plot_all_branches(self):
 
