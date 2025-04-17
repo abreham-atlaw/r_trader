@@ -7,7 +7,8 @@ from core.utils.misc.sim_trading.setup import SetupManager
 from core.utils.research.data.collect.runner_stats import RunnerStats
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
 from core.utils.research.data.collect.sim_setup.times_repository import TimesRepository
-from lib.utils.file_storage import FileStorage
+from lib.utils.decorators import retry
+from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.logger import Logger
 
 
@@ -33,6 +34,7 @@ class RSSetupManager:
 			key=lambda t: stat.simulated_timestamps.count(self.__serialize_time(t))
 		)
 
+	@retry(exception_cls=(FileNotFoundException,), patience=10)
 	def setup(self):
 		Logger.info(f"Allocating Runner Stat...")
 		stat = self.__rs_repo.allocate_for_runlive()
