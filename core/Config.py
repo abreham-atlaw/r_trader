@@ -247,7 +247,7 @@ MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
+# OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 TIMEZONE = timezone("UTC")
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
