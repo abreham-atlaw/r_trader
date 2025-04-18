@@ -22,8 +22,8 @@ from lib.utils.logger import Logger
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.fs = ServiceProvider.provide_file_storage(path=Config.MAPLOSS_FS_MODELS_PATH)
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_33
+		self.fs = ServiceProvider.provide_file_storage(path=Config.OANDA_SIM_MODEL_IN_PATH)
+		self.branch = Config.RunnerStatsBranches.it_27_0
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -342,10 +342,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_add_empty_loss(self):
+		size = 10
 		stats = self.repository.retrieve_all()
 		for i, stat in enumerate(stats):
-			if len(stat.model_losses) == 7:
-				stat.model_losses += (0.0,)
+			if len(stat.model_losses) != size:
+				remaining = size - len(stat.model_losses)
+				print(f"Adding {remaining} empty losses to {stat.id}")
+				stat.model_losses += tuple([0]*(remaining))
 				self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
@@ -689,6 +692,17 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			self.repository.store(stat)
 
 			print(f"{i+1} of {len(stats)}... Done")
+
+	def test_sync_sim_timestamps(self):
+
+		def sync_stat(stat: RunnerStats):
+			stat.simulated_timestamps = stat.simulated_timestamps[-len(stat.session_timestamps):]
+			self.repository.store(stat)
+
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			sync_stat(stat)
+			Logger.info(f"{i+1} of {len(stats)}... Done")
 
 	def test_plot_all_branches(self):
 

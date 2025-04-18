@@ -51,7 +51,21 @@ class RunnerStatsBranchManager:
 					continue
 
 				new_stat = deepcopy(stat)
-				new_stat.session_timestamps, new_stat.profits, new_stat.real_profits, new_stat.duration, new_stat.branch = ([], [], [], 0, target_branch)
+				(
+					new_stat.session_timestamps,
+					new_stat.profits,
+					new_stat.real_profits,
+					new_stat.duration,
+					new_stat.branch,
+					new_stat.simulated_timestamps
+				) = (
+					[],
+					[],
+					[],
+					0,
+					target_branch,
+					[]
+				)
 				self.__get_repository(target_branch).store(new_stat)
 				print(f"Added {new_stat.id} to {target_branch}")
 

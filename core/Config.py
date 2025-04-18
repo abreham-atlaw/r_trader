@@ -104,6 +104,13 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
+OANDA_SIM_DELTA_MULTIPLIER = 10
+OANDA_SIM_MARGIN_RATE = 0.01
+OANDA_SIM_BALANCE = 100
+OANDA_SIM_ALIAS = "Sim Account 0"
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
+OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
@@ -118,6 +125,7 @@ MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
+AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
@@ -167,6 +175,8 @@ AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_USE_AUTO_STATE_REPOSITORY = False
+AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
@@ -252,73 +262,38 @@ class ResourceCategories:
 class RunnerStatsBranches:
 
 	main = "main"
-	ma_ews = "ma_ews"
-	ma_ews_trim_scaling = "ma_ews_trim_scaling"
-	ma_ews_dynamic_k = "ma_ews_dynamic_k"
-	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
-	cma_dynamic_k_stm = "cma_dynamic_k_stm"
-	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
 
-	runlive_sim_cum_0_it_8 = "runlive_sim_cum_0_it_8"
-
-	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
-
-	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
-	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
-	ma_ews_dynamic_k_stm_it_23_mts_0 = "ma_ews_dynamic_k_stm_it_23_mts_0"
-	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
+	it_23_0 = "it_23_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
-	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
-	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
-	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
-	ma_ews_dynamic_k_stm_it_27_mts_0 = "ma_ews_dynamic_k_stm_it_27_mts_0"
-	ma_cma_dynamic_k_stm_it_27 = "ma_cma_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
+	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 
 	all = [
 		main,
-		ma_ews,
-		ma_ews_trim_scaling,
-		ma_ews_dynamic_k,
-		ma_ews_dynamic_k_stm,
-		cma_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_d_0_8,
-		runlive_sim_cum_0_it_8,
-		real_ma_ews_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_it_15,
-		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
-		ma_ews_dynamic_k_stm_it_23_mts_0,
-		ma_ews_dynamic_k_stm_it_23_tp_0,
+		it_23_0,
 		ma_ews_dynamic_k_stm_it_24,
-		ma_ews_dynamic_k_stm_it_25,
-		ma_ews_dynamic_k_stm_it_26,
-		ma_ews_dynamic_k_stm_it_27,
-		ma_ews_dynamic_k_stm_it_27_mts_0,
-		ma_cma_dynamic_k_stm_it_27,
+		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
+		it_27_0,
 		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_29_dm_0,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_27
+	default = it_27_0
 
 
 class RunnerStatsLossesBranches:
 
 	main = "main"
-	it_10 = "it_10"
-	it_12 = "it_12"
-	it_15 = "it_15"
-	it_16 = "it_16"
-	it_20 = "it_20"
 	it_23 = "it_23"
 	it_24 = "it_24"
-	it_25 = "it_25"
-	it_26 = "it_26"
 	it_27 = "it_27"
 	it_29 = "it_29"
 	it_31 = "it_31"
@@ -326,15 +301,8 @@ class RunnerStatsLossesBranches:
 
 	all = [
 		main,
-		it_10,
-		it_12,
-		it_15,
-		it_16,
-		it_20,
 		it_23,
 		it_24,
-		it_25,
-		it_26,
 		it_27,
 		it_29,
 		it_31,
