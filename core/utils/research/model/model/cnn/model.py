@@ -30,7 +30,8 @@ class CNN(SpinozaModule):
 			stride: typing.Union[int, typing.List[int]] = 1,
 			positional_encoding: bool = False,
 			norm_positional_encoding: bool = False,
-			channel_ffn: typing.Optional[nn.Module] = None
+			channel_ffn: typing.Optional[nn.Module] = None,
+			input_dropout: float = 0.0
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -51,7 +52,8 @@ class CNN(SpinozaModule):
 			'indicators': indicators,
 			'positional_encoding': positional_encoding,
 			'norm_positional_encoding': norm_positional_encoding,
-			'channel_ffn': channel_ffn
+			'channel_ffn': channel_ffn,
+			'input_dropout': input_dropout
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -128,7 +130,7 @@ class CNN(SpinozaModule):
 			self.pos = nn.Identity()
 
 		self.channel_ffn = AxisFFN(channel_ffn, axis=1) if channel_ffn else nn.Identity()
-
+		self.input_dropout = nn.Dropout(input_dropout) if input_dropout > 0 else nn.Identity()
 		self.init()
 
 	def _build_conv_layers(
@@ -163,6 +165,8 @@ class CNN(SpinozaModule):
 		out = self.indicators(seq)
 
 		out = self.pos(out)
+
+		out = self.input_dropout(out)
 
 		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
 			out = norm(out)
