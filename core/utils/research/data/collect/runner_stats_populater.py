@@ -89,14 +89,19 @@ class RunnerStatsPopulater:
 				),
 				ProximalMaskedLoss(
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					p=0.5,
 					softmax=True,
+					p=0.5
 				),
 				ProximalMaskedLoss(
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					p=0.25,
 					softmax=True,
+					p=0.25
 				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					p=0.1
+				)
 			])
 		])
 
