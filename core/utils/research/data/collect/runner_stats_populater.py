@@ -86,6 +86,21 @@ class RunnerStatsPopulater:
 				OutputBatchClassVariance(
 					np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
 					epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
+				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					p=0.5
+				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					p=0.25
+				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					p=0.1
 				)
 			])
 		])
