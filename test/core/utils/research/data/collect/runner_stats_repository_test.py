@@ -1,3 +1,4 @@
+import json
 import random
 import typing
 import unittest
@@ -913,4 +914,61 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			stat.model_losses = tuple([0.0] * len(stat.model_losses))
 			self.repository.store(stat)
 
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_sync_sim_timestamps_order(self):
+
+		def get_order(sim_timestamps: typing.List[str], original_order: typing.List[str]) -> typing.List[int]:
+
+			for t in sim_timestamps:
+				if t not in original_order:
+					raise Exception(f"{t} not in original order: {original_order}")
+
+			order = []
+			sim_timestamps = sim_timestamps.copy()
+			while len(order) < len(sim_timestamps):
+				for t in original_order:
+					if t in sim_timestamps:
+						idxs = [i for i in range(len(sim_timestamps)) if sim_timestamps[i] == t]
+						for i in idxs:
+							if i not in order:
+								order.append(i)
+								break
+
+			return order
+
+		def apply_order_on_list(original_list, order):
+			return [original_list[i] for i in order]
+
+		def apply_order(stat: RunnerStats, order: typing.List[int]):
+			stat.session_timestamps, stat.profits, stat.simulated_timestamps = [
+				apply_order_on_list(l, order)
+				for l in [
+					stat.session_timestamps, stat.profits, stat.simulated_timestamps
+				]
+			]
+			return stat
+
+		def check_integrity(stat: RunnerStats) -> bool:
+			return len(stat.simulated_timestamps) == len(stat.session_timestamps) == len(stat.profits)
+
+		def reset_stat(stat: RunnerStats):
+			print(f"Resetting {stat.id}...")
+			stat.session_timestamps = stat.simulated_timestamps = stat.profits= []
+
+		ORDER_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/res/times/times-5.json"
+		with open(ORDER_PATH, "r") as f:
+			original_order = json.load(f)
+
+		stats = self.repository.retrieve_all()
+
+		for i, stat in enumerate(stats):
+			if len(stat.simulated_timestamps) == 0:
+				continue
+			if not check_integrity(stat):
+				reset_stat(stat)
+				continue
+			order = get_order(stat.simulated_timestamps, original_order)
+			stat = apply_order(stat=stat, order=order)
+			self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
