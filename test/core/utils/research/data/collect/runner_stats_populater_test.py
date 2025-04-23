@@ -17,7 +17,7 @@ class RunnerStatsPopulaterTest(unittest.TestCase):
 
 		repo = RunnerStatsRepository(
 			MongoClient(Config.MONGODB_URL),
-			collection_name="runner_stats_populater_test"
+			# collection_name="runner_stats_populater_test"
 		)
 
 		test_dataset = BaseDataset(
@@ -27,13 +27,14 @@ class RunnerStatsPopulaterTest(unittest.TestCase):
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=32)
 
+		IN_PATH = "/Apps/RTrader/maploss/it-23/"
+
 		populater = RunnerStatsPopulater(
 			repository=repo,
 			dataloader=test_dataloader,
-			in_filestorage=ServiceProvider.provide_file_storage("/"),
-			in_path="/Apps/RTrader/maploss/models(test)/linear",
-			tmp_path="/tmp/",
-			temperatures=[0.1, 0.5, 1.0]
+			in_filestorage=ServiceProvider.provide_file_storage(path="/"),
+			in_path=IN_PATH,
+			raise_exception=False,
 		)
 
 		populater.start()
