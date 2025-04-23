@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import torch
 
+from core import Config
 from core.utils.research.losses import ProximalMaskedLoss
 
 
@@ -30,3 +31,61 @@ class ProximalMaskedLossTest(unittest.TestCase):
 
 		loss = loss_fn(torch.from_numpy(np.repeat(y.numpy(), axis=0, repeats=len(classes))), torch.squeeze(predictions))
 		self.assertEqual(loss, torch.mean(torch.Tensor(losses)))
+
+	def test_weights(self):
+		classes = (np.arange(5) + 10).astype(np.float32)
+		weights = np.array([0.3, 0.6, 0.9, 0.6, 0.3]).astype(np.float32)
+
+		loss_fn = ProximalMaskedLoss(
+			n=len(classes),
+			softmax=False,
+		)
+		w_loss_fn = ProximalMaskedLoss(
+			n=len(classes),
+			softmax=False,
+			weights=weights
+		)
+
+		y = torch.from_numpy(np.array([
+			[0, 1, 0, 0, 0],
+			[0, 0, 1, 0, 0],
+			[0, 0, 0, 0, 1]
+		]).astype(np.float32))
+
+		predictions = torch.from_numpy(np.array([
+			[1, 0, 0, 0, 0],
+			[0, 1, 0, 0, 0],
+			[0, 0, 0, 1, 0]
+		]).astype(np.float32))
+
+		losses = [loss_fn(predictions[i:i+1], y[i:i+1]) for i in range(y.shape[0])]
+		w_losses = [w_loss_fn(predictions[i:i+1], y[i:i+1]) for i in range(y.shape[0])]
+
+		print(f"Losses: {losses}")
+		print(f"Weighted Losses: {w_losses}")
+
+		self.assertEqual(losses[0], losses[1])
+		self.assertEqual(losses[0], losses[2])
+
+		self.assertGreater(w_losses[1], w_losses[0])
+		self.assertGreater(w_losses[1], w_losses[2])
+		self.assertGreater(w_losses[0], w_losses[2])
+
+	def test_actual(self):
+
+		classes = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+		weights = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
+
+		loss_fn = ProximalMaskedLoss(
+			n=len(classes)+1,
+			softmax=False,
+			weights=weights
+		)
+
+		y = torch.from_numpy(np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/y/1743180011.758194.npy").astype(np.float32))[:, :-1]
+
+		predictions = torch.from_numpy(np.random.random((y.shape[0], y.shape[1])).astype(np.float32))
+
+		loss = loss_fn(predictions, y)
+
+		print(loss)

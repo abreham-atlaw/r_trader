@@ -51,6 +51,7 @@ class RunnerStatsPopulater:
 		if exception_exceptions is None:
 			exception_exceptions = []
 		self.__exception_exceptions = exception_exceptions
+		self.__loss_functions = self.__get_evaluation_loss_functions()
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -63,13 +64,12 @@ class RunnerStatsPopulater:
 			return loss[-1]
 		return loss
 
-	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
-		return tuple([
-			self.__evaluate_model_loss(
-				model,
-				loss
-			) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
-			for i, loss in enumerate([
+	def __sync_model_losses_size(self, stat: RunnerStats):
+		if len(stat.model_losses) < len(self.__loss_functions):
+			stat.model_losses = stat.model_losses + ([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
+
+	def __get_evaluation_loss_functions(self):
+		return [
 				nn.CrossEntropyLoss(),
 				ProximalMaskedLoss(
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
@@ -101,8 +101,21 @@ class RunnerStatsPopulater:
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 					softmax=True,
 					p=0.1
+				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
 				)
-			])
+			]
+
+	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
+		return tuple([
+			self.__evaluate_model_loss(
+				model,
+				loss
+			) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
+			for i, loss in enumerate(self.__loss_functions)
 		])
 
 	def __prepare_model(self, model: nn.Module) -> nn.Module:
@@ -130,6 +143,9 @@ class RunnerStatsPopulater:
 		print(f"[+]Processing {path}(T={temperature})...")
 
 		stat = self.__repository.retrieve(self.__generate_id(path, temperature))
+		if stat is not None:
+			self.__sync_model_losses_size(stat)
+
 		current_losses = stat.model_losses if stat is not None else None
 
 		local_path = self.__download_model(path)
@@ -165,6 +181,10 @@ class RunnerStatsPopulater:
 		stat = self.__repository.retrieve(
 			self.__generate_id(file_path, temperature=temperature)
 		)
+
+		if stat is not None:
+			self.__sync_model_losses_size(stat)
+
 		return stat is not None and 0.0 not in stat.model_losses
 
 	def start(self, replace_existing: bool = False):

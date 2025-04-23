@@ -1,10 +1,23 @@
+import typing
+
+import numpy as np
 import torch
 from torch import nn
 
 
 class ProximalMaskedLoss(nn.Module):
 
-	def __init__(self, n: int, *args, p: int = 1, softmax=True, epsilon=1e-9, device='cpu', **kwargs):
+	def __init__(
+			self,
+			n: int,
+			*args,
+			p: int = 1,
+			weights: typing.Optional[typing.Union[torch.Tensor, typing.List[float], np.ndarray]] = None,
+			softmax=True,
+			epsilon=1e-9,
+			device='cpu',
+			**kwargs
+	):
 		super().__init__(*args, **kwargs)
 		self.n = n
 		self.p = p
@@ -12,6 +25,15 @@ class ProximalMaskedLoss(nn.Module):
 		self.mask = self.__generate_mask(n, p).to(device)
 		self.epsilon = epsilon
 		self.device = device
+
+		if weights is None:
+			weights = torch.ones(n)
+		if isinstance(weights, list):
+			weights = torch.Tensor(weights)
+		if isinstance(weights, np.ndarray):
+			weights = torch.from_numpy(weights)
+
+		self.w = weights.to(device)
 
 	@staticmethod
 	def __f(t, n, p):
@@ -35,6 +57,8 @@ class ProximalMaskedLoss(nn.Module):
 			dim=1
 		)
 
-		return self.collapse(
-			(1 / (torch.sum(y_mask * y_hat, dim=1) - self.epsilon)) - 1
-		)
+		loss = (1 / (torch.sum(y_mask * y_hat, dim=1) - self.epsilon)) - 1
+		w = torch.unsqueeze(torch.sum(self.w * y, dim=1), dim=1)
+		loss = loss*w
+
+		return self.collapse(loss)
