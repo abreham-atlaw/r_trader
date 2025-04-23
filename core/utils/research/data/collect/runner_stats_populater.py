@@ -64,6 +64,10 @@ class RunnerStatsPopulater:
 			return loss[-1]
 		return loss
 
+	def __sync_model_losses_size(self, stat: RunnerStats):
+		if len(stat.model_losses) < len(self.__loss_functions):
+			stat.model_losses = stat.model_losses + ((0.0, ) * (len(self.__loss_functions) - len(stat.model_losses)))
+
 	def __get_evaluation_loss_functions(self):
 		return [
 				nn.CrossEntropyLoss(),
@@ -139,6 +143,9 @@ class RunnerStatsPopulater:
 		print(f"[+]Processing {path}(T={temperature})...")
 
 		stat = self.__repository.retrieve(self.__generate_id(path, temperature))
+		if stat is not None:
+			self.__sync_model_losses_size(stat)
+
 		current_losses = stat.model_losses if stat is not None else None
 
 		local_path = self.__download_model(path)
@@ -175,8 +182,8 @@ class RunnerStatsPopulater:
 			self.__generate_id(file_path, temperature=temperature)
 		)
 
-		if stat is not None and len(stat.model_losses) < len(self.__loss_functions):
-			stat.model_losses += tuple([0.0] * (len(self.__loss_functions) - len(stat.model_losses)))
+		if stat is not None:
+			self.__sync_model_losses_size(stat)
 
 		return stat is not None and 0.0 not in stat.model_losses
 
