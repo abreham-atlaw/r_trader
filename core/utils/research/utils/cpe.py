@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 
 from core.utils.research.losses import ClassPerformanceLoss
+from lib.utils.logger import Logger
 
 
 class ClassPerformanceEvaluator:
@@ -27,7 +28,7 @@ class ClassPerformanceEvaluator:
 		running_loss = None
 		running_size = 0
 
-		for x, y in self.dataloader:
+		for i, (x, y) in enumerate(self.dataloader):
 			with torch.no_grad():
 				y_hat = model(x)
 
@@ -43,5 +44,8 @@ class ClassPerformanceEvaluator:
 				running_loss = torch.unsqueeze(loss, dim=0)
 				continue
 			running_loss = torch.cat((running_loss, torch.unsqueeze(loss, dim=0)), dim=0)
+
+			if i % 10 == 0:
+				Logger.info(f"Evaluating batch {i + 1}/{len(self.dataloader)}", end="\r")
 
 		return torch.sum(running_loss, dim=0) / running_size
