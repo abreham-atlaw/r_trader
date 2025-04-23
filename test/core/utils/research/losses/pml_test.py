@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import torch
 
+from core import Config
 from core.utils.research.losses import ProximalMaskedLoss
 
 
@@ -69,3 +70,22 @@ class ProximalMaskedLossTest(unittest.TestCase):
 		self.assertGreater(w_losses[1], w_losses[0])
 		self.assertGreater(w_losses[1], w_losses[2])
 		self.assertGreater(w_losses[0], w_losses[2])
+
+	def test_actual(self):
+
+		classes = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+		weights = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
+
+		loss_fn = ProximalMaskedLoss(
+			n=len(classes)+1,
+			softmax=False,
+			weights=weights
+		)
+
+		y = torch.from_numpy(np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/y/1743180011.758194.npy").astype(np.float32))[:, :-1]
+
+		predictions = torch.from_numpy(np.random.random((y.shape[0], y.shape[1])).astype(np.float32))
+
+		loss = loss_fn(predictions, y)
+
+		print(loss)
