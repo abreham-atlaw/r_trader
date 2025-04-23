@@ -4,7 +4,15 @@ import torch.nn as nn
 
 class ClassPerformanceLoss(nn.Module):
 
-	def __init__(self, loss_fn: nn.Module, n: int, epsilon=1e-9, nan_to=torch.nan, *args, **kwargs):
+	def __init__(
+			self,
+			loss_fn: nn.Module,
+			n: int,
+			epsilon=1e-9,
+			nan_to=torch.nan,
+			*args,
+			**kwargs
+	):
 		super().__init__(*args, **kwargs)
 		self.loss_fn = loss_fn
 		self.n = n
