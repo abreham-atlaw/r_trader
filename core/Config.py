@@ -184,7 +184,7 @@ AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
-with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
@@ -288,6 +288,7 @@ class RunnerStatsBranches:
 	main = "main"
 
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
+	it_23_0 = "it_23_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
 	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
@@ -299,6 +300,7 @@ class RunnerStatsBranches:
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
+		it_23_0,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
 		it_27_0,
