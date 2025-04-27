@@ -50,11 +50,11 @@ DROPBOX_FOLDER = "/RForexTrader"
 # PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
 
 PCLOUD_TOKENS = [
-	"wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
 	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
 	# "QL3dHVZIO9B7Z3luRCUxoFefoSYQb1LRwkbOdFjoX",  # abreham.atlaw@yahoo.com -
-	# "NccRCkZxDks7ZVTVohJB5Xw0E82DoTdjcDFXD5KpX",  # abrehamatlaw@outlook.com -
-	# "6F0h4ZHDks7ZIk4snPMgqFyES6NwxCh6Ymx3GXtX",  # abreham.atlaw@outlook.com +
+	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
+	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
@@ -63,7 +63,7 @@ PCLOUD_TOKENS = [
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
-	"lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
+	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 
 PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
@@ -104,6 +104,13 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
+OANDA_SIM_DELTA_MULTIPLIER = 10
+OANDA_SIM_MARGIN_RATE = 0.01
+OANDA_SIM_BALANCE = 100
+OANDA_SIM_ALIAS = "Sim Account 0"
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
+OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
@@ -118,6 +125,7 @@ MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
+AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
@@ -167,6 +175,8 @@ AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
+AGENT_USE_AUTO_STATE_REPOSITORY = False
+AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
@@ -174,7 +184,7 @@ AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
-with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
@@ -233,7 +243,7 @@ PREDICTION_MODELS = [
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
-TEMPERATURES = [0.25, 1.0]
+TEMPERATURES = [0.1, 0.25, 1.0]
 
 
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
@@ -252,75 +262,51 @@ class ResourceCategories:
 class RunnerStatsBranches:
 
 	main = "main"
-	ma_ews = "ma_ews"
-	ma_ews_trim_scaling = "ma_ews_trim_scaling"
-	ma_ews_dynamic_k = "ma_ews_dynamic_k"
-	ma_ews_dynamic_k_stm = "ma_ews_dynamic_k_stm"
-	cma_dynamic_k_stm = "cma_dynamic_k_stm"
-	ma_ews_dynamic_k_stm_d_0_8 = "ma_ews_dynamic_k_stm_d_0_8"
 
-	runlive_sim_cum_0_it_8 = "runlive_sim_cum_0_it_8"
-
-	real_ma_ews_dynamic_k_stm = "real_ma_ews_dynamic_k_stm"
-
-	ma_ews_dynamic_k_stm_it_15 = "ma_ews_dynamic_k_stm_it_15"
-	ma_ews_dynamic_k_stm_it_16 = "ma_ews_dynamic_k_stm_it_16"
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
-	ma_ews_dynamic_k_stm_it_23_tp_0 = "ma_ews_dynamic_k_stm_it_23_tp_0"
+	it_23_0 = "it_23_0"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
-	ma_ews_dynamic_k_stm_it_25 = "ma_ews_dynamic_k_stm_it_25"
-	ma_ews_dynamic_k_stm_it_26 = "ma_ews_dynamic_k_stm_it_26"
-	ma_ews_dynamic_k_stm_it_27 = "ma_ews_dynamic_k_stm_it_27"
+	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
+	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
+	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
+	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
+	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
+	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 
 	all = [
 		main,
-		ma_ews,
-		ma_ews_trim_scaling,
-		ma_ews_dynamic_k,
-		ma_ews_dynamic_k_stm,
-		cma_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_d_0_8,
-		runlive_sim_cum_0_it_8,
-		real_ma_ews_dynamic_k_stm,
-		ma_ews_dynamic_k_stm_it_15,
-		ma_ews_dynamic_k_stm_it_16,
 		ma_ews_dynamic_k_stm_it_23,
-		ma_ews_dynamic_k_stm_it_23_tp_0,
+		it_23_0,
 		ma_ews_dynamic_k_stm_it_24,
-		ma_ews_dynamic_k_stm_it_25,
-		ma_ews_dynamic_k_stm_it_26,
-		ma_ews_dynamic_k_stm_it_27
+		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
+		it_27_0,
+		ma_ews_dynamic_k_stm_it_29,
+		ma_ews_dynamic_k_stm_it_29_dm_0,
+		ma_ews_dynamic_k_stm_it_31,
+		ma_ews_dynamic_k_stm_it_33,
 	]
 
-	default = ma_ews_dynamic_k_stm_it_27
+	default = it_27_0
 
 
 class RunnerStatsLossesBranches:
 
 	main = "main"
-	it_10 = "it_10"
-	it_12 = "it_12"
-	it_15 = "it_15"
-	it_16 = "it_16"
-	it_20 = "it_20"
 	it_23 = "it_23"
 	it_24 = "it_24"
-	it_25 = "it_25"
-	it_26 = "it_26"
 	it_27 = "it_27"
+	it_29 = "it_29"
+	it_31 = "it_31"
+	it_33 = "it_33"
 
 	all = [
 		main,
-		it_10,
-		it_12,
-		it_15,
-		it_16,
-		it_20,
 		it_23,
 		it_24,
-		it_25,
-		it_26,
-		it_27
+		it_27,
+		it_29,
+		it_31,
+		it_33,
 	]
 
 	default = it_23

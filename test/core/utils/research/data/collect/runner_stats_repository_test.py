@@ -1,3 +1,4 @@
+import json
 import random
 import typing
 import unittest
@@ -9,19 +10,21 @@ from datetime import datetime, timedelta
 from pprint import pprint
 
 import pandas as pd
+from pymongo.errors import AutoReconnect
 
 from core import Config
 from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
+from lib.utils.decorators import retry
 from lib.utils.logger import Logger
 
 
 class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
-		self.fs = ServiceProvider.provide_file_storage(path=Config.MAPLOSS_FS_MODELS_PATH)
-		self.branch = Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_16
+		self.fs = ServiceProvider.provide_file_storage(path=Config.OANDA_SIM_MODEL_IN_PATH)
+		self.branch = Config.RunnerStatsBranches.it_27_0
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -340,10 +343,13 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_add_empty_loss(self):
+		size = 10
 		stats = self.repository.retrieve_all()
 		for i, stat in enumerate(stats):
-			if len(stat.model_losses) == 7:
-				stat.model_losses += (0.0,)
+			if len(stat.model_losses) != size:
+				remaining = size - len(stat.model_losses)
+				print(f"Adding {remaining} empty losses to {stat.id}")
+				stat.model_losses += tuple([0]*(remaining))
 				self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
@@ -688,6 +694,17 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 			print(f"{i+1} of {len(stats)}... Done")
 
+	def test_sync_sim_timestamps(self):
+
+		def sync_stat(stat: RunnerStats):
+			stat.simulated_timestamps = stat.simulated_timestamps[-len(stat.session_timestamps):]
+			self.repository.store(stat)
+
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			sync_stat(stat)
+			Logger.info(f"{i+1} of {len(stats)}... Done")
+
 	def test_plot_all_branches(self):
 
 		dps = list(filter(
@@ -847,7 +864,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_density_stats(self):
 
 		DENSITY = 2
-		STRIDE = 0.5
+		STRIDE = 1
 		LOSS_IDX = 1
 
 		stats = list(filter(
@@ -859,6 +876,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 		print(f"Strided: {[len(s) for s in strided_stats]}")
 
+	@retry(exception_cls=(AutoReconnect,), patience=10)
 	def test_trim_stats_density(self):
 
 		def trim_stats(stats: typing.List[RunnerStats], density: float, stride: float) -> typing.List[RunnerStats]:
@@ -876,8 +894,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.__permanently_delete_stat(stat=stat)
 			return
 
-		DENSITY = 2
-		STRIDE = 0.5
+		DENSITY = 5
+		STRIDE = 1
 		LOSS_IDX = 1
 
 		strided_stats = self.__get_strided_stats(stats=self.repository.retrieve_all(), stride=STRIDE, loss_idx=LOSS_IDX)
@@ -899,4 +917,61 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 			stat.model_losses = tuple([0.0] * len(stat.model_losses))
 			self.repository.store(stat)
 
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_sync_sim_timestamps_order(self):
+
+		def get_order(sim_timestamps: typing.List[str], original_order: typing.List[str]) -> typing.List[int]:
+
+			for t in sim_timestamps:
+				if t not in original_order:
+					raise Exception(f"{t} not in original order: {original_order}")
+
+			order = []
+			sim_timestamps = sim_timestamps.copy()
+			while len(order) < len(sim_timestamps):
+				for t in original_order:
+					if t in sim_timestamps:
+						idxs = [i for i in range(len(sim_timestamps)) if sim_timestamps[i] == t]
+						for i in idxs:
+							if i not in order:
+								order.append(i)
+								break
+
+			return order
+
+		def apply_order_on_list(original_list, order):
+			return [original_list[i] for i in order]
+
+		def apply_order(stat: RunnerStats, order: typing.List[int]):
+			stat.session_timestamps, stat.profits, stat.simulated_timestamps = [
+				apply_order_on_list(l, order)
+				for l in [
+					stat.session_timestamps, stat.profits, stat.simulated_timestamps
+				]
+			]
+			return stat
+
+		def check_integrity(stat: RunnerStats) -> bool:
+			return len(stat.simulated_timestamps) == len(stat.session_timestamps) == len(stat.profits)
+
+		def reset_stat(stat: RunnerStats):
+			print(f"Resetting {stat.id}...")
+			stat.session_timestamps = stat.simulated_timestamps = stat.profits= []
+
+		ORDER_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/res/times/times-5.json"
+		with open(ORDER_PATH, "r") as f:
+			original_order = json.load(f)
+
+		stats = self.repository.retrieve_all()
+
+		for i, stat in enumerate(stats):
+			if len(stat.simulated_timestamps) == 0:
+				continue
+			if not check_integrity(stat):
+				reset_stat(stat)
+				continue
+			order = get_order(stat.simulated_timestamps, original_order)
+			stat = apply_order(stat=stat, order=order)
+			self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
