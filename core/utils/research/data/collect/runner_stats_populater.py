@@ -18,7 +18,7 @@ from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, Re
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.training.trainer import Trainer
 from lib.utils.cache.decorators import CacheDecorators
-from lib.utils.file_storage import FileStorage
+from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -199,7 +199,7 @@ class RunnerStatsPopulater:
 						print(f"[+]Skipping {file}(T={temperature}). Already Processed")
 						continue
 					self._process_model(file, temperature)
-				except Exception as ex:
+				except (FileNotFoundException, ) as ex:
 					print(f"[-]Error Occurred processing {file}\n{ex}")
 					if self.__raise_exception or True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]:
 						raise ex
