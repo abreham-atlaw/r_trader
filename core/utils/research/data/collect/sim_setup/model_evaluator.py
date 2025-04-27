@@ -21,8 +21,8 @@ class ModelEvaluator:
 	):
 		if isinstance(data_path, str):
 			data_path = [data_path]
-		self.__dataloader = self.__init_dataloader(data_path, batch_size)
 		self.__loss_fn = loss_fn
+		self.__data_path, self.__batch_size = data_path, batch_size
 
 	@staticmethod
 	def __init_dataloader(paths: typing.List[str], batch_size: int):
@@ -45,5 +45,7 @@ class ModelEvaluator:
 
 		trainer = self.__init_trainer(model)
 
-		losses = trainer.validate(self.__dataloader)
+		dataloader = self.__init_dataloader(self.__data_path, self.__batch_size)
+
+		losses = trainer.validate(dataloader)
 		return losses
