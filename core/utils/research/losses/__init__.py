@@ -12,3 +12,4 @@ from .obvl import OutputBatchVarianceLoss
 from .obcv import OutputBatchClassVariance
 from .pcsl import PredictionConfidenceScoreLoss
 from .sl import ScoreLoss
+from .class_performance_loss import ClassPerformanceLoss

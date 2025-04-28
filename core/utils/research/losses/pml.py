@@ -58,7 +58,7 @@ class ProximalMaskedLoss(nn.Module):
 		)
 
 		loss = (1 / (torch.sum(y_mask * y_hat, dim=1) - self.epsilon)) - 1
-		w = torch.unsqueeze(torch.sum(self.w * y, dim=1), dim=1)
+		w = torch.sum(self.w * y, dim=1)
 		loss = loss*w
 
 		return self.collapse(loss)

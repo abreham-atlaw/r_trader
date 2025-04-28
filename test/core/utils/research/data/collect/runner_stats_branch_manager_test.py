@@ -9,16 +9,17 @@ class RunnerStatsBranchManagerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.client = ServiceProvider.provide_mongo_client()
-		self.manager = RunnerStatsBranchManager()
+		self.manager = RunnerStatsBranchManager(sync_model_losses=True)
 
 	def test_sync_all(self):
 		self.manager.sync_branches()
 
 	def test_sync_branches(self):
+		Config.RunnerStatsLossesBranches.default = Config.RunnerStatsLossesBranches.it_23
 		self.manager.sync_branches(
 			branches=[
-				Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_23,
-				Config.RunnerStatsBranches.ma_ews_dynamic_k_stm_it_23_tp_0,
+				Config.RunnerStatsBranches.it_27_0,
+				Config.RunnerStatsBranches.it_27_1,
 			]
 		)
 

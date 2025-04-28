@@ -4,6 +4,7 @@ import numpy as np
 import torch
 
 from core import Config
+from core.utils.research.eval.mlpl_evaluator.losses.unbatched_pml_loss import UnbatchedProximalMaskedLoss
 from core.utils.research.losses import ProximalMaskedLoss
 
 
@@ -89,3 +90,25 @@ class ProximalMaskedLossTest(unittest.TestCase):
 		loss = loss_fn(predictions, y)
 
 		print(loss)
+
+	def test_unbatched(self):
+		classes = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+		weights = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
+
+		loss_fn = UnbatchedProximalMaskedLoss(
+			n=len(classes) + 1,
+			softmax=False,
+			weights=weights
+		)
+
+		y = torch.from_numpy(np.load(
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/y/1743180011.758194.npy").astype(
+			np.float32))[:, :-1]
+
+		predictions = torch.from_numpy(np.random.random((y.shape[0], y.shape[1])).astype(np.float32))
+
+		loss = loss_fn(predictions, y)
+
+		print(loss)
+		self.assertEqual(loss.shape[0], y.shape[0])
+		self.assertEqual(len(loss.shape), 1)
