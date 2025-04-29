@@ -1,5 +1,6 @@
 import typing
 
+import numpy as np
 import torch
 from torch import nn as nn
 from torch.utils.data import DataLoader
@@ -16,7 +17,7 @@ class UnbatchedModelEvaluator(ModelEvaluator):
 			output_slice = (0, -1)
 		self.__output_slice = output_slice
 
-	def _evaluate(self, model: nn.Module, dataloader: DataLoader, loss_fn: nn.Module):
+	def _evaluate(self, model: nn.Module, dataloader: DataLoader, loss_fn: nn.Module) -> np.ndarray:
 
 		losses = torch.Tensor([])
 
@@ -33,4 +34,4 @@ class UnbatchedModelEvaluator(ModelEvaluator):
 			if i % 10 == 0:
 				Logger.info(f"Evaluating batch {i + 1}/{len(dataloader)}", end="\r")
 
-		return losses
+		return losses.detach().numpy()
