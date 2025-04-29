@@ -26,7 +26,7 @@ class ModelEvaluator:
 
 	@staticmethod
 	def __init_dataloader(paths: typing.List[str], batch_size: int):
-		dataset = dataset = BaseDataset(
+		dataset = BaseDataset(
 			root_dirs=paths,
 			out_dtypes=np.float32,
 			check_file_sizes=True
@@ -40,12 +40,15 @@ class ModelEvaluator:
 		trainer.reg_loss_function = nn.MSELoss()
 		return trainer
 
+	def _evaluate(self, model: nn.Module, dataloader: DataLoader, loss_fn: nn.Module):
+		trainer = self.__init_trainer(model)
+		losses = trainer.validate(dataloader)
+		return losses
+
 	def evaluate(self, model) -> typing.Tuple[float, float, float]:
 		model.eval()
 
-		trainer = self.__init_trainer(model)
-
 		dataloader = self.__init_dataloader(self.__data_path, self.__batch_size)
+		losses = self._evaluate(model, dataloader, self.__loss_fn)
 
-		losses = trainer.validate(dataloader)
 		return losses
