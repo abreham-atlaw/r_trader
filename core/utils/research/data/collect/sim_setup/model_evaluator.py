@@ -26,7 +26,7 @@ class ModelEvaluator:
 
 	@staticmethod
 	def __init_dataloader(paths: typing.List[str], batch_size: int):
-		dataset = dataset = BaseDataset(
+		dataset = BaseDataset(
 			root_dirs=paths,
 			out_dtypes=np.float32,
 			check_file_sizes=True
