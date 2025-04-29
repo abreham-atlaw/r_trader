@@ -92,7 +92,7 @@ class ResearchProvider:
 		if data_path is None:
 			data_path = Config.UPDATE_SAVE_PATH
 
-		from core.utils.research.data.collect.sim_setup.model_evaluator import ModelEvaluator
+		from core.utils.research.utils.model_evaluator import ModelEvaluator
 		return ModelEvaluator(
 			data_path=data_path,
 			loss_fn=ResearchProvider.provide_loss_function(),
