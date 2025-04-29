@@ -67,7 +67,7 @@ class RunnerStatsPopulater:
 
 	def __sync_model_losses_size(self, stat: RunnerStats):
 		if len(stat.model_losses) < len(self.__loss_functions):
-			stat.model_losses = stat.model_losses + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
+			stat.model_losses = tuple(stat.model_losses) + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
 	def __get_evaluation_loss_functions(self):
 		return [
