@@ -1,3 +1,4 @@
+import json
 from typing import *
 from abc import ABC, abstractmethod
 
@@ -44,3 +45,9 @@ class SerializerFileIO(FileIO):
 		content = file.read()
 		file.close()
 		return self.__serializer.deserialize_json(content)
+
+
+def load_json(path):
+	with open(path, "r") as f:
+		content = json.load(f)
+	return content

@@ -10,7 +10,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from core import Config
-from core.Config import MODEL_SAVE_EXTENSION
+from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, \
 	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVariance, OutputBatchVariance, ProximalMaskedLoss, \
@@ -18,7 +18,8 @@ from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, Re
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.training.trainer import Trainer
 from lib.utils.cache.decorators import CacheDecorators
-from lib.utils.file_storage import FileStorage
+from lib.utils.file_storage import FileStorage, FileNotFoundException
+from lib.utils.fileio import load_json
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -66,7 +67,7 @@ class RunnerStatsPopulater:
 
 	def __sync_model_losses_size(self, stat: RunnerStats):
 		if len(stat.model_losses) < len(self.__loss_functions):
-			stat.model_losses = stat.model_losses + ([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
+			stat.model_losses = stat.model_losses + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
 	def __get_evaluation_loss_functions(self):
 		return [
@@ -106,6 +107,11 @@ class RunnerStatsPopulater:
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 					softmax=True,
 					weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
+				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					weights=load_json(os.path.join(BASE_DIR, "res/weights/03.json"))
 				)
 			]
 
@@ -199,7 +205,7 @@ class RunnerStatsPopulater:
 						print(f"[+]Skipping {file}(T={temperature}). Already Processed")
 						continue
 					self._process_model(file, temperature)
-				except Exception as ex:
+				except (FileNotFoundException, ) as ex:
 					print(f"[-]Error Occurred processing {file}\n{ex}")
 					if self.__raise_exception or True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]:
 						raise ex
