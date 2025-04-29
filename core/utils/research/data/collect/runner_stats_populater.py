@@ -112,6 +112,11 @@ class RunnerStatsPopulater:
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 					softmax=True,
 					weights=load_json(os.path.join(BASE_DIR, "res/weights/03.json"))
+				),
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					weights=load_json(os.path.join(BASE_DIR, "res/weights/04.json"))
 				)
 			]
 
