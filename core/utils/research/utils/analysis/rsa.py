@@ -86,6 +86,7 @@ class RSAnalyzer(ABC):
 		])
 
 	def _export_stats(self, stats: typing.List[RunnerStats], path: str):
+		Logger.info(f"Exporting {len(stats)} stats to {path}")
 		df = self.__construct_df(stats)
 		df.to_csv(path)
 
