@@ -25,6 +25,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 		"ProximalMaskedLoss(p=0.1)",
 		"ProximalMaskedLoss(w=02)",
 		"ProximalMaskedLoss(w=03)",
+		"ProximalMaskedLoss(w=04)",
 	]
 
 	def __init__(
