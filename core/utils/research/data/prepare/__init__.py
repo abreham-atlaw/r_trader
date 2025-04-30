@@ -8,6 +8,7 @@ from .simulation_simulator import SimulationSimulator
 from .files_merger import FilesMerger
 from .batch_size_modifier import BatchSizeModifier
 from .moe import ModelOutputExporter, MergedModelOutputExporter
+from .dp_weight_generator import DPWeightGenerator
 
 __all__ = [
 	"DataPreparer",
@@ -20,6 +21,6 @@ __all__ = [
 	"FilesMerger",
 	"BatchSizeModifier",
 	"ModelOutputExporter",
-	"MergedModelOutputExporter"
+	"MergedModelOutputExporter",
+	"DPWeightGenerator"
 ]
-
