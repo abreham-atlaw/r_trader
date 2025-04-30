@@ -75,19 +75,20 @@ class ProximalMaskedLossTest(unittest.TestCase):
 	def test_actual(self):
 
 		classes = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-		weights = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
+		# weights = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
 
 		loss_fn = ProximalMaskedLoss(
 			n=len(classes)+1,
-			softmax=False,
-			weights=weights
+			softmax=True,
+			# weights=weights
 		)
 
 		y = torch.from_numpy(np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/y/1743180011.758194.npy").astype(np.float32))[:, :-1]
+		w = torch.from_numpy(np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/dp_weights/4/test/1743180011.758194.npy").astype(np.float32))
 
 		predictions = torch.from_numpy(np.random.random((y.shape[0], y.shape[1])).astype(np.float32))
 
-		loss = loss_fn(predictions, y)
+		loss = loss_fn(predictions, y, bw=w)
 
 		print(loss)
 

@@ -37,7 +37,8 @@ class BaseDataset(Dataset):
 			preload_size: int = 3,
 			device=torch.device("cpu"),
 			check_last_file: bool = False,
-			check_file_sizes: bool = False
+			check_file_sizes: bool = False,
+			weights_path: str = None
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
@@ -60,6 +61,12 @@ class BaseDataset(Dataset):
 
 		self.__preload = preload
 		self.__preload_size = preload_size
+
+		self.__weights_path = weights_path
+
+	@property
+	def use_weights(self):
+		return self.__weights_path is not None
 
 	@property
 	def random(self):
@@ -137,7 +144,9 @@ class BaseDataset(Dataset):
 			self.__load_array(os.path.join(root_dir, dir_, filename))
 			for dir_ in [self.__X_dir, self.__y_dir]
 		]
-		self.cache[idx] = (X, y)
+		w = self.__load_array(os.path.join(self.__weights_path, filename)) if self.use_weights else None
+
+		self.cache[idx] = X, y, w
 
 	@thread_method
 	def __preload_files(self, idx: str):
@@ -173,18 +182,19 @@ class BaseDataset(Dataset):
 
 		X = self.__load_array(os.path.join(root_dir, self.__X_dir, file_name))
 		y = self.__load_array(os.path.join(root_dir, self.__y_dir, file_name))
+		w = self.__load_array(os.path.join(self.__weights_path, file_name)) if self.use_weights else None
 
-		self.cache[idx] = (X, y)
+		self.cache[idx] = (X, y, w)
 
 		if self.__preload:
 			self.__preload_files(idx+1)
 
-		return X, y
+		return X, y, w
 
 	def __getitem__(self, idx):
 		file_idx = idx // self.data_points_per_file
 		data_idx = idx % self.data_points_per_file
 
-		X, y = self.__load_files(file_idx)
+		value = self.__load_files(file_idx)
 
-		return tuple([dp[data_idx] for dp in [X, y]])
+		return tuple([dp[data_idx] if dp is not None else None for dp in value])
