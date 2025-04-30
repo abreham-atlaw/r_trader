@@ -16,6 +16,7 @@ class ProximalMaskedLoss(nn.Module):
 			softmax=True,
 			epsilon=1e-9,
 			device='cpu',
+			use_dp_weights: bool = False,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -34,6 +35,8 @@ class ProximalMaskedLoss(nn.Module):
 			weights = torch.from_numpy(weights)
 
 		self.w = weights.to(device)
+
+		self.use_dp_weights = use_dp_weights
 
 	@staticmethod
 	def __f(t, n, p):
@@ -61,7 +64,7 @@ class ProximalMaskedLoss(nn.Module):
 		cw = torch.sum(self.w * y, dim=1)
 		loss = loss*cw
 
-		if bw is not None:
+		if self.use_dp_weights:
 			loss = loss * bw
 
 		return self.collapse(loss)
