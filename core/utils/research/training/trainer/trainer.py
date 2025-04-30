@@ -119,11 +119,11 @@ class Trainer:
     def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         return y[:, :-1], y[:, -1:]
 
-    def __loss(self, y_hat, y):
+    def __loss(self, y_hat, y, w):
         cls_y, reg_y = self.__split_y(y)
         cls_y_hat, reg_y_hat = self.__split_y(y_hat)
 
-        cls_loss = self.cls_loss_function(cls_y_hat, cls_y)
+        cls_loss = self.cls_loss_function(cls_y_hat, cls_y, w)
         reg_loss = self.reg_loss_function(reg_y_hat, reg_y)
 
         loss = cls_loss + reg_loss
@@ -194,18 +194,18 @@ class Trainer:
             self.model = self.model.to(self.device).float()
             running_loss, running_size = torch.zeros((3,)), 0
             pbar = tqdm(dataloader) if progress else dataloader
-            for i, (X, y) in enumerate(pbar):
+            for i, (X, y, w) in enumerate(pbar):
                 if i < state.batch:
                     continue
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                X, y = X.to(self.device), y.to(self.device)
-                X, y = X.type(self.__dtype), y.type(self.__dtype)
+                X, y, w = X.to(self.device), y.to(self.device), w.to(self.device)
+                X, y, w = X.type(self.__dtype), y.type(self.__dtype), w.type(self.__dtype)
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+                cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
                 if cls_loss_only:
                     cls_loss.backward()
                 elif reg_loss_only:
@@ -260,10 +260,10 @@ class Trainer:
         total_loss = torch.zeros((3,))
         total_size = 0
         with torch.no_grad():
-            for X, y in dataloader:
-                X, y = X.to(self.device), y.to(self.device)
+            for X, y, w in dataloader:
+                X, y, w = X.to(self.device), y.to(self.device), w.to(self.device)
                 y_hat = self.model(X)
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+                cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
 
                 total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
                 total_size += X.shape[0]

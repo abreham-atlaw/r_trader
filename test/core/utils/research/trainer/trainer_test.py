@@ -14,7 +14,7 @@ from core.di import ServiceProvider
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.data.load.ensemble import EnsembleStackedDataset
 from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
-	MSCECrossEntropyLoss, LogLoss
+	MSCECrossEntropyLoss, LogLoss, ProximalMaskedLoss
 from core.utils.research.model.layers import Indicators
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.cnn.resnet import ResNet
@@ -248,9 +248,10 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
-			check_file_sizes=True
+			check_file_sizes=True,
+			weights_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/dp_weights/4/test"
 		)
 		dataloader = DataLoader(dataset, batch_size=64)
 
@@ -267,7 +268,10 @@ class TrainerTest(unittest.TestCase):
 		]
 
 		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
+		trainer.cls_loss_function = ProximalMaskedLoss(
+			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+			softmax=True
+		)
 		trainer.reg_loss_function = nn.MSELoss()
 		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
 
@@ -277,6 +281,8 @@ class TrainerTest(unittest.TestCase):
 			progress=True,
 			cls_loss_only=False
 		)
+
+		print(f"Validation Results: {trainer.validate(dataloader)}")
 
 		ModelHandler.save(trainer.model, SAVE_PATH)
 

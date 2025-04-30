@@ -12,16 +12,14 @@ class BaseDatasetTest(unittest.TestCase):
 	def setUp(self):
 		self.dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test",
 			],
-			num_files=3,
-			preload=True,
-			preload_size=5
+			# weights_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/dp_weights/4/test"
 		)
 
 	def test_functionality(self):
 
-		X, y = self.dataset[1500]
+		X, y, w = self.dataset[97]
 		self.assertEqual(X.shape[0], 1148)
 		self.assertEqual(y.shape[0], 432)
 
