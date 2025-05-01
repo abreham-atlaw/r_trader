@@ -38,12 +38,16 @@ class PlotRSAnalyzer(RSAnalyzer):
 			extra_filter: typing.Optional[RSFilter] = None,
 			color_value_function: typing.Optional[typing.Callable] = None
 	):
+		rs_filter = RSFilter(
+			min_sessions=1,
+			evaluation_complete=True
+		)
+		if extra_filter is not None:
+			rs_filter += extra_filter
+
 		super().__init__(
 			branches=branches,
-			rs_filter=RSFilter(
-				min_sessions=1,
-				evaluation_complete=True
-			) + extra_filter,
+			rs_filter=rs_filter,
 			export_path=export_path,
 			sort_key=lambda stat: stat.model_losses[1]
 		)
