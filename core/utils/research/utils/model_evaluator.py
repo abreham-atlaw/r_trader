@@ -64,7 +64,6 @@ class ModelEvaluator:
 	def evaluate(self, model) -> typing.Tuple[float, float, float]:
 		model.eval()
 
-		dataloader = self.__init_dataloader(self.__data_path, self.__batch_size)
-		losses = self._evaluate(model, dataloader, self.__cls_loss_fn)
+		losses = self._evaluate(model, self.dataloader, self.__cls_loss_fn)
 
 		return losses
