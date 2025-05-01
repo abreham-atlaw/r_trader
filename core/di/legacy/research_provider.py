@@ -95,6 +95,6 @@ class ResearchProvider:
 		from core.utils.research.utils.model_evaluator import ModelEvaluator
 		return ModelEvaluator(
 			data_path=data_path,
-			loss_fn=ResearchProvider.provide_loss_function(),
+			cls_loss_fn=ResearchProvider.provide_loss_function(),
 			batch_size=32
 		)

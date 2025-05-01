@@ -1,22 +1,20 @@
 import os.path
-import typing
-import uuid
-from datetime import datetime
 import random
+import typing
+from datetime import datetime
 
 import numpy as np
 from torch import nn
-from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, \
-	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVariance, OutputBatchVariance, ProximalMaskedLoss, \
-	OutputBatchClassVariance
+from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
+	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
+	SpinozaLoss, ReverseMAWeightLoss
 from core.utils.research.model.model.utils import TemperatureScalingModel
-from core.utils.research.training.trainer import Trainer
+from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.fileio import load_json
@@ -36,7 +34,7 @@ class RunnerStatsPopulater:
 			shuffle_order: bool = True,
 			raise_exception: bool = False,
 			exception_exceptions: typing.List[typing.Type] = None,
-			temperatures: typing.Tuple[float,...] = (1.0,)
+			temperatures: typing.Tuple[float, ...] = (1.0,)
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -57,67 +55,29 @@ class RunnerStatsPopulater:
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
 
-	def __evaluate_model_loss(self, model: nn.Module, cls_loss_fn: typing.Optional[nn.Module]) -> float:
-		print(f"[+]Evaluating Model with {cls_loss_fn.__class__.__name__}")
-		trainer = Trainer(model, cls_loss_function=cls_loss_fn, reg_loss_function=nn.MSELoss(), optimizer=Adam(model.parameters()))
-		loss = trainer.validate(self.__dataloader)
-		if isinstance(loss, list):
-			return loss[-1]
-		return loss
+	def __evaluate_model_loss(self, model: nn.Module, cls_loss_fn: SpinozaLoss) -> float:
+		print(f"[+]Evaluating Model with {cls_loss_fn} loss...")
+		evaluator = ModelEvaluator(
+			dataloader=self.__dataloader,
+			cls_loss_fn=cls_loss_fn,
+		)
+		loss = evaluator.evaluate(model)
+		return loss[-1]
 
 	def __sync_model_losses_size(self, stat: RunnerStats):
 		if len(stat.model_losses) < len(self.__loss_functions):
 			stat.model_losses = tuple(stat.model_losses) + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
-	def __get_evaluation_loss_functions(self):
+	@staticmethod
+	def __get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
 		return [
-				nn.CrossEntropyLoss(),
+				CrossEntropyLoss(),
 				ProximalMaskedLoss(
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 					softmax=True,
-				),
-				MeanSquaredClassError(
-					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON
 				),
 				ReverseMAWeightLoss(window_size=10, softmax=True),
 				PredictionConfidenceScore(softmax=True),
-				OutputClassesVariance(softmax=True),
-				OutputBatchVariance(softmax=True),
-				OutputBatchClassVariance(
-					np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-					epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					p=0.5
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					p=0.25
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					p=0.1
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weights=load_json(os.path.join(BASE_DIR, "res/weights/03.json"))
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weights=load_json(os.path.join(BASE_DIR, "res/weights/04.json"))
-				)
 			]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
@@ -129,7 +89,8 @@ class RunnerStatsPopulater:
 			for i, loss in enumerate(self.__loss_functions)
 		])
 
-	def __prepare_model(self, model: nn.Module) -> nn.Module:
+	@staticmethod
+	def __prepare_model(model: nn.Module) -> nn.Module:
 		return model
 
 	def __clean_junk(self):
@@ -137,7 +98,8 @@ class RunnerStatsPopulater:
 		for path in self.__junk:
 			os.system(f"rm {os.path.abspath(path)}")
 
-	def __generate_id(self, file_path: str, temperature: float) -> str:
+	@staticmethod
+	def __generate_id(file_path: str, temperature: float) -> str:
 		id = os.path.basename(file_path).replace(MODEL_SAVE_EXTENSION, "")
 		if temperature != 1.0:
 			id = f"{id}-(T={temperature})"
@@ -165,7 +127,7 @@ class RunnerStatsPopulater:
 			temperature=temperature
 		)
 
-		if current_losses is not None and False not in [l == 0 for l in current_losses]:
+		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
 			current_losses = None
 
 		print(f"[+]Evaluating...")
@@ -212,7 +174,10 @@ class RunnerStatsPopulater:
 					self._process_model(file, temperature)
 				except (FileNotFoundException, ) as ex:
 					print(f"[-]Error Occurred processing {file}\n{ex}")
-					if self.__raise_exception or True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]:
+					if (
+							self.__raise_exception or
+							True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]
+					):
 						raise ex
 
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")

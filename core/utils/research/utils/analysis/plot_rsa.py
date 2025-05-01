@@ -25,6 +25,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 		"ProximalMaskedLoss(p=0.1)",
 		"ProximalMaskedLoss(w=02)",
 		"ProximalMaskedLoss(w=03)",
+		"ProximalMaskedLoss(w=04)"
 	]
 
 	def __init__(
@@ -32,18 +33,25 @@ class PlotRSAnalyzer(RSAnalyzer):
 			branches: typing.List[str],
 			color_value_loss: int = 4,
 			use_avg_profits: bool = False,
-			export_path: str = "plotted.csv"
+			export_path: str = "plotted.csv",
+			extra_filter: typing.Optional[RSFilter] = None,
+			color_value_function: typing.Optional[typing.Callable] = None
 	):
+		rs_filter = RSFilter(
+			min_sessions=1,
+			evaluation_complete=True
+		)
+		if extra_filter is not None:
+			rs_filter += extra_filter
+
 		super().__init__(
 			branches=branches,
-			rs_filter=RSFilter(
-				min_sessions=1,
-				evaluation_complete=True
-			),
+			rs_filter=rs_filter,
 			export_path=export_path,
 			sort_key=lambda stat: stat.model_losses[1]
 		)
 		self.__color_value_loss = color_value_loss
+		self.__color_value_function = color_value_function
 		self.__use_avg_profits = use_avg_profits
 
 	def __trim_stat(self, stat: RunnerStats, sessions_len: int):
@@ -71,10 +79,15 @@ class PlotRSAnalyzer(RSAnalyzer):
 		return stats
 
 	def _get_color_values(self, stats: typing.List[RunnerStats]) -> np.ndarray:
+
+		fn = lambda stat: stat.model_losses[self.__color_value_loss]
+		if self.__color_value_function is not None:
+			fn = self.__color_value_function
+
 		colors = np.array([
-			stat.model_losses[self.__color_value_loss]
+			float(fn(stat))
 			for stat in stats
-		])
+		]).astype(np.float32)
 		colors /= np.max(colors)
 		return colors
 
