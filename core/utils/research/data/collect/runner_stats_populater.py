@@ -76,48 +76,8 @@ class RunnerStatsPopulater:
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 					softmax=True,
 				),
-				MeanSquaredClassError(
-					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON
-				),
 				ReverseMAWeightLoss(window_size=10, softmax=True),
 				PredictionConfidenceScore(softmax=True),
-				OutputClassesVarianceScore(softmax=True),
-				OutputBatchVarianceScore(softmax=True),
-				OutputBatchClassVarianceScore(
-					np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-					epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					p=0.5
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					p=0.25
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					p=0.1
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weights=load_json(os.path.join(BASE_DIR, "res/weights/03.json"))
-				),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weights=load_json(os.path.join(BASE_DIR, "res/weights/04.json"))
-				)
 			]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
