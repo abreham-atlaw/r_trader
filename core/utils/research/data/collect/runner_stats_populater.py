@@ -14,10 +14,11 @@ from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, ReverseMAWeightLoss, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
-	SpinozaLoss
+	SpinozaLoss, MeanSquaredErrorLoss
 
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.training.trainer import Trainer
+from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.fileio import load_json
@@ -58,19 +59,21 @@ class RunnerStatsPopulater:
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
 
-	def __evaluate_model_loss(self, model: nn.Module, cls_loss_fn: typing.Optional[nn.Module]) -> float:
-		print(f"[+]Evaluating Model with {cls_loss_fn.__class__.__name__}")
-		trainer = Trainer(model, cls_loss_function=cls_loss_fn, reg_loss_function=nn.MSELoss(), optimizer=Adam(model.parameters()))
-		loss = trainer.validate(self.__dataloader)
-		if isinstance(loss, list):
-			return loss[-1]
-		return loss
+	def __evaluate_model_loss(self, model: nn.Module, cls_loss_fn: SpinozaLoss) -> float:
+		print(f"[+]Evaluating Model with {cls_loss_fn} loss...")
+		evaluator = ModelEvaluator(
+			dataloader=self.__dataloader,
+			cls_loss_fn=cls_loss_fn,
+		)
+		loss = evaluator.evaluate(model)
+		return loss[-1]
 
 	def __sync_model_losses_size(self, stat: RunnerStats):
 		if len(stat.model_losses) < len(self.__loss_functions):
 			stat.model_losses = tuple(stat.model_losses) + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
-	def __get_evaluation_loss_functions(self) -> typing.List[SpinozaLoss]:
+	@staticmethod
+	def __get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
 		return [
 				CrossEntropyLoss(),
 				ProximalMaskedLoss(

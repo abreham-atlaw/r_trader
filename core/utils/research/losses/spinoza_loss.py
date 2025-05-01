@@ -37,3 +37,6 @@ class SpinozaLoss(nn.Module, ABC):
 			loss = self._collapse(loss)
 
 		return loss
+
+	def __str__(self):
+		return f"{self.__class__.__name__}(weighted_sample={self.weighted_sample}, collapsed={self.collapsed})"
