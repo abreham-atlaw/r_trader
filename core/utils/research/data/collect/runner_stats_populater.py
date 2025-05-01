@@ -1,23 +1,19 @@
 import os.path
-import typing
-import uuid
-from datetime import datetime
 import random
+import typing
+from datetime import datetime
 
 import numpy as np
 from torch import nn
-from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, ReverseMAWeightLoss, \
+from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
-	SpinozaLoss, MeanSquaredErrorLoss
-
+	SpinozaLoss, ReverseMAWeightLoss
 from core.utils.research.model.model.utils import TemperatureScalingModel
-from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
@@ -38,7 +34,7 @@ class RunnerStatsPopulater:
 			shuffle_order: bool = True,
 			raise_exception: bool = False,
 			exception_exceptions: typing.List[typing.Type] = None,
-			temperatures: typing.Tuple[float,...] = (1.0,)
+			temperatures: typing.Tuple[float, ...] = (1.0,)
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -133,7 +129,8 @@ class RunnerStatsPopulater:
 			for i, loss in enumerate(self.__loss_functions)
 		])
 
-	def __prepare_model(self, model: nn.Module) -> nn.Module:
+	@staticmethod
+	def __prepare_model(model: nn.Module) -> nn.Module:
 		return model
 
 	def __clean_junk(self):
@@ -141,7 +138,8 @@ class RunnerStatsPopulater:
 		for path in self.__junk:
 			os.system(f"rm {os.path.abspath(path)}")
 
-	def __generate_id(self, file_path: str, temperature: float) -> str:
+	@staticmethod
+	def __generate_id(file_path: str, temperature: float) -> str:
 		id = os.path.basename(file_path).replace(MODEL_SAVE_EXTENSION, "")
 		if temperature != 1.0:
 			id = f"{id}-(T={temperature})"
@@ -169,7 +167,7 @@ class RunnerStatsPopulater:
 			temperature=temperature
 		)
 
-		if current_losses is not None and False not in [l == 0 for l in current_losses]:
+		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
 			current_losses = None
 
 		print(f"[+]Evaluating...")
@@ -216,7 +214,10 @@ class RunnerStatsPopulater:
 					self._process_model(file, temperature)
 				except (FileNotFoundException, ) as ex:
 					print(f"[-]Error Occurred processing {file}\n{ex}")
-					if self.__raise_exception or True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]:
+					if (
+							self.__raise_exception or
+							True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]
+					):
 						raise ex
 
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
