@@ -4,8 +4,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from core.utils.research.losses.spinoza_loss import SpinozaLoss
 
-class MeanSquaredClassError(nn.Module):
+
+class MeanSquaredClassError(SpinozaLoss):
 
 	def __init__(self, classes: typing.Union[np.ndarray, torch.Tensor], epsilon: float = None, device=None, softmax=True):
 		super().__init__()
@@ -26,7 +28,7 @@ class MeanSquaredClassError(nn.Module):
 	def get_class_value(self, y: torch.Tensor) -> torch.Tensor:
 		return torch.sum(y * self.classes, dim=1)
 
-	def forward(self, y_hat, y) -> torch.Tensor:
+	def _call(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		y_hat = self.softmax(y_hat)
 		loss = (self.get_class_value(y) - self.get_class_value(y_hat))**2
-		return torch.mean(loss)
+		return loss

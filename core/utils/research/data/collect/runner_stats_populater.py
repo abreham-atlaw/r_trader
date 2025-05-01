@@ -13,7 +13,7 @@ from core import Config
 from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, \
-	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVariance, OutputBatchVariance, ProximalMaskedLoss, \
+	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVariance, ProximalMaskedLoss, \
 	OutputBatchClassVariance
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.training.trainer import Trainer
@@ -82,7 +82,7 @@ class RunnerStatsPopulater:
 				),
 				ReverseMAWeightLoss(window_size=10, softmax=True),
 				PredictionConfidenceScore(softmax=True),
-				OutputClassesVariance(softmax=True),
+				OutputClassesVarianceScore(softmax=True),
 				OutputBatchVariance(softmax=True),
 				OutputBatchClassVariance(
 					np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
