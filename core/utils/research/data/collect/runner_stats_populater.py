@@ -12,9 +12,10 @@ from torch.utils.data import DataLoader
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
-from core.utils.research.losses import WeightedMSELoss, MSCECrossEntropyLoss, ReverseMAWeightLoss, \
-	MeanSquaredClassError, PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVariance, ProximalMaskedLoss, \
-	OutputBatchClassVariance
+from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, ReverseMAWeightLoss, \
+	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
+	SpinozaLoss
+
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.training.trainer import Trainer
 from lib.utils.cache.decorators import CacheDecorators
@@ -69,9 +70,9 @@ class RunnerStatsPopulater:
 		if len(stat.model_losses) < len(self.__loss_functions):
 			stat.model_losses = tuple(stat.model_losses) + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
-	def __get_evaluation_loss_functions(self):
+	def __get_evaluation_loss_functions(self) -> typing.List[SpinozaLoss]:
 		return [
-				nn.CrossEntropyLoss(),
+				CrossEntropyLoss(),
 				ProximalMaskedLoss(
 					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 					softmax=True,
@@ -83,8 +84,8 @@ class RunnerStatsPopulater:
 				ReverseMAWeightLoss(window_size=10, softmax=True),
 				PredictionConfidenceScore(softmax=True),
 				OutputClassesVarianceScore(softmax=True),
-				OutputBatchVariance(softmax=True),
-				OutputBatchClassVariance(
+				OutputBatchVarianceScore(softmax=True),
+				OutputBatchClassVarianceScore(
 					np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
 					epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
 				),
