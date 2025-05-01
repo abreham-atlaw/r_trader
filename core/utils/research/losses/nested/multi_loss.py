@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from .msce import MeanSquaredClassError
+from core.utils.research.losses import MeanSquaredClassError
 
 
 class MultiLoss(nn.Module):
