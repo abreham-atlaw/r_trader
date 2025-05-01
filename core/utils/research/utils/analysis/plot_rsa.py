@@ -82,9 +82,9 @@ class PlotRSAnalyzer(RSAnalyzer):
 			fn = self.__color_value_function
 
 		colors = np.array([
-			fn(stat)
+			float(fn(stat))
 			for stat in stats
-		])
+		]).astype(np.float32)
 		colors /= np.max(colors)
 		return colors
 
