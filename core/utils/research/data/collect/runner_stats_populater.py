@@ -78,7 +78,12 @@ class RunnerStatsPopulater:
 				),
 				ReverseMAWeightLoss(window_size=10, softmax=True),
 				PredictionConfidenceScore(softmax=True),
-			]
+				ProximalMaskedLoss(
+					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+					softmax=True,
+					weighted_sample=True,
+				),
+		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
 		return tuple([
