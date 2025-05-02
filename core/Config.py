@@ -297,6 +297,7 @@ class RunnerStatsLossesBranches:
 
 	main = "main"
 	it_23 = "it_23"
+	it_23_sw_0 = "it_23_sw_0"
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_29 = "it_29"
@@ -306,6 +307,7 @@ class RunnerStatsLossesBranches:
 	all = [
 		main,
 		it_23,
+		it_23_sw_0,
 		it_24,
 		it_27,
 		it_29,
