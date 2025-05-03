@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from core.utils.research.data.prepare.swg import AbstractSampleWeightGenerator
 from core.utils.research.losses import SpinozaLoss
+from lib.utils.math import sigmoid
 
 
 class IdealModelSampleWeightGenerator(AbstractSampleWeightGenerator):
@@ -35,4 +36,4 @@ class IdealModelSampleWeightGenerator(AbstractSampleWeightGenerator):
 	def _generate_weights(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
 		y = y[:, :-self.__y_extra_len]
 		loss = self.__eval_loss(X, y)
-		return 1/(loss + self.__eps)
+		return sigmoid(1/(loss + self.__eps))
