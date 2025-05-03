@@ -319,4 +319,4 @@ class RunnerStatsLossesBranches:
 		it_33,
 	]
 
-	default = it_23_sw_0
+	default = it_23_sw_2
