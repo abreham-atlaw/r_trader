@@ -14,12 +14,14 @@ class IdealModelSampleWeightGenerator(AbstractSampleWeightGenerator):
 			model: nn.Module,
 			loss: SpinozaLoss,
 			y_extra_len: int = 1,
+			eps: float = 1e-6,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self.__model = model
 		self.__loss = loss
 		self.__y_extra_len = y_extra_len
+		self.__eps = eps
 
 	@staticmethod
 	def __to_tensor(x) -> torch.Tensor:
@@ -33,4 +35,4 @@ class IdealModelSampleWeightGenerator(AbstractSampleWeightGenerator):
 	def _generate_weights(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
 		y = y[:, :-self.__y_extra_len]
 		loss = self.__eval_loss(X, y)
-		return 1/loss
+		return 1/(loss + self.__eps)
