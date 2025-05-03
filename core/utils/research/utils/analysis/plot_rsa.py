@@ -16,6 +16,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 		"ProximalMaskedLoss",
 		"ReverseMAWeightLoss(window_size=10, softmax=True)",
 		"PredictionConfidenceScore(softmax=True)",
+		"ProximalMaskedLoss(weighted_sample=True)",
 	]
 
 	def __init__(
