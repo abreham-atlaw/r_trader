@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import torch
 
-from core.utils.research.losses import OutputClassesVariance
+from core.utils.research.losses import OutputClassesVarianceScore
 
 
 class OutputClassesVarianceTest(unittest.TestCase):
@@ -16,7 +16,7 @@ class OutputClassesVarianceTest(unittest.TestCase):
 			[1, 0, 0]
 		]).astype(np.float32))
 
-		score_fn = OutputClassesVariance(softmax=True)
+		score_fn = OutputClassesVarianceScore(softmax=True)
 
 		score = [
 			score_fn(predictions[i: i+1])
