@@ -5,6 +5,10 @@ def sigmoid(x):
 	return 1/(1+np.e**(-x))
 
 
+def delta(x):
+	return x[1:] - x[:-1]
+
+
 def moving_average(x: np.ndarray, window_size: int):
 	data_len = len(x) - window_size + 1
 	x_final = np.zeros(data_len)
