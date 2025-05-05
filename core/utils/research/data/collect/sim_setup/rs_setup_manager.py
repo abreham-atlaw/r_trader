@@ -1,24 +1,19 @@
 import os
-import typing
 from datetime import datetime
 
-import numpy as np
 from torch import nn
-from torch.utils.data import DataLoader
 
 from core import Config
 from core.utils.misc.sim_trading.setup import SetupManager
 from core.utils.research.data.collect.runner_stats import RunnerStats
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
 from core.utils.research.data.collect.sim_setup.times_repository import TimesRepository
-from core.utils.research.data.load import BaseDataset
-from core.utils.research.losses import ProximalMaskedLoss
 from core.utils.research.model.model.utils import TemperatureScalingModel, TransitionOnlyModel
 from lib.utils.decorators import retry
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
-from .model_evaluator import ModelEvaluator
+from core.utils.research.utils.model_evaluator import ModelEvaluator
 
 
 class RSSetupManager:

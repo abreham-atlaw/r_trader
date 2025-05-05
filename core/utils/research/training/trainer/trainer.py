@@ -17,6 +17,7 @@ from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .device import Device
 from ...data.load.dataset import BaseDataset
+from ...losses import SpinozaLoss
 
 try:
     from torch_xla.distributed import parallel_loader
@@ -32,8 +33,8 @@ class Trainer:
     def __init__(
             self,
             model,
-            cls_loss_function=None,
-            reg_loss_function=None,
+            cls_loss_function: typing.Optional[SpinozaLoss]=None,
+            reg_loss_function: typing.Optional[SpinozaLoss]=None,
             optimizer=None,
             callbacks: typing.List[Callback]=None,
             max_norm: typing.Optional[float] = None,
@@ -119,12 +120,12 @@ class Trainer:
     def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         return y[:, :-1], y[:, -1:]
 
-    def __loss(self, y_hat, y):
+    def __loss(self, y_hat: torch.Tensor, y: torch.Tensor, w: torch.Tensor):
         cls_y, reg_y = self.__split_y(y)
         cls_y_hat, reg_y_hat = self.__split_y(y_hat)
 
-        cls_loss = self.cls_loss_function(cls_y_hat, cls_y)
-        reg_loss = self.reg_loss_function(reg_y_hat, reg_y)
+        cls_loss = self.cls_loss_function(cls_y_hat, cls_y, w)
+        reg_loss = self.reg_loss_function(reg_y_hat, reg_y, w)
 
         loss = cls_loss + reg_loss
         return cls_loss, reg_loss, loss
@@ -143,6 +144,12 @@ class Trainer:
             xm.optimizer_step(self.optimizer)
         else:
             self.optimizer.step()
+
+    def __prepare_data(self, data: typing.Tuple[torch.Tensor,...]) -> typing.Tuple[torch.Tensor,...]:
+        return [
+            d.to(self.device).type(self.__dtype)
+            for d in data
+        ]
 
     def train(
             self,
@@ -194,18 +201,19 @@ class Trainer:
             self.model = self.model.to(self.device).float()
             running_loss, running_size = torch.zeros((3,)), 0
             pbar = tqdm(dataloader) if progress else dataloader
-            for i, (X, y) in enumerate(pbar):
+            for i, data in enumerate(pbar):
                 if i < state.batch:
                     continue
                 state.batch = i
                 for callback in self.callbacks:
                     callback.on_batch_start(self.model, i)
-                X, y = X.to(self.device), y.to(self.device)
-                X, y = X.type(self.__dtype), y.type(self.__dtype)
+
+                X, y, w = self.__prepare_data(data)
+
                 self.optimizer.zero_grad()
                 y_hat = self.model(X)
 
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+                cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
                 if cls_loss_only:
                     cls_loss.backward()
                 elif reg_loss_only:
@@ -256,14 +264,15 @@ class Trainer:
         return train_losses, val_losses
 
     def validate(self, dataloader: DataLoader):
+        Logger.info(f"Validating ...")
         self.model.eval()
         total_loss = torch.zeros((3,))
         total_size = 0
         with torch.no_grad():
-            for X, y in dataloader:
-                X, y = X.to(self.device), y.to(self.device)
+            for data in dataloader:
+                X, y, w = self.__prepare_data(data)
                 y_hat = self.model(X)
-                cls_loss, ref_loss, loss = self.__loss(y_hat, y)
+                cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
 
                 total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
                 total_size += X.shape[0]

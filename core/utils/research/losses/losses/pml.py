@@ -4,8 +4,10 @@ import numpy as np
 import torch
 from torch import nn
 
+from core.utils.research.losses import SpinozaLoss
 
-class ProximalMaskedLoss(nn.Module):
+
+class ProximalMaskedLoss(SpinozaLoss):
 
 	def __init__(
 			self,
@@ -49,7 +51,7 @@ class ProximalMaskedLoss(nn.Module):
 	def collapse(self, loss: torch.Tensor) -> torch.Tensor:
 		return torch.mean(loss)
 
-	def forward(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+	def _call(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		y_hat = self.activation(y_hat)
 
 		y_mask = torch.sum(
@@ -61,4 +63,4 @@ class ProximalMaskedLoss(nn.Module):
 		w = torch.sum(self.w * y, dim=1)
 		loss = loss*w
 
-		return self.collapse(loss)
+		return loss

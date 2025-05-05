@@ -20,6 +20,5 @@ __all__ = [
 	"FilesMerger",
 	"BatchSizeModifier",
 	"ModelOutputExporter",
-	"MergedModelOutputExporter"
+	"MergedModelOutputExporter",
 ]
-
