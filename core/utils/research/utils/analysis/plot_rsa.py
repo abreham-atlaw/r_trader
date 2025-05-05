@@ -14,24 +14,16 @@ class PlotRSAnalyzer(RSAnalyzer):
 	__LOSS_NAMES = [
 		"nn.CrossEntropyLoss()",
 		"ProximalMaskedLoss",
-		"MeanSquaredClassError",
 		"ReverseMAWeightLoss(window_size=10, softmax=True)",
 		"PredictionConfidenceScore(softmax=True)",
-		"OutputClassesVariance(softmax=True)",
-		"OutputBatchVariance(softmax=True)",
-		"OutputBatchClassVariance(softmax=True)",
-		"ProximalMaskedLoss(p=0.5)",
-		"ProximalMaskedLoss(p=0.25)",
-		"ProximalMaskedLoss(p=0.1)",
-		"ProximalMaskedLoss(w=02)",
-		"ProximalMaskedLoss(w=03)",
-		"ProximalMaskedLoss(w=04)"
+		"ProximalMaskedLoss(weighted_sample=True)",
 	]
 
 	def __init__(
 			self,
 			branches: typing.List[str],
-			color_value_loss: int = 4,
+			color_value_loss: int = 3,
+			sort_loss: int = 1,
 			use_avg_profits: bool = False,
 			export_path: str = "plotted.csv",
 			extra_filter: typing.Optional[RSFilter] = None,
@@ -48,7 +40,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 			branches=branches,
 			rs_filter=rs_filter,
 			export_path=export_path,
-			sort_key=lambda stat: stat.model_losses[1]
+			sort_key=lambda stat: stat.model_losses[sort_loss]
 		)
 		self.__color_value_loss = color_value_loss
 		self.__color_value_function = color_value_function
