@@ -17,6 +17,20 @@ def moving_average(x: np.ndarray, window_size: int):
 	return x_final
 
 
+def kalman_filter(x: np.ndarray, alpha: float, beta: float) -> np.ndarray:
+
+	y = [x[0]]
+	v = 0
+
+	for i in range(1, len(x)):
+		y.append(
+			x[i] * alpha + (1 - alpha) * (y[i - 1] + v)
+		)
+		v = beta * (x[i] - y[i - 1]) + (1 - beta) * v
+
+	return np.array(y)
+
+
 def softmax(x):
 	exp_x = np.exp(x - np.max(x))
 	softmax_x = exp_x / np.sum(exp_x)
