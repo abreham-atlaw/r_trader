@@ -83,7 +83,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 					model,
 					seq_len=Config.MARKET_STATE_MEMORY,
 					window_size=Config.AGENT_MA_WINDOW_SIZE,
-					use_ma=Config.AGENT_USE_MA,
+					use_ma=Config.AGENT_USE_SMOOTHING,
 				)
 			)
 

@@ -11,3 +11,6 @@ class KalmanFilter(SmoothingAlgorithm):
 
 	def apply(self, x: np.ndarray) -> np.ndarray:
 		return kalman_filter(x, self.__alpha, self.__beta)
+
+	def __str__(self):
+		return f"KalmanFilter({self.__alpha}, {self.__beta})"

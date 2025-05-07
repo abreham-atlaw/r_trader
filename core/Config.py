@@ -120,7 +120,7 @@ UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
-MARKET_STATE_USE_MA = True
+MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
@@ -165,8 +165,11 @@ AGENT_NUM_ACTIONS = 20
 AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
+AGENT_USE_KALMAN_FILTER = False
+AGENT_KALMAN_ALPHA = 0.05
+AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
-AGENT_USE_MA = not MARKET_STATE_USE_MA
+AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
@@ -184,7 +187,7 @@ AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
-with open(os.path.join(BASE_DIR, "res/weights/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
@@ -217,7 +220,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-4-cum-0-it-15-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-35-cum-0-it-27-tot.zip",
 	download=False
 )
 
