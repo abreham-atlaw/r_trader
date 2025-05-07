@@ -265,6 +265,7 @@ class RunnerStatsBranches:
 	it_27_1 = "it_27_1"
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
 	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
+	it_30_1 = "it_30_1"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 
@@ -279,6 +280,7 @@ class RunnerStatsBranches:
 		it_27_1,
 		ma_ews_dynamic_k_stm_it_29,
 		ma_ews_dynamic_k_stm_it_29_dm_0,
+		it_30_1,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
 	]
@@ -299,6 +301,7 @@ class RunnerStatsLossesBranches:
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_29 = "it_29"
+	it_30 = "it_30"
 	it_31 = "it_31"
 	it_33 = "it_33"
 
@@ -314,6 +317,7 @@ class RunnerStatsLossesBranches:
 		it_24,
 		it_27,
 		it_29,
+		it_30,
 		it_31,
 		it_33,
 	]
