@@ -11,3 +11,6 @@ class MovingAverage(SmoothingAlgorithm):
 
 	def apply(self, x: np.ndarray) -> np.ndarray:
 		return moving_average(x, self.__window_size)
+
+	def __str__(self):
+		return f"MovingAverage({self.__window_size})"
