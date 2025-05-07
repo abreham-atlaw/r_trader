@@ -22,7 +22,7 @@ class LinearModel(SpinozaModule):
 		super(LinearModel, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
 			'layer_sizes': layer_sizes,
-			'dropout_rate': dropout_rate,
+			'dropout_rate': dropout_rate.copy() if isinstance(dropout_rate, list) else dropout_rate,
 			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
 			'init_fn': init_fn.__name__ if init_fn else None,
 			'norm': norm,
