@@ -18,6 +18,7 @@ class DisagreementSampleWeightGenerator(AbstractSampleWeightGenerator):
 			weak_model: nn.Module,
 			y_extra_len: int = 1,
 			p: int = 1,
+			m: int = 1,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -26,6 +27,7 @@ class DisagreementSampleWeightGenerator(AbstractSampleWeightGenerator):
 		self.__weak_model = weak_model
 		self.__y_extra_len = y_extra_len
 		self.__p = p
+		self.__m = m
 
 	@staticmethod
 	def __to_tensor(x) -> torch.Tensor:
@@ -43,4 +45,4 @@ class DisagreementSampleWeightGenerator(AbstractSampleWeightGenerator):
 		anchor_loss = self.__eval_loss(self.__anchor_model, X, y)
 		weak_loss = self.__eval_loss(self.__weak_model, X, y)
 
-		return sigmoid(weak_loss - anchor_loss) ** self.__p
+		return (sigmoid(weak_loss - anchor_loss) * self.__m) ** self.__p
