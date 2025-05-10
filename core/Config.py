@@ -249,7 +249,7 @@ WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [0.1, 1.0, 2.0]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
