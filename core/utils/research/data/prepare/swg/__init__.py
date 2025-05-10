@@ -1,4 +1,5 @@
 from .abstract_swg import AbstractSampleWeightGenerator
 from .delta_swg import DeltaSampleWeightGenerator
+from .volatility_swg import VolatilitySampleWeightGenerator
 from .disagreement_swg import DisagreementSampleWeightGenerator
 from .ideal_model_swg import IdealModelSampleWeightGenerator
