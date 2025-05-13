@@ -13,7 +13,8 @@ class SampleWeightGeneratorDataLoader:
 			dataloader: DataLoader,
 			bounds: typing.List[float],
 			X_extra_len: int = 124,
-			y_extra_len: int = 1
+			y_extra_len: int = 1,
+			use_cache: bool = True
 	):
 		self.__dataloader = dataloader
 		self.__X_extra_len = X_extra_len
@@ -22,12 +23,17 @@ class SampleWeightGeneratorDataLoader:
 			bounds = np.array(bounds)
 		self.__bounds = bounds
 
+		self.__cache = None
+
 	def __merge(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
 		X, y = [X[:, :-self.__X_extra_len], y[:, :-self.__y_extra_len]]
 		y = X[:, -1] * self.__bounds[np.argmax(y, axis=1)]
 		return np.concatenate((X, np.expand_dims(y, axis=1)), axis=1)
 
 	def load(self) -> typing.Tuple[np.ndarray, np.ndarray]:
+		if self.__cache is not None:
+			return self.__cache
+
 		X, y = None, None
 
 		for i, (X_batch, y_batch, w_batch) in enumerate(self.__dataloader):
@@ -45,6 +51,8 @@ class SampleWeightGeneratorDataLoader:
 			y = np.concatenate((y, w_batch), axis=0)
 
 			Logger.info(f"[+]Loaded {(i+1)*100/len(self.__dataloader) :.2f}%...", end="\r")
+
+		self.__cache = X, y
 
 		return X, y
 

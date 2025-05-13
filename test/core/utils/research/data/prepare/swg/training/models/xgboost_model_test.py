@@ -17,7 +17,8 @@ class XGBoostModelTest(unittest.TestCase):
 			DataLoader(
 				BaseDataset(
 					root_dirs=[
-						"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"],
+						"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+					],
 					load_weights=True
 				),
 				batch_size=8
