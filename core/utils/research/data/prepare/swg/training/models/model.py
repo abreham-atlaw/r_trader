@@ -22,3 +22,6 @@ class SampleWeightGenerationModel(ABC):
 	def load(cls, path: str):
 		with open(path, 'rb') as file:
 			return pickle.load(file)
+
+	def __call__(self, X: np.ndarray) -> np.ndarray:
+		return self.predict(X)
