@@ -14,12 +14,3 @@ class XGBoostSWGModel(SampleWeightGenerationModel):
 
 	def fit(self, X: np.ndarray, y: np.ndarray):
 		self.model.fit(X, y)
-
-	def save(self, path: str):
-		self.model.save_model(path)
-
-	@classmethod
-	def load(cls, path: str) -> 'XGBoostSWGModel':
-		model = XGBoostSWGModel()
-		model.model.load_model(path)
-		return model

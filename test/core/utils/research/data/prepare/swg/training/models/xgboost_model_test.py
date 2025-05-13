@@ -48,3 +48,8 @@ class XGBoostModelTest(unittest.TestCase):
 		y_hat = self.model.predict(X)
 
 		print(f"Prediction:\n{y_hat}")
+
+	def test_load(self):
+		self.test_fit()
+		self.model = XGBoostSWGModel.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/xgboost_swg_model.xgb")
+		self.test_predict()
