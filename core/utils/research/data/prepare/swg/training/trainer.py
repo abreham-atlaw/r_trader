@@ -53,7 +53,7 @@ class SampleWeightGeneratorTrainer:
 			test_idxs = np.arange(int(size * (1 - self.__test_split)), size)
 		return train_idxs, test_idxs
 
-	def __load_data(self) -> typing.Tuple[typing.Tuple[np.ndarray, np.ndarray], typing.Tuple[np.ndarray, np.ndarray]]:
+	def load_data(self) -> typing.Tuple[typing.Tuple[np.ndarray, np.ndarray], typing.Tuple[np.ndarray, np.ndarray]]:
 		X, y = self.__dataloader.load()
 		train_idxs, test_idxs = self.__split_idxs(X.shape[0])
 
@@ -61,7 +61,7 @@ class SampleWeightGeneratorTrainer:
 
 	def train(self) -> float:
 		Logger.info("Loading data...")
-		(X_train, y_train), _ = self.__load_data()
+		(X_train, y_train), _ = self.load_data()
 
 		Logger.info(f"Training model(Datasize: {X_train.shape[0]})...")
 		self.__model.fit(X_train, y_train)
@@ -69,5 +69,5 @@ class SampleWeightGeneratorTrainer:
 		return self.__evaluate(X_train, y_train)
 
 	def evaluate(self) -> float:
-		_, (X_test, y_test) = self.__load_data()
+		_, (X_test, y_test) = self.load_data()
 		return self.__evaluate(X_test, y_test)
