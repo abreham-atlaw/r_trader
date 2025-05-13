@@ -43,14 +43,16 @@ class SampleWeightGeneratorDataLoader:
 			X_batch = self.__merge(X_batch, y_batch)
 
 			if X is None:
-				X = X_batch
-				y = w_batch
+				X = [X_batch]
+				y = [w_batch]
 				continue
 
-			X = np.concatenate((X, X_batch), axis=0)
-			y = np.concatenate((y, w_batch), axis=0)
+			X.append(X_batch)
+			y.append(w_batch)
 
 			Logger.info(f"[+]Loaded {(i+1)*100/len(self.__dataloader) :.2f}%...", end="\r")
+
+		X, y = np.concatenate(X, axis=0), np.concatenate(y, axis=0)
 
 		self.__cache = X, y
 
