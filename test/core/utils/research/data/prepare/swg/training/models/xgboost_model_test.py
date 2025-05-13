@@ -27,8 +27,16 @@ class XGBoostModelTest(unittest.TestCase):
 		)
 
 	def test_fit(self):
-		trainer = SampleWeightGeneratorTrainer(self.model, self.dataloader)
-		trainer.train()
+		trainer = SampleWeightGeneratorTrainer(
+			self.model,
+			self.dataloader,
+			test_split=0.3
+		)
+		train_loss = trainer.train()
+		test_loss = trainer.evaluate()
+
+		print(f"Train Loss: {train_loss}")
+		print(f"Test Loss: {test_loss}")
 
 		self.model.save("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/xgboost_swg_model.xgb")
 

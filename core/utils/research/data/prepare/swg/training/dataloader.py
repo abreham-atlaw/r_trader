@@ -14,7 +14,6 @@ class SampleWeightGeneratorDataLoader:
 			bounds: typing.List[float],
 			X_extra_len: int = 124,
 			y_extra_len: int = 1,
-			use_cache: bool = True
 	):
 		self.__dataloader = dataloader
 		self.__X_extra_len = X_extra_len
