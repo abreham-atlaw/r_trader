@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 from lib.utils.logger import Logger
+from .datapreparer import SampleWeightGeneratorDataPreparer
 
 
 class SampleWeightGeneratorDataLoader:
@@ -16,18 +17,15 @@ class SampleWeightGeneratorDataLoader:
 			y_extra_len: int = 1,
 	):
 		self.__dataloader = dataloader
-		self.__X_extra_len = X_extra_len
-		self.__y_extra_len = y_extra_len
-		if isinstance(bounds, list):
-			bounds = np.array(bounds)
-		self.__bounds = bounds
-
 		self.__cache = None
+		self.__datapreparer = SampleWeightGeneratorDataPreparer(
+			bounds=bounds,
+			X_extra_len=X_extra_len,
+			y_extra_len=y_extra_len
+		)
 
 	def __merge(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-		X, y = [X[:, :-self.__X_extra_len], y[:, :-self.__y_extra_len]]
-		y = X[:, -1] * self.__bounds[np.argmax(y, axis=1)]
-		return np.concatenate((X, np.expand_dims(y, axis=1)), axis=1)
+		return self.__datapreparer.prepare(X, y)
 
 	def load(self) -> typing.Tuple[np.ndarray, np.ndarray]:
 		if self.__cache is not None:
