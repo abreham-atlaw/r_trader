@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, MovingAverage
 from lib.utils.logger import Logger
 from lib.utils.math import moving_average
 
@@ -21,7 +22,8 @@ class SimulationSimulator:
 			output_path: str,
 			granularity: int,
 			ma_window: int = None,
-			order_gran: bool = True
+			order_gran: bool = True,
+			smoothing_algorithm: typing.Optional[SmoothingAlgorithm] = None
 	):
 		self.__df = self.__process_df(df)
 		self.__bounds = bounds
@@ -30,12 +32,16 @@ class SimulationSimulator:
 		self.__batch_size = batch_size
 		self.__output_path = output_path
 		self.__granularity = granularity
-		self.__ma_window = ma_window
 		self.__order_gran = order_gran
 
+		if smoothing_algorithm is None and ma_window not in [None, 0, 1]:
+			smoothing_algorithm = MovingAverage(ma_window)
+		self.__smoothing_algorithm = smoothing_algorithm
+		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
+
 	@property
-	def __use_ma(self):
-		return self.__ma_window not in [None, 0, 1]
+	def __use_smoothing(self):
+		return self.__smoothing_algorithm is not None
 
 	@staticmethod
 	def __process_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -162,8 +168,8 @@ class SimulationSimulator:
 
 		for i in range(self.__granularity):
 			gran_sequence = df["c"].to_numpy()[i::self.__granularity]
-			if self.__use_ma:
-				gran_sequence = moving_average(gran_sequence, self.__ma_window)
+			if self.__use_smoothing:
+				gran_sequence = self.__smoothing_algorithm(gran_sequence)
 			gran_X, gran_y = self.__prepare_sequence(gran_sequence)
 
 			Xs.append(gran_X)

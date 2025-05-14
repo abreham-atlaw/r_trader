@@ -12,33 +12,37 @@ class BaseDatasetTest(unittest.TestCase):
 	def setUp(self):
 		self.dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
 			num_files=3,
-			preload=True,
-			preload_size=5
+			load_weights=True,
+			return_weights=False
 		)
 
 	def test_functionality(self):
 
-		X, y = self.dataset[1500]
+		X, y, w = self.dataset[15]
+
+		print(X, y, w)
 		self.assertEqual(X.shape[0], 1148)
 		self.assertEqual(y.shape[0], 432)
+		self.assertIsNotNone(w)
 
 	def test_shuffle(self):
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
+			return_weights=False
 		)
 
-		X_0, y_0 = dataset[1500]
+		X_0, y_0 = dataset[54]
 
 		dataset.shuffle()
-		X_1, y_1 = dataset[1500]
+		X_1, y_1 = dataset[54]
 
 		dataset.shuffle()
-		X_2, y_2 = dataset[1500]
+		X_2, y_2 = dataset[54]
 
 		for i, (X, y) in enumerate(zip([X_0, X_1, X_2], [y_0, y_1, y_2])):
 			for j, (X_o, y_o) in enumerate(zip([X_0, X_1, X_2], [y_0, y_1, y_2])):
@@ -55,7 +59,7 @@ class BaseDatasetTest(unittest.TestCase):
 
 		self.dataset.shuffle()
 
-		for X, y in dataloader:
+		for X, y, w in dataloader:
 			self.assertIsNotNone(X)
 
 

@@ -1,5 +1,7 @@
 import typing
 
+import torch.nn as nn
+
 from .service_provider import ServiceProvider
 from core import Config
 
@@ -37,7 +39,8 @@ class ResearchProvider:
 		return RSSetupManager(
 			fs=ServiceProvider.provide_file_storage(Config.OANDA_SIM_MODEL_IN_PATH),
 			rs_repo=ResearchProvider.provide_runner_stats_repository(),
-			times_repo=ResearchProvider.provide_times_repository()
+			times_repo=ResearchProvider.provide_times_repository(),
+			model_evaluator=ResearchProvider.provide_model_evaluator(),
 		)
 
 	@staticmethod
@@ -74,3 +77,24 @@ class ResearchProvider:
 		# 	)
 		# ]
 		#
+
+	@staticmethod
+	def provide_loss_function() -> nn.Module:
+		from core.utils.research.losses import ProximalMaskedLoss
+		return ProximalMaskedLoss(
+			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+			p=1,
+			softmax=True,
+		)
+
+	@staticmethod
+	def provide_model_evaluator(data_path: str = None) -> 'ModelEvaluator':
+		if data_path is None:
+			data_path = Config.UPDATE_SAVE_PATH
+
+		from core.utils.research.utils.model_evaluator import ModelEvaluator
+		return ModelEvaluator(
+			data_path=data_path,
+			cls_loss_fn=ResearchProvider.provide_loss_function(),
+			batch_size=32
+		)
