@@ -2,7 +2,6 @@ import numpy as np
 from xgboost import XGBRegressor
 
 from core.utils.research.data.prepare.swg.training.models import SampleWeightGenerationModel
-from core.utils.research.data.prepare.swg.training.models.layers import MinMaxNorm, Identity
 
 
 class XGBoostSWGModel(SampleWeightGenerationModel):
@@ -12,12 +11,11 @@ class XGBoostSWGModel(SampleWeightGenerationModel):
 			norm: bool = False,
 			**kwargs
 	):
+		super().__init__(norm=norm)
 		self.model = XGBRegressor(**kwargs)
-		self.norm = MinMaxNorm() if norm else Identity()
 
-	def predict(self, X: np.ndarray) -> np.ndarray:
+	def _predict(self, X: np.ndarray) -> np.ndarray:
 		return self.model.predict(X)
 
-	def fit(self, X: np.ndarray, y: np.ndarray):
-		X = self.norm(X)
+	def _fit(self, X: np.ndarray, y: np.ndarray):
 		self.model.fit(X, y)
