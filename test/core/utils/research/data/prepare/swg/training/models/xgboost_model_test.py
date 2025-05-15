@@ -12,7 +12,9 @@ from core.utils.research.data.prepare.swg.training.trainer import SampleWeightGe
 class XGBoostModelTest(unittest.TestCase):
 
 	def setUp(self):
-		self.model = XGBoostSWGModel()
+		self.model = XGBoostSWGModel(
+			norm=True
+		)
 		self.dataloader = SampleWeightGeneratorDataLoader(
 			DataLoader(
 				BaseDataset(
