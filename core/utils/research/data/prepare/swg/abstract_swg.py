@@ -13,12 +13,14 @@ class AbstractSampleWeightGenerator(ABC):
 			data_path: str,
 			export_path: str,
 			X_dir: str = "X",
-			y_dir: str = "y"
+			y_dir: str = "y",
+			min_weight: float = 0.0
 	):
 		self.__data_path = data_path
 		self.__export_path = export_path
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
+		self.__min_weight = min_weight
 
 	def __setup(self):
 		Logger.info(f"Setting up...")
@@ -41,6 +43,7 @@ class AbstractSampleWeightGenerator(ABC):
 				for dir_name in [self.__X_dir, self.__y_dir]
 			]
 			weights = self._generate_weights(X, y)
+			weights[weights < self.__min_weight] = self.__min_weight
 			self.__export_weights(weights, filename)
 
 			Logger.info(f"[+]Processed {(i + 1) * 100 / len(filenames):.2f}%", end="\r")
