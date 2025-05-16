@@ -302,6 +302,7 @@ class RunnerStatsBranches:
 	it_30_1 = "it_30_1"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
+	it_34_1 = "it_34_1"
 
 	all = [
 		main,
@@ -317,6 +318,7 @@ class RunnerStatsBranches:
 		it_30_1,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
+		it_34_1
 	]
 
 	default = it_30_1
@@ -332,12 +334,19 @@ class RunnerStatsLossesBranches:
 	it_23_sw_3 = "it_23_sw_3"
 	it_23_sw_4 = "it_23_sw_4"
 	it_23_sw_5 = "it_23_sw_5"
+	it_23_sw_6 = "it_23_sw_6"
+	it_23_sw_7 = "it_23_sw_7"
+	it_23_sw_8 = "it_23_sw_8"
+	it_23_sw_9 = "it_23_sw_9"
+	it_23_sw_10 = "it_23_sw_10"
+	it_23_sw_11 = "it_23_sw_11"
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_29 = "it_29"
 	it_30 = "it_30"
 	it_31 = "it_31"
 	it_33 = "it_33"
+	it_34 = "it_34"
 
 	all = [
 		main,
@@ -348,12 +357,19 @@ class RunnerStatsLossesBranches:
 		it_23_sw_3,
 		it_23_sw_4,
 		it_23_sw_5,
+		it_23_sw_6,
+		it_23_sw_7,
+		it_23_sw_8,
+		it_23_sw_9,
+		it_23_sw_10,
+		it_23_sw_11,
 		it_24,
 		it_27,
 		it_29,
 		it_30,
 		it_31,
 		it_33,
+		it_34
 	]
 
 	default = it_30
