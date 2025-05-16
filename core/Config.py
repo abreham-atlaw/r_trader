@@ -245,7 +245,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-30/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-34/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -321,7 +321,7 @@ class RunnerStatsBranches:
 		it_34_1
 	]
 
-	default = it_30_1
+	default = it_34_1
 
 
 class RunnerStatsLossesBranches:
@@ -372,4 +372,4 @@ class RunnerStatsLossesBranches:
 		it_34
 	]
 
-	default = it_30
+	default = it_34
