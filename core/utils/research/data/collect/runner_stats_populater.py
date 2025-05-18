@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 
 from core import Config
 from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
+from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
@@ -19,7 +20,7 @@ from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.fileio import load_json
 from lib.utils.torch_utils.model_handler import ModelHandler
-
+from .blacklist_repository import RSBlacklistRepository
 
 class RunnerStatsPopulater:
 
@@ -51,6 +52,7 @@ class RunnerStatsPopulater:
 			exception_exceptions = []
 		self.__exception_exceptions = exception_exceptions
 		self.__loss_functions = self.__get_evaluation_loss_functions()
+		self.__blacklist_repo: RSBlacklistRepository = ResearchProvider.provide_rs_blacklist_repository(rs_repo=repository)
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -156,14 +158,14 @@ class RunnerStatsPopulater:
 		self.__junk.add(local_path)
 
 	def __is_processed(self, file_path: str, temperature: float) -> bool:
-		stat = self.__repository.retrieve(
-			self.__generate_id(file_path, temperature=temperature)
-		)
+		stat_id = self.__generate_id(file_path, temperature)
+
+		stat = self.__repository.retrieve(stat_id)
 
 		if stat is not None:
 			self.__sync_model_losses_size(stat)
 
-		return stat is not None and 0.0 not in stat.model_losses
+		return self.__blacklist_repo.is_blacklisted(stat_id) or (stat is not None and 0.0 not in stat.model_losses)
 
 	def start(self, replace_existing: bool = False):
 		files = self.__in_filestorage.listdir(self.__in_path)
