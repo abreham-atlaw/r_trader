@@ -41,4 +41,4 @@ class SampleWeightGenerationModel(ABC):
 			return pickle.load(file)
 
 	def __call__(self, X: np.ndarray) -> np.ndarray:
-		return self._predict(X)
+		return self.predict(X)
