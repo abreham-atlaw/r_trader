@@ -21,7 +21,7 @@ class UnbatchedModelEvaluator(ModelEvaluator):
 
 		losses = torch.Tensor([])
 
-		for i, (X, y) in enumerate(dataloader):
+		for i, (X, y, w) in enumerate(dataloader):
 			with torch.no_grad():
 				y_hat = model(X)
 
