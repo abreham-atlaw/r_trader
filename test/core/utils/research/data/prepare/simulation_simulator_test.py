@@ -6,6 +6,7 @@ import numpy as np
 
 from core import Config
 from core.utils.research.data.prepare import SimulationSimulator
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage, KalmanFilter
 
 
 class SimulationSimulatorTest(unittest.TestCase):
@@ -48,9 +49,9 @@ class SimulationSimulatorTest(unittest.TestCase):
 			seq_len=1033,
 			extra_len=124,
 			batch_size=10,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/ma_20",
+			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/kf",
 			granularity=5,
-			ma_window=20
+			smoothing_algorithm=KalmanFilter(alpha=0.05, beta=0.01)
 		)
 
 		simulator.start()
