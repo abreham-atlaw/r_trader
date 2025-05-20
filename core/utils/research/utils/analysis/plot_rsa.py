@@ -27,7 +27,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 			use_avg_profits: bool = False,
 			export_path: str = "plotted.csv",
 			extra_filter: typing.Optional[RSFilter] = None,
-			color_value_function: typing.Optional[typing.Callable] = None
+			color_value_function: typing.Optional[typing.Callable] = None,
 	):
 		rs_filter = RSFilter(
 			min_sessions=1,

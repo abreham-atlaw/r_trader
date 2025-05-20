@@ -31,7 +31,8 @@ class CNN(SpinozaModule):
 			positional_encoding: bool = False,
 			norm_positional_encoding: bool = False,
 			channel_ffn: typing.Optional[nn.Module] = None,
-			input_dropout: float = 0.0
+			input_dropout: float = 0.0,
+			input_norm: bool = False
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
@@ -53,7 +54,8 @@ class CNN(SpinozaModule):
 			'positional_encoding': positional_encoding,
 			'norm_positional_encoding': norm_positional_encoding,
 			'channel_ffn': channel_ffn,
-			'input_dropout': input_dropout
+			'input_dropout': input_dropout,
+			'input_norm': input_norm
 		}
 		self.extra_len = extra_len
 		self.layers = nn.ModuleList()
@@ -131,6 +133,7 @@ class CNN(SpinozaModule):
 
 		self.channel_ffn = AxisFFN(channel_ffn, axis=1) if channel_ffn else nn.Identity()
 		self.input_dropout = nn.Dropout(input_dropout) if input_dropout > 0 else nn.Identity()
+		self.input_norm = DynamicLayerNorm() if input_norm else nn.Identity()
 		self.init()
 
 	def _build_conv_layers(
@@ -162,7 +165,10 @@ class CNN(SpinozaModule):
 
 	def call(self, x):
 		seq = x[:, :-self.extra_len]
-		out = self.indicators(seq)
+
+		out = self.input_norm(seq)
+
+		out = self.indicators(out)
 
 		out = self.pos(out)
 
