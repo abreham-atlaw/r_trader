@@ -306,6 +306,7 @@ class RunnerStatsLossesBranches:
 	it_23_sw_9 = "it_23_sw_9"
 	it_23_sw_10 = "it_23_sw_10"
 	it_23_sw_11 = "it_23_sw_11"
+	it_23_sw_12 = "it_23_sw_12"
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_27_sw_11 = "it_27_sw_11"
@@ -330,6 +331,7 @@ class RunnerStatsLossesBranches:
 		it_23_sw_9,
 		it_23_sw_10,
 		it_23_sw_11,
+		it_23_sw_12,
 		it_24,
 		it_27,
 		it_27_sw_11,
