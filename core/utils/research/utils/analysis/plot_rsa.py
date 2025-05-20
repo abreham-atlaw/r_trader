@@ -27,7 +27,8 @@ class PlotRSAnalyzer(RSAnalyzer):
 			use_avg_profits: bool = False,
 			export_path: str = "plotted.csv",
 			extra_filter: typing.Optional[RSFilter] = None,
-			color_value_function: typing.Optional[typing.Callable] = None
+			color_value_function: typing.Optional[typing.Callable] = None,
+			sessions_len: int = None
 	):
 		rs_filter = RSFilter(
 			min_sessions=1,
@@ -45,6 +46,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 		self.__color_value_loss = color_value_loss
 		self.__color_value_function = color_value_function
 		self.__use_avg_profits = use_avg_profits
+		self.__sessions_len = sessions_len
 
 	def __trim_stat(self, stat: RunnerStats, sessions_len: int):
 		stat.session_timestamps, stat.simulated_timestamps, stat.profits = [
@@ -58,10 +60,12 @@ class PlotRSAnalyzer(RSAnalyzer):
 		return stat
 
 	def __trim_sessions(self, stats: typing.List[RunnerStats]):
-		sessions_len = min(map(
-			lambda stat: len(stat.session_timestamps),
-			stats
-		))
+		sessions_len = self.__sessions_len
+		if sessions_len is None:
+			sessions_len = min(map(
+				lambda stat: len(stat.session_timestamps),
+				stats
+			))
 		Logger.info(f"Using Sessions Len = {sessions_len}")
 
 		stats = list(map(
