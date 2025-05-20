@@ -82,7 +82,7 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
 		ACTIVATION = nn.LeakyReLU()
 		BLOCK_SIZE = 1024 + EXTRA_LEN
