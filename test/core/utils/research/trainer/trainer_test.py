@@ -92,6 +92,7 @@ class TrainerTest(unittest.TestCase):
 		NORM = [False] + [False for _ in CHANNELS[1:]]
 		STRIDE = 2
 		INPUT_DROPOUT = 0.2
+		INPUT_NORM = True
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -164,7 +165,8 @@ class TrainerTest(unittest.TestCase):
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 			stride=STRIDE,
 			channel_ffn=channel_ffn,
-			input_dropout=INPUT_DROPOUT
+			input_dropout=INPUT_DROPOUT,
+			input_norm=INPUT_NORM
 		)
 		return model
 
@@ -174,7 +176,7 @@ class TrainerTest(unittest.TestCase):
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
 			check_file_sizes=True,
-			load_weights=True,
+			load_weights=False,
 		)
 		dataloader = DataLoader(dataset, batch_size=64)
 
@@ -183,7 +185,7 @@ class TrainerTest(unittest.TestCase):
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
 			check_file_sizes=True,
-			load_weights=True,
+			load_weights=False,
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=64)
 
@@ -192,7 +194,7 @@ class TrainerTest(unittest.TestCase):
 	def __init_trainer(self, model):
 		trainer = Trainer(model)
 		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=False)
-		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=True)
+		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
 
