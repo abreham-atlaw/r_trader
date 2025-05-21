@@ -2,12 +2,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from core.utils.research.data.prepare.swg import AbstractSampleWeightGenerator
+from core.utils.research.data.prepare.swg.swg import BasicSampleWeightGenerator
 from core.utils.research.losses import SpinozaLoss
 from lib.utils.math import sigmoid
 
 
-class IdealModelSampleWeightGenerator(AbstractSampleWeightGenerator):
+class IdealModelSampleWeightGenerator(BasicSampleWeightGenerator):
 
 	def __init__(
 			self,

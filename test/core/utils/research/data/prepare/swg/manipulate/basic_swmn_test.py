@@ -1,18 +1,20 @@
+import os
+import typing
 import unittest
 
+from core.utils.research.data.prepare.swg.abstract_swg import AbstractSampleWeightGenerator
 from core.utils.research.data.prepare.swg.manipulate import BasicSampleWeightManipulator
+from test.core.utils.research.data.prepare.swg.abstract_swg_test import AbstractSampleWeightGeneratorTest
 
 
-class BasicSampleWeightManipulatorTest(unittest.TestCase):
+class BasicSampleWeightManipulatorTest(AbstractSampleWeightGeneratorTest):
 
-	def setUp(self):
-		self.manipulator = BasicSampleWeightManipulator(
-			weights_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/w",
-			export_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test/w_manipulated",
+	def _init_generator(self) -> AbstractSampleWeightGenerator:
+		return BasicSampleWeightManipulator(
 			shift=3,
 			scale=2,
 			stretch=10
 		)
 
-	def test_functionality(self):
-		self.manipulator.start()
+	def _get_input_paths(self, data_path: str) -> typing.List[str]:
+		return [os.path.join(data_path, "w")]
