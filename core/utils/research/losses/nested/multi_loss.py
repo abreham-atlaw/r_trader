@@ -4,10 +4,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from core.utils.research.losses import MeanSquaredClassError
+from core.utils.research.losses import MeanSquaredClassError, SpinozaLoss
 
 
-class MultiLoss(nn.Module):
+class MultiLoss(SpinozaLoss):
+
 
 	def __init__(
 			self, 
@@ -35,12 +36,13 @@ class MultiLoss(nn.Module):
 
 		self.weights = weights.to(self.device)
 
-	def forward(self, *args, **kwargs):
+	def _call(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		return torch.sum(
 			torch.stack([
-				loss(*args, **kwargs)
+				loss(y_hat, y)
 				for loss in self.losses
-			]) * self.weights
+			], dim=1),
+			dim=1
 		)
 
 
