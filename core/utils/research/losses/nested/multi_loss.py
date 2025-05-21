@@ -9,14 +9,15 @@ from core.utils.research.losses import MeanSquaredClassError, SpinozaLoss
 
 class MultiLoss(SpinozaLoss):
 
-
 	def __init__(
-			self, 
+			self,
 			losses: typing.List[nn.Module],
 			weights: typing.Union[typing.List[float], np.ndarray, torch.Tensor] = None,
-			device: torch.device = None
+			*args,
+			device: torch.device = None,
+			**kwargs
 	):
-		super().__init__()
+		super().__init__(*args, **kwargs)
 		self.losses = nn.ModuleList(losses)
 		if weights is None:
 			weights = np.ones(len(losses))
