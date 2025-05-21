@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.utils.research.data.prepare.swg.training.models.layers import Layer
+from core.utils.research.data.prepare.swg.swg.training.models.layers import Layer
 
 
 class Identity(Layer):

@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from core.utils.research.data.prepare.swg.training.models.layers import MinMaxNorm, Identity
+from core.utils.research.data.prepare.swg.swg.training.models.layers import MinMaxNorm, Identity
 
 
 class SampleWeightGenerationModel(ABC):
