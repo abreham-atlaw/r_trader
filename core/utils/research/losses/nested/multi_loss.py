@@ -42,7 +42,7 @@ class MultiLoss(SpinozaLoss):
 			torch.stack([
 				loss(y_hat, y)
 				for loss in self.losses
-			], dim=1),
+			], dim=1) * self.weights,
 			dim=1
 		)
 
