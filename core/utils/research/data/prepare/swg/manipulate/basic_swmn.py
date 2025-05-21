@@ -7,13 +7,13 @@ class BasicSampleWeightManipulator(AbstractSampleWeightManipulator):
 
 	def __init__(
 			self,
-			weights_path: str,
-			export_path: str,
+			*args,
 			scale: float = 1.0,
 			shift: float = 0.0,
-			stretch: float = 1.0
+			stretch: float = 1.0,
+			**kwargs
 	):
-		super().__init__(weights_path, export_path)
+		super().__init__(*args, **kwargs)
 		self.__scale = scale
 		self.__shift = shift
 		self.__stretch = stretch
