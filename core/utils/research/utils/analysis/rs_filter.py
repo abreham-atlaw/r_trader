@@ -20,6 +20,7 @@ class RSFilter:
 	min_temperature: float = None
 
 	evaluation_complete: bool = False
+	filter_fn: typing.Optional[typing.Callable] = None
 
 	def join(self, other: 'RSFilter') -> 'RSFilter':
 		return RSFilter(
@@ -31,7 +32,8 @@ class RSFilter:
 			min_sessions=self.min_sessions or other.min_sessions,
 			max_temperature=self.max_temperature or other.max_temperature,
 			min_temperature=self.min_temperature or other.min_temperature,
-			evaluation_complete=self.evaluation_complete or other.evaluation_complete
+			evaluation_complete=self.evaluation_complete or other.evaluation_complete,
+			filter_fn=self.filter_fn or other.filter_fn
 		)
 
 	def __add__(self, other):

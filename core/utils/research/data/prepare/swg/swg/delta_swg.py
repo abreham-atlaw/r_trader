@@ -2,13 +2,10 @@ import typing
 
 import numpy as np
 
-import os
-
-from lib.utils.logger import Logger
-from .abstract_swg import AbstractSampleWeightGenerator
+from .basic_swg import BasicSampleWeightGenerator
 
 
-class DeltaSampleWeightGenerator(AbstractSampleWeightGenerator):
+class DeltaSampleWeightGenerator(BasicSampleWeightGenerator):
 
 	def __init__(
 			self,

@@ -2,12 +2,12 @@ import typing
 
 import numpy as np
 
-from .abstract_swg import AbstractSampleWeightGenerator
+from .basic_swg import BasicSampleWeightGenerator
 from .training.datapreparer import SampleWeightGeneratorDataPreparer
 from .training.models import SampleWeightGenerationModel
 
 
-class GeneratorModelSampleWeightGenerator(AbstractSampleWeightGenerator):
+class GeneratorModelSampleWeightGenerator(BasicSampleWeightGenerator):
 
 	def __init__(
 			self,
