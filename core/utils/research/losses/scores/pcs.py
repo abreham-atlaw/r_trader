@@ -4,8 +4,8 @@ from core.utils.research.losses.spinoza_loss import SpinozaLoss
 
 
 class PredictionConfidenceScore(SpinozaLoss):
-	def __init__(self, softmax=False):
-		super(PredictionConfidenceScore, self).__init__()
+	def __init__(self, *args, softmax=False, **kwargs):
+		super(PredictionConfidenceScore, self).__init__(*args, **kwargs)
 		self.__softmax = softmax
 
 	def _call(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
