@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN, DynamicPool
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -18,7 +18,7 @@ class CNN(SpinozaModule):
 			kernel_sizes: typing.List[int],
 			ff_block: LinearModel = None,
 			indicators: typing.Optional[Indicators] = None,
-			pool_sizes: typing.Optional[typing.List[int]] = None,
+			pool_sizes: typing.Optional[typing.List[typing.Union[int, typing.Tuple[int, int, int]]]] = None,
 			hidden_activation: typing.Optional[nn.Module] = None,
 			dropout_rate: typing.Union[float, typing.List[float]] = 0,
 			init_fn: typing.Optional[nn.Module] = None,
@@ -71,6 +71,12 @@ class CNN(SpinozaModule):
 				0
 				for _ in kernel_sizes
 			]
+		pool_sizes = [
+			ps
+			if isinstance(ps, typing.Tuple)
+			else (0, 1, ps)
+			for ps in pool_sizes
+		]
 		conv_channels = [self.indicators.indicators_len] + conv_channels
 
 		if isinstance(norm, bool):
@@ -102,11 +108,11 @@ class CNN(SpinozaModule):
 				self.norm_layers.append(nn.Identity())
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
-			if pool_sizes[i] > 0:
-				if avg_pool:
-					pool = nn.AvgPool1d(kernel_size=pool_sizes[i], stride=2)
-				else:
-					pool = nn.MaxPool1d(kernel_size=pool_sizes[i], stride=2)
+			if pool_sizes[i][-1] > 0:
+				pool = DynamicPool(
+					pool_range=(pool_sizes[i][0], pool_sizes[i][1]),
+					pool_size=pool_sizes[i][2]
+				)
 				self.pool_layers.append(pool)
 			else:
 				self.pool_layers.append(nn.Identity())

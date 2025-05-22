@@ -13,7 +13,7 @@ from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
-	SpinozaLoss, ReverseMAWeightLoss
+	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
@@ -85,6 +85,24 @@ class RunnerStatsPopulater:
 					softmax=True,
 					weighted_sample=True,
 				),
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss(
+							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+							p=1,
+							softmax=True,
+							collapsed=False
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=True
+				)
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:

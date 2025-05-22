@@ -30,11 +30,11 @@ class PlotRSAnalyzer(RSAnalyzer):
 			color_value_function: typing.Optional[typing.Callable] = None,
 	):
 		rs_filter = RSFilter(
-			min_sessions=1,
 			evaluation_complete=True
 		)
 		if extra_filter is not None:
 			rs_filter += extra_filter
+		rs_filter.min_sessions = rs_filter.min_sessions or 1
 
 		super().__init__(
 			branches=branches,
