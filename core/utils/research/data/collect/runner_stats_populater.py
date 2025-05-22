@@ -102,7 +102,26 @@ class RunnerStatsPopulater:
 					],
 					weights=[1, 1],
 					weighted_sample=True
-				)
+				),
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss(
+							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+							p=1,
+							softmax=True,
+							collapsed=False
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
