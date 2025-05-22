@@ -5,9 +5,9 @@ from torch.utils.data import DataLoader
 
 from core import Config
 from core.utils.research.data.load import BaseDataset
-from core.utils.research.data.prepare.swg.training.dataloader import SampleWeightGeneratorDataLoader
-from core.utils.research.data.prepare.swg.training.models import SampleWeightGenerationModel
-from core.utils.research.data.prepare.swg.training.trainer import SampleWeightGeneratorTrainer
+from core.utils.research.data.prepare.swg.swg.training.dataloader import SampleWeightGeneratorDataLoader
+from core.utils.research.data.prepare.swg.swg.training import SampleWeightGenerationModel
+from core.utils.research.data.prepare.swg.swg.training.trainer import SampleWeightGeneratorTrainer
 
 
 class AbstractModelTest(unittest.TestCase):
