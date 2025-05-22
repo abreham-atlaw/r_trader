@@ -1,7 +1,7 @@
 import numpy as np
 from xgboost import XGBRegressor
 
-from core.utils.research.data.prepare.swg.training.models import SampleWeightGenerationModel
+from core.utils.research.data.prepare.swg.swg.training.models import SampleWeightGenerationModel
 
 
 class XGBoostSWGModel(SampleWeightGenerationModel):
