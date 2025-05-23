@@ -1,37 +1,23 @@
 import os
 import unittest
-from datetime import datetime
 
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import MSELoss
-from torch.utils.data import DataLoader, Dataset
 from torch.optim import Adam
+from torch.utils.data import DataLoader, Dataset
 
-from core import Config
-from core.di import ServiceProvider
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.data.load.ensemble import EnsembleStackedDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
 from core.utils.research.model.layers import Indicators
+from core.utils.research.model.model.cnn.cnn_block import CNNBlock
+from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
+from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.cnn.resnet import ResNet
-from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM, PlainMSM
-from core.utils.research.model.model.ensemble.stacked.linear_3dmsm import Linear3dMSM
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.transformer import Decoder
-from core.utils.research.model.model.transformer import Transformer
-from core.utils.research.training.callbacks import WeightStatsCallback
-from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
-from core.utils.research.training.callbacks.metric_callback import MetricCallback
-from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
-from core.utils.research.training.data.state import TrainingState
-from core.utils.research.training.trackers.stats_tracker import DynamicStatsTracker, Keys, WeightsStatsTracker, \
-	GradientsStatsTracker
+from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
 from lib.utils.torch_utils.model_handler import ModelHandler
-from lib.utils.torch_utils.tensor_merger import TensorMerger
 
 
 class SineWaveDataset(Dataset):
@@ -78,6 +64,9 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
+		return self.__create_transformer()
+
+	def __create_cnn(self):
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
@@ -169,6 +158,64 @@ class TrainerTest(unittest.TestCase):
 			input_norm=INPUT_NORM
 		)
 		return model
+
+	def __create_transformer(self):
+
+		EXTRA_LEN = 124
+		INPUT_SIZE = 1024 + EXTRA_LEN
+		VOCAB_SIZE = 431
+
+		# DECODER BLOCK
+		EMBEDDING_CB_CHANNELS = [8]*2
+		EMBEDDING_CB_KERNELS = [3]*len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_POOL_SIZES = [0] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_DROPOUTS = [0] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_NORM = [False] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_HIDDEN_ACTIVATION = nn.PReLU()
+		INDICATORS_DELTA = True
+
+		NUM_HEADS = 4
+
+		# COLLAPSE BLOCK
+		COLLAPSE_FF_LAYERS = [16] * 2 + [VOCAB_SIZE + 1]
+		COLLAPSE_FF_DROPOUTS = [0] * (len(COLLAPSE_FF_LAYERS) - 1)
+		COLLAPSE_FF_ACTIVATION = nn.PReLU()
+		COLLAPSE_FF_NORM = [False] * len(COLLAPSE_FF_LAYERS)
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+		)
+
+		return Transformer(
+			input_size=INPUT_SIZE,
+			extra_len=EXTRA_LEN,
+			decoder_block=DecoderBlock(
+				num_heads=NUM_HEADS,
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					embedding_block=EmbeddingBlock(
+						indicators=indicators
+					),
+					cnn_block=CNNBlock(
+						input_channels=indicators.indicators_len,
+						conv_channels=EMBEDDING_CB_CHANNELS,
+						kernel_sizes=EMBEDDING_CB_KERNELS,
+						pool_sizes=EMBEDDING_CB_POOL_SIZES,
+						dropout_rate=EMBEDDING_CB_DROPOUTS,
+						norm=EMBEDDING_CB_NORM,
+						hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
+					)
+				),
+			),
+
+			collapse_block=CollapseBlock(
+				ff_block=LinearModel(
+					layer_sizes=COLLAPSE_FF_LAYERS,
+					hidden_activation=COLLAPSE_FF_ACTIVATION,
+					dropout_rate=COLLAPSE_FF_DROPOUTS,
+					norm=COLLAPSE_FF_NORM
+				),
+			)
+		)
 
 	def __init_dataloader(self):
 		dataset = BaseDataset(
