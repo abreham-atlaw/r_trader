@@ -7,18 +7,14 @@ from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from .rsa import RSAnalyzer
 from ...data.collect.runner_stats import RunnerStats
+from ...data.collect.runner_stats_populater import RunnerStatsPopulater
 
 
 class PlotRSAnalyzer(RSAnalyzer):
 
 	__LOSS_NAMES = [
-		"nn.CrossEntropyLoss()",
-		"ProximalMaskedLoss",
-		"ReverseMAWeightLoss(window_size=10, softmax=True)",
-		"PredictionConfidenceScore(softmax=True)",
-		"ProximalMaskedLoss(weighted_sample=True)",
-		"MultiLoss(losses=[ProximalMaskedLoss(), SoftConfidenceScore()])",
-		"MultiLoss(losses=[ProximalMaskedLoss(), SoftConfidenceScore()], weighted=False)",
+		str(loss)
+		for loss in RunnerStatsPopulater.get_evaluation_loss_functions()
 	]
 
 	def __init__(
