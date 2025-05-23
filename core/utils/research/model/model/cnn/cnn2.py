@@ -12,7 +12,7 @@ from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
 
-class CNN(SpinozaModule):
+class CNN2(SpinozaModule):
 
 	def __init__(
 			self,
@@ -22,7 +22,7 @@ class CNN(SpinozaModule):
 			collapse_block: CollapseBlock,
 			input_size: int = 1028,
 	):
-		super(CNN, self).__init__(input_size=input_size, auto_build=False)
+		super(CNN2, self).__init__(input_size=input_size, auto_build=False)
 		self.args = {
 			'extra_len': extra_len,
 			'embedding_block': embedding_block,
