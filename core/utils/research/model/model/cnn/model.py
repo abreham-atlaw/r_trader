@@ -9,6 +9,8 @@ from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
 
+# THIS IS LEGACY CODE. USE cnn.py instead.
+
 class CNN(SpinozaModule):
 
 	def __init__(
