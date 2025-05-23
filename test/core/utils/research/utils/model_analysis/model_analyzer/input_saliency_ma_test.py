@@ -12,5 +12,5 @@ from test.core.utils.research.utils.model_analysis.model_analyzer.abstract_model
 class InputSaliencyModelAnalyzerTest(AbstractModelAnalyzerTest):
 
 	def _init_analyzer(self, model: nn.Module, dataset: BaseDataset) -> ModelAnalyzer:
-		return InputSaliencyModelAnalyzer(model=model, dataset=dataset)
+		return InputSaliencyModelAnalyzer(model=model, dataset=dataset, sample_size=10)
 
