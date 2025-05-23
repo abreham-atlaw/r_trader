@@ -73,7 +73,7 @@ class CNN(SpinozaModule):
 			]
 		pool_sizes = [
 			ps
-			if isinstance(ps, typing.Tuple)
+			if isinstance(ps, typing.Iterable)
 			else (0, 1, ps)
 			for ps in pool_sizes
 		]
