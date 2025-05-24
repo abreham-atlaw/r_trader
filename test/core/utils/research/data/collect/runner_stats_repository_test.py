@@ -24,7 +24,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 
 	def setUp(self):
 		self.fs = ServiceProvider.provide_file_storage(path=Config.OANDA_SIM_MODEL_IN_PATH)
-		self.branch = Config.RunnerStatsBranches.it_27_0
+		Config.RunnerStatsLossesBranches.default = Config.RunnerStatsLossesBranches.it_23
+		self.branch = Config.RunnerStatsBranches.it_23_1
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
 		self.serializer = RunnerStatsSerializer()
 
@@ -348,6 +349,14 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				print(f"Adding {remaining} empty losses to {stat.id}")
 				stat.model_losses += tuple([0]*(remaining))
 				self.repository.store(stat)
+			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
+
+	def test_remove_losses(self):
+		idxs = [2]
+		stats = self.repository.retrieve_all()
+		for i, stat in enumerate(stats):
+			stat.model_losses = [stat.model_losses[i] for i in range(len(stat.model_losses)) if i not in idxs]
+			self.repository.store(stat)
 			print(f"Progress: {(i + 1) * 100 / len(stats):.2f}%")
 
 	def test_single_allocate(self):

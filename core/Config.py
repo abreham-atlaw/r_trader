@@ -133,7 +133,7 @@ AGENT_MIN_PROBABILITY = 1e-6
 AGENT_DISCOUNT_FACTOR = 1
 AGENT_DISCOUNT_FUNCTION = None
 AGENT_EXPLOIT_EXPLORE_TRADEOFF = 1
-AGENT_UCT_EXPLORE_WEIGHT = 1.5
+AGENT_UCT_EXPLORE_WEIGHT = 1000
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
@@ -293,6 +293,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
 	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
+	it_27_1 = "it_27_1"
 	ma_ews_dynamic_k_stm_it_29 = "ma_ews_dynamic_k_stm_it_29"
 	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
@@ -306,6 +307,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
 		it_27_0,
+		it_27_1,
 		ma_ews_dynamic_k_stm_it_29,
 		ma_ews_dynamic_k_stm_it_29_dm_0,
 		ma_ews_dynamic_k_stm_it_31,
@@ -319,6 +321,12 @@ class RunnerStatsLossesBranches:
 
 	main = "main"
 	it_23 = "it_23"
+	it_23_sw_0 = "it_23_sw_0"
+	it_23_sw_1 = "it_23_sw_1"
+	it_23_sw_2 = "it_23_sw_2"
+	it_23_sw_3 = "it_23_sw_3"
+	it_23_sw_4 = "it_23_sw_4"
+	it_23_sw_5 = "it_23_sw_5"
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_29 = "it_29"
@@ -328,6 +336,12 @@ class RunnerStatsLossesBranches:
 	all = [
 		main,
 		it_23,
+		it_23_sw_0,
+		it_23_sw_1,
+		it_23_sw_2,
+		it_23_sw_3,
+		it_23_sw_4,
+		it_23_sw_5,
 		it_24,
 		it_27,
 		it_29,
