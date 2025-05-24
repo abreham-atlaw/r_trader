@@ -7,10 +7,10 @@ from lib.utils.math import moving_average
 class MovingAverage(SmoothingAlgorithm):
 
 	def __init__(self, window_size: int):
-		self.__window_size = window_size
+		self.window_size = window_size
 
 	def apply(self, x: np.ndarray) -> np.ndarray:
-		return moving_average(x, self.__window_size)
+		return moving_average(x, self.window_size)
 
 	def __str__(self):
-		return f"MovingAverage({self.__window_size})"
+		return f"MovingAverage({self.window_size})"
