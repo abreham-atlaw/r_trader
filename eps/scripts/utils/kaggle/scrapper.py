@@ -11,7 +11,7 @@ def share_notebooks():
 	notebook_urls = [
 		f'https://www.kaggle.com/code/abrehamatlaw0/rtrader-ml-rsp-cnn-0-it-{i}-it-23-sw{j}/'
 		for i in [23, 27]
-		for j in [3, 4]
+		for j in [8]
 		# for i in range(40)
 	]
 	random.shuffle(notebook_urls)
