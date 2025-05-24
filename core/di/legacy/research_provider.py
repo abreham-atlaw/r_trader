@@ -28,6 +28,13 @@ class ResearchProvider:
 		)
 
 	@staticmethod
+	def provide_rs_blacklist_repository(rs_repo=None) -> 'RSBlacklistRepository':
+		from core.utils.research.data.collect.blacklist_repository import RSBlacklistRepository
+		if rs_repo is None:
+			rs_repo = ResearchProvider.provide_runner_stats_repository()
+		return RSBlacklistRepository.from_rs_repository(rs_repo)
+
+	@staticmethod
 	def provide_times_repository() -> 'TimesRepository':
 		from core.utils.research.data.collect.sim_setup.times_repository import JsonTimesRepository
 		return JsonTimesRepository(Config.OANDA_SIM_TIMES_PATH)
