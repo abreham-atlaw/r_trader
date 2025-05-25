@@ -184,7 +184,7 @@ class CNN(SpinozaModule):
 
 		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
 			out = norm(out)
-			out = layer.forward(out)
+			out = layer(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
 			out = dropout(out)
