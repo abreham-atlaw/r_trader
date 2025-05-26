@@ -1,2 +1,3 @@
 from .model_analyzer import ModelAnalyzer
 from .input_saliency_ma import InputSaliencyModelAnalyzer
+from .layer_saliency_ma import LayerSaliencyModelAnalyzer

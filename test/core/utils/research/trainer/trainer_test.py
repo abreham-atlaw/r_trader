@@ -64,7 +64,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.__create_transformer()
+		return self.__create_cnn()
 
 	def __create_cnn(self):
 		CHANNELS = [128 for _ in range(4)]
@@ -82,6 +82,7 @@ class TrainerTest(unittest.TestCase):
 		STRIDE = 2
 		INPUT_DROPOUT = 0.2
 		INPUT_NORM = True
+		COLLAPSE_AVG_POOL = True
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -155,7 +156,8 @@ class TrainerTest(unittest.TestCase):
 			stride=STRIDE,
 			channel_ffn=channel_ffn,
 			input_dropout=INPUT_DROPOUT,
-			input_norm=INPUT_NORM
+			input_norm=INPUT_NORM,
+			collapse_avg_pool=COLLAPSE_AVG_POOL
 		)
 		return model
 

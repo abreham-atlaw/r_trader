@@ -34,6 +34,7 @@ class CNN(SpinozaModule):
 			norm_positional_encoding: bool = False,
 			channel_ffn: typing.Optional[nn.Module] = None,
 			input_dropout: float = 0.0,
+			collapse_avg_pool: bool = False,
 			input_norm: bool = False
 	):
 		super(CNN, self).__init__(input_size=input_size, auto_build=False)
@@ -142,6 +143,7 @@ class CNN(SpinozaModule):
 		self.channel_ffn = AxisFFN(channel_ffn, axis=1) if channel_ffn else nn.Identity()
 		self.input_dropout = nn.Dropout(input_dropout) if input_dropout > 0 else nn.Identity()
 		self.input_norm = DynamicLayerNorm() if input_norm else nn.Identity()
+		self.collapse_avg_pool = nn.AdaptiveAvgPool1d(1) if collapse_avg_pool else nn.Identity()
 		self.init()
 
 	def _build_conv_layers(
@@ -169,6 +171,7 @@ class CNN(SpinozaModule):
 		return inputs + self.pos_layer(inputs)
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
+		out = self.collapse_avg_pool(out)
 		return torch.flatten(out, 1, 2)
 
 	def call(self, x):
@@ -184,7 +187,7 @@ class CNN(SpinozaModule):
 
 		for layer, pool_layer, norm, dropout in zip(self.layers, self.pool_layers, self.norm_layers, self.dropouts):
 			out = norm(out)
-			out = layer.forward(out)
+			out = layer(out)
 			out = self.hidden_activation(out)
 			out = pool_layer(out)
 			out = dropout(out)

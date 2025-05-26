@@ -19,7 +19,7 @@ class ModelAnalyzer(ABC):
 			sample_size: int = None,
 			random_state: int = 42
 	):
-		self.__model = model
+		self._model = model
 		self.__dataset = dataset
 		self.__sample_size = sample_size
 		self.__random_state = random_state
@@ -54,5 +54,5 @@ class ModelAnalyzer(ABC):
 	def start(self):
 		X, y, w = self.__prepare_data()
 		Logger.info(f"Analyzing...")
-		self._analyze(self.__model, X, y, w)
+		self._analyze(self._model, X, y, w)
 
