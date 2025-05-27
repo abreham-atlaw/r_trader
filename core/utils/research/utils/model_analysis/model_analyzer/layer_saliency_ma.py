@@ -10,6 +10,7 @@ import json
 from lib.utils.logger import Logger
 from .model_analyzer import ModelAnalyzer
 from core.utils.research.utils.model_analysis.f import get_layer_saliency
+from .utils.plot_utils import PlotUtils
 
 
 class LayerSaliencyModelAnalyzer(ModelAnalyzer):
@@ -36,16 +37,7 @@ class LayerSaliencyModelAnalyzer(ModelAnalyzer):
 			json.dump(saliency.tolist(), file)
 
 		if self.__plot:
-			plt.figure()
-			plt.title(name)
-			if saliency.ndim == 1:
-				saliency = torch.unsqueeze(saliency, 0)
-
-			for i in range(saliency.shape[0]):
-				plt.plot(saliency[i], label=f"{i}")
-
-			plt.legend()
-			plt.pause(0.1)
+			PlotUtils.plot(saliency, title=name)
 
 	def _analyze(self, model: nn.Module, X: torch.Tensor, y: torch.Tensor, w: torch.Tensor):
 

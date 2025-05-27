@@ -11,6 +11,7 @@ from torch import nn
 from core.utils.research.utils.model_analysis import f as F
 from lib.utils.logger import Logger
 from .model_analyzer import ModelAnalyzer
+from .utils.plot_utils import PlotUtils
 
 
 class LayerOutputModelAnalyzer(ModelAnalyzer):
@@ -56,20 +57,10 @@ class LayerOutputModelAnalyzer(ModelAnalyzer):
 	def __plot_samples(self, X: torch.Tensor, name: str):
 		samples = self.__get_plot_samples(X)
 
-		if samples.ndim == 2:
-			samples = torch.unsqueeze(samples, 1)
-
-		rows = math.ceil(samples.shape[0] / self.__plot_cols)
-
-		plt.figure(figsize=(self.__plot_fig_size[0]*self.__plot_cols, self.__plot_fig_size[1]*rows))
-		plt.title(name)
-		for i in range(samples.shape[0]):
-			plt.subplot(rows, self.__plot_cols, i + 1)
-			for j in range(samples.shape[1]):
-				plt.plot(samples[i, j], label=f"{j}")
-
-			plt.legend()
-		plt.pause(0.1)
+		PlotUtils.plot(
+			y=samples,
+			title=name,
+		)
 
 	def __analyze_layer(self, model: nn.Module, X: torch.Tensor, layer: nn.Module, name: str):
 		Logger.info(f"Analyzing layer \"{name}\"")

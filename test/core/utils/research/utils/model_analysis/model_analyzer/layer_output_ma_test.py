@@ -19,5 +19,6 @@ class LayerOutputModelAnalyzerTest(AbstractModelAnalyzerTest):
 			layers={
 				"Layer 0": model.layers[0],
 				"Layer 1": model.layers[1]
-			}
+			},
+			plot_samples=3
 		)

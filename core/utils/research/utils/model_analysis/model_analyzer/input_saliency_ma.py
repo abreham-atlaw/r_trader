@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 from core.utils.research.utils.model_analysis import f as F
 from core.utils.research.utils.model_analysis.model_analyzer.model_analyzer import ModelAnalyzer
+from core.utils.research.utils.model_analysis.model_analyzer.utils.plot_utils import PlotUtils
 from lib.utils.logger import Logger
 
 
@@ -30,5 +31,5 @@ class InputSaliencyModelAnalyzer(ModelAnalyzer):
 			json.dump(saliency.tolist(), file)
 
 		if self.__plot:
-			plt.plot(saliency)
+			PlotUtils.plot(saliency, title="Input Saliency")
 			plt.show()
