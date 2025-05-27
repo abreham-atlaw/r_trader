@@ -23,7 +23,7 @@ class LayerOutputModelAnalyzer(ModelAnalyzer):
 			plot_samples: int = 10,
 			plot_samples_random_state: int = 42,
 			plot_cols: int = 2,
-			plot_fig_size: typing.Tuple[int, int] = (10, 5),
+			plot_fig_size: typing.Tuple[int, int] = (10, 10),
 			plot: bool = True,
 			**kwargs
 	):
@@ -61,7 +61,7 @@ class LayerOutputModelAnalyzer(ModelAnalyzer):
 
 		rows = math.ceil(samples.shape[0] / self.__plot_cols)
 
-		plt.figure(figsize=(self.__plot_fig_size[0]*rows, self.__plot_fig_size[1]*self.__plot_cols))
+		plt.figure(figsize=(self.__plot_fig_size[0]*self.__plot_cols, self.__plot_fig_size[1]*rows))
 		plt.title(name)
 		for i in range(samples.shape[0]):
 			plt.subplot(rows, self.__plot_cols, i + 1)
