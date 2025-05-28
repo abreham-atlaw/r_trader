@@ -64,16 +64,17 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.__create_cnn()
+		return self.create_cnn()
 
-	def __create_cnn(self):
+	@staticmethod
+	def create_cnn():
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
+		ACTIVATION = [nn.LeakyReLU(), nn.Identity(), nn.Identity(), nn.LeakyReLU()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
@@ -157,7 +158,7 @@ class TrainerTest(unittest.TestCase):
 			channel_ffn=channel_ffn,
 			input_dropout=INPUT_DROPOUT,
 			input_norm=INPUT_NORM,
-			collapse_avg_pool=COLLAPSE_AVG_POOL
+			collapse_avg_pool=COLLAPSE_AVG_POOL,
 		)
 		return model
 
@@ -259,11 +260,25 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=10,
+			epochs=5,
 			progress=True,
 		)
 
 		ModelHandler.save(self.trainer.model, SAVE_PATH)
+
+		for X, y, w in self.test_dataloader:
+			break
+
+		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model.eval()
+
+		original_y = self.trainer.model(X)
+
+		loaded_y = loaded_model(X)
+
+		self.assertTrue(torch.allclose(original_y, loaded_y))
+
+		self.trainer.validate(self.test_dataloader)
 
 	def test_validate(self):
 		self.trainer.validate(self.test_dataloader)
