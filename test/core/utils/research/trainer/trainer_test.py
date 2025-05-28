@@ -64,9 +64,10 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.__create_cnn()
+		return self.create_cnn()
 
-	def __create_cnn(self):
+	@staticmethod
+	def create_cnn():
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
@@ -157,7 +158,7 @@ class TrainerTest(unittest.TestCase):
 			channel_ffn=channel_ffn,
 			input_dropout=INPUT_DROPOUT,
 			input_norm=INPUT_NORM,
-			collapse_avg_pool=COLLAPSE_AVG_POOL
+			collapse_avg_pool=COLLAPSE_AVG_POOL,
 		)
 		return model
 
