@@ -22,7 +22,7 @@ class LayerOutputModelAnalyzer(ModelAnalyzer):
 			*args,
 			layers: typing.Dict[str, nn.Module] = None,
 			export_path: str = "./",
-			plot_samples: int = 10,
+			plot_samples: int = 3,
 			plot_samples_random_state: int = 42,
 			plot_cols: int = 2,
 			plot_fig_size: typing.Tuple[int, int] = (10, 10),
