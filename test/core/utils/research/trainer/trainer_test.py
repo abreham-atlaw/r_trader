@@ -17,6 +17,7 @@ from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
+from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -64,7 +65,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.create_cnn()
+		return self.create_cnn2()
 
 	@staticmethod
 	def create_cnn():
@@ -79,11 +80,11 @@ class TrainerTest(unittest.TestCase):
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		NORM = [True] + [True for _ in CHANNELS[1:]]
 		STRIDE = 2
 		INPUT_DROPOUT = 0.2
-		INPUT_NORM = True
-		COLLAPSE_AVG_POOL = True
+		INPUT_NORM = False
+		COLLAPSE_AVG_POOL = False
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -93,7 +94,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
-		USE_CHANNEL_FFN = True
+		USE_CHANNEL_FFN = False
 		CHANNEL_FFN_LAYERS = [CHANNELS[-1] for _ in range(4)]
 		CHANNEL_FFN_DROPOUT = 0.1
 		CHANNEL_FFN_ACTIVATION = nn.LeakyReLU()
@@ -161,6 +162,12 @@ class TrainerTest(unittest.TestCase):
 			collapse_avg_pool=COLLAPSE_AVG_POOL,
 		)
 		return model
+
+	@staticmethod
+	def create_cnn2():
+		model = TrainerTest.create_cnn()
+		migrator = CNNToCNN2Migrator()
+		return migrator._create_model(model)
 
 	def __create_transformer(self):
 
