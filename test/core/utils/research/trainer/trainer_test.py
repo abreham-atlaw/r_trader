@@ -74,7 +74,7 @@ class TrainerTest(unittest.TestCase):
 		VOCAB_SIZE = 431
 		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
+		ACTIVATION = [nn.LeakyReLU(), nn.Identity(), nn.Identity(), nn.LeakyReLU()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
@@ -260,11 +260,25 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=10,
+			epochs=5,
 			progress=True,
 		)
 
 		ModelHandler.save(self.trainer.model, SAVE_PATH)
+
+		for X, y, w in self.test_dataloader:
+			break
+
+		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model.eval()
+
+		original_y = self.trainer.model(X)
+
+		loaded_y = loaded_model(X)
+
+		self.assertTrue(torch.allclose(original_y, loaded_y))
+
+		self.trainer.validate(self.test_dataloader)
 
 	def test_validate(self):
 		self.trainer.validate(self.test_dataloader)
