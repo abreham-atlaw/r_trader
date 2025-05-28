@@ -14,8 +14,4 @@ class LayerSaliencyModelAnalyzerTest(AbstractModelAnalyzerTest):
 			model=model,
 			dataset=dataset,
 			sample_size=10,
-			layers={
-				"Layer 0": model.layers[0],
-				"Layer 1": model.layers[1],
-			}
 		)
