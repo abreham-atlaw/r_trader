@@ -45,7 +45,7 @@ def get_layer_io_saliency(model: nn.Module, X: torch.Tensor, layer: nn.Module) -
 	def pre_layer_hook(_, input):
 		nonlocal data
 		if not (isinstance(input, typing.Iterable) and isinstance(input[0], torch.Tensor)):
-			raise ValueError(f"Input type not known. input: {input}")
+			return input
 		data = input[0].detach().requires_grad_(True)
 		return (data,)
 
