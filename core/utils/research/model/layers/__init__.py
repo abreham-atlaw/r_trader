@@ -13,3 +13,5 @@ from .dynamic_layer_norm import DynamicLayerNorm
 from .linear_lazy import LinearLazy
 from .axis_ffn import AxisFFN
 from .dynamic_pool import DynamicPool
+from .flatten import FlattenLayer
+from .pass_through import PassThroughLayer

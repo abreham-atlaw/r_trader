@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN, DynamicPool
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN, DynamicPool, PassThroughLayer, \
+	FlattenLayer
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -104,6 +105,7 @@ class CNN(SpinozaModule):
 
 		if isinstance(hidden_activation, nn.Module):
 			hidden_activation = [hidden_activation for _ in conv_channels[:-1]]
+		hidden_activation = [ha if isinstance(ha, nn.Identity) else PassThroughLayer(ha) for ha in hidden_activation]
 		if len(hidden_activation) != len(conv_channels) - 1:
 			raise ValueError("Hidden activation size doesn't match layers size")
 
@@ -155,6 +157,7 @@ class CNN(SpinozaModule):
 		self.input_dropout = nn.Dropout(input_dropout) if input_dropout > 0 else nn.Identity()
 		self.input_norm = DynamicLayerNorm() if input_norm else nn.Identity()
 		self.collapse_avg_pool = nn.AdaptiveAvgPool1d(1) if collapse_avg_pool else nn.Identity()
+		self.flatten = FlattenLayer(1, 2)
 		self.init()
 
 	def _build_conv_layers(
@@ -183,7 +186,7 @@ class CNN(SpinozaModule):
 
 	def collapse(self, out: torch.Tensor) -> torch.Tensor:
 		out = self.collapse_avg_pool(out)
-		return torch.flatten(out, 1, 2)
+		return self.flatten(out)
 
 	def call(self, x):
 		seq = x[:, :-self.extra_len]

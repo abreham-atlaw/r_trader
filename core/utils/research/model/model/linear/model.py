@@ -93,7 +93,7 @@ class LinearModel(SpinozaModule):
 		out = x
 		for norm, layer, dropout, i in zip(self.norms, self.layers, self.dropouts, range(len(self.layers))):
 			out = norm(out)
-			out = layer.forward(out)
+			out = layer(out)
 			if i == len(self.layers) - 1:
 				continue
 			out = self.hidden_activation(out)
