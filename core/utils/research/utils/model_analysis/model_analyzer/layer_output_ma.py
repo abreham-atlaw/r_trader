@@ -82,7 +82,7 @@ class LayerOutputModelAnalyzer(ModelAnalyzer):
 		for name, layer in self.__layers.items():
 			try:
 				self.__analyze_layer(model, X, layer, name)
-			except ValueError as ex:
+			except (ValueError, RuntimeError) as ex:
 				Logger.error(f"Failed to analyze {name}: {ex}")
 
 		if self.__plot:
