@@ -65,7 +65,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.create_cnn2()
+		return self.create_cnn()
 
 	@staticmethod
 	def create_cnn():
