@@ -37,7 +37,7 @@ class LayerSaliencyModelAnalyzer(ModelAnalyzer):
 		Logger.info(f"Analyzing {name}...")
 		saliency = get_layer_saliency(model, X, layer)
 
-		export_path = os.path.join(self.__export_path, f"{name}.json")
+		export_path = os.path.join(self.__export_path, f"layer_saliency-{name}.json")
 		Logger.info(f"Exporting Layer Saliency to {export_path}")
 		with open(export_path, 'w') as file:
 			json.dump(saliency.tolist(), file)
@@ -52,7 +52,7 @@ class LayerSaliencyModelAnalyzer(ModelAnalyzer):
 		for i, (name, layer) in enumerate(self.__layers.items()):
 			try:
 				self.__analyze_layer(name, layer, model, X)
-			except ValueError as ex:
+			except (ValueError, RuntimeError) as ex:
 				Logger.error(f"Failed to analyze {name}: {ex}")
 
 		if self.__plot:
