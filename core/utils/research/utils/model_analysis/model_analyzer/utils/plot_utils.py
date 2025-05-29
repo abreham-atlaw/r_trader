@@ -28,6 +28,7 @@ class PlotUtils:
 			title: str,
 			start_idx: int
 	):
+		plt.grid(True)
 		for i in range(y.shape[0]):
 			plt.plot(X[i], y[i], label=f"{start_idx + i}")
 		plt.legend()
