@@ -71,7 +71,7 @@ class LinearModel(SpinozaModule):
 		hidden_activation += [nn.Identity()]
 		if len(hidden_activation) != num_layers:
 			raise ValueError("Hidden activation size doesn't match layers size")
-		hidden_activation = [ha if isinstance(ha, nn.Identity) else PassThroughLayer(ha) for ha in hidden_activation]
+		hidden_activation = nn.ModuleList([ha if isinstance(ha, nn.Identity) else PassThroughLayer(ha) for ha in hidden_activation])
 		return hidden_activation
 
 	def build(self, input_size: torch.Size):
