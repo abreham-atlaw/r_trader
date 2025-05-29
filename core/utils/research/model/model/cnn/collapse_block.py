@@ -26,12 +26,15 @@ class CollapseBlock(SpinozaModule):
 		self.extra_mode = extra_mode
 
 	def call(self, x: torch.Tensor, extra: typing.Optional[torch.Tensor] = None) -> torch.Tensor:
-		out = torch.flatten(x, 1, 2)
-		out = out.reshape(out.size(0), -1)
-		out = self.dropout(out)
+		flattened = torch.flatten(x, 1, 2)
+		flattened = flattened.reshape(flattened.size(0), -1)
+		flattened = self.dropout(flattened)
+
+		concat = flattened
 		if self.extra_mode:
-			out = torch.cat((out, extra), dim=1)
-		out = self.ff_block(out)
+			concat = torch.cat((concat, extra), dim=1)
+
+		out = self.ff_block(concat)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:

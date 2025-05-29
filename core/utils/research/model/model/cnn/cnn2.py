@@ -1,14 +1,8 @@
 import typing
 
-import torch
-import torch.nn as nn
-from positional_encodings.torch_encodings import PositionalEncodingPermute1D
-
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
-from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
 
