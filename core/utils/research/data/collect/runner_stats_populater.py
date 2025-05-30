@@ -13,7 +13,7 @@ from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
-	SpinozaLoss, ReverseMAWeightLoss
+	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore
 from core.utils.research.model.model.utils import TemperatureScalingModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
@@ -51,7 +51,7 @@ class RunnerStatsPopulater:
 		if exception_exceptions is None:
 			exception_exceptions = []
 		self.__exception_exceptions = exception_exceptions
-		self.__loss_functions = self.__get_evaluation_loss_functions()
+		self.__loss_functions = self.get_evaluation_loss_functions()
 		self.__blacklist_repo: RSBlacklistRepository = ResearchProvider.provide_rs_blacklist_repository(rs_repo=repository)
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
@@ -71,7 +71,7 @@ class RunnerStatsPopulater:
 			stat.model_losses = tuple(stat.model_losses) + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
 	@staticmethod
-	def __get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
+	def get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
 		return [
 				CrossEntropyLoss(),
 				ProximalMaskedLoss(
@@ -85,6 +85,43 @@ class RunnerStatsPopulater:
 					softmax=True,
 					weighted_sample=True,
 				),
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss(
+							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+							p=1,
+							softmax=True,
+							collapsed=False
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=True
+				),
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss(
+							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+							p=1,
+							softmax=True,
+							collapsed=False
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:

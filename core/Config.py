@@ -245,7 +245,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-34/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-37/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -303,6 +303,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 	it_34_1 = "it_34_1"
+	it_37_1 = "it_37_1"
 
 	all = [
 		main,
@@ -318,10 +319,11 @@ class RunnerStatsBranches:
 		it_30_1,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
-		it_34_1
+		it_34_1,
+		it_37_1
 	]
 
-	default = it_34_1
+	default = it_37_1
 
 
 class RunnerStatsLossesBranches:
@@ -340,13 +342,16 @@ class RunnerStatsLossesBranches:
 	it_23_sw_9 = "it_23_sw_9"
 	it_23_sw_10 = "it_23_sw_10"
 	it_23_sw_11 = "it_23_sw_11"
+	it_23_sw_12 = "it_23_sw_12"
 	it_24 = "it_24"
 	it_27 = "it_27"
+	it_27_sw_11 = "it_27_sw_11"
 	it_29 = "it_29"
 	it_30 = "it_30"
 	it_31 = "it_31"
 	it_33 = "it_33"
 	it_34 = "it_34"
+	it_37 = "it_37"
 
 	all = [
 		main,
@@ -363,13 +368,16 @@ class RunnerStatsLossesBranches:
 		it_23_sw_9,
 		it_23_sw_10,
 		it_23_sw_11,
+		it_23_sw_12,
 		it_24,
 		it_27,
+		it_27_sw_11,
 		it_29,
 		it_30,
 		it_31,
 		it_33,
-		it_34
+		it_34,
+		it_37
 	]
 
-	default = it_34
+	default = it_37
