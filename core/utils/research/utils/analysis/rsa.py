@@ -71,6 +71,9 @@ class RSAnalyzer(ABC):
 		if rs_filter.max_profit is not None:
 			stats = [dp for dp in stats if dp.profit <= rs_filter.max_profit]
 
+		if rs_filter.filter_fn is not None:
+			stats = list(filter(rs_filter.filter_fn, stats))
+
 		return stats
 
 	@staticmethod

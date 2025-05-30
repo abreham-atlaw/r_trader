@@ -1,37 +1,24 @@
 import os
 import unittest
-from datetime import datetime
 
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import MSELoss
-from torch.utils.data import DataLoader, Dataset
 from torch.optim import Adam
+from torch.utils.data import DataLoader, Dataset
 
-from core import Config
-from core.di import ServiceProvider
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.data.load.ensemble import EnsembleStackedDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
-from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm
+from core.utils.research.model.model.cnn.cnn_block import CNNBlock
+from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
+from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.cnn.resnet import ResNet
-from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM, PlainMSM
-from core.utils.research.model.model.ensemble.stacked.linear_3dmsm import Linear3dMSM
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.transformer import Decoder
-from core.utils.research.model.model.transformer import Transformer
-from core.utils.research.training.callbacks import WeightStatsCallback
-from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
-from core.utils.research.training.callbacks.metric_callback import MetricCallback
-from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
-from core.utils.research.training.data.state import TrainingState
-from core.utils.research.training.trackers.stats_tracker import DynamicStatsTracker, Keys, WeightsStatsTracker, \
-	GradientsStatsTracker
+from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
+from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
-from lib.utils.torch_utils.tensor_merger import TensorMerger
 
 
 class SineWaveDataset(Dataset):
@@ -78,20 +65,26 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
+		return self.create_cnn()
+
+	@staticmethod
+	def create_cnn():
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
+		ACTIVATION = [nn.LeakyReLU(), nn.Identity(), nn.Identity(), nn.LeakyReLU()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		NORM = [True] + [True for _ in CHANNELS[1:]]
 		STRIDE = 2
 		INPUT_DROPOUT = 0.2
+		INPUT_NORM = False
+		COLLAPSE_AVG_POOL = False
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -101,7 +94,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
-		USE_CHANNEL_FFN = True
+		USE_CHANNEL_FFN = False
 		CHANNEL_FFN_LAYERS = [CHANNELS[-1] for _ in range(4)]
 		CHANNEL_FFN_DROPOUT = 0.1
 		CHANNEL_FFN_ACTIVATION = nn.LeakyReLU()
@@ -112,7 +105,7 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_LINEAR_NORM = [DynamicBatchNorm()] + [MinMaxNorm() for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_NORM_LEARNABLE = False
 		FF_DROPOUT = 0.12
 
@@ -164,9 +157,75 @@ class TrainerTest(unittest.TestCase):
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 			stride=STRIDE,
 			channel_ffn=channel_ffn,
-			input_dropout=INPUT_DROPOUT
+			input_dropout=INPUT_DROPOUT,
+			input_norm=INPUT_NORM,
+			collapse_avg_pool=COLLAPSE_AVG_POOL,
 		)
 		return model
+
+	@staticmethod
+	def create_cnn2():
+		model = TrainerTest.create_cnn()
+		migrator = CNNToCNN2Migrator()
+		return migrator._create_model(model)
+
+	def __create_transformer(self):
+
+		EXTRA_LEN = 124
+		INPUT_SIZE = 1024 + EXTRA_LEN
+		VOCAB_SIZE = 431
+
+		# DECODER BLOCK
+		EMBEDDING_CB_CHANNELS = [8]*2
+		EMBEDDING_CB_KERNELS = [3]*len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_POOL_SIZES = [0] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_DROPOUTS = [0] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_NORM = [False] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_HIDDEN_ACTIVATION = nn.PReLU()
+		INDICATORS_DELTA = True
+
+		NUM_HEADS = 4
+
+		# COLLAPSE BLOCK
+		COLLAPSE_FF_LAYERS = [16] * 2 + [VOCAB_SIZE + 1]
+		COLLAPSE_FF_DROPOUTS = [0] * (len(COLLAPSE_FF_LAYERS) - 1)
+		COLLAPSE_FF_ACTIVATION = nn.PReLU()
+		COLLAPSE_FF_NORM = [False] * len(COLLAPSE_FF_LAYERS)
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+		)
+
+		return Transformer(
+			input_size=INPUT_SIZE,
+			extra_len=EXTRA_LEN,
+			decoder_block=DecoderBlock(
+				num_heads=NUM_HEADS,
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					embedding_block=EmbeddingBlock(
+						indicators=indicators
+					),
+					cnn_block=CNNBlock(
+						input_channels=indicators.indicators_len,
+						conv_channels=EMBEDDING_CB_CHANNELS,
+						kernel_sizes=EMBEDDING_CB_KERNELS,
+						pool_sizes=EMBEDDING_CB_POOL_SIZES,
+						dropout_rate=EMBEDDING_CB_DROPOUTS,
+						norm=EMBEDDING_CB_NORM,
+						hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
+					)
+				),
+			),
+
+			collapse_block=CollapseBlock(
+				ff_block=LinearModel(
+					layer_sizes=COLLAPSE_FF_LAYERS,
+					hidden_activation=COLLAPSE_FF_ACTIVATION,
+					dropout_rate=COLLAPSE_FF_DROPOUTS,
+					norm=COLLAPSE_FF_NORM
+				),
+			)
+		)
 
 	def __init_dataloader(self):
 		dataset = BaseDataset(
@@ -174,7 +233,7 @@ class TrainerTest(unittest.TestCase):
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
 			check_file_sizes=True,
-			load_weights=True,
+			load_weights=False,
 		)
 		dataloader = DataLoader(dataset, batch_size=64)
 
@@ -183,7 +242,7 @@ class TrainerTest(unittest.TestCase):
 				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
 			],
 			check_file_sizes=True,
-			load_weights=True,
+			load_weights=False,
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=64)
 
@@ -192,7 +251,7 @@ class TrainerTest(unittest.TestCase):
 	def __init_trainer(self, model):
 		trainer = Trainer(model)
 		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=False)
-		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=True)
+		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
 
@@ -208,11 +267,25 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=10,
+			epochs=5,
 			progress=True,
 		)
 
 		ModelHandler.save(self.trainer.model, SAVE_PATH)
+
+		for X, y, w in self.test_dataloader:
+			break
+
+		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model.eval()
+
+		original_y = self.trainer.model(X)
+
+		loaded_y = loaded_model(X)
+
+		self.assertTrue(torch.allclose(original_y, loaded_y))
+
+		self.trainer.validate(self.test_dataloader)
 
 	def test_validate(self):
 		self.trainer.validate(self.test_dataloader)

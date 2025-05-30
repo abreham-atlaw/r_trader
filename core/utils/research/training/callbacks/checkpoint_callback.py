@@ -18,12 +18,14 @@ class CheckpointCallback(Callback):
 			path,
 			save_state=False,
 			ext=MODEL_SAVE_EXTENSION,
-			interval: int = None
+			interval: int = None,
+			simplified_mode: bool = False
 	):
 		self.path = path
 		self.save_state = save_state
 		self.ext = ext
 		self.interval = interval
+		self.simplified_mode = simplified_mode
 
 	def _generate_name(self) -> str:
 		return f"{datetime.now().timestamp()}.{self.ext}"
@@ -32,6 +34,9 @@ class CheckpointCallback(Callback):
 		ModelHandler.save(model, path)
 
 	def on_epoch_end(self, model, epoch, losses, logs=None):
+		if self.simplified_mode and hasattr(model, "model"):
+			Logger.info(f"Using internal model...")
+			model = model.model
 		if self.interval is not None and epoch % self.interval != 0:
 			return
 		path = self.path
