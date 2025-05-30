@@ -37,18 +37,21 @@ class AbstractLayerModelAnalyzer(ModelAnalyzer, ABC):
 	def _get_analysis(self, model: nn.Module, layer: nn.Module, X: torch.Tensor, y:torch.Tensor, w: torch.Tensor) -> torch.Tensor:
 		pass
 
-	def _prepare_plot(self, analysis: np.ndarray) -> torch.Tensor:
+	def _prepare_plot(self, analysis: torch.Tensor) -> torch.Tensor:
 		return analysis
 
 	def _get_plot_title(self, name: str, layer: nn.Module) -> str:
 		return f"{self._get_export_prefix()}-{name}({layer.__class__.__name__})"
 
-	def _prepare_export(self, analysis: np.ndarray) -> torch.Tensor:
+	def _prepare_export(self, analysis: torch.Tensor) -> torch.Tensor:
 		return analysis
 
-	def _plot_layer_analysis(self, name: str, layer: nn.Module, analysis: np.ndarray):
+	def _plot_analysis(self, analysis: torch.Tensor, title: str):
+		PlotUtils.plot(y=analysis, title=title)
+
+	def _plot_layer_analysis(self, name: str, layer: nn.Module, analysis: torch.Tensor):
 		Logger.info(f"Plotting layer \"{name}\" analysis")
-		PlotUtils.plot(y=analysis, title=self._get_plot_title(name, layer))
+		self._plot_analysis(analysis, title=self._get_plot_title(name, layer))
 
 	def _get_export_prefix(self) -> str:
 		return self.__class__.__name__
@@ -56,11 +59,12 @@ class AbstractLayerModelAnalyzer(ModelAnalyzer, ABC):
 	def _get_export_path(self, name: str, layer: nn.Module) -> str:
 		return os.path.join(self.__export_path, f"{self._get_export_prefix()}-{name}.npy")
 
-	def _export_array(self, arr: np.ndarray, path: str):
+	def _export_array(self, arr: torch.Tensor, path: str):
 		Logger.info(f"Exporting to {path}...")
+		arr = arr.detach().numpy()
 		np.save(path, arr)
 
-	def _export_layer_analysis(self, name: str, layer: nn.Module, analysis: np.ndarray):
+	def _export_layer_analysis(self, name: str, layer: nn.Module, analysis: torch.Tensor):
 		Logger.info(f"Exporting layer \"{name}\" analysis...")
 		self._export_array(analysis, self._get_export_path(name, layer))
 
