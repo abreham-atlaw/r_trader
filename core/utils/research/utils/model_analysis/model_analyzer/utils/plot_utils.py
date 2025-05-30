@@ -8,6 +8,10 @@ import numpy as np
 
 class PlotUtils:
 
+	class Mode:
+		PLOT = 0
+		IMAGE = 1
+
 	@staticmethod
 	def __to_numpy(X: typing.Union[torch.Tensor, np.ndarray]) -> np.ndarray:
 		if isinstance(X, torch.Tensor):
@@ -26,12 +30,21 @@ class PlotUtils:
 			X: np.ndarray,
 			y: np.ndarray,
 			title: str,
-			start_idx: int
+			start_idx: int,
+			mode: int
 	):
 		plt.grid(True)
-		for i in range(y.shape[0]):
-			plt.plot(X[i], y[i], label=f"{start_idx + i}")
-		plt.legend()
+
+		if mode == PlotUtils.Mode.PLOT:
+			for i in range(y.shape[0]):
+				plt.plot(X[i], y[i], label=f"{start_idx + i}")
+			plt.legend()
+
+		elif mode == PlotUtils.Mode.IMAGE:
+			y = y[0]
+			plt.imshow(y, aspect="auto", cmap="seismic", extent=[0, y.shape[1], y.shape[0], 0])
+			plt.colorbar(label='Value')
+
 		plt.title(title)
 
 	@staticmethod
@@ -42,6 +55,7 @@ class PlotUtils:
 			title: str,
 			max_plots: int,
 			cols: int,
+			mode: int
 	):
 		subplots = math.ceil(y.shape[0] / max_plots)
 		cols = min(cols, subplots)
@@ -57,7 +71,8 @@ class PlotUtils:
 				X[subplot_range[0]:subplot_range[1]],
 				y[subplot_range[0]:subplot_range[1]],
 				f"{title} ({subplot_range[0]}-{subplot_range[1]}) ",
-				start_idx=subplot_range[0]
+				start_idx=subplot_range[0],
+				mode=mode
 			)
 
 	@staticmethod
@@ -66,11 +81,19 @@ class PlotUtils:
 			X: typing.Union[np.ndarray, torch.Tensor] = None,
 			title: str = "",
 			fig_size: typing.Tuple[int, int] = None,
-			max_plots: int = 5
+			max_plots: int = 5,
+			mode: int = Mode.PLOT,
+			cols: int = 2
 	):
 		y = PlotUtils.__to_numpy(y)
 
-		while len(y.shape) < 3:
+		min_dims = 3
+
+		if mode == PlotUtils.Mode.IMAGE:
+			min_dims += 1
+			max_plots = 1
+
+		while len(y.shape) < min_dims:
 			y = np.expand_dims(y, axis=0)
 
 		if X is None:
@@ -88,7 +111,8 @@ class PlotUtils:
 				fig_size=fig_size,
 				title=f"{title} ({i}) ",
 				max_plots=max_plots,
-				cols=2
+				cols=cols,
+				mode=mode
 			)
 
 		plt.pause(0.1)

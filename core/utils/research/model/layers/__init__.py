@@ -10,6 +10,7 @@ from .rsi import *
 from .so import *
 from .indicators import *
 from .dynamic_layer_norm import DynamicLayerNorm
+from .dynamic_batch_norm import DynamicBatchNorm
 from .linear_lazy import LinearLazy
 from .axis_ffn import AxisFFN
 from .dynamic_pool import DynamicPool

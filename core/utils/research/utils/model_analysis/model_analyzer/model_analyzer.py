@@ -54,5 +54,6 @@ class ModelAnalyzer(ABC):
 	def start(self):
 		X, y, w = self.__prepare_data()
 		Logger.info(f"Analyzing...")
+		self._model = self._model.eval()
 		self._analyze(self._model, X, y, w)
 
