@@ -31,4 +31,4 @@ class LayerWeightModelAnalyzer(AbstractLayerModelAnalyzer):
 			super()._plot_layer_analysis(self._generate_name(name, param_name), layer, param)
 
 	def _plot_analysis(self, analysis: torch.Tensor, title: str):
-		PlotUtils.plot(y=analysis, title=title, mode=PlotUtils.Mode.IMAGE)
+		PlotUtils.plot(y=analysis, title=title, mode=PlotUtils.Mode.IMAGE, cols=4)

@@ -82,7 +82,8 @@ class PlotUtils:
 			title: str = "",
 			fig_size: typing.Tuple[int, int] = None,
 			max_plots: int = 5,
-			mode: int = Mode.PLOT
+			mode: int = Mode.PLOT,
+			cols: int = 2
 	):
 		y = PlotUtils.__to_numpy(y)
 
@@ -110,7 +111,7 @@ class PlotUtils:
 				fig_size=fig_size,
 				title=f"{title} ({i}) ",
 				max_plots=max_plots,
-				cols=2,
+				cols=cols,
 				mode=mode
 			)
 
