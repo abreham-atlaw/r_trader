@@ -9,7 +9,7 @@ from lib.network.rest_interface import Serializer
 
 class TorchModuleSerializer(Serializer):
 
-	def __init__(self, passthrough_wrap: bool = True):
+	def __init__(self, passthrough_wrap: bool = False):
 		super().__init__(output_class=nn.Module)
 		self.__passthrough_wrap = passthrough_wrap
 
