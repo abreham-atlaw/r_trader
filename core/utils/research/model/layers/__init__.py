@@ -16,3 +16,4 @@ from .axis_ffn import AxisFFN
 from .dynamic_pool import DynamicPool
 from .flatten import FlattenLayer
 from .pass_through import PassThroughLayer
+from .min_max_norm import MinMaxNorm
