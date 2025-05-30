@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
-from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
@@ -105,7 +105,7 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_LINEAR_NORM = [nn.Identity()] + [DynamicLayerNorm() for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_NORM_LEARNABLE = False
 		FF_DROPOUT = 0.12
 
