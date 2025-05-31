@@ -166,8 +166,8 @@ AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = True
-AGENT_KALMAN_ALPHA = 0.05
-AGENT_KALMAN_BETA = 5e-5
+AGENT_KALMAN_ALPHA = 0.03
+AGENT_KALMAN_BETA = 0.001
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
@@ -245,7 +245,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-37/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-36/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -325,7 +325,7 @@ class RunnerStatsBranches:
 		it_37_1
 	]
 
-	default = it_37_1
+	default = it_36_1
 
 
 class RunnerStatsLossesBranches:
@@ -384,4 +384,4 @@ class RunnerStatsLossesBranches:
 		it_37
 	]
 
-	default = it_37
+	default = it_36
