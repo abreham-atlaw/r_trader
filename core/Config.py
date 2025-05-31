@@ -248,7 +248,7 @@ MAX_LOSS = 1.5
 WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [0.1, 1.0, 2.0]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-37/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-36/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -280,6 +280,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 	it_34_1 = "it_34_1"
+	it_36_1 = "it_36_1"
 	it_37_1 = "it_37_1"
 
 	all = [
@@ -297,10 +298,11 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
 		it_34_1,
+		it_36_1,
 		it_37_1
 	]
 
-	default = it_37_1
+	default = it_36_1
 
 
 class RunnerStatsLossesBranches:
@@ -328,6 +330,7 @@ class RunnerStatsLossesBranches:
 	it_31 = "it_31"
 	it_33 = "it_33"
 	it_34 = "it_34"
+	it_36 = "it_36"
 	it_37 = "it_37"
 
 	all = [
@@ -354,7 +357,8 @@ class RunnerStatsLossesBranches:
 		it_31,
 		it_33,
 		it_34,
+		it_36,
 		it_37
 	]
 
-	default = it_37
+	default = it_36
