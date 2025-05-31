@@ -64,11 +64,11 @@ class SpinozaModule(nn.Module, ABC):
 
 	@classmethod
 	def import_config(cls, config) -> typing.Dict[str, typing.Any]:
-		if config.get('hidden_activation'):
-			hidden_activation_module = importlib.import_module('torch.nn')  # replace with the actual module
+		if config.get('hidden_activation') and isinstance(config['hidden_activation'], str):
+			hidden_activation_module = importlib.import_module('torch.nn')
 			config['hidden_activation'] = getattr(hidden_activation_module, config['hidden_activation'])()
 		if config.get('init_fn'):
-			init_fn_module = importlib.import_module('torch.nn.init')  # replace with the actual module
+			init_fn_module = importlib.import_module('torch.nn.init')
 			config['init_fn'] = getattr(init_fn_module, config['init_fn'])
 		return config
 

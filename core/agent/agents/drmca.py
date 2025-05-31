@@ -40,6 +40,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_path=Config.AGENT_DUMP_NODES_PATH,
 			dump_visited_only=Config.AGENT_DUMP_VISITED_ONLY,
 			discount=Config.AGENT_DISCOUNT_FACTOR,
+			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			**kwargs
 	):
@@ -57,6 +58,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_visited_only=dump_visited_only,
 			node_serializer=TraderNodeSerializer(),
 			discount=discount,
+			discount_function=discount_function,
 			state_repository=AgentUtilsProvider.provide_state_repository(),
 			**kwargs
 		)

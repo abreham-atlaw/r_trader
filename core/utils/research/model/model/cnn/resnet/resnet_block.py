@@ -2,14 +2,11 @@ import typing
 
 from torch import nn as nn
 
-from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.cnn.residual_block import ResidualBlock
+from core.utils.research.model.model.cnn.cnn_block import CNNBlock
+from core.utils.research.model.model.cnn.resnet.residual_block import ResidualBlock
 
 
-class ResNet(CNN):
-
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+class ResNetBlock(CNNBlock):
 
 	def _build_conv_layers(
 			self,
