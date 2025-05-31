@@ -7,12 +7,13 @@ from core.utils.kaggle.scrapper import ShareProcess, KaggleScraper
 
 def share_notebooks():
 
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamatlaw0.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamatlaw0/rtrader-ml-rsp-cnn-0-it-{i}-it-23-sw{j}/'
-		for i in [23, 27]
-		for j in [3, 4]
+		f'https://www.kaggle.com/code/abrehamalemu/rtrader-training-exp-0-cnn-{i}-cum-0-it-27-sw12-tot/'
+		# for i in [23, 27]
+		# for j in [8]
 		# for i in range(40)
+		for i in [39, 40, 41, 42, 43, 44]
 	]
 	random.shuffle(notebook_urls)
 	threads = len(notebook_urls)

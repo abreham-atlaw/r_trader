@@ -14,6 +14,7 @@ from pymongo.errors import AutoReconnect
 
 from core import Config
 from core.di import ServiceProvider, ResearchProvider
+from core.utils.research.data.collect.blacklist_repository import RSBlacklistRepository
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
 from lib.utils.decorators import retry
@@ -27,6 +28,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 		Config.RunnerStatsLossesBranches.default = Config.RunnerStatsLossesBranches.it_23
 		self.branch = Config.RunnerStatsBranches.it_23_1
 		self.repository: RunnerStatsRepository = ResearchProvider.provide_runner_stats_repository(self.branch)
+		self.blacklist_repo: RSBlacklistRepository = ResearchProvider.provide_rs_blacklist_repository(rs_repo=self.repository)
 		self.serializer = RunnerStatsSerializer()
 
 		self.branches = Config.RunnerStatsBranches.all
@@ -852,7 +854,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def __permanently_delete_stat(self, stat: RunnerStats):
 		print("Deleting stat", stat)
 		self.repository.delete(stat.id)
-		self.fs.delete(stat.model_name)
+		self.blacklist_repo.add(stat.id)
 
 	def test_delete_stats(self):
 
@@ -870,7 +872,7 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 	def test_get_density_stats(self):
 
 		DENSITY = 2
-		STRIDE = 1
+		STRIDE = 0.5
 		LOSS_IDX = 1
 
 		stats = list(filter(
@@ -900,8 +902,8 @@ class RunnerStatsRepositoryTest(unittest.TestCase):
 				self.__permanently_delete_stat(stat=stat)
 			return
 
-		DENSITY = 5
-		STRIDE = 1
+		DENSITY = 30
+		STRIDE = 0.5
 		LOSS_IDX = 1
 
 		strided_stats = self.__get_strided_stats(stats=self.repository.retrieve_all(), stride=STRIDE, loss_idx=LOSS_IDX)

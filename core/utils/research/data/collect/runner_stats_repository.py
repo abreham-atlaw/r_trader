@@ -11,6 +11,7 @@ from core import Config
 from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats import RunnerStats
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
+from lib.utils.logger import Logger
 
 
 class RunnerStatsRepository:
@@ -28,8 +29,9 @@ class RunnerStatsRepository:
 			profit_predictor: 'ProfitPredictor' = None,
 			branch: str = Config.RunnerStatsBranches.default,
 	):
-		print(f"Using Branch {branch} with key '{model_name_key}'")
+		Logger.info(f"Using Branch {branch} with key '{model_name_key}'")
 		db = client[db_name]
+		self.client = client
 		self._collection = db[f"{collection_name}-branch-{branch}"]
 		self.__serializer = RunnerStatsSerializer()
 		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
