@@ -29,7 +29,7 @@ class CNNBlock(SpinozaModule):
 			'conv_channels': conv_channels,
 			'kernel_sizes': kernel_sizes,
 			'pool_sizes': pool_sizes,
-			'hidden_activation': hidden_activation.__class__.__name__ if hidden_activation else None,
+			'hidden_activation': hidden_activation,
 			'dropout_rate': dropout_rate,
 			'norm': norm,
 			'stride': stride,
