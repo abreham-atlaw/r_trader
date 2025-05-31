@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.model.ensemble.stacked import LinearMSM
+from core.utils.research.model.model.ensemble.stacked.msm import LinearMSM
 
 
 class Linear3dMSM(LinearMSM):
