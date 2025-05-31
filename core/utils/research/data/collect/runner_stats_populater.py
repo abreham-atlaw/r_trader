@@ -51,7 +51,7 @@ class RunnerStatsPopulater:
 		if exception_exceptions is None:
 			exception_exceptions = []
 		self.__exception_exceptions = exception_exceptions
-		self.__loss_functions = self.__get_evaluation_loss_functions()
+		self.__loss_functions = self.get_evaluation_loss_functions()
 		self.__blacklist_repo: RSBlacklistRepository = ResearchProvider.provide_rs_blacklist_repository(rs_repo=repository)
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
@@ -71,7 +71,7 @@ class RunnerStatsPopulater:
 			stat.model_losses = tuple(stat.model_losses) + tuple([0.0,] * (len(self.__loss_functions) - len(stat.model_losses)))
 
 	@staticmethod
-	def __get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
+	def get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
 		return [
 				CrossEntropyLoss(),
 				ProximalMaskedLoss(
