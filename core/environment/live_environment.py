@@ -7,8 +7,7 @@ import pandas as pd
 
 from datetime import datetime
 
-from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter
-from core.utils.research.model.layers import MovingAverage
+from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter, MovingAverage
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.utils.logger import Logger
