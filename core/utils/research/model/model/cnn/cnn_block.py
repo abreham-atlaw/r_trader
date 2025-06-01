@@ -15,9 +15,9 @@ class CNNBlock(SpinozaModule):
 			conv_channels: typing.List[int],
 			kernel_sizes: typing.List[int],
 			pool_sizes: typing.List[typing.Union[int, typing.Tuple[int, int, int]]] = None,
-			hidden_activation: typing.Optional[nn.Module] = None,
+			hidden_activation: typing.Union[nn.Module, typing.List[nn.Module]] = None,
 			dropout_rate: typing.Union[float, typing.List[float]] = 0,
-			norm: typing.Union[bool, typing.List[bool]] = False,
+			norm: typing.Union[typing.Union[bool, typing.List[bool]], typing.Union[nn.Module, typing.List[nn.Module]]] = False,
 			stride: typing.Union[int, typing.List[int]] = 1,
 			padding: int = 0,
 			avg_pool=True,
@@ -43,10 +43,10 @@ class CNNBlock(SpinozaModule):
 		conv_channels = [input_channels] + conv_channels
 
 		pool_sizes = self.__prepare_arg_pool(pool_sizes)
-		norm = self.__prepare_arg_norm(norm, kernel_sizes)
 		dropout_rate = self.__prepare_arg_dropout(dropout_rate, kernel_sizes)
 		stride = self.__prepare_arg_stride(stride, kernel_sizes)
 		hidden_activation = self.__prepare_arg_hidden_activation(hidden_activation, kernel_sizes)
+		self.norm_layers = self.__prepare_arg_norm(norm, kernel_sizes)
 
 		self.layers = nn.ModuleList(self._build_conv_layers(
 			channels=conv_channels,
@@ -55,13 +55,8 @@ class CNNBlock(SpinozaModule):
 			padding=padding
 		))
 		self.pool_layers = nn.ModuleList()
-		self.norm_layers = nn.ModuleList()
 
 		for i in range(len(conv_channels) - 1):
-			if norm[i]:
-				self.norm_layers.append(DynamicLayerNorm())
-			else:
-				self.norm_layers.append(nn.Identity())
 			if init_fn is not None:
 				init_fn(self.layers[-1].weight)
 
@@ -79,6 +74,21 @@ class CNNBlock(SpinozaModule):
 			nn.Dropout(rate) if rate > 0 else nn.Identity()
 			for rate in dropout_rate
 		])
+
+	@staticmethod
+	def __prepare_arg_norm(norm, kernel_sizes: int) -> typing.List[nn.Module]:
+		num_layers = len(kernel_sizes)
+		if norm is None:
+			norm = False
+		if isinstance(norm, bool):
+			norm = DynamicLayerNorm() if norm else nn.Identity()
+		if isinstance(norm, typing.Iterable) and len(norm) > 0 and isinstance(norm[0], bool):
+			norm = [DynamicLayerNorm() if n else nn.Identity() for n in norm]
+		if not isinstance(norm, typing.Iterable):
+			norm = [norm for _ in range(num_layers)]
+		if len(norm) != num_layers:
+			raise ValueError("Norm size doesn't match layers size")
+		return nn.ModuleList(norm)
 
 	def __prepare_arg_pool(self, pool_sizes: typing.List[typing.Union[int, typing.Tuple[int, int, int]]]) -> typing.List[typing.Tuple[int, int, int]]:
 		if pool_sizes is None:
@@ -126,17 +136,6 @@ class CNNBlock(SpinozaModule):
 		if len(dropout_rate) != len(kernel_sizes):
 			raise ValueError("Dropout size doesn't match layers size")
 		return dropout_rate
-
-	@staticmethod
-	def __prepare_arg_norm(
-			norm: typing.Union[bool, typing.List[bool]],
-			kernel_sizes: typing.List[int]
-	) -> typing.List[bool]:
-		if isinstance(norm, bool):
-			norm = [norm for _ in range(len(kernel_sizes))]
-		if len(norm) != len(kernel_sizes):
-			raise ValueError("Norm size doesn't match layers size")
-		return norm
 
 	def _build_conv_layers(
 			self,

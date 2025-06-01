@@ -175,10 +175,7 @@ class TrainerTest(unittest.TestCase):
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		LINEAR_COLLAPSE = True
-		AVG_POOL = True
-		NORM = [False] + [False for _ in CHANNELS[1:]]
-		LR = 1e-4
+		NORM = [MinMaxNorm()] + [DynamicLayerNorm() for _ in CHANNELS[1:]]
 
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
