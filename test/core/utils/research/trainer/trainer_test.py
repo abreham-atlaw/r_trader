@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm
+from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
@@ -65,7 +66,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.create_cnn()
+		return self.create_cnn2()
 
 	@staticmethod
 	def create_cnn():
@@ -165,9 +166,68 @@ class TrainerTest(unittest.TestCase):
 
 	@staticmethod
 	def create_cnn2():
-		model = TrainerTest.create_cnn()
-		migrator = CNNToCNN2Migrator()
-		return migrator._create_model(model)
+		CHANNELS = [32 for _ in range(4)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 431
+		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
+		DROPOUT_RATE = [0 for _ in CHANNELS]
+		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
+		BLOCK_SIZE = 1024 + EXTRA_LEN
+		PADDING = 0
+		NORM = [MinMaxNorm()] + [DynamicLayerNorm() for _ in CHANNELS[1:]]
+
+		INDICATORS_DELTA = True
+		INDICATORS_SO = []
+		INDICATORS_RSI = []
+
+		COLLAPSE_INPUT_NORM = MinMaxNorm()
+		DROPOUT_BRIDGE = 0.2
+
+		FF_LINEAR_LAYERS = [16 for _ in range(2)] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [MinMaxNorm()] + [nn.Identity() for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_DROPOUT = 0
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI
+		)
+
+		return CNN2(
+			extra_len=EXTRA_LEN,
+			input_size=BLOCK_SIZE,
+
+			embedding_block=EmbeddingBlock(
+				indicators=indicators,
+			),
+
+			cnn_block=CNNBlock(
+				input_channels=indicators.indicators_len,
+				conv_channels=CHANNELS,
+				kernel_sizes=KERNEL_SIZES,
+				pool_sizes=POOL_SIZES,
+				hidden_activation=ACTIVATION,
+				dropout_rate=DROPOUT_RATE,
+				norm=NORM,
+				padding=PADDING
+			),
+
+			collapse_block=CollapseBlock(
+				dropout=DROPOUT_BRIDGE,
+				input_norm=COLLAPSE_INPUT_NORM,
+				ff_block=LinearModel(
+					dropout_rate=FF_DROPOUT,
+					layer_sizes=FF_LINEAR_LAYERS,
+					hidden_activation=FF_LINEAR_ACTIVATION,
+					init_fn=FF_LINEAR_INIT,
+					norm=FF_LINEAR_NORM
+				)
+			)
+
+		)
 
 	def __create_transformer(self):
 
