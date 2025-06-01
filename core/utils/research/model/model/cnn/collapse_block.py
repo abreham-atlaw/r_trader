@@ -3,6 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.layers import FlattenLayer
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -24,9 +25,10 @@ class CollapseBlock(SpinozaModule):
 		self.ff_block = ff_block
 		self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 		self.extra_mode = extra_mode
+		self.flatten = FlattenLayer(1, 2)
 
 	def call(self, x: torch.Tensor, extra: typing.Optional[torch.Tensor] = None) -> torch.Tensor:
-		flattened = torch.flatten(x, 1, 2)
+		flattened = self.flatten(x)
 		flattened = flattened.reshape(flattened.size(0), -1)
 		flattened = self.dropout(flattened)
 
