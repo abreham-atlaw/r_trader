@@ -64,8 +64,6 @@ class SpinozaModule(nn.Module, ABC):
 
 	@classmethod
 	def import_config(cls, config) -> typing.Dict[str, typing.Any]:
-		if config.get("hidden_activation") == "list":
-			config["hidden_activation"] = nn.Identity()
 		if config.get('hidden_activation') and isinstance(config['hidden_activation'], str):
 			hidden_activation_module = importlib.import_module('torch.nn')
 			config['hidden_activation'] = getattr(hidden_activation_module, config['hidden_activation'])()
