@@ -83,7 +83,7 @@ class PlotUtils:
 			fig_size: typing.Tuple[int, int] = None,
 			max_plots: int = 5,
 			mode: int = Mode.PLOT,
-			cols: int = 3
+			cols: int = 4
 	):
 		y = PlotUtils.__to_numpy(y)
 
