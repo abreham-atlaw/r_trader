@@ -100,7 +100,7 @@ class PlotUtils:
 			X = PlotUtils.__generate_X(y)
 
 		if fig_size is None:
-			fig_size = 8, 3
+			fig_size = 10, 5
 
 		X = PlotUtils.__to_numpy(X)
 
