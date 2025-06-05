@@ -26,13 +26,15 @@ class TraderMCResourceManager(MCResourceManager):
 		return date.replace(minute=(date.minute // minute_gran) * minute_gran, second=0, microsecond=0)  # TODO: THIS ONLY SUPPORT MINUTE BASED GRANS
 
 	def init_resource(self) -> datetime:
+		current_local_time = datetime.now()
 		current_time = self.__trader.get_current_time(self.__instrument).replace(tzinfo=None)
-		Logger.info(f"[TraderMCResourceManager] Current Time: {current_time}")
+		Logger.info(f"[TraderMCResourceManager] Current Time: {current_time}({current_local_time})")
 		target_time = self.__round_time(
-			current_time + timedelta(seconds=self.__gran_value / self.__delta_multiplier)
+			current_time + timedelta(seconds=self.__gran_value)
 		)
-		Logger.info(f"[TraderMCResourceManager] Target Time: {target_time}")
-		return target_time
+		target_local_time = current_local_time + ((target_time - current_time)/self.__delta_multiplier)
+		Logger.info(f"[TraderMCResourceManager] Target Time: {target_time}({target_local_time})")
+		return target_local_time
 
 	def has_resource(self, resource: datetime) -> bool:
 		return (datetime.now() - resource).total_seconds() <= 0

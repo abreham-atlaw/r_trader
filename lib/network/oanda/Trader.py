@@ -234,6 +234,7 @@ class Trader:
 		cs = self.get_candlestick(
 			instrument=instrument,
 			count=1,
-			granularity=self.__min_gran
+			granularity=self.__min_gran,
+			to=self.__localize_datetime(datetime.datetime.now())
 		)
 		return cs[0].time.astimezone(self.__timezone)
