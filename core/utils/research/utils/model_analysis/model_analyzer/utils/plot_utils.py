@@ -37,7 +37,7 @@ class PlotUtils:
 
 		if mode == PlotUtils.Mode.PLOT:
 			for i in range(y.shape[0]):
-				plt.plot(X[i], y[i], label=f"{start_idx + i}")
+				plt.plot(X[i], y[i], label=f"{start_idx + i}(x̄={np.mean(y[i]) :.2f}, σ={np.std(y[i]) :.2f})")
 			plt.legend()
 
 		elif mode == PlotUtils.Mode.IMAGE:
@@ -83,7 +83,7 @@ class PlotUtils:
 			fig_size: typing.Tuple[int, int] = None,
 			max_plots: int = 5,
 			mode: int = Mode.PLOT,
-			cols: int = 2
+			cols: int = 3
 	):
 		y = PlotUtils.__to_numpy(y)
 
@@ -100,7 +100,7 @@ class PlotUtils:
 			X = PlotUtils.__generate_X(y)
 
 		if fig_size is None:
-			fig_size = 20, 10
+			fig_size = 10, 5
 
 		X = PlotUtils.__to_numpy(X)
 
