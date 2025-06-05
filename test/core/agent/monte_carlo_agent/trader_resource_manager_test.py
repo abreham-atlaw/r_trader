@@ -9,9 +9,9 @@ class TraderMCResourceManagerTest(unittest.TestCase):
 	def setUp(self):
 		self.resource_manager = TraderMCResourceManager(
 			trader=EnvironmentUtilsProvider.provide_trader(),
-			granularity="M5",
+			granularity="M30",
 			instrument=("AUD", "USD"),
-			delta_multiplier=1
+			delta_multiplier=10
 		)
 
 	def test_functionality(self):
