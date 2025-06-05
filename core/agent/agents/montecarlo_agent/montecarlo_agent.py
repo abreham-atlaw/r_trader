@@ -3,8 +3,10 @@ from abc import ABC
 from datetime import datetime
 
 from core import Config
+from core.di import AgentUtilsProvider
 from lib.rl.agent import MonteCarloAgent
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
+from lib.rl.agent.mca.resource_manager import TimeMCResourceManager
 from .stm import TraderNodeShortTermMemory, TraderNodeMemoryMatcher
 
 
@@ -49,16 +51,9 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			),
 			probability_correction=probability_correction,
 			min_probability=min_probability,
+			resource_manager=AgentUtilsProvider.provide_resource_manager(),
 			**kwargs
 		)
-		self.__step_time = step_time
-
-	def _init_resources(self) -> object:
-		start_time = datetime.now()
-		return start_time
-
-	def _has_resource(self, start_time) -> bool:
-		return (datetime.now() - start_time).seconds < self.__step_time
 
 	def _get_state_node_instant_value(self, state_node: 'MonteCarloAgent.Node') -> float:
 		return self._get_environment().get_reward(state_node.state) - self._get_environment().get_reward(
