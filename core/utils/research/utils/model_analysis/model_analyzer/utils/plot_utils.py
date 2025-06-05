@@ -37,7 +37,7 @@ class PlotUtils:
 
 		if mode == PlotUtils.Mode.PLOT:
 			for i in range(y.shape[0]):
-				plt.plot(X[i], y[i], label=f"{start_idx + i}")
+				plt.plot(X[i], y[i], label=f"{start_idx + i}(x̄={np.mean(y[i]) :.2f}, σ={np.std(y[i]) :.2f}")
 			plt.legend()
 
 		elif mode == PlotUtils.Mode.IMAGE:
