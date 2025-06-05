@@ -137,6 +137,7 @@ AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
+AGENT_USE_CUSTOM_RESOURCE_MANAGER = False
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -219,7 +220,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-4-cum-0-it-15-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-74-cum-0-it-27-sw11-tot_1.zip",
 	download=False
 )
 
@@ -246,7 +247,7 @@ PREDICTION_MODELS = [
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
-TEMPERATURES = [0.1, 1.0, 2.0]
+TEMPERATURES = [0.1, 0.25, 1.0]
 
 
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
@@ -324,6 +325,7 @@ class RunnerStatsLossesBranches:
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_27_sw_11 = "it_27_sw_11"
+	it_27_sw_12 = "it_27_sw_12"
 	it_29 = "it_29"
 	it_30 = "it_30"
 	it_31 = "it_31"
