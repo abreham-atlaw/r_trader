@@ -17,6 +17,33 @@ class Trader:
 
 	INSTRUMENT_DELIMETER = "_"
 
+	__GRAN_MAP = {
+		"S5": 5,
+		"S10": 10,
+		"S15": 15,
+		"S30": 30,
+
+		"M1": 60,  # 1 min
+		"M2": 2 * 60,  # 2 mins
+		"M4": 4 * 60,  # 4 mins
+		"M5": 5 * 60,  # 5 mins
+		"M10": 10 * 60,  # 10 mins
+		"M15": 15 * 60,  # 15 mins
+		"M30": 30 * 60,  # 30 mins
+
+		"H1": 60 * 60,  # 1 hour
+		"H2": 2 * 60 * 60,  # 2 hours
+		"H3": 3 * 60 * 60,  # 3 hours
+		"H4": 4 * 60 * 60,  # 4 hours
+		"H6": 6 * 60 * 60,  # 6 hours
+		"H8": 8 * 60 * 60,  # 8 hours
+		"H12": 12 * 60 * 60,  # 12 hours
+
+		"D": 24 * 60 * 60,  # 1 day
+		"W": 7 * 24 * 60 * 60,  # 1 week
+		"M": 30 * 24 * 60 * 60,  # Approx. 1 month (30 days)
+	}
+
 	class TraderAction:
 		SELL = 0
 		BUY = 1
@@ -35,7 +62,8 @@ class Trader:
 			account_no: str,
 			timezone: pytz.timezone = None,
 			trading_url: str = "https://api-fxpractice.oanda.com/v3",
-			timeout: Optional[float] = None
+			timeout: Optional[float] = None,
+			min_gran="S5"
 	):
 		self.__token: str = token
 		self.__account_no: str = account_no
@@ -45,6 +73,7 @@ class Trader:
 		if timezone is None:
 			self.__timezone = pytz.timezone("UTC")
 		Logger.info(f"Using timezone {self.__timezone}")
+		self.__min_gran = min_gran
 
 	def get_account_summary(self, update: bool = True) -> AccountSummary:
 		summary = self.__client.execute(AccountSummaryRequest())
@@ -196,3 +225,15 @@ class Trader:
 	@staticmethod
 	def format_instrument(instrument: Tuple[str, str]) -> str:
 		return f"{instrument[0]}{Trader.INSTRUMENT_DELIMETER}{instrument[1]}"
+
+	@staticmethod
+	def get_granularity_seconds(granularity: str) -> int:
+		return Trader.__GRAN_MAP[granularity]
+
+	def get_current_time(self, instrument: Tuple[str, str]) -> datetime.datetime:
+		cs = self.get_candlestick(
+			instrument=instrument,
+			count=1,
+			granularity=self.__min_gran
+		)
+		return cs[0].time.astimezone(self.__timezone)
