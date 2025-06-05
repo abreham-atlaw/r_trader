@@ -9,7 +9,7 @@ from .sessions_manager import SessionsManager
 
 class FusedManager(SessionsManager):
 
-	def __init__(self, resources_manager: ResourcesManager, *args, confirm_timeout=10, **kwargs):
+	def __init__(self, resources_manager: ResourcesManager, *args, confirm_timeout=30, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.__resources_manager = resources_manager
 		self.__downgrade_map = {
