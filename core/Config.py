@@ -277,7 +277,7 @@ OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
 
-TIMEOUT = 3*60*60
+TIMEOUT = 6*60*60
 
 
 class ResourceCategories:
@@ -328,7 +328,7 @@ class RunnerStatsBranches:
 		it_37_1
 	]
 
-	default = it_23_1
+	default = it_23_2
 
 
 class RunnerStatsLossesBranches:
