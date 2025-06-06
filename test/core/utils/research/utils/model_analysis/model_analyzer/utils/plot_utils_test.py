@@ -10,13 +10,13 @@ class PlotUtilsTest(unittest.TestCase):
 
 	def test_plot(self):
 
-		X = np.arange(0, 16*3000).reshape((16, 3000))**1.5
+		X = np.arange(0, 16*3000).reshape((4, 4, 3000))**1.5
 
 		PlotUtils.plot(
 			y=X,
 			title="My Plot",
 			max_plots=5,
-			mode=PlotUtils.Mode.IMAGE
+			# mode=PlotUtils.Mode.IMAGE
 		)
 
 		plt.show()

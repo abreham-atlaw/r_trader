@@ -4,7 +4,7 @@ import time
 import typing
 from datetime import datetime
 from typing import *
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import numpy as np
 
@@ -21,6 +21,7 @@ from temp import stats
 from .node import Node
 from .stm.node_memory_matcher import NodeMemoryMatcher
 from .stm.node_stm import NodeShortTermMemory
+from .resource_manager import MCResourceManager
 
 
 class MonteCarloAgent(ModelBasedAgent, ABC):
@@ -28,6 +29,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	def __init__(
 			self,
 			*args,
+			resource_manager: MCResourceManager,
 			min_free_memory_percent=10,
 			logical=False,
 			uct_exploration_weight=1,
@@ -73,6 +75,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__serializer = node_serializer
 		self.__squash_epsilon = squash_epsilon
 		self.__dynamic_k_threshold = dynamic_k_threshold
+		self.__resource_manager = resource_manager
 
 	@property
 	def trim_mode(self) -> bool:
@@ -87,13 +90,11 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		else:
 			self._backpropagate, self._uct = self.__legacy_backpropagate, self.__legacy_uct
 
-	@abstractmethod
 	def _init_resources(self) -> object:
-		pass
+		return self.__resource_manager.init_resource()
 
-	@abstractmethod
 	def _has_resource(self, resources) -> bool:
-		pass
+		return self.__resource_manager.has_resource(resources)
 
 	def __init_current_graph(self, graph: 'Node'):
 		self.__current_graph = graph
