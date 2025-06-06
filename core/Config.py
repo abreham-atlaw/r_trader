@@ -294,6 +294,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	it_23_0 = "it_23_0"
 	it_23_1 = "it_23_1"
+	it_23_2 = "it_23_2"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
 	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
@@ -312,6 +313,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_23,
 		it_23_0,
 		it_23_1,
+		it_23_2,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
 		it_27_0,

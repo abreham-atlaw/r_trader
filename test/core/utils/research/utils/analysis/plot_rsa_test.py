@@ -10,5 +10,6 @@ class PlotRSATest(unittest.TestCase):
 		Config.RunnerStatsLossesBranches.default = Config.RunnerStatsLossesBranches.it_23
 		analyzer = PlotRSAnalyzer(
 			branches=[Config.RunnerStatsBranches.it_23_1, Config.RunnerStatsBranches.it_27_1],
+			sessions_len=5
 		)
 		analyzer.start()
