@@ -56,7 +56,7 @@ class TrainingPlotter:
 			plt.title(f"{notebook}\n{self.__SUBTITLES[i]}\nMin: train: {min(train_losses)} val:{min(val_losses)}\n")
 			plt.plot(train_losses)
 			plt.plot(val_losses)
-			plt.pause(0.1)
+		plt.pause(0.1)
 
 		if show:
 			plt.show()
