@@ -57,6 +57,7 @@ class TrainingPlotter:
 			plt.plot(train_losses)
 			plt.plot(val_losses)
 			Logger.info(f"Min: train: {min(train_losses)} val:{min(val_losses)}\n")
+			plt.pause(0.1)
 
 		if show:
 			plt.show()
