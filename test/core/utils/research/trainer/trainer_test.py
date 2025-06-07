@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
@@ -181,7 +181,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 
-		COLLAPSE_INPUT_NORM = MinMaxNorm()
+		COLLAPSE_INPUT_NORM = Axis(MinMaxNorm(), axis=-2)
 		DROPOUT_BRIDGE = 0.2
 
 		FF_LINEAR_LAYERS = [16 for _ in range(2)] + [VOCAB_SIZE + 1]
