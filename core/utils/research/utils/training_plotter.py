@@ -13,7 +13,7 @@ class TrainingPlotter:
 
 	__SUBTITLES = ["State Classification", "Value Regression", "Total"]
 
-	def __init__(self, threshold: float = None, fig_size: typing.Tuple[int, int] = (20, 10)):
+	def __init__(self, threshold: float = None, fig_size: typing.Tuple[int, int] = (20, 15)):
 		self.__threshold = threshold
 		self.__fig_size = fig_size
 
@@ -53,7 +53,7 @@ class TrainingPlotter:
 				Logger.error("Empty Metrics! Exiting...")
 				return
 			plt.subplot(2, 2, i+1)
-			plt.title(f"{notebook}\n{self.__SUBTITLES[i]}\nMin: train: {min(train_losses)} val:{min(val_losses)}\n")
+			plt.title(f"{notebook}({self.__SUBTITLES[i]})\nMin: train: {min(train_losses)} val:{min(val_losses)}\n")
 			plt.plot(train_losses)
 			plt.plot(val_losses)
 		plt.pause(0.1)
