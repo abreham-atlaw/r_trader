@@ -31,7 +31,7 @@ class TrainingPlotter:
 		mask = collection > self.__threshold
 		if np.sum(mask) > 0:
 			Logger.warning(f"Applying Threshold on {np.sum(mask)} metrics")
-		collection[mask] = 0
+		collection[mask] = self.__threshold
 		return collection
 
 	def plot(self, notebook: str, show=True):
