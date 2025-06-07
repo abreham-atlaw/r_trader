@@ -53,10 +53,9 @@ class TrainingPlotter:
 				Logger.error("Empty Metrics! Exiting...")
 				return
 			plt.subplot(2, 2, i+1)
-			plt.title(f"{notebook}\n{self.__SUBTITLES[i]}")
+			plt.title(f"{notebook}\n{self.__SUBTITLES[i]}\nMin: train: {min(train_losses)} val:{min(val_losses)}\n")
 			plt.plot(train_losses)
 			plt.plot(val_losses)
-			Logger.info(f"Min: train: {min(train_losses)} val:{min(val_losses)}\n")
 			plt.pause(0.1)
 
 		if show:
