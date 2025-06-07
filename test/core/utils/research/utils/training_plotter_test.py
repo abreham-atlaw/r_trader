@@ -19,4 +19,14 @@ class TrainingPlotterTest(unittest.TestCase):
 			for i in [
 				66, 67, 68, 69, 71
 			]
+		] + [
+			f"abrehamalemu-rtrader-training-exp-0-cnn-{i}-cum-0-it-37-tot"
+			for i in [
+				1
+			]
+		] + [
+			f"abrehamalemu-rtrader-training-exp-0-cnn-{i}-cum-0-it-38-tot"
+			for i in [
+				0, 1
+			]
 		])
