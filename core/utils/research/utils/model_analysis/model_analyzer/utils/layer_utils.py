@@ -18,7 +18,7 @@ class LayerUtils:
 	def get_layer_weights(layer: nn.Module) -> typing.Dict[str, torch.Tensor]:
 		return {
 			name: weight
-			for name, weight in layer.named_parameters()
+			for name, weight in layer.named_parameters(recurse=False)
 		}
 
 

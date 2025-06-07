@@ -137,6 +137,7 @@ AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
+AGENT_USE_CUSTOM_RESOURCE_MANAGER = False
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -220,7 +221,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-35-cum-0-it-27-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-74-cum-0-it-27-sw11-tot_1.zip",
 	download=False
 )
 
@@ -266,6 +267,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	it_23_0 = "it_23_0"
 	it_23_1 = "it_23_1"
+	it_23_2 = "it_23_2"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
 	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
@@ -278,12 +280,14 @@ class RunnerStatsBranches:
 	it_34_1 = "it_34_1"
 	it_36_1 = "it_36_1"
 	it_37_1 = "it_37_1"
+	it_38_1 = "it_38_1"
 
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
 		it_23_0,
 		it_23_1,
+		it_23_2,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
 		it_27_0,
@@ -295,7 +299,8 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_33,
 		it_34_1,
 		it_36_1,
-		it_37_1
+		it_37_1,
+		it_38_1
 	]
 
 	default = main
@@ -321,6 +326,7 @@ class RunnerStatsLossesBranches:
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_27_sw_11 = "it_27_sw_11"
+	it_27_sw_12 = "it_27_sw_12"
 	it_29 = "it_29"
 	it_30 = "it_30"
 	it_31 = "it_31"
@@ -328,6 +334,7 @@ class RunnerStatsLossesBranches:
 	it_34 = "it_34"
 	it_36 = "it_36"
 	it_37 = "it_37"
+	it_38 = "it_38"
 
 	all = [
 		main,
@@ -354,7 +361,8 @@ class RunnerStatsLossesBranches:
 		it_33,
 		it_34,
 		it_36,
-		it_37
+		it_37,
+		it_38
 	]
 
 	default = main
