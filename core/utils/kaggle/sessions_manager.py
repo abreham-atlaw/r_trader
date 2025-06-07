@@ -143,6 +143,7 @@ class SessionsManager:
 		username, slug = notebook_id.split("/")
 		api = self.__create_api(self.__account_repository.get_accounts()[0])
 		status = self.__get_notebook_status(api, username, slug)
+		Logger.info(f"{notebook_id} status: {status.get('status')}")
 		return status.get("status") == "running"
 
 	def sync_notebooks(self):
