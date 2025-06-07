@@ -13,7 +13,7 @@ class TrainingPlotter:
 
 	__SUBTITLES = ["State Classification", "Value Regression", "Total"]
 
-	def __init__(self, threshold: float = None, fig_size: typing.Tuple[int, int] = (20, 15)):
+	def __init__(self, threshold: float = None, fig_size: typing.Tuple[int, int] = (20, 10)):
 		self.__threshold = threshold
 		self.__fig_size = fig_size
 
