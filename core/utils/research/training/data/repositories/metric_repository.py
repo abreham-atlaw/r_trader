@@ -54,7 +54,7 @@ class MongoDBMetricRepository(MetricRepository):
 			metric.__dict__[k] = json_[k]
 		return metric
 
-	@retry(exception_cls=AutoReconnect, patience=5)
+	@retry(exception_cls=AutoReconnect, patience=10, sleep_timer=5)
 	def _get_all(self) -> typing.List[Metric]:
 		return [self.__construct_metric(j) for j in list(self._collection.find())]
 
