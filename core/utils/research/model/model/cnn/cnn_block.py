@@ -65,7 +65,7 @@ class CNNBlock(SpinozaModule):
 					pool_range=(pool_sizes[i][0], pool_sizes[i][1]),
 					pool_size=pool_sizes[i][2],
 					stride=pool_sizes[i][3]
-				) if pool_sizes[i][-1] > 0
+				) if pool_sizes[i][2] > 0
 				else nn.Identity()
 			)
 
