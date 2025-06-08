@@ -170,15 +170,12 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
+		POOL_SIZES = [(0, 0.5, 3, 2) for _ in CHANNELS]
 		DROPOUT_RATE = [0 for _ in CHANNELS]
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		LINEAR_COLLAPSE = True
-		AVG_POOL = True
 		NORM = [False] + [False for _ in CHANNELS[1:]]
-		LR = 1e-4
 
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
@@ -187,7 +184,6 @@ class TrainerTest(unittest.TestCase):
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
 
-		USE_FF = True
 		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
 		FF_LINEAR_INIT = None
