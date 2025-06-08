@@ -175,17 +175,21 @@ class TrainerTest(unittest.TestCase):
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		NORM = [MinMaxNorm()] + [DynamicLayerNorm() for _ in CHANNELS[1:]]
+		LINEAR_COLLAPSE = True
+		AVG_POOL = True
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+		LR = 1e-4
 
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 
-		COLLAPSE_INPUT_NORM = Axis(MinMaxNorm(), axis=-2)
+		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
 
-		FF_LINEAR_LAYERS = [16 for _ in range(2)] + [VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
+		USE_FF = True
+		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [MinMaxNorm()] + [nn.Identity() for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_DROPOUT = 0
