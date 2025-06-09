@@ -74,7 +74,8 @@ class LinearModel(SpinozaModule):
 			hidden_activation = nn.Identity()
 		if isinstance(hidden_activation, nn.Module):
 			hidden_activation = [hidden_activation for _ in range(num_layers - 1)]
-		hidden_activation += [nn.Identity()]
+		if len(hidden_activation) == num_layers - 1:
+			hidden_activation += [nn.Identity()]
 		if len(hidden_activation) != num_layers:
 			raise ValueError("Hidden activation size doesn't match layers size")
 		hidden_activation = nn.ModuleList(hidden_activation)

@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis
+from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
@@ -170,7 +171,7 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [(0, 0.5, 3, 2) for _ in CHANNELS]
+		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
 		DROPOUT_RATE = [0 for _ in CHANNELS]
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
@@ -180,6 +181,11 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
+
+		BRIDGE_FF_LINEAR_LAYERS = [512, 256]
+		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_NORM = [DynamicLayerNorm() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_DROPOUT = 0
 
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
@@ -213,6 +219,15 @@ class TrainerTest(unittest.TestCase):
 				dropout_rate=DROPOUT_RATE,
 				norm=NORM,
 				padding=PADDING
+			),
+
+			bridge_block=BridgeBlock(
+				ff_block=LinearModel(
+					dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+					layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+					hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+					norm=BRIDGE_FF_LINEAR_NORM
+				)
 			),
 
 			collapse_block=CollapseBlock(
