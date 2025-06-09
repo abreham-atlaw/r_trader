@@ -14,7 +14,7 @@ class BridgeBlock(SpinozaModule):
 	):
 		super().__init__(auto_build=False)
 		self.args = {
-			"ffn": ff_block
+			"ff_block": ff_block
 		}
 		self.ffn = ff_block
 

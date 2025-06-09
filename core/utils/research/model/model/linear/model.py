@@ -69,6 +69,22 @@ class LinearModel(SpinozaModule):
 		return nn.ModuleList(norm)
 
 	@staticmethod
+	def __prepare_arg_dropout(dropout_rate, num_layers) -> typing.List[nn.Module]:
+		if isinstance(dropout_rate, (int, float)):
+			dropout_rate = [dropout_rate for _ in range(len(num_layers) - 1)]
+		if len(dropout_rate) == num_layers-1:
+			dropout_rate += [0]
+		if len(dropout_rate) != num_layers:
+			raise ValueError("Dropout size doesn't match layers size")
+
+		dropouts = nn.ModuleList([
+			nn.Dropout(rate) if rate > 0 else nn.Identity()
+			for rate in dropout_rate
+		])
+
+		return dropouts
+
+	@staticmethod
 	def __prepare_arg_hidden_activation(hidden_activation, num_layers) -> typing.List[nn.Module]:
 		if hidden_activation is None:
 			hidden_activation = nn.Identity()
@@ -107,8 +123,6 @@ class LinearModel(SpinozaModule):
 		):
 			out = norm(out)
 			out = layer(out)
-			if i == len(self.layers) - 1:
-				continue
 			out = hidden_activation(out)
 			out = dropout(out)
 		return out
