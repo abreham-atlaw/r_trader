@@ -2,7 +2,6 @@ import typing
 from abc import ABC, abstractmethod
 
 import numpy as np
-from tensorflow.keras.models import Model
 
 from .action_choice_agent import ActionChoiceAgent
 
@@ -27,7 +26,7 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 		self.__tries = ara_tries
 
 	@abstractmethod
-	def _init_ara_model(self) -> Model:
+	def _init_ara_model(self) -> 'Model':
 		pass
 
 	@abstractmethod
@@ -103,10 +102,10 @@ class ActionRecommendationAgent(ActionChoiceAgent, ABC):
 
 		return self._prepare_inputs(states, indexes), self._prepare_train_outputs(states, actions)
 
-	def _fit_model(self, model: Model, X: np.ndarray, y: typing.List[np.ndarray]):
+	def _fit_model(self, model: 'Model', X: np.ndarray, y: typing.List[np.ndarray]):
 		model.fit(X, y)
 
-	def _train_batch(self, batch: typing.List[typing.Tuple[object, object, float]], model: Model):
+	def _train_batch(self, batch: typing.List[typing.Tuple[object, object, float]], model: 'Model'):
 		X, y = self._prepare_train_data(batch)
 		self._fit_model(model, X, y)
 
