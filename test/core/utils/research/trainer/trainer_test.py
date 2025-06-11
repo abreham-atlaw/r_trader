@@ -16,6 +16,7 @@ from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
@@ -210,7 +211,7 @@ class TrainerTest(unittest.TestCase):
 				indicators=indicators,
 			),
 
-			cnn_block=CNNBlock(
+			cnn_block=ResNetBlock(
 				input_channels=indicators.indicators_len,
 				conv_channels=CHANNELS,
 				kernel_sizes=KERNEL_SIZES,
