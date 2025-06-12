@@ -9,7 +9,7 @@ import gc
 
 from sklearn.model_selection import train_test_split
 
-from core.utils.research.data.prepare import SimulationSimulator
+from .simulation_simulator import SimulationSimulator
 
 
 class DataPreparer:
