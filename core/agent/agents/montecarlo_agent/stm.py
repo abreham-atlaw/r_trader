@@ -32,7 +32,8 @@ class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 			average_window=1,
 			mean_error: bool = False,
 			use_ma_smoothng=False,
-			balance_tolerance=None
+			balance_tolerance=None,
+			relative_difference=False
 	):
 		super().__init__(repository=repository, state_matcher=None)
 		self.__threshold = threshold
@@ -42,16 +43,25 @@ class TraderNodeMemoryMatcher(NodeMemoryMatcher):
 		self.__balance_tolerance = balance_tolerance
 		if balance_tolerance is None:
 			self.__balance_tolerance = 0.01
+		self.__relative_difference = relative_difference
 
 	def construct_memory(self, node: Node) -> TraderNodeMemory:
 		return TraderNodeMemory(
 			node=node
 		)
 
+	@staticmethod
+	def __get_relative_difference(state: np.ndarray) -> np.ndarray:
+		return state[1:] - state[:-1]
+
 	def __error(self, state0: np.ndarray, state1: np.ndarray) -> float:
-		error = np.abs(
-				(state0 - state1)/np.average((state0, state1), axis=0)
-		)
+		if self.__relative_difference:
+			state0, state1 = [
+				self.__get_relative_difference(s)
+				for s in [state0, state1]
+			]
+
+		error = np.abs(state0 - state1)
 		if self.__mean_error:
 			error = np.mean(error)
 		else:
