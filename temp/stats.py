@@ -274,7 +274,7 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 			if state_repository is not None:
 				current_price = state_repository.retrieve(node.id).market_state.get_current_price('AUD', 'USD')
 				previous_price = state_repository.retrieve(node.id).market_state.get_state_of("AUD", "USD")[-2]
-				label += f"\n{(current_price - previous_price): .4f}"
+				label += f"\n{format(current_price - previous_price, '.1e').replace('e-0', 'e-')}"
 				label += f"\n{current_price: .4f}"
 			return label
 

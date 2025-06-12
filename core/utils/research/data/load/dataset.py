@@ -31,19 +31,21 @@ class BaseDataset(Dataset):
 			cache_size: int = 5,
 			X_dir: str = "X",
 			y_dir: str = "y",
+			w_dir: str = "w",
 			out_dtypes: typing.Type = np.float32,
 			num_files: typing.Optional[int] = None,
-			preload: bool = False,
-			preload_size: int = 3,
 			device=torch.device("cpu"),
 			check_last_file: bool = False,
-			check_file_sizes: bool = False
+			check_file_sizes: bool = False,
+			load_weights: bool = False,
+			return_weights: bool = True
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
 		self.root_dirs = root_dirs
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
+		self.__w_dir = w_dir
 		self.random_state = None
 
 		self.__files, self.__root_dir_map = self.__get_files(size=num_files)
@@ -58,8 +60,8 @@ class BaseDataset(Dataset):
 		if check_file_sizes:
 			self.__check_file_sizes()
 
-		self.__preload = preload
-		self.__preload_size = preload_size
+		self.__load_weights = load_weights
+		self.__return_weights = return_weights
 
 	@property
 	def random(self):
@@ -129,23 +131,6 @@ class BaseDataset(Dataset):
 	def __len__(self):
 		return len(self.__files) * self.data_points_per_file
 
-	def __preload_file(self, idx: str):
-		filename = self.__files[idx]
-		root_dir = self.__root_dir_map[filename]
-
-		X, y = [
-			self.__load_array(os.path.join(root_dir, dir_, filename))
-			for dir_ in [self.__X_dir, self.__y_dir]
-		]
-		self.cache[idx] = (X, y)
-
-	@thread_method
-	def __preload_files(self, idx: str):
-		for i in range(idx, idx+self.__preload_size):
-			if i in self.cache or i >= len(self.__files):
-				continue
-			self.__preload_file(i)
-
 	def __load_array(self, path: str) -> torch.Tensor:
 		out: np.ndarray = np.load(path).astype(self.__dtype)
 		indexes = np.arange(out.shape[0])
@@ -161,6 +146,12 @@ class BaseDataset(Dataset):
 			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
 		)
 
+	def __load_w(self, root_dir, filename) -> torch.Tensor:
+		if not self.__load_weights:
+			return torch.Tensor([torch.nan for _ in range(self.data_points_per_file)])
+
+		return self.__load_array(os.path.join(root_dir, self.__w_dir, filename))
+
 	def __load_files(self, idx: int) -> torch.Tensor:
 		if idx in self.cache:
 			return self.cache[idx]
@@ -173,18 +164,19 @@ class BaseDataset(Dataset):
 
 		X = self.__load_array(os.path.join(root_dir, self.__X_dir, file_name))
 		y = self.__load_array(os.path.join(root_dir, self.__y_dir, file_name))
+		w = self.__load_w(root_dir, file_name)
 
-		self.cache[idx] = (X, y)
+		self.cache[idx] = (X, y, w)
 
-		if self.__preload:
-			self.__preload_files(idx+1)
-
-		return X, y
+		return X, y, w
 
 	def __getitem__(self, idx):
 		file_idx = idx // self.data_points_per_file
 		data_idx = idx % self.data_points_per_file
 
-		X, y = self.__load_files(file_idx)
+		X, y, w = self.__load_files(file_idx)
 
-		return tuple([dp[data_idx] for dp in [X, y]])
+		value = tuple([dp[data_idx] for dp in [X, y, w]])
+		if not self.__return_weights:
+			value = value[:-1]
+		return value
