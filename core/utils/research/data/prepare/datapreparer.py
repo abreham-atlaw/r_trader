@@ -9,6 +9,8 @@ import gc
 
 from sklearn.model_selection import train_test_split
 
+from core.utils.research.data.prepare import SimulationSimulator
+
 
 class DataPreparer:
 
@@ -168,6 +170,8 @@ class DataPreparer:
 	):
 		if not export_remaining and self.__batch_size is None:
 			print("Warning: export_remaining set to false without batch_size. No exports will be made.")
+
+		df = SimulationSimulator.prepare_df(df)
 
 		self.__setup_save_path(save_path)
 
