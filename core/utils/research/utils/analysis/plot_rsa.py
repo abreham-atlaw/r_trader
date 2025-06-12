@@ -7,16 +7,14 @@ from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from .rsa import RSAnalyzer
 from ...data.collect.runner_stats import RunnerStats
+from ...data.collect.runner_stats_populater import RunnerStatsPopulater
 
 
 class PlotRSAnalyzer(RSAnalyzer):
 
 	__LOSS_NAMES = [
-		"nn.CrossEntropyLoss()",
-		"ProximalMaskedLoss",
-		"ReverseMAWeightLoss(window_size=10, softmax=True)",
-		"PredictionConfidenceScore(softmax=True)",
-		"ProximalMaskedLoss(weighted_sample=True)",
+		str(loss)
+		for loss in RunnerStatsPopulater.get_evaluation_loss_functions()
 	]
 
 	def __init__(
@@ -28,13 +26,14 @@ class PlotRSAnalyzer(RSAnalyzer):
 			export_path: str = "plotted.csv",
 			extra_filter: typing.Optional[RSFilter] = None,
 			color_value_function: typing.Optional[typing.Callable] = None,
+			sessions_len: int = None
 	):
 		rs_filter = RSFilter(
 			evaluation_complete=True
 		)
 		if extra_filter is not None:
 			rs_filter += extra_filter
-		rs_filter.min_sessions = rs_filter.min_sessions or 1
+		rs_filter.min_sessions = rs_filter.min_sessions or sessions_len or 1
 
 		super().__init__(
 			branches=branches,
@@ -45,6 +44,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 		self.__color_value_loss = color_value_loss
 		self.__color_value_function = color_value_function
 		self.__use_avg_profits = use_avg_profits
+		self.__sessions_len = sessions_len
 
 	def __trim_stat(self, stat: RunnerStats, sessions_len: int):
 		stat.session_timestamps, stat.simulated_timestamps, stat.profits = [
@@ -58,10 +58,13 @@ class PlotRSAnalyzer(RSAnalyzer):
 		return stat
 
 	def __trim_sessions(self, stats: typing.List[RunnerStats]):
-		sessions_len = min(map(
-			lambda stat: len(stat.session_timestamps),
-			stats
-		))
+
+		sessions_len = self.__sessions_len
+		if sessions_len is None:
+			sessions_len = min(map(
+				lambda stat: len(stat.session_timestamps),
+				stats
+			))
 		Logger.info(f"Using Sessions Len = {sessions_len}")
 
 		stats = list(map(

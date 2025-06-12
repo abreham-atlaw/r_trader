@@ -7,8 +7,8 @@ import pandas as pd
 
 from datetime import datetime
 
-from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter
-from core.utils.research.model.layers import MovingAverage
+from core.di import EnvironmentUtilsProvider
+from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter, MovingAverage
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.utils.logger import Logger
@@ -43,12 +43,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__market_state_granularity = market_state_granularity
 		self.__trader = trader
 		if trader is None:
-			self.__trader = Trader(
-				Config.OANDA_TOKEN,
-				Config.OANDA_TRADING_ACCOUNT_ID,
-				timezone=Config.TIMEZONE,
-				trading_url=Config.OANDA_TRADING_URL
-			)
+			self.__trader = EnvironmentUtilsProvider.provide_trader()
 		self.__instruments = instruments
 		if instruments is None:
 			if agent_use_static_instruments:

@@ -137,6 +137,7 @@ AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
+AGENT_USE_CUSTOM_RESOURCE_MANAGER = False
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -185,7 +186,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/04.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -219,7 +220,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-4-cum-0-it-15-tot.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-74-cum-0-it-27-sw11-tot_1.zip",
 	download=False
 )
 
@@ -246,10 +247,10 @@ PREDICTION_MODELS = [
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
-TEMPERATURES = [0.1, 1.0, 2.0]
+TEMPERATURES = [0.1, 0.25, 1.0]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-39/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -269,6 +270,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_23 = "ma_ews_dynamic_k_stm_it_23"
 	it_23_0 = "it_23_0"
 	it_23_1 = "it_23_1"
+	it_23_2 = "it_23_2"
 	ma_ews_dynamic_k_stm_it_24 = "ma_ews_dynamic_k_stm_it_24"
 	ma_ews_dynamic_k_stm_it_27_mts_0_b_1 = "ma_ews_dynamic_k_stm_it_27_mts_0_b_1"
 	it_27_0 = "it_27_0"  # STM = False, Step Time = 6 min
@@ -279,12 +281,17 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 	it_34_1 = "it_34_1"
+	it_36_1 = "it_36_1"
+	it_37_1 = "it_37_1"
+	it_38_1 = "it_38_1"
+	it_39_1 = "it_39_1"
 
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
 		it_23_0,
 		it_23_1,
+		it_23_2,
 		ma_ews_dynamic_k_stm_it_24,
 		ma_ews_dynamic_k_stm_it_27_mts_0_b_1,
 		it_27_0,
@@ -294,10 +301,14 @@ class RunnerStatsBranches:
 		it_30_1,
 		ma_ews_dynamic_k_stm_it_31,
 		ma_ews_dynamic_k_stm_it_33,
-		it_34_1
+		it_34_1,
+		it_36_1,
+		it_37_1,
+		it_38_1,
+		it_39_1
 	]
 
-	default = it_23_1
+	default = it_39_1
 
 
 class RunnerStatsLossesBranches:
@@ -320,11 +331,16 @@ class RunnerStatsLossesBranches:
 	it_24 = "it_24"
 	it_27 = "it_27"
 	it_27_sw_11 = "it_27_sw_11"
+	it_27_sw_12 = "it_27_sw_12"
 	it_29 = "it_29"
 	it_30 = "it_30"
 	it_31 = "it_31"
 	it_33 = "it_33"
 	it_34 = "it_34"
+	it_36 = "it_36"
+	it_37 = "it_37"
+	it_38 = "it_38"
+	it_39 = "it_39"
 
 	all = [
 		main,
@@ -349,7 +365,11 @@ class RunnerStatsLossesBranches:
 		it_30,
 		it_31,
 		it_33,
-		it_34
+		it_34,
+		it_36,
+		it_37,
+		it_38,
+		it_39,
 	]
 
-	default = it_23
+	default = it_39

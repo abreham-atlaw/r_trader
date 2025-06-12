@@ -3,8 +3,8 @@ import typing
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.model.savable import SpinozaModule
 from .masked_stacked_model import MaskedStackedModel
-from ...savable import SpinozaModule
 
 
 class PlainMSM(MaskedStackedModel):
