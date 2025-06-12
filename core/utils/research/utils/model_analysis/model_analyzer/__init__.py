@@ -1,2 +1,7 @@
 from .model_analyzer import ModelAnalyzer
 from .input_saliency_ma import InputSaliencyModelAnalyzer
+from .layer_saliency_ma import LayerSaliencyModelAnalyzer
+from .layer_output_ma import LayerOutputModelAnalyzer
+from .mean_layer_output_ma import MeanLayerOutputModelAnalyzer
+from .layer_io_saliency_ma import LayerIOSaliencyModelAnalyzer
+from .layer_weight_ma import LayerWeightModelAnalyzer

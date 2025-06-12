@@ -9,14 +9,18 @@ from torch.utils.data import DataLoader, Dataset
 
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
-from core.utils.research.model.layers import Indicators
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis
+from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
+from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
+from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -64,24 +68,26 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.__create_transformer()
+		return self.create_cnn2()
 
-	def __create_cnn(self):
+	@staticmethod
+	def create_cnn():
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
 		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
+		ACTIVATION = [nn.LeakyReLU(), nn.Identity(), nn.Identity(), nn.LeakyReLU()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		NORM = [True] + [True for _ in CHANNELS[1:]]
 		STRIDE = 2
 		INPUT_DROPOUT = 0.2
-		INPUT_NORM = True
+		INPUT_NORM = False
+		COLLAPSE_AVG_POOL = False
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -91,7 +97,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
-		USE_CHANNEL_FFN = True
+		USE_CHANNEL_FFN = False
 		CHANNEL_FFN_LAYERS = [CHANNELS[-1] for _ in range(4)]
 		CHANNEL_FFN_DROPOUT = 0.1
 		CHANNEL_FFN_ACTIVATION = nn.LeakyReLU()
@@ -102,7 +108,7 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_LINEAR_NORM = [DynamicBatchNorm()] + [MinMaxNorm() for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_NORM_LEARNABLE = False
 		FF_DROPOUT = 0.12
 
@@ -155,9 +161,89 @@ class TrainerTest(unittest.TestCase):
 			stride=STRIDE,
 			channel_ffn=channel_ffn,
 			input_dropout=INPUT_DROPOUT,
-			input_norm=INPUT_NORM
+			input_norm=INPUT_NORM,
+			collapse_avg_pool=COLLAPSE_AVG_POOL,
 		)
 		return model
+
+	@staticmethod
+	def create_cnn2():
+		CHANNELS = [32 for _ in range(4)]
+		EXTRA_LEN = 124
+		KERNEL_SIZES = [3 for _ in CHANNELS]
+		VOCAB_SIZE = 431
+		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
+		DROPOUT_RATE = [0 for _ in CHANNELS]
+		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
+		BLOCK_SIZE = 1024 + EXTRA_LEN
+		PADDING = 0
+		NORM = [False] + [False for _ in CHANNELS[1:]]
+
+		INDICATORS_DELTA = True
+		INDICATORS_SO = []
+		INDICATORS_RSI = []
+
+		BRIDGE_FF_LINEAR_LAYERS = [512, 256]
+		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_NORM = [DynamicLayerNorm() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_DROPOUT = 0
+
+		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
+		DROPOUT_BRIDGE = 0.2
+
+		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
+		FF_LINEAR_INIT = None
+		FF_LINEAR_NORM = [MinMaxNorm()] + [nn.Identity() for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_DROPOUT = 0
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+			so=INDICATORS_SO,
+			rsi=INDICATORS_RSI
+		)
+
+		return CNN2(
+			extra_len=EXTRA_LEN,
+			input_size=BLOCK_SIZE,
+
+			embedding_block=EmbeddingBlock(
+				indicators=indicators,
+			),
+
+			cnn_block=ResNetBlock(
+				input_channels=indicators.indicators_len,
+				conv_channels=CHANNELS,
+				kernel_sizes=KERNEL_SIZES,
+				pool_sizes=POOL_SIZES,
+				hidden_activation=ACTIVATION,
+				dropout_rate=DROPOUT_RATE,
+				norm=NORM,
+				padding=PADDING
+			),
+
+			bridge_block=BridgeBlock(
+				ff_block=LinearModel(
+					dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+					layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+					hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+					norm=BRIDGE_FF_LINEAR_NORM
+				)
+			),
+
+			collapse_block=CollapseBlock(
+				dropout=DROPOUT_BRIDGE,
+				input_norm=COLLAPSE_INPUT_NORM,
+				ff_block=LinearModel(
+					dropout_rate=FF_DROPOUT,
+					layer_sizes=FF_LINEAR_LAYERS,
+					hidden_activation=FF_LINEAR_ACTIVATION,
+					init_fn=FF_LINEAR_INIT,
+					norm=FF_LINEAR_NORM
+				)
+			)
+
+		)
 
 	def __create_transformer(self):
 
@@ -257,11 +343,25 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=10,
+			epochs=5,
 			progress=True,
 		)
 
 		ModelHandler.save(self.trainer.model, SAVE_PATH)
+
+		for X, y, w in self.test_dataloader:
+			break
+
+		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model.eval()
+
+		original_y = self.trainer.model(X)
+
+		loaded_y = loaded_model(X)
+
+		self.assertTrue(torch.allclose(original_y, loaded_y))
+
+		self.trainer.validate(self.test_dataloader)
 
 	def test_validate(self):
 		self.trainer.validate(self.test_dataloader)
