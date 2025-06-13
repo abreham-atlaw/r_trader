@@ -1,6 +1,6 @@
 from core import Config
 from lib.rl.agent.mca.resource_manager import MCResourceManager, TimeMCResourceManager
-from lib.rl.agent.mca.stm import NodeMemoryMatcher
+from lib.rl.agent.mca.stm import NodeMemoryMatcher, NodeShortTermMemory
 from lib.utils.logger import Logger
 from lib.utils.staterepository import StateRepository, AutoStateRepository, SectionalDictStateRepository, \
 	PickleStateRepository
@@ -70,4 +70,11 @@ class AgentUtilsProvider:
 		return NodeMemoryMatcher(
 			repository=repository,
 			state_matcher=AgentUtilsProvider.provide_trade_state_memory_matcher()
+		)
+
+	@staticmethod
+	def provide_trader_node_stm() -> NodeShortTermMemory:
+		return NodeShortTermMemory(
+			size=Config.AGENT_STM_SIZE,
+			matcher=AgentUtilsProvider.provide_trade_node_memory_matcher()
 		)
