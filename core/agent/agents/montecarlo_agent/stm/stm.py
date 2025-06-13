@@ -196,6 +196,7 @@ class AttentionBasedTraderNodeMemoryMatcher(TraderNodeMemoryMatcher):
 				super()._compare_memories(memory0, memory1)
 
 
+# DEPRECATED
 class TraderNodeShortTermMemory(NodeShortTermMemory):
 
 	def __init__(

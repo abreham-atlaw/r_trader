@@ -1,6 +1,6 @@
 from core import Config
-from lib.network.rest_interface import Serializer
 from lib.rl.agent.mca.resource_manager import MCResourceManager, TimeMCResourceManager
+from lib.rl.agent.mca.stm import NodeMemoryMatcher
 from lib.utils.logger import Logger
 from lib.utils.staterepository import StateRepository, AutoStateRepository, SectionalDictStateRepository, \
 	PickleStateRepository
@@ -46,4 +46,28 @@ class AgentUtilsProvider:
 			)
 		Logger.info(f"Using Resource Manager: {manager.__class__.__name__}")
 		return manager
-	
+
+	@staticmethod
+	def provide_agent_state_memory_matcher() -> 'AgentStateMemoryMatcher':
+		from core.agent.agents.montecarlo_agent.stm.asmm import BasicAgentStateMemoryMatcher
+		return BasicAgentStateMemoryMatcher()
+
+	@staticmethod
+	def provide_market_state_memory_matcher() -> 'MarketStateMemoryMatcher':
+		from core.agent.agents.montecarlo_agent.stm.msmm import BoundMarketStateMemoryMatcher
+		return BoundMarketStateMemoryMatcher(bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
+
+	@staticmethod
+	def provide_trade_state_memory_matcher() -> 'TradeStateMemoryMatcher':
+		from core.agent.agents.montecarlo_agent.stm.tsmm import TradeStateMemoryMatcher
+		return TradeStateMemoryMatcher(
+			agent_state_matcher=AgentUtilsProvider.provide_agent_state_memory_matcher(),
+			market_state_matcher=AgentUtilsProvider.provide_market_state_memory_matcher()
+		)
+
+	@staticmethod
+	def provide_trade_node_memory_matcher(repository=None) -> NodeMemoryMatcher:
+		return NodeMemoryMatcher(
+			repository=repository,
+			state_matcher=AgentUtilsProvider.provide_trade_state_memory_matcher()
+		)

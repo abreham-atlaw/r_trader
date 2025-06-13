@@ -23,26 +23,5 @@ class TraderNodeMemoryMatcherTest(unittest.TestCase):
 			relative_difference=True
 		)
 
-	def __create_node(self, state: np.ndarray) -> Node:
-
-		market_state = MarketState(
-			currencies=[("AUD", "USD")],
-			memory_len=state.shape[0],
-		)
-
-		market_state.update_state_of("AUD", "USD", state)
-
-		agent_state = AgentState(
-			balance=100,
-			market_state=market_state,
-		)
-
-		trade_state = TradeState(
-			market_state, agent_state
-		)
-
-		node = Node(parent=None, action=None, node_type=Node.NodeType.STATE)
-		self.state_repository.store(node.id, trade_state)
-		return node
 
 
