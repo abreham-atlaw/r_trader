@@ -63,8 +63,9 @@ class CNNBlock(SpinozaModule):
 			self.pool_layers.append(
 				DynamicPool(
 					pool_range=(pool_sizes[i][0], pool_sizes[i][1]),
-					pool_size=pool_sizes[i][2]
-				) if pool_sizes[i][-1] > 0
+					pool_size=pool_sizes[i][2],
+					stride=pool_sizes[i][3]
+				) if pool_sizes[i][2] > 0
 				else nn.Identity()
 			)
 
@@ -97,11 +98,16 @@ class CNNBlock(SpinozaModule):
 				for _ in self.kernel_sizes
 			]
 		pool_sizes = [
-			ps
+			(
+				ps
+				if len(ps) == 4
+				else (*ps, 1)
+			)
 			if isinstance(ps, typing.Iterable)
-			else (0, 1, ps)
+			else (0, 1, ps, 1)
 			for ps in pool_sizes
 		]
+
 		return pool_sizes
 
 	@staticmethod

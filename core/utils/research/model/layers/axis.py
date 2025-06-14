@@ -3,10 +3,10 @@ import torch
 import torch.nn as nn
 
 
-class AxisFFN(nn.Module):
+class Axis(nn.Module):
 
 	def __init__(self, ffn: nn.Module, axis: int):
-		super(AxisFFN, self).__init__()
+		super(Axis, self).__init__()
 		self.ffn = ffn
 		self.axis = axis
 
