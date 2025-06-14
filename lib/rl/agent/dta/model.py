@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from tensorflow.python import keras
 import torch
 import torch.nn as nn
 
@@ -33,7 +32,7 @@ class Model(ABC):
 
 class KerasModel(Model):
 
-	def __init__(self, model: keras.Model):
+	def __init__(self, model: 'keras.Model'):
 		self.__model = model
 
 	def predict(self, inputs: np.ndarray) -> np.ndarray:
