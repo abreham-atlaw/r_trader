@@ -67,14 +67,18 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_trade_node_memory_matcher(repository=None) -> NodeMemoryMatcher:
-		return NodeMemoryMatcher(
+		matcher = NodeMemoryMatcher(
 			repository=repository,
 			state_matcher=AgentUtilsProvider.provide_trade_state_memory_matcher()
 		)
+		Logger.info(f"Using Trade Node Memory Matcher: {matcher.__class__.__name__}")
+		return matcher
 
 	@staticmethod
 	def provide_trader_node_stm() -> NodeShortTermMemory:
-		return NodeShortTermMemory(
+		memory = NodeShortTermMemory(
 			size=Config.AGENT_STM_SIZE,
 			matcher=AgentUtilsProvider.provide_trade_node_memory_matcher()
 		)
+		Logger.info(f"Using Trade Node STM: {memory.__class__.__name__}")
+		return memory
