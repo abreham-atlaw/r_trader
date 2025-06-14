@@ -25,7 +25,7 @@ class SimulationSimulator:
 			order_gran: bool = True,
 			smoothing_algorithm: typing.Optional[SmoothingAlgorithm] = None
 	):
-		self.__df = self.__process_df(df)
+		self.__df = self.prepare_df(df)
 		self.__bounds = bounds
 		self.__seq_len = seq_len
 		self.__extra_len = extra_len
@@ -44,7 +44,7 @@ class SimulationSimulator:
 		return self.__smoothing_algorithm is not None
 
 	@staticmethod
-	def __process_df(df: pd.DataFrame) -> pd.DataFrame:
+	def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 		df["time"] = pd.to_datetime(df["time"])
 		df = df.drop_duplicates(subset="time")
 		df = df.sort_values(by="time")
