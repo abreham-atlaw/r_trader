@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm, AxisFFN, DynamicPool, \
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, Axis, DynamicPool, \
 	FlattenLayer
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
@@ -152,7 +152,7 @@ class CNN(SpinozaModule):
 		else:
 			self.pos = nn.Identity()
 
-		self.channel_ffn = AxisFFN(channel_ffn, axis=1) if channel_ffn else nn.Identity()
+		self.channel_ffn = Axis(channel_ffn, axis=1) if channel_ffn else nn.Identity()
 		self.input_dropout = nn.Dropout(input_dropout) if input_dropout > 0 else nn.Identity()
 		self.input_norm = DynamicLayerNorm() if input_norm else nn.Identity()
 		self.collapse_avg_pool = nn.AdaptiveAvgPool1d(1) if collapse_avg_pool else nn.Identity()
