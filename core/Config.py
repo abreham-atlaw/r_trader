@@ -308,6 +308,7 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 	it_34_1 = "it_34_1"
 	it_36_1 = "it_36_1"
+	it_36_2 = "it_36_2"
 	it_37_1 = "it_37_1"
 	it_38_1 = "it_38_1"
 	it_38_2 = "it_38_2"
@@ -332,6 +333,7 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_33,
 		it_34_1,
 		it_36_1,
+		it_36_2,
 		it_37_1,
 		it_38_1,
 		it_38_2,
