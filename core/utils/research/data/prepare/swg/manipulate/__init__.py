@@ -1,2 +1,3 @@
 from .abstract_swmn import AbstractSampleWeightManipulator
 from .basic_swmn import BasicSampleWeightManipulator
+from .standardize_swmn import StandardizeSampleWeightManipulator
