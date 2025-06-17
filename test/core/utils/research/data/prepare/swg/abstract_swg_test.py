@@ -27,6 +27,13 @@ class AbstractSampleWeightGeneratorTest(unittest.TestCase, ABC):
 			generator=generator
 		)
 
+	def __print_sample(self):
+		for filename in os.listdir(self.export_path):
+			np_weights = np.load(os.path.join(self.export_path, filename))
+			Logger.info("Weights Sample:")
+			Logger.info(np_weights)
+			break
+
 	def setUp(self):
 		self.generator = self._init_generator()
 		self.data_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/5/train"
@@ -34,10 +41,7 @@ class AbstractSampleWeightGeneratorTest(unittest.TestCase, ABC):
 		self.exporter = self._init_exporter(self.data_path, self.export_path, self.generator)
 
 	def test_functionality(self):
+		self.__print_sample()
 		self.exporter.start()
+		self.__print_sample()
 
-		for filename in os.listdir(self.export_path):
-			np_weights = np.load(os.path.join(self.export_path, filename))
-			Logger.info("Weights Sample:")
-			Logger.info(np_weights)
-			break
