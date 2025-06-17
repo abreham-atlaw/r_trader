@@ -11,10 +11,11 @@ class StandardizeSampleWeightManipulatorTest(AbstractSampleWeightGeneratorTest):
 
 	def _init_generator(self) -> AbstractSampleWeightGenerator:
 		return StandardizeSampleWeightManipulator(
-			target_std=1,
-			target_mean=0,
+			target_std=0.3,
+			target_mean=1,
 			current_std=0.94,
-			current_mean=0.21
+			current_mean=0.21,
+			min_weights=0
 		)
 
 	def _get_input_paths(self, data_path: str) -> typing.List[str]:

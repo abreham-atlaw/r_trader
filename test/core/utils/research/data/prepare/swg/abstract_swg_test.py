@@ -3,8 +3,11 @@ import typing
 import unittest
 from abc import abstractmethod, ABC
 
+import numpy as np
+
 from core.utils.research.data.prepare.swg.abstract_swe import SampleWeightExporter
 from core.utils.research.data.prepare.swg.abstract_swg import AbstractSampleWeightGenerator
+from lib.utils.logger import Logger
 
 
 class AbstractSampleWeightGeneratorTest(unittest.TestCase, ABC):
@@ -32,3 +35,9 @@ class AbstractSampleWeightGeneratorTest(unittest.TestCase, ABC):
 
 	def test_functionality(self):
 		self.exporter.start()
+
+		for filename in os.listdir(self.export_path):
+			np_weights = np.load(os.path.join(self.export_path, filename))
+			Logger.info("Weights Sample:")
+			Logger.info(np_weights)
+			break
