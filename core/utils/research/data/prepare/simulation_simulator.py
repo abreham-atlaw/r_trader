@@ -5,6 +5,8 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, MovingAverage
+from lib.utils.logger import Logger
 from lib.utils.math import moving_average
 
 
@@ -20,24 +22,29 @@ class SimulationSimulator:
 			output_path: str,
 			granularity: int,
 			ma_window: int = None,
-			order_gran: bool = True
+			order_gran: bool = True,
+			smoothing_algorithm: typing.Optional[SmoothingAlgorithm] = None
 	):
-		self.__df = self.__process_df(df)
+		self.__df = self.prepare_df(df)
 		self.__bounds = bounds
 		self.__seq_len = seq_len
 		self.__extra_len = extra_len
 		self.__batch_size = batch_size
 		self.__output_path = output_path
 		self.__granularity = granularity
-		self.__ma_window = ma_window
 		self.__order_gran = order_gran
 
+		if smoothing_algorithm is None and ma_window not in [None, 0, 1]:
+			smoothing_algorithm = MovingAverage(ma_window)
+		self.__smoothing_algorithm = smoothing_algorithm
+		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
+
 	@property
-	def __use_ma(self):
-		return self.__ma_window not in [None, 0, 1]
+	def __use_smoothing(self):
+		return self.__smoothing_algorithm is not None
 
 	@staticmethod
-	def __process_df(df: pd.DataFrame) -> pd.DataFrame:
+	def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 		df["time"] = pd.to_datetime(df["time"])
 		df = df.drop_duplicates(subset="time")
 		df = df.sort_values(by="time")
@@ -62,7 +69,7 @@ class SimulationSimulator:
 		return f"{datetime.now().timestamp()}.npy"
 
 	def __filter_df(self, start_date: datetime = None, end_date: datetime = None) -> pd.DataFrame:
-		print(f"Filtering Dataframe...")
+		Logger.info(f"Filtering Dataframe...")
 		df = self.__df
 		if start_date is not None:
 			df = df[df["time"] >= start_date]
@@ -71,16 +78,16 @@ class SimulationSimulator:
 		return df
 
 	def __stack(self, sequence: np.ndarray) -> np.ndarray:
-		print(f"Stacking Sequence...\n\n")
+		Logger.info(f"Stacking Sequence...\n\n")
 		length = self.__seq_len + 1
 		stack = np.zeros((sequence.shape[0] - length + 1, length))
 		for i in range(stack.shape[0]):
 			stack[i] = sequence[i: i + length]
-			print(f"{(i + 1) * 100 / stack.shape[0] :.2f}", end="\r")
+			Logger.info(f"{(i + 1) * 100 / stack.shape[0] :.2f}", end="\r")
 		return stack
 
 	def __prepare_x(self, sequences: np.ndarray) -> np.ndarray:
-		print(f"Preparing X...")
+		Logger.info(f"Preparing X...")
 		return np.concatenate(
 			(
 				sequences[:, :-1],
@@ -90,7 +97,7 @@ class SimulationSimulator:
 		)
 
 	def __prepare_y(self, sequence: np.ndarray) -> np.ndarray:
-		print(f"Preparing y...")
+		Logger.info(f"Preparing y...")
 		percentages = sequence[:, -1] / sequence[:, -2]
 		classes = np.array([self.__find_gap_index(percentages[i]) for i in range(percentages.shape[0])])
 		encoding = self.__one_hot_encode(classes, len(self.__bounds) + 1)
@@ -107,7 +114,7 @@ class SimulationSimulator:
 			X: np.ndarray,
 			y: np.ndarray
 	) -> typing.Tuple[typing.List[np.ndarray], typing.List[np.ndarray]]:
-		print(f"Batching Array...")
+		Logger.info(f"Batching Array...")
 		size = X.shape[0]
 
 		X_batches = []
@@ -129,10 +136,10 @@ class SimulationSimulator:
 			np.save(save_path, arr)
 
 	def __save_batches(self, X_batches, y_batches):
-		print(f"Saving Batches...")
+		Logger.info(f"Saving Batches...")
 		for i, (X, y) in enumerate(zip(X_batches, y_batches)):
 			self.__save(X, y)
-			print(f"{(i+1) * 100 / len(X_batches) :.2f}", end="\r")
+			Logger.info(f"{(i+1) * 100 / len(X_batches) :.2f}", end="\r")
 
 	def __prepare_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = self.__stack(sequence)
@@ -155,14 +162,14 @@ class SimulationSimulator:
 		return new_arr
 
 	def __prepare_data(self, df: pd.DataFrame) -> typing.Tuple[np.ndarray, np.ndarray]:
-		print(f"Preparing Data...")
+		Logger.info(f"Preparing Data...")
 
 		Xs, ys = [], []
 
 		for i in range(self.__granularity):
 			gran_sequence = df["c"].to_numpy()[i::self.__granularity]
-			if self.__use_ma:
-				gran_sequence = moving_average(gran_sequence, self.__ma_window)
+			if self.__use_smoothing:
+				gran_sequence = self.__smoothing_algorithm(gran_sequence)
 			gran_X, gran_y = self.__prepare_sequence(gran_sequence)
 
 			Xs.append(gran_X)

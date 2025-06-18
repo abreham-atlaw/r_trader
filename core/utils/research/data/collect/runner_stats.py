@@ -12,10 +12,12 @@ class RunnerStats:
 	id: str
 	model_name: str
 	session_timestamps: typing.List[datetime]
+	simulated_timestamps: typing.List[datetime] = field(default_factory=lambda: [])
 	profits: typing.List[float] = field(default_factory=lambda: [])
 	duration: float = 0.0
 	model_losses_map: typing.Dict[str, typing.Tuple[float, ...]] = field(default_factory=lambda: {})
 	temperature: float = 1.0
+	session_model_losses: typing.List[float] = field(default_factory=lambda: [])
 
 	@property
 	def profit(self) -> float:
@@ -42,3 +44,9 @@ class RunnerStats:
 
 	def add_session_timestamp(self, timestamp: datetime):
 		self.session_timestamps.append(timestamp)
+
+	def add_session_model_loss(self, loss: float):
+		if len(self.session_model_losses) < (len(self.session_timestamps) - 1):
+			self.session_model_losses.extend([0.0] * (len(self.session_timestamps) - 1 - len(self.session_model_losses)))
+
+		self.session_model_losses.append(loss)

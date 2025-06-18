@@ -2,8 +2,10 @@ import typing
 from abc import ABC, abstractmethod
 
 from pymongo import MongoClient
+from pymongo.errors import AutoReconnect
 
 from core.utils.research.training.data.metric import Metric, MetricsContainer
+from lib.utils.decorators import retry
 
 
 class MetricRepository(ABC):
@@ -52,6 +54,7 @@ class MongoDBMetricRepository(MetricRepository):
 			metric.__dict__[k] = json_[k]
 		return metric
 
+	@retry(exception_cls=AutoReconnect, patience=10, sleep_timer=5)
 	def _get_all(self) -> typing.List[Metric]:
 		return [self.__construct_metric(j) for j in list(self._collection.find())]
 
