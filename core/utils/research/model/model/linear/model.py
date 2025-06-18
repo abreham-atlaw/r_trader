@@ -60,9 +60,9 @@ class LinearModel(SpinozaModule):
 			norm = False
 		if isinstance(norm, bool):
 			norm = DynamicLayerNorm() if norm else nn.Identity()
-		if not isinstance(norm, typing.Iterable):
+		if isinstance(norm, nn.Module) or not isinstance(norm, typing.Iterable):
 			norm = [norm for _ in range(num_layers)]
-		if isinstance(norm, typing.Iterable) and len(norm) > 0 and isinstance(norm[0], bool):
+		if (not isinstance(norm, nn.Module)) and isinstance(norm, typing.Iterable) and len(norm) > 0 and isinstance(norm[0], bool):
 			norm = [DynamicLayerNorm() if n else nn.Identity() for n in norm]
 		if len(norm) != num_layers:
 			raise ValueError("Norm size doesn't match layers size")
