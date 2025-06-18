@@ -9,12 +9,15 @@ from torch.utils.data import DataLoader, Dataset
 
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
+	LayerStack
+from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
+from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
@@ -170,22 +173,27 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
+		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
 		DROPOUT_RATE = [0 for _ in CHANNELS]
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		NORM = [MinMaxNorm()] + [DynamicLayerNorm() for _ in CHANNELS[1:]]
+		NORM = [False] + [False for _ in CHANNELS[1:]]
 
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 
-		COLLAPSE_INPUT_NORM = MinMaxNorm()
+		BRIDGE_FF_LINEAR_LAYERS = [128, 32, 1]
+		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_NORM = [DynamicLayerNorm() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_DROPOUT = 0
+
+		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
 
-		FF_LINEAR_LAYERS = [16 for _ in range(2)] + [VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
+		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
 		FF_LINEAR_INIT = None
 		FF_LINEAR_NORM = [MinMaxNorm()] + [nn.Identity() for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_DROPOUT = 0
@@ -204,7 +212,7 @@ class TrainerTest(unittest.TestCase):
 				indicators=indicators,
 			),
 
-			cnn_block=CNNBlock(
+			cnn_block=ResNetBlock(
 				input_channels=indicators.indicators_len,
 				conv_channels=CHANNELS,
 				kernel_sizes=KERNEL_SIZES,
@@ -213,6 +221,20 @@ class TrainerTest(unittest.TestCase):
 				dropout_rate=DROPOUT_RATE,
 				norm=NORM,
 				padding=PADDING
+			),
+
+			bridge_block=BridgeBlock(
+				ff_block=LayerStack(
+					layers=[
+						LinearModel(
+							dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+							layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+							hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+							norm=BRIDGE_FF_LINEAR_NORM
+						)
+						for _ in range(CHANNELS[-1])
+					]
+				)
 			),
 
 			collapse_block=CollapseBlock(
