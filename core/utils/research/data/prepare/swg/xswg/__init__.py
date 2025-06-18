@@ -1,0 +1,2 @@
+from .basic_xswg import BasicXSampleWeightGenerator
+from .momentum_xswg import MomentumXSampleWeightGenerator
