@@ -279,6 +279,7 @@ class RunnerStatsBranches:
 	it_38_1 = "it_38_1"
 	it_38_2 = "it_38_2"
 	it_39_1 = "it_39_1"
+	it_39_2 = "it_39_2"
 	it_40_2 = "it_40_2"
 
 	all = [
@@ -305,6 +306,7 @@ class RunnerStatsBranches:
 		it_38_1,
 		it_38_2,
 		it_39_1,
+		it_39_2,
 		it_40_2
 	]
 
