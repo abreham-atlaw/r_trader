@@ -15,27 +15,28 @@ class PerformanceGridMSM(MaskedStackedModel):
 			generators: typing.List[BasicXSampleWeightGenerator],
 			performance_grid: typing.Union[np.ndarray, torch.Tensor],
 			*args,
+			activation: nn.Module = None,
 			**kwargs
 	):
+		super().__init__(*args, **kwargs)
 		self.args.update({
 			"generators": generators,
-			"performance_grid": performance_grid
+			"performance_grid": performance_grid,
+			"activation": activation
 		})
-		super().__init__(*args, **kwargs)
 		self.generators = generators
 		self.performance_grid = torch.transpose(torch.from_numpy(performance_grid), 1, 0)
-		self.weights_softmax = nn.Softmax(dim=1)
+		self.activation = activation if activation is not None else nn.Identity()
 
 	def __get_weights(self, x: torch.Tensor) -> torch.Tensor:
 		weights = torch.stack([
-			torch.from_numpy(generator(x))
+			torch.from_numpy(generator(x.detach().numpy()))
 			for generator in self.generators
 		], dim=1)
-		weights = self.weights_softmax(weights)
 		return weights
 
 	def _get_mask(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		w = self.__get_weights(x)
 		mask = (w @ self.performance_grid)/w.shape[1]
-		mask = self.weights_softmax(mask)
+		mask = self.activation(mask)
 		return mask

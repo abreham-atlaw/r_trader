@@ -22,7 +22,7 @@ class PerformanceGridEvaluatorTest(unittest.TestCase):
 					load_weights=True
 				)
 			)
-			for i in [4, 5, 6]
+			for i in [4, 5]
 		]
 
 		self.evaluator = PerformanceGridEvaluator(

@@ -13,8 +13,8 @@ class StandardizeSampleWeightManipulatorTest(AbstractSampleWeightGeneratorTest):
 		return StandardizeSampleWeightManipulator(
 			target_std=0.3,
 			target_mean=1,
-			current_std=0.94,
-			current_mean=0.21,
+			current_std=0.0327,
+			current_mean=1.09,
 			min_weights=0
 		)
 
