@@ -38,8 +38,9 @@ class PerformanceGridEvaluatorTest(unittest.TestCase):
 			ModelHandler.load(model_path)
 			for model_path in [
 				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-69-cum-0-it-27-sw12-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-40-cum-0-it-27-sw12-tot_1.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-40-cum-0-it-27-sw12-tot.zip"
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-40-cum-0-it-27-sw12-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-35-cum-0-it-27-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-36-cum-0-it-35-tot.zip"
 			]
 		]
 		self.export_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/performance_grid.npy"

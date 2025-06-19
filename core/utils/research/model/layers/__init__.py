@@ -19,3 +19,4 @@ from .pass_through import PassThroughLayer
 from .min_max_norm import MinMaxNorm
 from .layer_stack import LayerStack
 from .l1_norm import L1Norm
+from .reverse_softmax import ReverseSoftmax
