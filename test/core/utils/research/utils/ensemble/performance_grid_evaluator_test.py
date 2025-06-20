@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from core import Config
 from core.utils.research.data.load import BaseDataset
 from core.utils.research.losses import ProximalMaskedLoss
-from core.utils.research.utils.ensemble.performance_grid_evaluator import PerformanceGridEvaluator
+from core.utils.research.utils.ensemble.pg_msm.performance_grid_evaluator import PerformanceGridEvaluator
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 

@@ -3,7 +3,6 @@ import unittest
 
 import numpy as np
 import torch
-import torch.func as F
 from matplotlib import pyplot as plt
 from torch import nn
 
@@ -13,7 +12,6 @@ from core.utils.research.data.prepare.swg.swg_pipeline import SampleWeightGenera
 from core.utils.research.data.prepare.swg.xswg import MomentumXSampleWeightGenerator
 from core.utils.research.model.layers import L1Norm
 from core.utils.research.model.model.ensemble.stacked.msm.performance_grid_msm import PerformanceGridMSM
-from core.utils.research.utils.ensemble.performance_grid_evaluator import PerformanceGridEvaluator
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
