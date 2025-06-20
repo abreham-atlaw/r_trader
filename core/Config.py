@@ -186,7 +186,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/01.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/04.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -246,8 +246,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-23/"
-
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-39/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
@@ -331,7 +330,7 @@ class RunnerStatsBranches:
 		it_39_1
 	]
 
-	default = it_23_3
+	default = it_39_1
 
 
 class RunnerStatsLossesBranches:
@@ -392,7 +391,7 @@ class RunnerStatsLossesBranches:
 		it_36,
 		it_37,
 		it_38,
-		it_39
+		it_39,
 	]
 
-	default = it_23
+	default = it_39
