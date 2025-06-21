@@ -64,6 +64,7 @@ class PerformanceGridMSMBuilder:
 		return export_path, exporter.get_standardized_generator()
 
 	def __generate_all_weights(self) -> typing.Tuple[typing.List[str], typing.List[AbstractSampleWeightGenerator]]:
+		Logger.info("Generating weights...")
 		weights_and_generators = [
 			self.__generate_weight(generator)
 			for generator in self.__generators
@@ -75,6 +76,7 @@ class PerformanceGridMSMBuilder:
 			]
 			for i in range(2)
 		]
+		Logger.success("Done generating weights.")
 		return weights_paths, generators
 
 	def __generate_performance_grid(
@@ -82,6 +84,7 @@ class PerformanceGridMSMBuilder:
 			weights_path: typing.List[typing.List[str]],
 			models: typing.List[str],
 	) -> np.ndarray:
+		Logger.info(f"Generating performance grid...")
 		evaluator = PerformanceGridEvaluator(
 			loss=self.__loss,
 			dataloaders=[
@@ -98,6 +101,7 @@ class PerformanceGridMSMBuilder:
 		)
 
 		grid = evaluator.evaluate(models, self.__performance_grid_path)
+		Logger.success("Done generating performance grid.")
 		return grid
 
 	def __build_model(
@@ -107,12 +111,15 @@ class PerformanceGridMSMBuilder:
 			models: typing.List[nn.Module],
 			*args, **kwargs
 	):
-		return PerformanceGridMSM(
+		Logger.info("Building model...")
+		model = PerformanceGridMSM(
 			generators=generators,
 			performance_grid=performance_grid,
 			models=models,
 			*args, **kwargs
 		)
+		Logger.success("Done building model.")
+		return model
 
 	def build(
 			self,
