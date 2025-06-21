@@ -55,7 +55,8 @@ class PerformanceGridMSMBuilderTest(unittest.TestCase):
 			tmp_path=self.tmp_path,
 			loss=ProximalMaskedLoss(
 				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-				p=1
+				p=1,
+				weighted_sample=False
 			)
 		)
 

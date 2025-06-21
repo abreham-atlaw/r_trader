@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.swg.abstract_swg import AbstractSampleWeightGenerator
 from core.utils.research.data.prepare.swg.xswg import BasicXSampleWeightGenerator
+from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.ensemble.stacked.msm.performance_grid_msm import PerformanceGridMSM
 from lib.utils.logger import Logger
 from core.utils.research.data.prepare.swg.standardized_swe import StandardizedSampleWeightExporter
@@ -29,6 +30,9 @@ class PerformanceGridMSMBuilder:
 			weights_mean: float = 1.0,
 			X_dir: str = "X"
 	):
+		if not isinstance(loss, SpinozaLoss) or not loss.weighted_sample:
+			Logger.warning(f"Detected that loss is either not SpinozaLoss or Sample Weight is not enabled.")
+
 		self.__data_paths = data_paths
 		self.__generators = generators
 		self.__tmp_path = tmp_path
