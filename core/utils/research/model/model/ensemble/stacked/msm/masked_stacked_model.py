@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.layers import ReverseSoftmax
 from core.utils.research.model.model.savable import SpinozaModule
 
 
@@ -23,6 +24,7 @@ class MaskedStackedModel(SpinozaModule, ABC):
 		super().__init__(input_size=models[0].input_size, auto_build=False)
 		self.models = nn.ModuleList(models)
 		self.softmax = nn.Softmax(dim=-1) if pre_weight_softmax else nn.Identity()
+		self.reverse_softmax = ReverseSoftmax(dim=-1) if pre_weight_softmax else nn.Identity()
 		self.extra_outputs_size = extra_outputs_size
 
 	@abstractmethod
@@ -61,6 +63,13 @@ class MaskedStackedModel(SpinozaModule, ABC):
 		)
 		mask = self._get_mask(x, y)
 		out = self._apply_mask(y, mask)
+		out = torch.concatenate(
+			(
+				self.reverse_softmax(out[:, :-self.extra_outputs_size]),
+				out[:, -self.extra_outputs_size:]
+			),
+			dim=1
+		)
 		return out
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
