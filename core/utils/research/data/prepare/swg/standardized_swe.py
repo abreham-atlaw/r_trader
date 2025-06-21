@@ -10,7 +10,7 @@ from core.utils.research.data.prepare.swg.swg_pipeline import SampleWeightGenera
 from lib.utils.logger import Logger
 
 
-class PerformanceGridSampleWeightExporter(SampleWeightExporter):
+class StandardizedSampleWeightExporter(SampleWeightExporter):
 
 	def __init__(
 		self,
@@ -23,6 +23,7 @@ class PerformanceGridSampleWeightExporter(SampleWeightExporter):
 		super().__init__(input_paths, export_path, generator)
 		self.__export_path = export_path
 		self.__target_mean, self.__target_std = target_mean, target_std
+		self.__standardized_generator = None
 
 	def __load_weights(self) -> np.ndarray:
 		filenames = sorted(os.listdir(self.__export_path))
@@ -37,8 +38,10 @@ class PerformanceGridSampleWeightExporter(SampleWeightExporter):
 		return mean, std
 
 	def __standardize_weights(self):
+		Logger.info("Standardizing Weights...")
 		mean, std = self.__get_standardization_configs()
-		Logger.info(f"Using Mean: {mean}, Using STD: {std}")
+		Logger.info(f"Target mean: {self.__target_mean}, std: {self.__target_std}")
+		Logger.info(f"Current mean: {mean}, std: {std}")
 		generator = StandardizeSampleWeightManipulator(
 			target_std=self.__target_std,
 			target_mean=self.__target_std,
@@ -51,15 +54,27 @@ class PerformanceGridSampleWeightExporter(SampleWeightExporter):
 			generator=generator
 		)
 		exporter.start()
-		return mean, std
+		self.__standardized_generator = self.__create_generator(mean, std)
 
 	def __create_generator(self, mean, std) -> AbstractSampleWeightGenerator:
+		Logger.info(f"Creating Standardized Generator with mean={mean}, std={std}")
 		return SampleWeightGeneratorPipeline(
 			generators=[
-
+				StandardizeSampleWeightManipulator(
+					target_std=self.__target_std,
+					target_mean=self.__target_mean,
+					current_std=std,
+					current_mean=mean
+				),
+				self._generator
 			]
 		)
 
+	def get_standardized_generator(self) -> AbstractSampleWeightGenerator:
+		if self.__standardized_generator is None:
+			raise ValueError("Standardized Generator not created yet. Generation must be complete before calling get_standardized_generator.")
+		return self.__standardized_generator
+
 	def start(self):
 		super().start()
-		mean, std = self.__standardize_weights()
+		self.__standardize_weights()

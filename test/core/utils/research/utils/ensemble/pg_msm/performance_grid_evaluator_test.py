@@ -43,7 +43,7 @@ class PerformanceGridEvaluatorTest(unittest.TestCase):
 				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-36-cum-0-it-35-tot.zip"
 			]
 		]
-		self.export_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/performance_grid.npy"
+		self.export_path = "/temp/performance_grid.npy"
 
 	def test_functionality(self):
 

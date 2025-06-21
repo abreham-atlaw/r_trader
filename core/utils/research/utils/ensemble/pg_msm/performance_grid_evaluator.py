@@ -51,7 +51,7 @@ class PerformanceGridEvaluator:
 
 		for i, model in enumerate(models):
 			for j, evaluator in enumerate(self.__evaluators):
-				Logger.info(f"Evaluating model {i}/{len(models)} on data {j}/{len(self.__evaluators)}...")
+				Logger.info(f"Evaluating model {i+1}/{len(models)} on data {j+1}/{len(self.__evaluators)}...")
 				performance[i, j] = self.__evaluate_model(model, evaluator)
 
 		Logger.success(f"Evaluation complete!")

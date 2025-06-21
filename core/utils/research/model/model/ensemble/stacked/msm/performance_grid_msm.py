@@ -25,7 +25,7 @@ class PerformanceGridMSM(MaskedStackedModel):
 			"activation": activation
 		})
 		self.generators = generators
-		self.performance_grid = torch.transpose(torch.from_numpy(performance_grid), 1, 0)
+		self.performance_grid = torch.transpose(torch.from_numpy(performance_grid.astype(np.float32)), 1, 0)
 		self.activation = activation if activation is not None else nn.Identity()
 
 	def __get_weights(self, x: torch.Tensor) -> torch.Tensor:
