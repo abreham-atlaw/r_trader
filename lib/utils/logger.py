@@ -7,14 +7,13 @@ from core.Config import LOGGING, LOGGING_PID, LOGGING_CONSOLE, LOGGING_FILE_PATH
 
 
 class Logger:
-
 	class Colors:
 		PURPLE = '\033[95m'
 		OKBLUE = '\033[94m'
 		OKCYAN = '\033[96m'
 		OKGREEN = '\033[92m'
-		WARNING = '\033[93m'
-		FAIL = '\033[91m'
+		WARNING = '\033[30;103m'
+		FAIL = '\033[97;101m'
 		ENDC = '\033[0m'
 		BOLD = '\033[1m'
 		UNDERLINE = '\033[4m'

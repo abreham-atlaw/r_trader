@@ -183,6 +183,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
+		INPUT_NORM = DynamicLayerNorm()
 
 		BRIDGE_FF_LINEAR_LAYERS = [128, 32, 1]
 		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
@@ -210,6 +211,7 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
+				input_norm=INPUT_NORM
 			),
 
 			cnn_block=ResNetBlock(
@@ -312,7 +314,7 @@ class TrainerTest(unittest.TestCase):
 	def __init_dataloader(self):
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
@@ -321,7 +323,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
