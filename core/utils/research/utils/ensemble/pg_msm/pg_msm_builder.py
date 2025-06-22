@@ -47,7 +47,7 @@ class PerformanceGridMSMBuilder:
 		return os.path.join(self.__tmp_path, str(id(generator)))
 
 	def __generate_weight(self, generator: AbstractSampleWeightGenerator) -> typing.Tuple[str, AbstractSampleWeightGenerator]:
-		Logger.info(f"Generating weights for Generator: {generator}...")
+		Logger.info(f"Generating weights for Generator: {generator.__class__.__name__}...")
 
 		export_path = self._generate_export_path(generator)
 
