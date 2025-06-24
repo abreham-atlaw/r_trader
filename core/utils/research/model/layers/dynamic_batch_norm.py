@@ -10,7 +10,9 @@ class DynamicBatchNorm(nn.Module):
 
 	def forward(self, x: torch.Tensor) -> torch.Tensor:
 		if self.norm_layer is None:
-			self.norm_layer = nn.BatchNorm1d(num_features=x.shape[-1])
+			self.norm_layer = nn.BatchNorm1d(num_features=x.shape[1])
+
 		if x.shape[0] == 1:
 			return x
+
 		return self.norm_layer(x)
