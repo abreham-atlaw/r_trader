@@ -13,6 +13,7 @@ import importlib
 from torch import nn
 
 from core.utils.research.model.model.savable import SpinozaModule
+from lib.network.rest_interface.pickle_serializer import PickleSerializer
 from lib.utils.torch_utils.module_serializer import TorchModuleSerializer
 
 
@@ -20,8 +21,10 @@ class ModelHandler:
 
 	__MODEL_PREFIX = "__model__"
 	__MODULE_PREFIX = "__module__"
+	__OBJECT_PREFIX = "__object__"
 
 	__module_serializer = TorchModuleSerializer()
+	__pickle_serializer = PickleSerializer()
 
 	@staticmethod
 	def get_model_device(model):
@@ -44,6 +47,18 @@ class ModelHandler:
 		return filename
 
 	@staticmethod
+	def __export_object(item: object, key: str, idx: int = None) -> str:
+		return ModelHandler.__pickle_serializer.serialize(item)
+
+	@staticmethod
+	def __requires_serialization(item: object) -> bool:
+		try:
+			json.dumps(item)
+			return False
+		except (TypeError, OverflowError):
+			return True
+
+	@staticmethod
 	def __export_item(
 			item: typing.Union[nn.Module, SpinozaModule, typing.Any, typing.List],
 			key: str,
@@ -55,6 +70,7 @@ class ModelHandler:
 			return (
 				f"{ModelHandler.__MODEL_PREFIX}{key}" if isinstance(item[0], SpinozaModule)
 				else f"{ModelHandler.__MODULE_PREFIX}{key}" if isinstance(item[0], nn.Module)
+				else f"{ModelHandler.__OBJECT_PREFIX}{key}" if ModelHandler.__requires_serialization(item[0])
 				else key,
 
 				[
@@ -67,6 +83,8 @@ class ModelHandler:
 			return f"{ModelHandler.__MODEL_PREFIX}{key}", ModelHandler.__export_spinoza_module(item, key, idx)
 		if isinstance(item, nn.Module):
 			return f"{ModelHandler.__MODULE_PREFIX}{key}", ModelHandler.__export_torch_module(item, key, idx)
+		if ModelHandler.__requires_serialization(item):
+			return f"{ModelHandler.__OBJECT_PREFIX}{key}", ModelHandler.__export_object(item, key, idx)
 		else:
 			return key, item
 
@@ -79,12 +97,17 @@ class ModelHandler:
 		return ModelHandler.load(os.path.join(dirname, filename), load_state=False)
 
 	@staticmethod
+	def __import_object(serialized: str) -> object:
+		return ModelHandler.__pickle_serializer.deserialize(serialized)
+
+	@staticmethod
 	def __import_item(key, value, dirname: str) -> typing.Tuple[str, typing.Any]:
 
 		if isinstance(value, list):
 			return (
 				key[len(ModelHandler.__MODEL_PREFIX):] if key.startswith(ModelHandler.__MODEL_PREFIX) else
 				key[len(ModelHandler.__MODULE_PREFIX):] if key.startswith(ModelHandler.__MODULE_PREFIX) else
+				key[len(ModelHandler.__OBJECT_PREFIX):] if key.startswith(ModelHandler.__OBJECT_PREFIX) else
 				key,
 				[
 					ModelHandler.__import_item(key, i, dirname)[1]
@@ -96,6 +119,8 @@ class ModelHandler:
 			return key[len(ModelHandler.__MODEL_PREFIX):], ModelHandler.__import_spinoza_module(value, dirname)
 		if key.startswith(ModelHandler.__MODULE_PREFIX):
 			return key[len(ModelHandler.__MODULE_PREFIX):], ModelHandler.__import_torch_module(value)
+		if key.startswith(ModelHandler.__OBJECT_PREFIX):
+			return key[len(ModelHandler.__OBJECT_PREFIX):], ModelHandler.__import_object(value)
 		else:
 			return key, value
 

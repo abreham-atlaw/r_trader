@@ -169,7 +169,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
+AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -246,7 +246,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-27/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-31/"
 
 
 CORE_MODEL_CONFIG.path = "model.zip"
@@ -303,12 +303,17 @@ class RunnerStatsBranches:
 	ma_ews_dynamic_k_stm_it_29_dm_0 = "ma_ews_dynamic_k_stm_it_29_dm_0"
 	it_30_1 = "it_30_1"
 	ma_ews_dynamic_k_stm_it_31 = "ma_ews_dynamic_k_stm_it_31"
+	it_31_2 = "it_31_2"
 	ma_ews_dynamic_k_stm_it_33 = "ma_ews_dynamic_k_stm_it_33"
 	it_34_1 = "it_34_1"
 	it_36_1 = "it_36_1"
+	it_36_2 = "it_36_2"
 	it_37_1 = "it_37_1"
 	it_38_1 = "it_38_1"
+	it_38_2 = "it_38_2"
 	it_39_1 = "it_39_1"
+	it_39_2 = "it_39_2"
+	it_40_2 = "it_40_2"
 
 	all = [
 		main,
@@ -326,15 +331,20 @@ class RunnerStatsBranches:
 		ma_ews_dynamic_k_stm_it_29_dm_0,
 		it_30_1,
 		ma_ews_dynamic_k_stm_it_31,
+		it_31_2,
 		ma_ews_dynamic_k_stm_it_33,
 		it_34_1,
 		it_36_1,
+		it_36_2,
 		it_37_1,
 		it_38_1,
-		it_39_1
+		it_38_2,
+		it_39_1,
+		it_39_2,
+		it_40_2
 	]
 
-	default = it_27_2
+	default = it_31_2
 
 
 class RunnerStatsLossesBranches:
@@ -367,6 +377,7 @@ class RunnerStatsLossesBranches:
 	it_37 = "it_37"
 	it_38 = "it_38"
 	it_39 = "it_39"
+	it_40 = "it_40"
 
 	all = [
 		main,
@@ -395,7 +406,8 @@ class RunnerStatsLossesBranches:
 		it_36,
 		it_37,
 		it_38,
-		it_39
+		it_39,
+		it_40
 	]
 
-	default = it_27
+	default = it_31
