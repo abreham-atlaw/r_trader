@@ -9,7 +9,8 @@ from torch.utils.data import DataLoader, Dataset
 
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
+	LayerStack
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -182,8 +183,9 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
+		INPUT_NORM = DynamicLayerNorm()
 
-		BRIDGE_FF_LINEAR_LAYERS = [512, 256]
+		BRIDGE_FF_LINEAR_LAYERS = [128, 32, 1]
 		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
 		BRIDGE_FF_LINEAR_NORM = [DynamicLayerNorm() for _ in BRIDGE_FF_LINEAR_LAYERS]
 		BRIDGE_FF_LINEAR_DROPOUT = 0
@@ -209,6 +211,7 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
+				input_norm=INPUT_NORM
 			),
 
 			cnn_block=ResNetBlock(
@@ -223,11 +226,16 @@ class TrainerTest(unittest.TestCase):
 			),
 
 			bridge_block=BridgeBlock(
-				ff_block=LinearModel(
-					dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-					layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-					hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-					norm=BRIDGE_FF_LINEAR_NORM
+				ff_block=LayerStack(
+					layers=[
+						LinearModel(
+							dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+							layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+							hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+							norm=BRIDGE_FF_LINEAR_NORM
+						)
+						for _ in range(CHANNELS[-1])
+					]
 				)
 			),
 
@@ -306,7 +314,7 @@ class TrainerTest(unittest.TestCase):
 	def __init_dataloader(self):
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
@@ -315,7 +323,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
