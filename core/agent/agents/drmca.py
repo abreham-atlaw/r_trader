@@ -9,6 +9,7 @@ from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.trader_action import TraderAction
 from core.agent.utils.cache import Cache
+from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.model.model.utils import TransitionOnlyModel
 from core.utils.research.model.model.utils import WrappedModel
@@ -39,6 +40,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_path=Config.AGENT_DUMP_NODES_PATH,
 			dump_visited_only=Config.AGENT_DUMP_VISITED_ONLY,
 			discount=Config.AGENT_DISCOUNT_FACTOR,
+			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			**kwargs
 	):
@@ -56,6 +58,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			dump_visited_only=dump_visited_only,
 			node_serializer=TraderNodeSerializer(),
 			discount=discount,
+			discount_function=discount_function,
+			state_repository=AgentUtilsProvider.provide_state_repository(),
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
@@ -81,7 +85,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 					model,
 					seq_len=Config.MARKET_STATE_MEMORY,
 					window_size=Config.AGENT_MA_WINDOW_SIZE,
-					use_ma=Config.AGENT_USE_MA,
+					use_ma=Config.AGENT_USE_SMOOTHING,
 				)
 			)
 

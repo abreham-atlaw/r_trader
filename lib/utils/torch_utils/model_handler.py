@@ -1,5 +1,7 @@
 import hashlib
+import io
 import shutil
+import typing
 from uuid import uuid4
 
 import torch
@@ -8,12 +10,21 @@ import zipfile
 import os
 import importlib
 
+from torch import nn
+
 from core.utils.research.model.model.savable import SpinozaModule
+from lib.network.rest_interface.pickle_serializer import PickleSerializer
+from lib.utils.torch_utils.module_serializer import TorchModuleSerializer
 
 
 class ModelHandler:
 
 	__MODEL_PREFIX = "__model__"
+	__MODULE_PREFIX = "__module__"
+	__OBJECT_PREFIX = "__object__"
+
+	__module_serializer = TorchModuleSerializer()
+	__pickle_serializer = PickleSerializer()
 
 	@staticmethod
 	def get_model_device(model):
@@ -26,6 +37,94 @@ class ModelHandler:
 				raise ValueError("The model has no parameters or buffers to infer the device.")
 
 	@staticmethod
+	def __export_torch_module(item: nn.Module, key: str, idx: int) -> str:
+		return ModelHandler.__module_serializer.serialize(item)
+
+	@staticmethod
+	def __export_spinoza_module(item: SpinozaModule, key: str, idx: int = None) -> str:
+		filename = f"{key}_{idx}.zip" if idx is not None else f"{key}.zip"
+		ModelHandler.save(item, filename, save_state=False)
+		return filename
+
+	@staticmethod
+	def __export_object(item: object, key: str, idx: int = None) -> str:
+		return ModelHandler.__pickle_serializer.serialize(item)
+
+	@staticmethod
+	def __requires_serialization(item: object) -> bool:
+		try:
+			json.dumps(item)
+			return False
+		except (TypeError, OverflowError):
+			return True
+
+	@staticmethod
+	def __export_item(
+			item: typing.Union[nn.Module, SpinozaModule, typing.Any, typing.List],
+			key: str,
+			idx: int = None
+	) -> typing.Tuple[str, typing.Any]:
+
+		if isinstance(item, typing.List) and len(item) > 0:
+
+			return (
+				f"{ModelHandler.__MODEL_PREFIX}{key}" if isinstance(item[0], SpinozaModule)
+				else f"{ModelHandler.__MODULE_PREFIX}{key}" if isinstance(item[0], nn.Module)
+				else f"{ModelHandler.__OBJECT_PREFIX}{key}" if ModelHandler.__requires_serialization(item[0])
+				else key,
+
+				[
+					ModelHandler.__export_item(i, key, idx)[1]
+					for idx, i in enumerate(item)
+				]
+			)
+
+		if isinstance(item, SpinozaModule):
+			return f"{ModelHandler.__MODEL_PREFIX}{key}", ModelHandler.__export_spinoza_module(item, key, idx)
+		if isinstance(item, nn.Module):
+			return f"{ModelHandler.__MODULE_PREFIX}{key}", ModelHandler.__export_torch_module(item, key, idx)
+		if ModelHandler.__requires_serialization(item):
+			return f"{ModelHandler.__OBJECT_PREFIX}{key}", ModelHandler.__export_object(item, key, idx)
+		else:
+			return key, item
+
+	@staticmethod
+	def __import_torch_module(serialized: str) -> nn.Module:
+		return ModelHandler.__module_serializer.deserialize(serialized)
+
+	@staticmethod
+	def __import_spinoza_module(filename: str, dirname: str) -> SpinozaModule:
+		return ModelHandler.load(os.path.join(dirname, filename), load_state=False)
+
+	@staticmethod
+	def __import_object(serialized: str) -> object:
+		return ModelHandler.__pickle_serializer.deserialize(serialized)
+
+	@staticmethod
+	def __import_item(key, value, dirname: str) -> typing.Tuple[str, typing.Any]:
+
+		if isinstance(value, list):
+			return (
+				key[len(ModelHandler.__MODEL_PREFIX):] if key.startswith(ModelHandler.__MODEL_PREFIX) else
+				key[len(ModelHandler.__MODULE_PREFIX):] if key.startswith(ModelHandler.__MODULE_PREFIX) else
+				key[len(ModelHandler.__OBJECT_PREFIX):] if key.startswith(ModelHandler.__OBJECT_PREFIX) else
+				key,
+				[
+					ModelHandler.__import_item(key, i, dirname)[1]
+					for i in value
+				]
+			)
+
+		if key.startswith(ModelHandler.__MODEL_PREFIX):
+			return key[len(ModelHandler.__MODEL_PREFIX):], ModelHandler.__import_spinoza_module(value, dirname)
+		if key.startswith(ModelHandler.__MODULE_PREFIX):
+			return key[len(ModelHandler.__MODULE_PREFIX):], ModelHandler.__import_torch_module(value)
+		if key.startswith(ModelHandler.__OBJECT_PREFIX):
+			return key[len(ModelHandler.__OBJECT_PREFIX):], ModelHandler.__import_object(value)
+		else:
+			return key, value
+
+	@staticmethod
 	def save(model, path, to_cpu=True, save_state=True):
 		original_device = None
 		if to_cpu:
@@ -34,39 +133,26 @@ class ModelHandler:
 			except ValueError:
 				pass
 			model = model.to(torch.device('cpu'))
-		# Export model config
+
 		model_config = model.export_config()
-		# Add the class name to the config
+
 		model_config['class_name'] = model.__class__.__name__
 		model_config['module_name'] = model.__class__.__module__
 
 		model_config_copy = {}
 		for key, value in model_config.items():
 
-			if isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], SpinozaModule):
-				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = []
-				for i in range(len(value)):
-					filename = f"{key}_{i}.zip"
-					ModelHandler.save(value[i], filename, save_state=False)
-					model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"].append(filename)
-
-			elif isinstance(value, SpinozaModule):
-				filename = f"{key}.zip"
-				ModelHandler.save(value, filename, save_state=False)
-				model_config_copy[f"{ModelHandler.__MODEL_PREFIX}{key}"] = filename
-			else:
-				model_config_copy[key] = value
+			export_key, export_value = ModelHandler.__export_item(value, key)
+			model_config_copy[export_key] = export_value
 
 		model_config = model_config_copy
 
 		with open('model_config.json', 'w') as f:
 			json.dump(model_config, f)
 
-		# Save model state dict
 		if save_state:
 			torch.save(model.state_dict(), 'model_state.pth')
 
-		# Zip the two files together
 		with zipfile.ZipFile(path, 'w') as zipf:
 			zipf.write('model_config.json')
 			if save_state:
@@ -79,7 +165,6 @@ class ModelHandler:
 					else:
 						zipf.write(value)
 
-		# Remove the temporary files
 		os.remove('model_config.json')
 		if save_state:
 			os.remove('model_state.pth')
@@ -102,45 +187,30 @@ class ModelHandler:
 			os.makedirs(dirname)
 		except FileExistsError:
 			pass
-		# Unzip the file
+
 		with zipfile.ZipFile(path, 'r') as zipf:
 			zipf.extractall(dirname, )
 
-		# Load the model config
 		with open(os.path.join(dirname, 'model_config.json'), 'r') as f:
 			model_config = json.load(f)
 
-		# Get the class from the class name
 		module = importlib.import_module(model_config['module_name'])
 		ModelClass = getattr(module, model_config['class_name'])
 
-		# Remove class_name and module_name from model_config
 		model_config.pop('class_name')
 		model_config.pop('module_name')
 
 		model_config_copy = {}
 		for key, value in model_config.items():
-			if key.startswith(ModelHandler.__MODEL_PREFIX):
-				if isinstance(value, (list, tuple)):
-					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = [
-						ModelHandler.load(os.path.join(dirname, value[i]), load_state=False)
-						for i in range(len(value))
-					]
-					for i in range(len(value)):
-						os.remove(os.path.join(dirname, value[i]))
-				else:
-					model_config_copy[key[len(ModelHandler.__MODEL_PREFIX):]] = ModelHandler.load(os.path.join(dirname, value), load_state=False)
-					os.remove(os.path.join(dirname, value))
-			else:
-				model_config_copy[key] = value
+
+			imported_key, imported_value = ModelHandler.__import_item(key, value, dirname)
+			model_config_copy[imported_key] = imported_value
+
 		model_config = model_config_copy
-		# Use the import_config method to deserialize the config
 		model_config = ModelClass.import_config(model_config)
 
-		# Create the model
 		model: SpinozaModule = ModelClass(**model_config)
 
-		# Load the state dict
 		if load_state:
 			model.load_state_dict_lazy(torch.load(os.path.join(dirname, 'model_state.pth'), map_location=torch.device('cpu')))
 

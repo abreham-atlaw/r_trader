@@ -1,38 +1,28 @@
 import os
 import unittest
-from datetime import datetime
 
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import MSELoss
-from torch.utils.data import DataLoader, Dataset
 from torch.optim import Adam
+from torch.utils.data import DataLoader, Dataset
 
-from core import Config
-from core.di import ServiceProvider
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.data.load.ensemble import EnsembleStackedDataset
-from core.utils.research.losses import WeightedCrossEntropyLoss, WeightedMSELoss, MeanSquaredClassError, \
-	MSCECrossEntropyLoss, LogLoss
-from core.utils.research.model.layers import Indicators
+from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
+	LayerStack
+from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
+from core.utils.research.model.model.cnn.cnn2 import CNN2
+from core.utils.research.model.model.cnn.cnn_block import CNNBlock
+from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
+from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.cnn.resnet import ResNet
-from core.utils.research.model.model.ensemble.stacked import LinearMSM, SimplifiedMSM, PlainMSM
-from core.utils.research.model.model.ensemble.stacked.linear_3dmsm import Linear3dMSM
+from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.transformer import Decoder
-from core.utils.research.model.model.transformer import Transformer
-from core.utils.research.training.callbacks import WeightStatsCallback
-from core.utils.research.training.callbacks.checkpoint_callback import CheckpointCallback
-from core.utils.research.training.callbacks.metric_callback import MetricCallback
-from core.utils.research.training.data.repositories.metric_repository import MetricRepository, MongoDBMetricRepository
-from core.utils.research.training.data.state import TrainingState
-from core.utils.research.training.trackers.stats_tracker import DynamicStatsTracker, Keys, WeightsStatsTracker, \
-	GradientsStatsTracker
+from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
 from core.utils.research.training.trainer import Trainer
+from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
-from lib.utils.torch_utils.tensor_merger import TensorMerger
 
 
 class SineWaveDataset(Dataset):
@@ -78,98 +68,27 @@ class TrainerTest(unittest.TestCase):
 
 		print(f"Generated: {target_path}")
 
-	def setUp(self):
+	def __create_model(self):
+		return self.create_cnn2()
 
-		SAMPLE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-		ENSEMBLE_SAMPLE_PATHES = [
-				# "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-192",
-				# "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-240"
-		]
-
-		SAMPLE_PATHS = [SAMPLE_PATH] + ENSEMBLE_SAMPLE_PATHES
-
-		GENERATION_SIZE = 100
-
-		self.GENERATED_PATHS_MAP = {
-			path: f"{path}_{GENERATION_SIZE}" for path in SAMPLE_PATHS
-		}
-
-		self.GENERATED_PATH = self.GENERATED_PATHS_MAP[SAMPLE_PATH]
-		self.ENSEMBLE_GENERATED_PATH = [self.GENERATED_PATHS_MAP[path] for path in ENSEMBLE_SAMPLE_PATHES]
-
-		for sample_path, target_path in self.GENERATED_PATHS_MAP.items():
-			target_path = f"{sample_path}_{GENERATION_SIZE}"
-			if os.path.exists(target_path):
-				continue
-			self.__generate_dataset(sample_path, target_path, GENERATION_SIZE)
-
-	def test_linear(self):
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/linear_test.zip"
-
-		VOCAB_SIZE = 431
-		DROPOUT = 0.5
-		LAYER_SIZES = [128, 128, VOCAB_SIZE + 1]
-		HIDDEN_ACTIVATION = nn.LeakyReLU()
-		INIT_FUNCTION = None
-		NORM = [True] + [False for _ in LAYER_SIZES[1:]]
-		BLOCK_SIZE = 1148
-		LR = 1e-3
-
-		model = LinearModel(
-			dropout_rate=DROPOUT,
-			layer_sizes=LAYER_SIZES,
-			hidden_activation=HIDDEN_ACTIVATION,
-			init_fn=INIT_FUNCTION,
-			norm=NORM,
-			input_size=BLOCK_SIZE
-		)
-
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-		)
-
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		trainer = Trainer(
-			model,
-		)
-		trainer.cls_loss_function = MSCECrossEntropyLoss(
-			classes=np.array(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-			epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
-			device=trainer.device,
-			weights=[0.1, 0.9]
-		)
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
-
-		trainer.train(
-			dataloader,
-			epochs=10,
-			progress=True,
-			cls_loss_only=False
-		)
-
-		ModelHandler.save(trainer.model, SAVE_PATH)
-
-	def test_cnn_model(self):
-
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
-
+	@staticmethod
+	def create_cnn():
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [3 for _ in CHANNELS]
+		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
+		ACTIVATION = [nn.LeakyReLU(), nn.Identity(), nn.Identity(), nn.LeakyReLU()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		NORM = [True] + [True for _ in CHANNELS[1:]]
 		STRIDE = 2
+		INPUT_DROPOUT = 0.2
+		INPUT_NORM = False
+		COLLAPSE_AVG_POOL = False
 		LR = 1e-4
 
 		POSITIONAL_ENCODING = True
@@ -179,7 +98,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 		INDICATORS_IDENTITIES = 4
 
-		USE_CHANNEL_FFN = True
+		USE_CHANNEL_FFN = False
 		CHANNEL_FFN_LAYERS = [CHANNELS[-1] for _ in range(4)]
 		CHANNEL_FFN_DROPOUT = 0.1
 		CHANNEL_FFN_ACTIVATION = nn.LeakyReLU()
@@ -190,7 +109,7 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_LINEAR_NORM = [DynamicBatchNorm()] + [MinMaxNorm() for _ in FF_LINEAR_LAYERS[:-1]]
 		FF_NORM_LEARNABLE = False
 		FF_DROPOUT = 0.12
 
@@ -241,496 +160,216 @@ class TrainerTest(unittest.TestCase):
 			positional_encoding=POSITIONAL_ENCODING,
 			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
 			stride=STRIDE,
-			channel_ffn=channel_ffn
+			channel_ffn=channel_ffn,
+			input_dropout=INPUT_DROPOUT,
+			input_norm=INPUT_NORM,
+			collapse_avg_pool=COLLAPSE_AVG_POOL,
 		)
+		return model
 
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-			check_file_sizes=True
-		)
-		dataloader = DataLoader(dataset, batch_size=64)
-
-		# test_dataset = BaseDataset(
-		# 	[
-		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-		# 	],
-		# )
-		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
-
-		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
-
-		trainer.train(
-			dataloader,
-			epochs=10,
-			progress=True,
-			cls_loss_only=False
-		)
-
-		ModelHandler.save(trainer.model, SAVE_PATH)
-
-	def test_resnet_model(self):
-
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
-
-		CHANNELS = [128 for _ in range(4)]
+	@staticmethod
+	def create_cnn2():
+		CHANNELS = [32 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
-		POOL_SIZES = [3 for _ in CHANNELS]
-		DROPOUT_RATE = 0
-		ACTIVATION = nn.LeakyReLU()
+		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
+		DROPOUT_RATE = [0 for _ in CHANNELS]
+		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		LINEAR_COLLAPSE = True
-		AVG_POOL = True
 		NORM = [False] + [False for _ in CHANNELS[1:]]
-		STRIDE = 2
-		LR = 1e-4
 
-		POSITIONAL_ENCODING = True
-		POSITIONAL_ENCODING_NORM = True
 		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
-		INDICATORS_IDENTITIES = 4
+		INPUT_NORM = DynamicLayerNorm()
 
-		USE_FF = True
-		FF_LINEAR_LAYERS = [256 for _ in range(4)] + [VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = nn.LeakyReLU()
+		BRIDGE_FF_LINEAR_LAYERS = [128, 32, 1]
+		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_NORM = [DynamicLayerNorm() for _ in BRIDGE_FF_LINEAR_LAYERS]
+		BRIDGE_FF_LINEAR_DROPOUT = 0
+
+		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
+		DROPOUT_BRIDGE = 0.2
+
+		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [False] + [False for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_NORM_LEARNABLE = False
-		FF_DROPOUT = 0.12
-
-		if USE_FF:
-			ff = LinearModel(
-				dropout_rate=FF_DROPOUT,
-				layer_sizes=FF_LINEAR_LAYERS,
-				hidden_activation=FF_LINEAR_ACTIVATION,
-				init_fn=FF_LINEAR_INIT,
-				norm=FF_LINEAR_NORM,
-				norm_learnable=FF_NORM_LEARNABLE
-			)
-		else:
-			ff = None
+		FF_LINEAR_NORM = [MinMaxNorm()] + [nn.Identity() for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_DROPOUT = 0
 
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI,
-			identities=INDICATORS_IDENTITIES,
+			rsi=INDICATORS_RSI
 		)
 
-		model = ResNet(
+		return CNN2(
 			extra_len=EXTRA_LEN,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE,
-			padding=PADDING,
-			avg_pool=AVG_POOL,
-			linear_collapse=LINEAR_COLLAPSE,
-			norm=NORM,
-			ff_block=ff,
-			indicators=indicators,
 			input_size=BLOCK_SIZE,
-			positional_encoding=POSITIONAL_ENCODING,
-			norm_positional_encoding=POSITIONAL_ENCODING_NORM,
-			stride=STRIDE
-		)
 
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-			check_file_sizes=True
-		)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
-
-		trainer.train(
-			dataloader,
-			epochs=10,
-			progress=True,
-			cls_loss_only=False
-		)
-
-		ModelHandler.save(trainer.model, SAVE_PATH)
-
-	def __train_model(self, model, dataloader):
-
-		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/ensemble_stacked.zip"
-		LR = 1e-3
-
-		# test_dataset = BaseDataset(
-		# 	[
-		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-		# 	],
-		# )
-		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
-
-		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters(), lr=LR)
-
-		trainer.train(
-			dataloader,
-			epochs=10,
-			progress=True,
-			cls_loss_only=False
-		)
-
-		ModelHandler.save(trainer.model, SAVE_PATH)
-
-	def test_linear_msm(self):
-
-		MODELS = [
-			ModelHandler.load(path)
-			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
-			]
-		]
-
-		X = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
-			np.float32)
-
-		model = LinearMSM(
-			models=MODELS,
-			ff=LinearModel(
-				layer_sizes=[512, 256]
-			)
-		)
-
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-		)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		# test_dataset = BaseDataset(
-		# 	[
-		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-		# 	],
-		# )
-		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
-
-		self.__train_model(model, dataloader)
-
-	def test_linear_3d_msm(self):
-
-		MODELS = [
-			ModelHandler.load(path)
-			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
-			]
-		]
-
-		X = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
-			np.float32)
-
-		model = Linear3dMSM(
-			models=MODELS,
-			ff=LinearModel(
-				layer_sizes=[512, 256]
-			)
-		)
-
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-		)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		# test_dataset = BaseDataset(
-		# 	[
-		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-		# 	],
-		# )
-		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
-
-		self.__train_model(model, dataloader)
-
-
-	def test_plain_msm(self):
-
-		MODELS = [
-			ModelHandler.load(path)
-			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-240-cum-0-it-4-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/results_1/abrehamalemu-rtrader-training-exp-0-cnn-192-cum-0-it-4-tot.zip",
-			]
-		]
-
-		X = np.load(
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
-			np.float32)
-
-		model = PlainMSM(
-			models=MODELS,
-		)
-
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-		)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		# test_dataset = BaseDataset(
-		# 	[
-		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-		# 	],
-		# )
-		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
-
-		self.__train_model(model, dataloader)
-
-	def test_simplified_msm(self):
-
-		MODELS = [
-			ModelHandler.load(path)
-			for path in [
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-168-cum-0-it-4-tot.zip"
-			]
-		]
-
-		# X = np.load(
-		# 	"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train/X/1724671615.45445.npy").astype(
-		# 	np.float32)
-
-		# model = LinearMSM(
-		# 	models=MODELS,
-		# 	ff=LinearModel(
-		# 		layer_sizes=[512, 256]
-		# 	)
-		# )
-
-		model = PlainMSM(
-			models=MODELS
-		)
-
-		dataset = BaseDataset(
-			root_dirs=[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/model_output/cnn-148.cnn-168"
-			],
-			check_last_file=True,
-		)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		merger = TensorMerger()
-		merger.load_config(os.path.join(dataset.root_dirs[0], "merger.pkl"))
-
-		model = SimplifiedMSM(model=model, merger=merger)
-
-		# test_dataset = BaseDataset(
-		# 	[
-		# 		"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/notebook_outputs/drmca-datapreparer-copy/out/test"
-		# 	],
-		# )
-		# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
-
-		callbacks = [
-			# CheckpointCallback("/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/raw/new", save_state=True),
-			# WeightStatsCallback()
-		]
-
-		self.__train_model(model, dataloader)
-
-	def test_functionality(self):
-
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/actual_model.pth"
-
-		KERNEL_SIZE = 3
-		BLOCK_SIZE = 1024
-		EMB_SIZE = 8
-		NUM_HEADS = 2
-		FF_SIZE = 128
-
-		VOCAB_SIZE = 449
-		BATCH_SIZE = 4
-
-		model = Transformer(
-			Decoder(
-				kernel_size=KERNEL_SIZE,
-				emb_size=EMB_SIZE,
-				block_size=BLOCK_SIZE,
-				num_heads=NUM_HEADS,
-				ff_size=FF_SIZE
+			embedding_block=EmbeddingBlock(
+				indicators=indicators,
+				input_norm=INPUT_NORM
 			),
-			vocab_size=VOCAB_SIZE
-		)
-		# model.load_state_dict(
-		# 	torch.load('/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/sin_model.pth',
-		# 	map_location=torch.device('cpu'))
-		# )
 
+			cnn_block=ResNetBlock(
+				input_channels=indicators.indicators_len,
+				conv_channels=CHANNELS,
+				kernel_sizes=KERNEL_SIZES,
+				pool_sizes=POOL_SIZES,
+				hidden_activation=ACTIVATION,
+				dropout_rate=DROPOUT_RATE,
+				norm=NORM,
+				padding=PADDING
+			),
+
+			bridge_block=BridgeBlock(
+				ff_block=LayerStack(
+					layers=[
+						LinearModel(
+							dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+							layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+							hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+							norm=BRIDGE_FF_LINEAR_NORM
+						)
+						for _ in range(CHANNELS[-1])
+					]
+				)
+			),
+
+			collapse_block=CollapseBlock(
+				dropout=DROPOUT_BRIDGE,
+				input_norm=COLLAPSE_INPUT_NORM,
+				ff_block=LinearModel(
+					dropout_rate=FF_DROPOUT,
+					layer_sizes=FF_LINEAR_LAYERS,
+					hidden_activation=FF_LINEAR_ACTIVATION,
+					init_fn=FF_LINEAR_INIT,
+					norm=FF_LINEAR_NORM
+				)
+			)
+
+		)
+
+	def __create_transformer(self):
+
+		EXTRA_LEN = 124
+		INPUT_SIZE = 1024 + EXTRA_LEN
+		VOCAB_SIZE = 431
+
+		# DECODER BLOCK
+		EMBEDDING_CB_CHANNELS = [8]*2
+		EMBEDDING_CB_KERNELS = [3]*len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_POOL_SIZES = [0] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_DROPOUTS = [0] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_NORM = [False] * len(EMBEDDING_CB_CHANNELS)
+		EMBEDDING_CB_HIDDEN_ACTIVATION = nn.PReLU()
+		INDICATORS_DELTA = True
+
+		NUM_HEADS = 4
+
+		# COLLAPSE BLOCK
+		COLLAPSE_FF_LAYERS = [16] * 2 + [VOCAB_SIZE + 1]
+		COLLAPSE_FF_DROPOUTS = [0] * (len(COLLAPSE_FF_LAYERS) - 1)
+		COLLAPSE_FF_ACTIVATION = nn.PReLU()
+		COLLAPSE_FF_NORM = [False] * len(COLLAPSE_FF_LAYERS)
+
+		indicators = Indicators(
+			delta=INDICATORS_DELTA,
+		)
+
+		return Transformer(
+			input_size=INPUT_SIZE,
+			extra_len=EXTRA_LEN,
+			decoder_block=DecoderBlock(
+				num_heads=NUM_HEADS,
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					embedding_block=EmbeddingBlock(
+						indicators=indicators
+					),
+					cnn_block=CNNBlock(
+						input_channels=indicators.indicators_len,
+						conv_channels=EMBEDDING_CB_CHANNELS,
+						kernel_sizes=EMBEDDING_CB_KERNELS,
+						pool_sizes=EMBEDDING_CB_POOL_SIZES,
+						dropout_rate=EMBEDDING_CB_DROPOUTS,
+						norm=EMBEDDING_CB_NORM,
+						hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
+					)
+				),
+			),
+
+			collapse_block=CollapseBlock(
+				ff_block=LinearModel(
+					layer_sizes=COLLAPSE_FF_LAYERS,
+					hidden_activation=COLLAPSE_FF_ACTIVATION,
+					dropout_rate=COLLAPSE_FF_DROPOUTS,
+					norm=COLLAPSE_FF_NORM
+				),
+			)
+		)
+
+	def __init_dataloader(self):
 		dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
+			check_file_sizes=True,
+			load_weights=False,
 		)
-		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+		dataloader = DataLoader(dataset, batch_size=64)
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared_actual/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
+			check_file_sizes=True,
+			load_weights=False,
 		)
-		test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+		test_dataloader = DataLoader(test_dataset, batch_size=64)
 
-		loss_function = nn.CrossEntropyLoss()
-		optimizer = Adam(model.parameters(), lr=1e-3)
+		return dataloader, test_dataloader
 
-		trainer = Trainer(
-			model,
-			cls_loss_function=loss_function,
-			optimizer=optimizer)
-		trainer.train(dataloader, epochs=2, progress=True)
-		torch.save(model.state_dict(), SAVE_PATH)
+	def __init_trainer(self, model):
+		trainer = Trainer(model)
+		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=False)
+		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
+		trainer.optimizer = Adam(trainer.model.parameters())
+		return trainer
 
-	def test_resume(self):
+	def setUp(self):
+		self.model = self.__create_model()
+		self.dataloader, self.test_dataloader = self.__init_dataloader()
+		self.trainer = self.__init_trainer(self.model)
 
-		CHANNELS = [128, 128]
-		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = 51
-		POOL_SIZES = [0 for _ in CHANNELS]
-		DROPOUT_RATE = 0
-		ACTIVATION = nn.ReLU()
-		BATCH_SIZE = 64
+	def test_train(self):
 
-		state = TrainingState(
-			id="test_id",
-			epoch=5,
-			batch=0
-		)
+		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
-		model = CNN(
-			num_classes=VOCAB_SIZE,
-			conv_channels=CHANNELS,
-			kernel_sizes=KERNEL_SIZES,
-			hidden_activation=ACTIVATION,
-			pool_sizes=POOL_SIZES,
-			dropout_rate=DROPOUT_RATE
+		self.trainer.train(
+			self.dataloader,
+			val_dataloader=self.test_dataloader,
+			epochs=5,
+			progress=True,
 		)
 
-		dataset = BaseDataset(
-			[
-				"/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared(64)/train"
-			],
-		)
-		dataloader = DataLoader(dataset, batch_size=BATCH_SIZE)
+		ModelHandler.save(self.trainer.model, SAVE_PATH)
 
-		trainer = Trainer(
-			model,
-			callbacks=[
-				MetricCallback(
-					MongoDBMetricRepository(
-						Config.MONGODB_URL,
-						state.id
-					)
-				)
-			]
-		)
+		for X, y, w in self.test_dataloader:
+			break
 
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.optimizer = Adam(model.parameters(), lr=1e-3)
+		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model.eval()
 
-		trainer.train(dataloader, epochs=10, progress=True, state=state, val_dataloader=dataloader)
+		original_y = self.trainer.model(X)
 
-		new_state = trainer.state
-		self.assertIsNotNone(new_state)
+		loaded_y = loaded_model(X)
+
+		self.assertTrue(torch.allclose(original_y, loaded_y))
+
+		self.trainer.validate(self.test_dataloader)
 
 	def test_validate(self):
-
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/train"
-			],
-			check_file_sizes=True
-		)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-148-cum-0-it-6-tot.zip")
-
-		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.CrossEntropyLoss()
-		trainer.reg_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(model.parameters(), lr=1e-3)
-
-		print("Loss", trainer.validate(dataloader))
-	# 	[10.343830108642578, 0.0007124464027583599, 10.34454345703125]
-
-	def test_sinwave_prediction(self):
-
-		dataset = SineWaveDataset(10000, 64)
-		dataloader = DataLoader(dataset, batch_size=8)
-
-		model = LinearModel(
-			block_size=1024,
-			vocab_size=449,
-			dropout_rate=0.1,
-			layer_sizes=[
-				128,
-				256,
-			]
-		)
-
-		trainer = Trainer(model)
-		trainer.cls_loss_function = nn.MSELoss()
-		trainer.optimizer = Adam(trainer.model.parameters())
-
-		trainer.train(
-			dataloader,
-			epochs=15
-		)
-
-	def test_summary(self):
-		model = ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/1723549677.105747.zip")
-		trainer = Trainer(model)
-		trainer.summary()
-
-		self.assertIsNotNone(model)
-
+		self.trainer.validate(self.test_dataloader)
