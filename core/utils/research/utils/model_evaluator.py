@@ -67,3 +67,6 @@ class ModelEvaluator:
 		losses = self._evaluate(model, self.dataloader, self.__cls_loss_fn)
 
 		return losses
+
+	def __call__(self, model) -> typing.Tuple[float, float, float]:
+		return self.evaluate(model)
