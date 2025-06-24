@@ -1,6 +1,5 @@
 import os
 import random
-import typing
 from typing import *
 
 import numpy as np
@@ -8,6 +7,8 @@ import pandas as pd
 
 from datetime import datetime
 
+from core.di import EnvironmentUtilsProvider
+from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter, MovingAverage
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.utils.logger import Logger
@@ -15,7 +16,6 @@ from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
 from core.agent.trader_action import TraderAction
 from core.environment.trade_environment import TradeEnvironment
-from lib.utils.math import moving_average
 
 
 class LiveEnvironment(TradeEnvironment):
@@ -31,7 +31,10 @@ class LiveEnvironment(TradeEnvironment):
 			market_state_granularity: str = Config.MARKET_STATE_GRANULARITY,
 			candlestick_dump_path: str = Config.DUMP_CANDLESTICKS_PATH,
 			moving_average_window: int = Config.AGENT_MA_WINDOW_SIZE,
-			use_ma: int = Config.MARKET_STATE_USE_MA,
+			use_smoothing: int = Config.MARKET_STATE_SMOOTHING,
+			use_kalman_filter: bool = Config.AGENT_USE_KALMAN_FILTER,
+			kalman_alpha: float = Config.AGENT_KALMAN_ALPHA,
+			kalman_beta: float = Config.AGENT_KALMAN_BETA,
 			**kwargs
 	):
 		super(LiveEnvironment, self).__init__(*args, **kwargs)
@@ -40,12 +43,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__market_state_granularity = market_state_granularity
 		self.__trader = trader
 		if trader is None:
-			self.__trader = Trader(
-				Config.OANDA_TOKEN,
-				Config.OANDA_TRADING_ACCOUNT_ID,
-				timezone=Config.TIMEZONE,
-				trading_url=Config.OANDA_TRADING_URL
-			)
+			self.__trader = EnvironmentUtilsProvider.provide_trader()
 		self.__instruments = instruments
 		if instruments is None:
 			if agent_use_static_instruments:
@@ -57,8 +55,36 @@ class LiveEnvironment(TradeEnvironment):
 					self.__instruments = self.__trader.get_instruments()
 		self.__all_instruments = self.__generate_all_instruments(self.__instruments, self.__agent_currency)
 		self.__candlestick_dump_path = candlestick_dump_path
-		self.__use_ma = use_ma
-		self.__moving_average_window = moving_average_window
+		self.__use_smoothing = use_smoothing
+		self.__smoothing_algorithm = self.__init_smoothing(
+			use_smoothing,
+			use_kalman_filter,
+			moving_average_window,
+			kalman_alpha,
+			kalman_beta
+		)
+		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
+
+	@staticmethod
+	def __init_smoothing(
+			use_smoothing,
+			use_kalman_filter,
+			moving_average_window,
+			kalman_alpha,
+			kalman_beta
+	) -> SmoothingAlgorithm:
+		if not use_smoothing:
+			return None
+
+		if use_kalman_filter:
+			return KalmanFilter(
+				alpha=kalman_alpha,
+				beta=kalman_beta
+			)
+
+		return MovingAverage(
+			window_size=moving_average_window
+		)
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
 		valid_instruments = self.__trader.get_instruments()
@@ -81,7 +107,9 @@ class LiveEnvironment(TradeEnvironment):
 		while selected_instruments is None or \
 			self.__agent_currency not in self.__get_currencies(selected_instruments) or \
 			False in [
-				(self.__agent_currency, currency) in selected_instruments or (currency, self.__agent_currency) in selected_instruments
+				(self.__agent_currency, currency) in selected_instruments or
+				(currency, self.__agent_currency) in selected_instruments
+
 				for currency in self.__get_currencies(selected_instruments)
 				if currency != self.__agent_currency
 			] or \
@@ -92,13 +120,15 @@ class LiveEnvironment(TradeEnvironment):
 			selected_instruments = random.choices(instruments, k=size)
 		return selected_instruments
 
-	def __to_oanda_action(self, action):
+	@staticmethod
+	def __to_oanda_action(action):
 		if action == TraderAction.Action.BUY:
 			return Trader.TraderAction.BUY
 		if action == TraderAction.Action.SELL:
 			return Trader.TraderAction.SELL
 
-	def __from_oanda_action(self, action):
+	@staticmethod
+	def __from_oanda_action(action):
 		if action == Trader.TraderAction.BUY:
 			return TraderAction.Action.BUY
 		if action == Trader.TraderAction.SELL:
@@ -125,7 +155,8 @@ class LiveEnvironment(TradeEnvironment):
 			)
 		return AgentState(balance, market_state, open_trades=open_trades, margin_rate=self.__trader.get_margin_rate())
 
-	def __get_currencies(self, pairs: List[Tuple[str, str]]) -> List[str]:
+	@staticmethod
+	def __get_currencies(pairs: List[Tuple[str, str]]) -> List[str]:
 		currencies = []
 		for pair in pairs:
 			currencies += pair
@@ -169,14 +200,17 @@ class LiveEnvironment(TradeEnvironment):
 		return pd.DataFrame(df_list)
 
 	def __process_instrument(self, sequence: np.ndarray) -> np.ndarray:
-		if self.__use_ma:
-			sequence = moving_average(sequence, self.__moving_average_window)
+		if self.__use_smoothing:
+			sequence = self.__smoothing_algorithm(sequence)
 		return sequence
 
 	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+		if isinstance(self.__smoothing_algorithm, MovingAverage):
+			size = size + self.__smoothing_algorithm.window_size - 1
+
 		candle_sticks = self.__trader.get_candlestick(
 			(base_currency, quote_currency),
-			count=size + self.__moving_average_window - 1,
+			count=size,
 			to=datetime.now(),
 			granularity=granularity
 		)

@@ -5,15 +5,17 @@ from core.Config import RunnerStatsBranches
 from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats import RunnerStats
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
+from lib.utils.logger import Logger
 
 
 class RunnerStatsBranchManager:
 
-	def __init__(self, all_branches: typing.List[str] = None):
+	def __init__(self, all_branches: typing.List[str] = None, sync_model_losses: bool = False):
 		if all_branches is None:
 			all_branches = RunnerStatsBranches.all
 		self.__all_branches = all_branches
 		self.__repositories = {}
+		self.__is_sync_model_losses = sync_model_losses
 
 	def __get_repository(self, branch: str) -> RunnerStatsRepository:
 		cached = self.__repositories.get(branch)
@@ -21,6 +23,22 @@ class RunnerStatsBranchManager:
 			self.__repositories[branch] = ResearchProvider.provide_runner_stats_repository(branch)
 			return self.__get_repository(branch)
 		return cached
+
+	def __allow_model_loss_sync(self, source_stat: RunnerStats, target_stat: RunnerStats):
+		source_losses, target_losses = [
+			list(filter(lambda x: x > 0.0, stat.model_losses))
+			for stat in [source_stat, target_stat]
+		]
+		return source_losses > target_losses
+
+	def __sync_model_losses(self, source_stat: RunnerStats, target_stat: RunnerStats, repo: RunnerStatsRepository):
+
+		if not self.__allow_model_loss_sync(source_stat, target_stat):
+			return
+
+		Logger.info(f"Syncing Model Losses from '{source_stat.id}' -> '{target_stat.id}'")
+		target_stat.model_losses = source_stat.model_losses
+		repo.store(target_stat)
 
 	def __sync_branch(
 			self,
@@ -37,23 +55,40 @@ class RunnerStatsBranchManager:
 			if target_branch == branch:
 				continue
 
-			print(f"Syncing '{branch}' -> '{target_branch}'")
+			Logger.info(f"Syncing '{branch}' -> '{target_branch}'")
 
-			target_stats = self.__get_repository(branch=target_branch).retrieve_all()
+			target_repository = self.__get_repository(branch=target_branch)
+			target_stats = target_repository.retrieve_all()
 			target_ids = [stat.id for stat in target_stats]
 
 			for i, stat in enumerate(stats):
-				print(f"Processing {(i+1)*100/len(stats): .2f}%...")
+				Logger.info(f"Processing {(i+1)*100/len(stats): .2f}%...")
 				if stat.id in synced_ids:
 					continue
 
 				if stat.id in target_ids:
+					if self.__is_sync_model_losses:
+						self.__sync_model_losses(stat, target_stats[target_ids.index(stat.id)], target_repository)
 					continue
 
 				new_stat = deepcopy(stat)
-				new_stat.session_timestamps, new_stat.profits, new_stat.real_profits, new_stat.duration, new_stat.branch = ([], [], [], 0, target_branch)
+				(
+					new_stat.session_timestamps,
+					new_stat.profits,
+					new_stat.real_profits,
+					new_stat.duration,
+					new_stat.branch,
+					new_stat.simulated_timestamps
+				) = (
+					[],
+					[],
+					[],
+					0,
+					target_branch,
+					[]
+				)
 				self.__get_repository(target_branch).store(new_stat)
-				print(f"Added {new_stat.id} to {target_branch}")
+				Logger.info(f"Added {new_stat.id} to {target_branch}")
 
 		return stats
 
