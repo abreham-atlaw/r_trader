@@ -50,7 +50,7 @@ class BoundGenerator:
 	def __generator(self, n):
 		return random.choice([self.__poly_generate, self.__random_generate, self.__linear_generate])(n)
 
-	def __get_frequencies(self, bounds):
+	def get_frequencies(self, bounds):
 		datapreparer = DataPreparer(
 			boundaries=bounds,
 			block_size=20,
@@ -88,7 +88,7 @@ class BoundGenerator:
 		plt.show()
 
 	def __filter_valid(self, bounds, threshold=None, plot=False):
-		indexes, frequencies = self.__get_frequencies(bounds)
+		indexes, frequencies = self.get_frequencies(bounds)
 
 		valid_bounds = [
 			bounds[idx]
@@ -122,7 +122,7 @@ class BoundGenerator:
 		return bounds
 
 	def get_weights(self, bounds: typing.List[float]) -> typing.List[float]:
-		indexes, frequencies = self.__get_frequencies(bounds)
+		indexes, frequencies = self.get_frequencies(bounds)
 
 		weights = np.ones((len(bounds) + 1,))
 		weights[indexes] = np.sum(frequencies) / frequencies
