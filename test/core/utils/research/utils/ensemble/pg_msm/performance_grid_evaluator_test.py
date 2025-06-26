@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from core import Config
 from core.utils.research.data.load import BaseDataset
 from core.utils.research.losses import ProximalMaskedLoss
-from core.utils.research.utils.ensemble.performance_grid_evaluator import PerformanceGridEvaluator
+from core.utils.research.utils.ensemble.pg_msm.performance_grid_evaluator import PerformanceGridEvaluator
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -22,7 +22,7 @@ class PerformanceGridEvaluatorTest(unittest.TestCase):
 					load_weights=True
 				)
 			)
-			for i in [4, 5, 6]
+			for i in [4, 5]
 		]
 
 		self.evaluator = PerformanceGridEvaluator(
@@ -38,11 +38,12 @@ class PerformanceGridEvaluatorTest(unittest.TestCase):
 			ModelHandler.load(model_path)
 			for model_path in [
 				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-69-cum-0-it-27-sw12-tot.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-40-cum-0-it-27-sw12-tot_1.zip",
-				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-40-cum-0-it-27-sw12-tot.zip"
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-40-cum-0-it-27-sw12-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-35-cum-0-it-27-tot.zip",
+				"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-36-cum-0-it-35-tot.zip"
 			]
 		]
-		self.export_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/performance_grid.npy"
+		self.export_path = "/temp/performance_grid.npy"
 
 	def test_functionality(self):
 
