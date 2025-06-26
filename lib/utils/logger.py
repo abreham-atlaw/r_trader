@@ -12,8 +12,8 @@ class Logger:
 		OKBLUE = '\033[94m'
 		OKCYAN = '\033[96m'
 		OKGREEN = '\033[92m'
-		WARNING = '\033[30;103m'
-		FAIL = '\033[97;101m'
+		WARNING = '\033[30;103m'  # Black text on yellow background
+		FAIL = '\033[97;101m'  # White text on red background
 		ENDC = '\033[0m'
 		BOLD = '\033[1m'
 		UNDERLINE = '\033[4m'
@@ -34,8 +34,6 @@ class Logger:
 		print(color, prefix, *args, Logger.Colors.ENDC, **kwargs)
 		if not LOGGING_CONSOLE:
 			kwargs["file"].close()
-
-
 
 	@staticmethod
 	def log_function(func, args, kwargs, prefix=None):
@@ -69,12 +67,12 @@ class Logger:
 
 	@staticmethod
 	def warning(*args: Any, **kwargs: Any):
-		Logger.print(*args, Logger.Colors.WARNING, **kwargs)
+		Logger.print(*args, color=Logger.Colors.WARNING, **kwargs)
 	
 	@staticmethod
 	def error(*args: Any, **kwargs: Any):
-		Logger.print(*args, Logger.Colors.FAIL, **kwargs)
+		Logger.print(*args, color=Logger.Colors.FAIL, **kwargs)
 
 	@staticmethod
 	def success(*args: Any, **kwargs: Any):
-		Logger.print(*args, Logger.Colors.OKGREEN, **kwargs)
+		Logger.print(*args, color=Logger.Colors.OKGREEN, **kwargs)

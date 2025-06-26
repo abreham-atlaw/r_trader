@@ -14,6 +14,7 @@ from torch import nn
 
 from core.utils.research.model.model.savable import SpinozaModule
 from lib.network.rest_interface.pickle_serializer import PickleSerializer
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.module_serializer import TorchModuleSerializer
 
 
@@ -126,6 +127,13 @@ class ModelHandler:
 
 	@staticmethod
 	def save(model, path, to_cpu=True, save_state=True):
+		Logger.info(f"Saving {model.__class__.__name__} to {path}...")
+
+		path = os.path.abspath(path)
+		cwd = os.path.join(os.path.dirname(path), os.path.basename(path).replace(".", "_"))
+		os.makedirs(cwd, exist_ok=True)
+		os.chdir(cwd)
+
 		original_device = None
 		if to_cpu:
 			try:
@@ -178,6 +186,9 @@ class ModelHandler:
 
 		if to_cpu and original_device is not None:
 			model.to(original_device)
+
+		os.chdir("..")
+		os.rmdir(cwd)
 
 	@staticmethod
 	def load(path, dtype=torch.float32, load_state=True):
