@@ -3,6 +3,8 @@ import typing
 import torch
 import torch.nn as nn
 
+from core.utils.research.model.layers import AddAndNorm
+from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.model.model.transformer.teb import TransformerEmbeddingBlock
 
@@ -11,20 +13,29 @@ class DecoderBlock(SpinozaModule):
 
 	def __init__(
 			self,
-			transformer_embedding_block: TransformerEmbeddingBlock,
 			num_heads: int,
-			embedding_last: bool = False
+			transformer_embedding_block: TransformerEmbeddingBlock = None,
+			embedding_last: bool = False,
+			norm_1: nn.Module = None,
+			norm_2: nn.Module = None,
+			ff_block: LinearModel = None
 	):
 		self.args = {
 			'transformer_embedding_block': transformer_embedding_block,
 			'num_heads': num_heads,
-			"embedding_last": embedding_last
+			"embedding_last": embedding_last,
+			"norm_1": norm_1,
+			"norm_2": norm_2,
+			"ff_block": ff_block
 		}
 		super().__init__()
-		self.embedding_block = transformer_embedding_block
+		self.embedding_block = transformer_embedding_block if transformer_embedding_block is not None else nn.Identity()
 		self.self_attention_layer = None
 		self.num_heads = num_heads
 		self.embedding_last = embedding_last
+		self.norm_1 = AddAndNorm(norm_layer=norm_1) if norm_1 is not None else nn.Identity()
+		self.norm_2 = AddAndNorm(norm_layer=norm_2) if norm_2 is not None else nn.Identity()
+		self.ff_block = ff_block if ff_block is not None else nn.Identity()
 
 	def self_attention(self, x: torch.Tensor) -> torch.Tensor:
 		if self.self_attention_layer is None:
@@ -38,7 +49,13 @@ class DecoderBlock(SpinozaModule):
 
 	def call(self, x) -> torch.Tensor:
 		embedded = self.embedding_block(x)
-		out = self.self_attention(embedded)
+
+		attention = self.self_attention(embedded)
+		attention = self.norm_1(embedded, attention)
+
+		out = self.ff_block(attention)
+		out = self.norm_2(attention, out)
+
 		if self.embedding_last:
 			out = torch.transpose(out, 1, 2)
 		return out

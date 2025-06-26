@@ -11,6 +11,7 @@ class BridgeBlock(SpinozaModule):
 	def __init__(
 			self,
 			ff_block: LinearModel,
+
 	):
 		super().__init__(auto_build=False)
 		self.args = {

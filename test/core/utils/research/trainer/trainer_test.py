@@ -19,7 +19,8 @@ from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.cnn.model import CNN
 from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
-from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock
+from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
+	TransformerBlock
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -69,7 +70,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.create_cnn2()
+		return self.__create_transformer()
 
 	@staticmethod
 	def create_cnn():
@@ -258,17 +259,30 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 124
 		INPUT_SIZE = 1024 + EXTRA_LEN
 		VOCAB_SIZE = 431
+		EMBEDDING_SIZE = 32
 
 		# DECODER BLOCK
-		EMBEDDING_CB_CHANNELS = [8]*2
+		EMBEDDING_CB_CHANNELS = [8]*2 + [EMBEDDING_SIZE]
 		EMBEDDING_CB_KERNELS = [3]*len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_POOL_SIZES = [0] * len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_DROPOUTS = [0] * len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_NORM = [False] * len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_HIDDEN_ACTIVATION = nn.PReLU()
+
+		DECODER_NORM_1 = DynamicLayerNorm()
+		DECODER_NORM_2 = DynamicLayerNorm()
+		DECODER_FF_LAYERS = [64, EMBEDDING_SIZE]
+
 		INDICATORS_DELTA = True
 
-		NUM_HEADS = 4
+		DECORDER_NUM_HEADS = 4
+
+		# ENCODER_BLOCK
+		ENCODER_NUM_HEADS = 4
+		ENCODER_NORM_1 = DynamicLayerNorm()
+		ENCODER_NORM_2 = DynamicLayerNorm()
+		ENCODER_FF_LAYERS = [128, EMBEDDING_SIZE]
+
 
 		# COLLAPSE BLOCK
 		COLLAPSE_FF_LAYERS = [16] * 2 + [VOCAB_SIZE + 1]
@@ -283,22 +297,39 @@ class TrainerTest(unittest.TestCase):
 		return Transformer(
 			input_size=INPUT_SIZE,
 			extra_len=EXTRA_LEN,
-			decoder_block=DecoderBlock(
-				num_heads=NUM_HEADS,
-				transformer_embedding_block=TransformerEmbeddingBlock(
-					embedding_block=EmbeddingBlock(
-						indicators=indicators
-					),
-					cnn_block=CNNBlock(
-						input_channels=indicators.indicators_len,
-						conv_channels=EMBEDDING_CB_CHANNELS,
-						kernel_sizes=EMBEDDING_CB_KERNELS,
-						pool_sizes=EMBEDDING_CB_POOL_SIZES,
-						dropout_rate=EMBEDDING_CB_DROPOUTS,
-						norm=EMBEDDING_CB_NORM,
-						hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
+			transformer_block=TransformerBlock(
+
+				encoder_block=DecoderBlock(
+					num_heads=ENCODER_NUM_HEADS,
+					norm_1=ENCODER_NORM_1,
+					norm_2=ENCODER_NORM_2,
+					ff_block=LinearModel(
+						layer_sizes=ENCODER_FF_LAYERS
 					)
 				),
+
+				decoder_block=DecoderBlock(
+					num_heads=DECORDER_NUM_HEADS,
+					norm_1=DECODER_NORM_1,
+					norm_2=DECODER_NORM_2,
+					ff_block=LinearModel(
+						layer_sizes=DECODER_FF_LAYERS
+					),
+					transformer_embedding_block=TransformerEmbeddingBlock(
+						embedding_block=EmbeddingBlock(
+							indicators=indicators
+						),
+						cnn_block=CNNBlock(
+							input_channels=indicators.indicators_len,
+							conv_channels=EMBEDDING_CB_CHANNELS,
+							kernel_sizes=EMBEDDING_CB_KERNELS,
+							pool_sizes=EMBEDDING_CB_POOL_SIZES,
+							dropout_rate=EMBEDDING_CB_DROPOUTS,
+							norm=EMBEDDING_CB_NORM,
+							hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
+						)
+					),
+				)
 			),
 
 			collapse_block=CollapseBlock(
@@ -351,7 +382,7 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=5,
+			epochs=2,
 			progress=True,
 		)
 
