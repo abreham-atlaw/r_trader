@@ -70,7 +70,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.__create_transformer()
+		return self.create_cnn2()
 
 	@staticmethod
 	def create_cnn():
@@ -202,7 +202,10 @@ class TrainerTest(unittest.TestCase):
 		TRANSFORMER_DECODER_NORM_2 = DynamicLayerNorm()
 		TRANSFORMER_DECODER_FF_LAYERS = [64, EMBEDDING_SIZE]
 
-
+		TRANSFORMER_ENCODER_HEADS = 4
+		TRANSFORMER_ENCODER_NORM_1 = DynamicLayerNorm()
+		TRANSFORMER_ENCODER_NORM_2 = DynamicLayerNorm()
+		TRANSFORMER_ENCODER_FF_LAYERS = [64, EMBEDDING_SIZE]
 
 		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
@@ -237,17 +240,40 @@ class TrainerTest(unittest.TestCase):
 			),
 
 			bridge_block=BridgeBlock(
-				ff_block=LayerStack(
-					layers=[
-						LinearModel(
-							dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-							layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-							hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-							norm=BRIDGE_FF_LINEAR_NORM
+				# ff_block=LayerStack(
+				# 	layers=[
+				# 		LinearModel(
+				# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+				# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+				# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+				# 			norm=BRIDGE_FF_LINEAR_NORM
+				# 		)
+				# 		for _ in range(CHANNELS[-1])
+				# 	]
+				# ),
+
+				transformer_block=TransformerBlock(
+					transformer_embedding_block=TransformerEmbeddingBlock(),
+
+					decoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_DECODER_HEADS,
+						norm_1=TRANSFORMER_DECODER_NORM_1,
+						norm_2=TRANSFORMER_DECODER_NORM_2,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
 						)
-						for _ in range(CHANNELS[-1])
-					]
+					),
+
+					encoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_ENCODER_HEADS,
+						norm_1=TRANSFORMER_ENCODER_NORM_1,
+						norm_2=TRANSFORMER_ENCODER_NORM_2,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
+						)
+					)
 				),
+
 
 			),
 
@@ -392,12 +418,12 @@ class TrainerTest(unittest.TestCase):
 
 	def test_train(self):
 
-		SAVE_PATH = "/home/abreham/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
+		SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip"
 
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=2,
+			epochs=1,
 			progress=True,
 		)
 
