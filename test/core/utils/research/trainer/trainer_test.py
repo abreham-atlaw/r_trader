@@ -268,6 +268,7 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_CB_DROPOUTS = [0] * len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_NORM = [False] * len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_HIDDEN_ACTIVATION = nn.PReLU()
+		EMBEDDING_POSITIONAL_ENCODING = True
 
 		DECODER_NORM_1 = DynamicLayerNorm()
 		DECODER_NORM_2 = DynamicLayerNorm()
@@ -316,6 +317,7 @@ class TrainerTest(unittest.TestCase):
 						layer_sizes=DECODER_FF_LAYERS
 					),
 					transformer_embedding_block=TransformerEmbeddingBlock(
+						positional_encoding=EMBEDDING_POSITIONAL_ENCODING,
 						embedding_block=EmbeddingBlock(
 							indicators=indicators
 						),
