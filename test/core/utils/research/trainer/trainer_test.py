@@ -170,7 +170,10 @@ class TrainerTest(unittest.TestCase):
 
 	@staticmethod
 	def create_cnn2():
-		CHANNELS = [32 for _ in range(4)]
+
+		EMBEDDING_SIZE = 128
+
+		CHANNELS = [EMBEDDING_SIZE for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		VOCAB_SIZE = 431
@@ -193,6 +196,13 @@ class TrainerTest(unittest.TestCase):
 
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
+
+		TRANSFORMER_DECODER_HEADS = 4
+		TRANSFORMER_DECODER_NORM_1 = DynamicLayerNorm()
+		TRANSFORMER_DECODER_NORM_2 = DynamicLayerNorm()
+		TRANSFORMER_DECODER_FF_LAYERS = [64, EMBEDDING_SIZE]
+
+
 
 		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
@@ -237,7 +247,8 @@ class TrainerTest(unittest.TestCase):
 						)
 						for _ in range(CHANNELS[-1])
 					]
-				)
+				),
+
 			),
 
 			collapse_block=CollapseBlock(
@@ -261,7 +272,7 @@ class TrainerTest(unittest.TestCase):
 		VOCAB_SIZE = 431
 		EMBEDDING_SIZE = 32
 
-		# DECODER BLOCK
+		# EMBEDDING BLOCK
 		EMBEDDING_CB_CHANNELS = [8]*2 + [EMBEDDING_SIZE]
 		EMBEDDING_CB_KERNELS = [3]*len(EMBEDDING_CB_CHANNELS)
 		EMBEDDING_CB_POOL_SIZES = [0] * len(EMBEDDING_CB_CHANNELS)
@@ -270,6 +281,7 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_CB_HIDDEN_ACTIVATION = nn.PReLU()
 		EMBEDDING_POSITIONAL_ENCODING = True
 
+		# DECODER_BLOCK
 		DECODER_NORM_1 = DynamicLayerNorm()
 		DECODER_NORM_2 = DynamicLayerNorm()
 		DECODER_FF_LAYERS = [64, EMBEDDING_SIZE]
@@ -300,6 +312,22 @@ class TrainerTest(unittest.TestCase):
 			extra_len=EXTRA_LEN,
 			transformer_block=TransformerBlock(
 
+				transformer_embedding_block=TransformerEmbeddingBlock(
+					positional_encoding=EMBEDDING_POSITIONAL_ENCODING,
+					embedding_block=EmbeddingBlock(
+						indicators=indicators
+					),
+					cnn_block=CNNBlock(
+						input_channels=indicators.indicators_len,
+						conv_channels=EMBEDDING_CB_CHANNELS,
+						kernel_sizes=EMBEDDING_CB_KERNELS,
+						pool_sizes=EMBEDDING_CB_POOL_SIZES,
+						dropout_rate=EMBEDDING_CB_DROPOUTS,
+						norm=EMBEDDING_CB_NORM,
+						hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
+					)
+				),
+
 				encoder_block=DecoderBlock(
 					num_heads=ENCODER_NUM_HEADS,
 					norm_1=ENCODER_NORM_1,
@@ -315,21 +343,6 @@ class TrainerTest(unittest.TestCase):
 					norm_2=DECODER_NORM_2,
 					ff_block=LinearModel(
 						layer_sizes=DECODER_FF_LAYERS
-					),
-					transformer_embedding_block=TransformerEmbeddingBlock(
-						positional_encoding=EMBEDDING_POSITIONAL_ENCODING,
-						embedding_block=EmbeddingBlock(
-							indicators=indicators
-						),
-						cnn_block=CNNBlock(
-							input_channels=indicators.indicators_len,
-							conv_channels=EMBEDDING_CB_CHANNELS,
-							kernel_sizes=EMBEDDING_CB_KERNELS,
-							pool_sizes=EMBEDDING_CB_POOL_SIZES,
-							dropout_rate=EMBEDDING_CB_DROPOUTS,
-							norm=EMBEDDING_CB_NORM,
-							hidden_activation=EMBEDDING_CB_HIDDEN_ACTIVATION
-						)
 					),
 				)
 			),

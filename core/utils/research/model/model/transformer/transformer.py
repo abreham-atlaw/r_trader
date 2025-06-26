@@ -4,7 +4,6 @@ import torch
 
 from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.savable import SpinozaModule
-from core.utils.research.model.model.transformer.decoder_block import DecoderBlock
 from .transformer_block import TransformerBlock
 
 

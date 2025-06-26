@@ -14,14 +14,12 @@ class DecoderBlock(SpinozaModule):
 	def __init__(
 			self,
 			num_heads: int,
-			transformer_embedding_block: TransformerEmbeddingBlock = None,
 			embedding_last: bool = False,
 			norm_1: nn.Module = None,
 			norm_2: nn.Module = None,
 			ff_block: LinearModel = None
 	):
 		self.args = {
-			'transformer_embedding_block': transformer_embedding_block,
 			'num_heads': num_heads,
 			"embedding_last": embedding_last,
 			"norm_1": norm_1,
@@ -29,7 +27,6 @@ class DecoderBlock(SpinozaModule):
 			"ff_block": ff_block
 		}
 		super().__init__()
-		self.embedding_block = transformer_embedding_block if transformer_embedding_block is not None else nn.Identity()
 		self.self_attention_layer = None
 		self.num_heads = num_heads
 		self.embedding_last = embedding_last
@@ -48,10 +45,9 @@ class DecoderBlock(SpinozaModule):
 		return out
 
 	def call(self, x) -> torch.Tensor:
-		embedded = self.embedding_block(x)
 
-		attention = self.self_attention(embedded)
-		attention = self.norm_1(embedded, attention)
+		attention = self.self_attention(x)
+		attention = self.norm_1(x, attention)
 
 		out = self.ff_block(attention)
 		out = self.norm_2(attention, out)
