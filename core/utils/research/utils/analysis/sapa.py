@@ -113,7 +113,7 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		return np.mean(profits)
 
 	def __analyze_sample(self, x, x_sa, sa, i):
-		Logger.info(f"Analyzing Sample {i}")
+		Logger.info(f"Analyzing Sample {i}...", end="\r" if self.__sample_logging else "\n")
 
 		actions = self.__find_optimal_actions(x_sa)
 		optimal_profit = self.__get_actions_profit(x, actions)
