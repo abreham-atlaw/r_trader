@@ -17,6 +17,7 @@ class BoundOptimizerTest(unittest.TestCase):
 			end=1.0336048383163439,
 			csv_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-50k.csv",
 			threshold=0.05,
+			granularity=30
 		)
 
 	def test_functionality(self):

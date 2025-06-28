@@ -17,3 +17,10 @@ from .dynamic_pool import DynamicPool
 from .flatten import FlattenLayer
 from .pass_through import PassThroughLayer
 from .min_max_norm import MinMaxNorm
+from .layer_stack import LayerStack
+from .l1_norm import L1Norm
+from .reverse_softmax import ReverseSoftmax
+from .add import Add
+from .add_and_norm import AddAndNorm
+from .pe import PositionalEncoding
+

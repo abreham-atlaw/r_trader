@@ -36,7 +36,7 @@ def get_layer_saliency(model: nn.Module, X: torch.Tensor, layer: nn.Module):
 
 	clean_layer(model, layer, target_layer, [hook])
 
-	if activation is None:
+	if activation is None or activation.grad is None:
 		raise ValueError("layer not called in forward pass")
 
 	return torch.mean(activation.grad.abs(), dim=0)
