@@ -7,8 +7,10 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from core.utils.research.data.prepare import DataPreparer
+from core.utils.research.data.prepare import DataPreparer, SimulationSimulator
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from lib.utils.decorators import retry
+from lib.utils.logger import Logger
 
 
 class BoundGenerator:
@@ -20,14 +22,20 @@ class BoundGenerator:
 			csv_path: str,
 			threshold=None,
 			average_window=10,
+			granularity=5,
 			tmp_path="/tmp",
+			smoothing_algorithm=None
 	):
 		self.__start = start
 		self.__end = end
 		self.__threshold = threshold
 		self.__df = pd.read_csv(csv_path)
 		self.__tmp_path = tmp_path
-		self.__average_window = average_window
+
+		if smoothing_algorithm is None:
+			smoothing_algorithm = MovingAverage(average_window)
+		self.__smoothing_algorithm = smoothing_algorithm
+		self.__granularity = granularity
 
 	def __prepare_tmp_path(self):
 		path = os.path.join(self.__tmp_path, f"{uuid.uuid4()}.bo")
@@ -51,26 +59,27 @@ class BoundGenerator:
 		return random.choice([self.__poly_generate, self.__random_generate, self.__linear_generate])(n)
 
 	def get_frequencies(self, bounds):
-		datapreparer = DataPreparer(
-			boundaries=bounds,
-			block_size=20,
-			ma_window_size=self.__average_window,
-			test_split_size=0.1,
-			granularity=5,
+		path = self.__prepare_tmp_path()
+
+		data_preparer = SimulationSimulator(
+			df=self.__df,
+			bounds=bounds,
+			seq_len=10,
+			extra_len=1,
 			batch_size=int(1e9),
-			verbose=False
+			output_path=path,
+			granularity=self.__granularity,
+			smoothing_algorithm=self.__smoothing_algorithm,
+			order_gran=False
 		)
 
-		path = self.__prepare_tmp_path()
-		datapreparer.start(
-			df=self.__df,
-			save_path=path,
-			export_remaining=True
-		)
+		data_preparer.start()
+
 		y = np.concatenate([
-			np.load(os.path.join(path, "train/y", f))
-			for f in sorted(os.listdir(os.path.join(path, "train/y")))
-		])
+			np.load(os.path.join(path, "y", f))
+			for f in sorted(os.listdir(os.path.join(path, "y")))
+		])[:, :-1]
+
 		y_classes = np.argmax(y, axis=1)
 		classes, frequencies = np.unique(y_classes, return_counts=True)
 
@@ -104,7 +113,7 @@ class BoundGenerator:
 	def __generate(self, n, bounds):
 		bounds = sorted(bounds + list(self.__generator(n - len(bounds))))
 		bounds = self.__filter_valid(bounds, threshold=self.__threshold)
-		print(f"Found bounds: {len(bounds)}")
+		Logger.success(f"Found bounds: {len(bounds)}")
 		if len(bounds) < n:
 			bounds = self.__generate(n, bounds)
 		return bounds
@@ -113,7 +122,7 @@ class BoundGenerator:
 		self.__filter_valid(bounds, threshold=0, plot=True)
 
 	def generate(self, n, plot=False):
-		print(f"Generating {n} bounds...")
+		Logger.info(f"Generating {n} bounds...")
 		bounds = self.__generate(n, [])
 
 		if plot:

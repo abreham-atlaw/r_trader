@@ -7,7 +7,6 @@ import numpy as np
 
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, MovingAverage
 from lib.utils.logger import Logger
-from lib.utils.math import moving_average
 
 
 class SimulationSimulator:
@@ -69,7 +68,6 @@ class SimulationSimulator:
 		return f"{datetime.now().timestamp()}.npy"
 
 	def __filter_df(self, start_date: datetime = None, end_date: datetime = None) -> pd.DataFrame:
-		Logger.info(f"Filtering Dataframe...")
 		df = self.__df
 		if start_date is not None:
 			df = df[df["time"] >= start_date]
@@ -78,16 +76,13 @@ class SimulationSimulator:
 		return df
 
 	def __stack(self, sequence: np.ndarray) -> np.ndarray:
-		Logger.info(f"Stacking Sequence...\n\n")
 		length = self.__seq_len + 1
 		stack = np.zeros((sequence.shape[0] - length + 1, length))
 		for i in range(stack.shape[0]):
 			stack[i] = sequence[i: i + length]
-			Logger.info(f"{(i + 1) * 100 / stack.shape[0] :.2f}", end="\r")
 		return stack
 
 	def __prepare_x(self, sequences: np.ndarray) -> np.ndarray:
-		Logger.info(f"Preparing X...")
 		return np.concatenate(
 			(
 				sequences[:, :-1],
@@ -97,7 +92,6 @@ class SimulationSimulator:
 		)
 
 	def __prepare_y(self, sequence: np.ndarray) -> np.ndarray:
-		Logger.info(f"Preparing y...")
 		percentages = sequence[:, -1] / sequence[:, -2]
 		classes = np.array([self.__find_gap_index(percentages[i]) for i in range(percentages.shape[0])])
 		encoding = self.__one_hot_encode(classes, len(self.__bounds) + 1)
@@ -136,7 +130,7 @@ class SimulationSimulator:
 			np.save(save_path, arr)
 
 	def __save_batches(self, X_batches, y_batches):
-		Logger.info(f"Saving Batches...")
+		Logger.info(f"Saving Batches to {self.__output_path}...")
 		for i, (X, y) in enumerate(zip(X_batches, y_batches)):
 			self.__save(X, y)
 			Logger.info(f"{(i+1) * 100 / len(X_batches) :.2f}", end="\r")
