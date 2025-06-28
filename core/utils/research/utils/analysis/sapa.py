@@ -123,7 +123,7 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		Logger.info(f"Shaken Profit: {shaken_profit}")
 
 		if self.__plot:
-			plt.title(f"{sa}\n(Sample={i})\nOptimal Profit: {optimal_profit}\nShaken Profit: {shaken_profit}")
+			plt.title(f"{sa} (Sample={i})\nOptimal Profit: {optimal_profit}\nShaken Profit: {shaken_profit}")
 			plt.plot(x, label="Original")
 			plt.plot(x_sa, label=str(sa))
 			for a in actions:
