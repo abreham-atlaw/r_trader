@@ -136,7 +136,7 @@ class SimulationSimulator:
 			np.save(save_path, arr)
 
 	def __save_batches(self, X_batches, y_batches):
-		Logger.info(f"Saving Batches...")
+		Logger.info(f"Saving Batches to {self.__output_path}...")
 		for i, (X, y) in enumerate(zip(X_batches, y_batches)):
 			self.__save(X, y)
 			Logger.info(f"{(i+1) * 100 / len(X_batches) :.2f}", end="\r")
