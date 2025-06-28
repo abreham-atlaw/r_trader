@@ -34,7 +34,8 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 			plot_size: typing.Tuple[int, int] = (20, 10),
 			plot: bool = True,
 			plot_show: bool = True,
-			plot_cols: int = 2
+			plot_cols: int = 2,
+			sample_logging: bool = True
 	):
 		self.__df_path = df_path
 		self.__view_size = view_size
@@ -48,6 +49,7 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		self.__plot_show = plot_show
 		self.__plot_cols = plot_cols
 		self.__samples = samples
+		self.__sample_logging = sample_logging
 
 	def __load_data(self):
 		x = pd.read_csv(self.__df_path)["c"].to_numpy()
@@ -114,13 +116,13 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		Logger.info(f"Analyzing Sample {i}")
 
 		actions = self.__find_optimal_actions(x_sa)
-		Logger.info(f"Optimal Actions: \n{pprint.pformat(actions)}")
-
 		optimal_profit = self.__get_actions_profit(x, actions)
-		Logger.info(f"Optimal Profit: {optimal_profit}")
-
 		shaken_profit = self.__shake_actions(x, actions)
-		Logger.info(f"Shaken Profit: {shaken_profit}")
+
+		if self.__sample_logging:
+			Logger.info(f"Optimal Actions: \n{pprint.pformat(actions)}")
+			Logger.info(f"Optimal Profit: {optimal_profit}")
+			Logger.info(f"Shaken Profit: {shaken_profit}")
 
 		if self.__plot:
 			plt.title(f"{sa} (Sample={i})\nOptimal Profit: {optimal_profit}\nShaken Profit: {shaken_profit}")
