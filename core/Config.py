@@ -319,7 +319,7 @@ class RunnerStatsBranches:
 		it_42_2
 	]
 
-	default = it_41_2
+	default = it_42_2
 
 
 class RunnerStatsLossesBranches:
@@ -389,4 +389,4 @@ class RunnerStatsLossesBranches:
 		it_42
 	]
 
-	default = it_41
+	default = it_42
