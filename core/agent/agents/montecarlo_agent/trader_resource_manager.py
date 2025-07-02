@@ -15,6 +15,8 @@ class TraderMCResourceManager(MCResourceManager):
 			instrument: typing.Tuple[str, str],
 			delta_multiplier: float = 1,
 	):
+
+		Logger.info(f"Initializing TraderMCResourceManager with gran={granularity}, delta_multiplier={delta_multiplier}")
 		self.__trader = trader
 		self.__gran = granularity
 		self.__gran_value = self.__trader.get_granularity_seconds(self.__gran)
