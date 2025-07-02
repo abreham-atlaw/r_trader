@@ -14,7 +14,9 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_disk_state_repository() -> StateRepository:
-		return PickleStateRepository()
+		return PickleStateRepository(
+			path=Config.AGENT_FILESYSTEM_STATE_REPOSITORY_PATH
+		)
 
 	@staticmethod
 	def provide_state_repository() -> StateRepository:

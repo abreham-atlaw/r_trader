@@ -28,5 +28,5 @@ class DiskResourceManager(MCResourceManager):
 		percentage = space/resource
 		available = percentage > self.__min_remaining_space
 		if not available:
-			Logger.warning(f"Disk space too low. Only {space: .2f} GiB({percentage: .2f}% of {resource: .2f} GiB) remaining.")
+			Logger.warning(f"Disk space too low. Only {space: .2f} GiB({percentage*100: .2f}% of {resource: .2f} GiB) remaining.")
 		return available

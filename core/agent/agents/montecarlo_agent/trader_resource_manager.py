@@ -49,7 +49,7 @@ class TraderMCResourceManager(MCResourceManager):
 			return (datetime.now() - resource).total_seconds() <= 0
 
 		remaining_time = (resource - datetime.now()).total_seconds()
-		Logger.warning(f"Out of disk space. Sleeping {remaining_time} seconds.")
+		Logger.warning(f"Out of disk space. Sleeping {remaining_time: .2f}(until {resource}) seconds.")
 		time.sleep(remaining_time)
 
 		return False
