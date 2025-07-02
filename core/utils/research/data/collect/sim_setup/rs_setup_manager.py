@@ -53,13 +53,14 @@ class RSSetupManager:
 	def setup(self):
 		Logger.info(f"Allocating Runner Stat...")
 		stat = self.__rs_repo.allocate_for_runlive()
-		Logger.info(f"Allocated Runner Stat: {stat}")
+		Logger.success(f"Allocated Runner Stat: {stat}")
 
 		Logger.info(f"Downloading {stat.model_name}...")
 		self.__fs.download(stat.model_name, os.path.abspath(stat.model_name))
 
 		Config.CORE_MODEL_CONFIG.path = os.path.abspath(stat.model_name)
 		Config.AGENT_MODEL_TEMPERATURE = stat.temperature
+		Logger.success(f"Downloaded {stat.model_name} to {Config.CORE_MODEL_CONFIG.path}")
 
 		self._allocate_extra(stat)
 
