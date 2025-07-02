@@ -2,14 +2,15 @@ import typing
 
 import torch.nn as nn
 
-from core.utils.research.model.layers import *
+from core.utils.research.model.layers import Delta, KalmanStaticFilter, MultipleMovingAverages, MovingAverage, \
+    MovingStandardDeviation, RelativeStrengthIndex, StochasticOscillator, OverlaysCombiner
 from core.utils.research.model.model.savable import SpinozaModule
 
 
 class Indicators(SpinozaModule):
     def __init__(
             self,
-            delta: bool = False,
+            delta: typing.Union[typing.List[int], typing.Union[bool, int]] = 0,
             ksf: typing.Optional[typing.List[int]] = None,
             mma: typing.Optional[typing.List[int]] = None,
             msa: typing.Optional[typing.List[int]] = None,
@@ -29,7 +30,7 @@ class Indicators(SpinozaModule):
             "so": so,
             "identities": identities
         }
-        self.delta = Delta() if delta else None
+        self.delta = self.__prepare_arg_delta(delta)
         self.ksf = [KalmanStaticFilter(alpha, beta) for alpha, beta in ksf] if ksf else None
         self.mma = MultipleMovingAverages(mma) if mma else None
         self.msa = [MovingAverage(size) for size in msa] if msa else None
@@ -39,11 +40,19 @@ class Indicators(SpinozaModule):
         self.identities = [nn.Identity() for _ in range(identities)]
         self.combiner = OverlaysCombiner()
 
+    @staticmethod
+    def __prepare_arg_delta(delta: typing.Union[typing.List[int], typing.Union[bool, int]]):
+        if isinstance(delta, bool):
+            delta = 1 if delta else 0
+        if isinstance(delta, int):
+            delta = [delta]
+        return [Delta(n=n) for n in delta]
+
     @property
     def indicators_len(self):
         count = 1
         if self.delta:
-            count += 1
+            count += len(self.delta)
         if self.ksf:
             count += len(self.ksf)
         if self.mma:
@@ -62,7 +71,8 @@ class Indicators(SpinozaModule):
     def call(self, inputs):
         outputs = [inputs]
         if self.delta:
-            outputs.append(self.delta(inputs))
+            for delta in self.delta:
+                outputs.append(delta(inputs))
         if self.ksf:
             for filter in self.ksf:
                 outputs.append(filter(inputs))
