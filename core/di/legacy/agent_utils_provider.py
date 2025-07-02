@@ -1,5 +1,5 @@
 from core import Config
-from lib.rl.agent.mca.resource_manager import MCResourceManager, TimeMCResourceManager
+from lib.rl.agent.mca.resource_manager import MCResourceManager, TimeMCResourceManager, DiskResourceManager
 from lib.rl.agent.mca.stm import NodeMemoryMatcher, NodeShortTermMemory
 from lib.utils.logger import Logger
 from lib.utils.staterepository import StateRepository, AutoStateRepository, SectionalDictStateRepository, \
@@ -29,6 +29,10 @@ class AgentUtilsProvider:
 		return AgentUtilsProvider.provide_in_memory_state_repository()
 
 	@staticmethod
+	def provide_disk_resource_manager() -> DiskResourceManager:
+		return DiskResourceManager(min_remaining_space=Config.AGENT_MIN_DISK_SPACE)
+
+	@staticmethod
 	def provide_resource_manager() -> MCResourceManager:
 		from core.agent.agents.montecarlo_agent.trader_resource_manager import TraderMCResourceManager
 		from .environment_utils_provider import EnvironmentUtilsProvider
@@ -38,7 +42,8 @@ class AgentUtilsProvider:
 				trader=EnvironmentUtilsProvider.provide_trader(),
 				granularity=Config.MARKET_STATE_GRANULARITY,
 				instrument=Config.AGENT_STATIC_INSTRUMENTS[0],
-				delta_multiplier=Config.OANDA_SIM_DELTA_MULTIPLIER
+				delta_multiplier=Config.OANDA_SIM_DELTA_MULTIPLIER,
+				disk_resource_manager=AgentUtilsProvider.provide_disk_resource_manager()
 			)
 		else:
 			manager = TimeMCResourceManager(
