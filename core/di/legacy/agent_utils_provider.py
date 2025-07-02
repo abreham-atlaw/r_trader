@@ -32,7 +32,10 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_disk_resource_manager() -> DiskResourceManager:
-		return DiskResourceManager(min_remaining_space=Config.AGENT_MIN_DISK_SPACE)
+		return DiskResourceManager(
+			min_remaining_space=Config.AGENT_MIN_DISK_SPACE,
+			path=Config.AGENT_FILESYSTEM_STATE_REPOSITORY_PATH
+		)
 
 	@staticmethod
 	def provide_resource_manager() -> MCResourceManager:

@@ -8,14 +8,14 @@ from .resource_manager import MCResourceManager
 
 class DiskResourceManager(MCResourceManager):
 
-	def __init__(self, min_remaining_space=0.1):
+	def __init__(self, min_remaining_space=0.1, path: str = "./"):
 		super().__init__()
-		Logger.info(f"Initializing Disk Resource Manager with min_remaining_space={min_remaining_space}")
+		Logger.info(f"Initializing Disk Resource Manager with min_remaining_space={min_remaining_space}, path={path}")
 		self.__min_remaining_space = min_remaining_space
+		self.__path = path
 
-	@staticmethod
-	def __get_disk_space() -> float:
-		_, __, free = shutil.disk_usage(".")
+	def __get_disk_space(self) -> float:
+		_, __, free = shutil.disk_usage(self.__path)
 		return free/(2**30)
 
 	def init_resource(self) -> float:
