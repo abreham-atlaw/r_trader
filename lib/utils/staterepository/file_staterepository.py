@@ -6,6 +6,8 @@ import os
 import shutil
 import pickle
 
+from ..logger import Logger
+
 
 class FileSystemStateRepository(StateRepository, ABC):
 
@@ -13,6 +15,8 @@ class FileSystemStateRepository(StateRepository, ABC):
 		super().__init__(*args, **kwargs)
 		if path is None:
 			path = os.path.abspath("./")
+
+		Logger.info(f"Initializing FileSystemStateRepository at {os.path.join(path, name)}...")
 
 		self.__container = os.path.join(path, name)
 		self.__keys = []
