@@ -196,6 +196,7 @@ class TrainerTest(unittest.TestCase):
 
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
+		COLLAPSE_GLOBAL_AVG_POOL = True
 
 		TRANSFORMER_DECODER_HEADS = 2
 		TRANSFORMER_DECODER_NORM_1 = DynamicLayerNorm()
@@ -280,6 +281,7 @@ class TrainerTest(unittest.TestCase):
 			collapse_block=CollapseBlock(
 				dropout=DROPOUT_BRIDGE,
 				input_norm=COLLAPSE_INPUT_NORM,
+				global_avg_pool=COLLAPSE_GLOBAL_AVG_POOL,
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
 					layer_sizes=FF_LINEAR_LAYERS,
