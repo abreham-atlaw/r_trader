@@ -182,7 +182,7 @@ class TrainerTest(unittest.TestCase):
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		NORM = [DynamicLayerNorm()] + [nn.Identity() for _ in CHANNELS[1:]]
 
 		INDICATORS_DELTA = [1, 2, 4, 8]
 		INDICATORS_SO = []
@@ -228,7 +228,7 @@ class TrainerTest(unittest.TestCase):
 				input_norm=INPUT_NORM
 			),
 
-			cnn_block=ResNetBlock(
+			cnn_block=CNNBlock(
 				input_channels=indicators.indicators_len,
 				conv_channels=CHANNELS,
 				kernel_sizes=KERNEL_SIZES,
@@ -239,43 +239,43 @@ class TrainerTest(unittest.TestCase):
 				padding=PADDING
 			),
 
-			bridge_block=BridgeBlock(
-				# ff_block=LayerStack(
-				# 	layers=[
-				# 		LinearModel(
-				# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-				# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-				# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-				# 			norm=BRIDGE_FF_LINEAR_NORM
-				# 		)
-				# 		for _ in range(CHANNELS[-1])
-				# 	]
-				# ),
-
-				transformer_block=TransformerBlock(
-					transformer_embedding_block=TransformerEmbeddingBlock(),
-
-					decoder_block=DecoderBlock(
-						num_heads=TRANSFORMER_DECODER_HEADS,
-						norm_1=TRANSFORMER_DECODER_NORM_1,
-						norm_2=TRANSFORMER_DECODER_NORM_2,
-						ff_block=LinearModel(
-							layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
-						)
-					),
-
-					encoder_block=DecoderBlock(
-						num_heads=TRANSFORMER_ENCODER_HEADS,
-						norm_1=TRANSFORMER_ENCODER_NORM_1,
-						norm_2=TRANSFORMER_ENCODER_NORM_2,
-						ff_block=LinearModel(
-							layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
-						)
-					)
-				),
-
-
-			),
+			# bridge_block=BridgeBlock(
+			# 	# ff_block=LayerStack(
+			# 	# 	layers=[
+			# 	# 		LinearModel(
+			# 	# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+			# 	# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+			# 	# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+			# 	# 			norm=BRIDGE_FF_LINEAR_NORM
+			# 	# 		)
+			# 	# 		for _ in range(CHANNELS[-1])
+			# 	# 	]
+			# 	# ),
+			#
+			# 	# transformer_block=TransformerBlock(
+			# 	# 	transformer_embedding_block=TransformerEmbeddingBlock(),
+			# 	#
+			# 	# 	decoder_block=DecoderBlock(
+			# 	# 		num_heads=TRANSFORMER_DECODER_HEADS,
+			# 	# 		norm_1=TRANSFORMER_DECODER_NORM_1,
+			# 	# 		norm_2=TRANSFORMER_DECODER_NORM_2,
+			# 	# 		ff_block=LinearModel(
+			# 	# 			layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
+			# 	# 		)
+			# 	# 	),
+			# 	#
+			# 	# 	encoder_block=DecoderBlock(
+			# 	# 		num_heads=TRANSFORMER_ENCODER_HEADS,
+			# 	# 		norm_1=TRANSFORMER_ENCODER_NORM_1,
+			# 	# 		norm_2=TRANSFORMER_ENCODER_NORM_2,
+			# 	# 		ff_block=LinearModel(
+			# 	# 			layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
+			# 	# 		)
+			# 	# 	)
+			# 	# ),
+			#
+			#
+			# ),
 
 			collapse_block=CollapseBlock(
 				dropout=DROPOUT_BRIDGE,
