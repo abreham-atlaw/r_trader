@@ -252,7 +252,8 @@ MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [0.1, 0.25, 1.0]
-
+HORIZON_MODE = False
+HORIZON_H = 0.5
 
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-42/"
 
@@ -406,4 +407,4 @@ class RunnerStatsLossesBranches:
 		it_42,
 	]
 
-	default = it_41
+	default = it_41_h_0
