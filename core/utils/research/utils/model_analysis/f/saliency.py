@@ -24,7 +24,14 @@ def get_layer_saliency(model: nn.Module, X: torch.Tensor, layer: nn.Module):
 
 	def forward_hook(_, __, output):
 		nonlocal activation
-		activation = output.detach().requires_grad_(True)
+
+		if isinstance(output, tuple):
+			activation = tuple([
+				o.detach().requires_grad_(True)
+				for o in output
+			])
+		else:
+			activation = output.detach().requires_grad_(True)
 		return activation
 
 	hook = target_layer.register_forward_hook(forward_hook)
@@ -35,6 +42,9 @@ def get_layer_saliency(model: nn.Module, X: torch.Tensor, layer: nn.Module):
 	y_hat.backward(torch.ones_like(y_hat))
 
 	clean_layer(model, layer, target_layer, [hook])
+
+	if isinstance(activation, tuple):
+		activation = activation[0]
 
 	if activation is None or activation.grad is None:
 		raise ValueError("layer not called in forward pass")

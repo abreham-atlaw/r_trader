@@ -3,6 +3,7 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 from core.utils.resman.data.models import Resource
+from lib.utils.logger import Logger
 from .resource_repository import ResourceRepository
 
 
@@ -15,6 +16,7 @@ class MongoResourceRepository(ResourceRepository):
 			database_name: str = 'resources',
 	):
 		super().__init__(category)
+		Logger.info(f"Initializing ResourceRepository for {category}")
 		self.__mongo_client = mongo_client
 		self.__db = self.__mongo_client[database_name]
 		self.__collection = self.__db[category]
