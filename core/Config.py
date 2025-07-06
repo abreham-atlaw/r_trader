@@ -369,6 +369,7 @@ class RunnerStatsLossesBranches:
 	it_39 = "it_39"
 	it_40 = "it_40"
 	it_41 = "it_41"
+	it_41_h_0 = "it_41_h_0"
 	it_42 = "it_42"
 
 	all = [
@@ -401,7 +402,8 @@ class RunnerStatsLossesBranches:
 		it_39,
 		it_40,
 		it_41,
-		it_42
+		it_41_h_0,
+		it_42,
 	]
 
 	default = it_42

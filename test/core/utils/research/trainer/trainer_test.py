@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 
+from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
@@ -21,6 +22,7 @@ from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
+from core.utils.research.model.model.utils import HorizonModel
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -70,7 +72,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.create_cnn2()
+		return self.__create_horizon_model()
 
 	@staticmethod
 	def create_cnn():
@@ -176,7 +178,7 @@ class TrainerTest(unittest.TestCase):
 		CHANNELS = [EMBEDDING_SIZE for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = 431
+		VOCAB_SIZE = len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
 		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
 		DROPOUT_RATE = [0 for _ in CHANNELS]
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
@@ -385,10 +387,17 @@ class TrainerTest(unittest.TestCase):
 			)
 		)
 
+	def __create_horizon_model(self):
+		return HorizonModel(
+			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			model=self.create_cnn2(),
+			h=0.2
+		)
+
 	def __init_dataloader(self):
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
@@ -397,7 +406,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
@@ -425,11 +434,15 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=1,
+			epochs=10,
 			progress=True,
 		)
 
-		ModelHandler.save(self.trainer.model, SAVE_PATH)
+		model = self.trainer.model
+		if isinstance(model, HorizonModel):
+			model = model.model
+
+		ModelHandler.save(model, SAVE_PATH)
 
 		for X, y, w in self.test_dataloader:
 			break
@@ -437,7 +450,7 @@ class TrainerTest(unittest.TestCase):
 		loaded_model = ModelHandler.load(SAVE_PATH)
 		loaded_model.eval()
 
-		original_y = self.trainer.model(X)
+		original_y = model(X)
 
 		loaded_y = loaded_model(X)
 
