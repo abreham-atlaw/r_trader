@@ -34,7 +34,7 @@ class RunnerStatsRepository:
 		self.client = client
 		self._collection = db[f"{collection_name}-branch-{branch}"]
 		self.__serializer = RunnerStatsSerializer()
-		self.__resman = ServiceProvider.provide_resman(Config.ResourceCategories.RUNNER_STAT)
+		self.__resman = ServiceProvider.provide_resman(f"{Config.ResourceCategories.RUNNER_STAT}-{branch}")
 		self.__select_weight = select_weight
 		if isinstance(max_loss, float):
 			max_loss = (max_loss, )
