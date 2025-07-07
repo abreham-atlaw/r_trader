@@ -25,6 +25,7 @@ class HorizonModel(SpinozaModule):
 			"y_extra_len": y_extra_len
 		}
 		super().__init__(input_size=model.input_size, output_size=model.output_size, auto_build=False)
+		Logger.info(f"Initializing HorizonModel(h={h})...")
 		self.h = h
 		self.model = model
 		self.X_extra_len = X_extra_len
