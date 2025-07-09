@@ -422,7 +422,8 @@ class TrainerTest(unittest.TestCase):
 			HorizonSchedulerCallback(
 				epochs=10,
 				start=0,
-				end=0.5
+				end=0.5,
+				step=2
 			)
 		]
 		trainer = Trainer(model, callbacks=callbacks)
