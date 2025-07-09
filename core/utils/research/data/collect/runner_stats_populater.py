@@ -14,7 +14,7 @@ from core.utils.research.data.collect.runner_stats_repository import RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
 	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore
-from core.utils.research.model.model.utils import TemperatureScalingModel
+from core.utils.research.model.model.utils import TemperatureScalingModel, HorizonModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
@@ -35,7 +35,10 @@ class RunnerStatsPopulater:
 			shuffle_order: bool = True,
 			raise_exception: bool = False,
 			exception_exceptions: typing.List[typing.Type] = None,
-			temperatures: typing.Tuple[float, ...] = (1.0,)
+			temperatures: typing.Tuple[float, ...] = (1.0,),
+			horizon_mode: bool = False,
+			horizon_bounds: typing.List[float] = None,
+			horizon_h: float = None
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -53,6 +56,12 @@ class RunnerStatsPopulater:
 		self.__exception_exceptions = exception_exceptions
 		self.__loss_functions = self.get_evaluation_loss_functions()
 		self.__blacklist_repo: RSBlacklistRepository = ResearchProvider.provide_rs_blacklist_repository(rs_repo=repository)
+
+		self.__horizon_mode = horizon_mode
+		self.__horizon_bounds = horizon_bounds
+		self.__horizon_h = horizon_h
+		if self.__horizon_mode:
+			assert self.__horizon_bounds is not None and self.__horizon_h is not None
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -170,6 +179,12 @@ class RunnerStatsPopulater:
 			ModelHandler.load(local_path),
 			temperature=temperature
 		)
+		if self.__horizon_mode:
+			model = HorizonModel(
+				model=model,
+				h=self.__horizon_h,
+				bounds=self.__horizon_bounds
+			)
 
 		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
 			current_losses = None

@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 
+from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
@@ -21,6 +22,8 @@ from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
+from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.training.callbacks.horizon_scheduler_callback import HorizonSchedulerCallback
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -70,7 +73,7 @@ class TrainerTest(unittest.TestCase):
 		print(f"Generated: {target_path}")
 
 	def __create_model(self):
-		return self.create_cnn2()
+		return self.__create_horizon_model()
 
 	@staticmethod
 	def create_cnn():
@@ -176,15 +179,15 @@ class TrainerTest(unittest.TestCase):
 		CHANNELS = [EMBEDDING_SIZE for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = 431
+		VOCAB_SIZE = len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
 		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
 		DROPOUT_RATE = [0 for _ in CHANNELS]
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
 		BLOCK_SIZE = 1024 + EXTRA_LEN
 		PADDING = 0
-		NORM = [False] + [False for _ in CHANNELS[1:]]
+		NORM = [DynamicLayerNorm()] + [nn.Identity() for _ in CHANNELS[1:]]
 
-		INDICATORS_DELTA = True
+		INDICATORS_DELTA = [1, 2, 4, 8]
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 		INPUT_NORM = DynamicLayerNorm()
@@ -196,13 +199,14 @@ class TrainerTest(unittest.TestCase):
 
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
+		COLLAPSE_GLOBAL_AVG_POOL = True
 
-		TRANSFORMER_DECODER_HEADS = 4
+		TRANSFORMER_DECODER_HEADS = 2
 		TRANSFORMER_DECODER_NORM_1 = DynamicLayerNorm()
 		TRANSFORMER_DECODER_NORM_2 = DynamicLayerNorm()
 		TRANSFORMER_DECODER_FF_LAYERS = [64, EMBEDDING_SIZE]
 
-		TRANSFORMER_ENCODER_HEADS = 4
+		TRANSFORMER_ENCODER_HEADS = 2
 		TRANSFORMER_ENCODER_NORM_1 = DynamicLayerNorm()
 		TRANSFORMER_ENCODER_NORM_2 = DynamicLayerNorm()
 		TRANSFORMER_ENCODER_FF_LAYERS = [64, EMBEDDING_SIZE]
@@ -228,7 +232,7 @@ class TrainerTest(unittest.TestCase):
 				input_norm=INPUT_NORM
 			),
 
-			cnn_block=ResNetBlock(
+			cnn_block=CNNBlock(
 				input_channels=indicators.indicators_len,
 				conv_channels=CHANNELS,
 				kernel_sizes=KERNEL_SIZES,
@@ -239,47 +243,48 @@ class TrainerTest(unittest.TestCase):
 				padding=PADDING
 			),
 
-			bridge_block=BridgeBlock(
-				# ff_block=LayerStack(
-				# 	layers=[
-				# 		LinearModel(
-				# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-				# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-				# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-				# 			norm=BRIDGE_FF_LINEAR_NORM
-				# 		)
-				# 		for _ in range(CHANNELS[-1])
-				# 	]
-				# ),
-
-				transformer_block=TransformerBlock(
-					transformer_embedding_block=TransformerEmbeddingBlock(),
-
-					decoder_block=DecoderBlock(
-						num_heads=TRANSFORMER_DECODER_HEADS,
-						norm_1=TRANSFORMER_DECODER_NORM_1,
-						norm_2=TRANSFORMER_DECODER_NORM_2,
-						ff_block=LinearModel(
-							layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
-						)
-					),
-
-					encoder_block=DecoderBlock(
-						num_heads=TRANSFORMER_ENCODER_HEADS,
-						norm_1=TRANSFORMER_ENCODER_NORM_1,
-						norm_2=TRANSFORMER_ENCODER_NORM_2,
-						ff_block=LinearModel(
-							layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
-						)
-					)
-				),
-
-
-			),
+			# bridge_block=BridgeBlock(
+			# 	# ff_block=LayerStack(
+			# 	# 	layers=[
+			# 	# 		LinearModel(
+			# 	# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+			# 	# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+			# 	# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+			# 	# 			norm=BRIDGE_FF_LINEAR_NORM
+			# 	# 		)
+			# 	# 		for _ in range(CHANNELS[-1])
+			# 	# 	]
+			# 	# ),
+			#
+			# 	# transformer_block=TransformerBlock(
+			# 	# 	transformer_embedding_block=TransformerEmbeddingBlock(),
+			# 	#
+			# 	# 	decoder_block=DecoderBlock(
+			# 	# 		num_heads=TRANSFORMER_DECODER_HEADS,
+			# 	# 		norm_1=TRANSFORMER_DECODER_NORM_1,
+			# 	# 		norm_2=TRANSFORMER_DECODER_NORM_2,
+			# 	# 		ff_block=LinearModel(
+			# 	# 			layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
+			# 	# 		)
+			# 	# 	),
+			# 	#
+			# 	# 	encoder_block=DecoderBlock(
+			# 	# 		num_heads=TRANSFORMER_ENCODER_HEADS,
+			# 	# 		norm_1=TRANSFORMER_ENCODER_NORM_1,
+			# 	# 		norm_2=TRANSFORMER_ENCODER_NORM_2,
+			# 	# 		ff_block=LinearModel(
+			# 	# 			layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
+			# 	# 		)
+			# 	# 	)
+			# 	# ),
+			#
+			#
+			# ),
 
 			collapse_block=CollapseBlock(
 				dropout=DROPOUT_BRIDGE,
 				input_norm=COLLAPSE_INPUT_NORM,
+				global_avg_pool=COLLAPSE_GLOBAL_AVG_POOL,
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
 					layer_sizes=FF_LINEAR_LAYERS,
@@ -383,10 +388,17 @@ class TrainerTest(unittest.TestCase):
 			)
 		)
 
+	def __create_horizon_model(self):
+		return HorizonModel(
+			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			model=self.create_cnn2(),
+			h=0.2
+		)
+
 	def __init_dataloader(self):
 		dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
@@ -395,7 +407,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
 			],
 			check_file_sizes=True,
 			load_weights=False,
@@ -405,7 +417,15 @@ class TrainerTest(unittest.TestCase):
 		return dataloader, test_dataloader
 
 	def __init_trainer(self, model):
-		trainer = Trainer(model)
+
+		callbacks = [
+			HorizonSchedulerCallback(
+				epochs=10,
+				start=0,
+				end=0.5
+			)
+		]
+		trainer = Trainer(model, callbacks=callbacks)
 		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=False)
 		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
@@ -423,11 +443,15 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=1,
+			epochs=10,
 			progress=True,
 		)
 
-		ModelHandler.save(self.trainer.model, SAVE_PATH)
+		model = self.trainer.model
+		if isinstance(model, HorizonModel):
+			model = model.model
+
+		ModelHandler.save(model, SAVE_PATH)
 
 		for X, y, w in self.test_dataloader:
 			break
@@ -435,7 +459,7 @@ class TrainerTest(unittest.TestCase):
 		loaded_model = ModelHandler.load(SAVE_PATH)
 		loaded_model.eval()
 
-		original_y = self.trainer.model(X)
+		original_y = model(X)
 
 		loaded_y = loaded_model(X)
 
