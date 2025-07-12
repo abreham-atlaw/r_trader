@@ -42,6 +42,7 @@ class Trainer:
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
             dtype: torch.dtype = torch.float32,
+            skip_nan: bool = True
     ):
         self.device = self.__get_device()
         Logger.info(f"Using device: {self.device_type}")
@@ -60,6 +61,7 @@ class Trainer:
         self.__clip_value = clip_value
         self.__log_gradient_stats = log_gradient_stats
         self.__dtype = dtype
+        self.__skip_nan = skip_nan
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
 
@@ -276,4 +278,7 @@ class Trainer:
 
                 total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
                 total_size += X.shape[0]
+                if self.__skip_nan and torch.isnan(total_loss).any():
+                    Logger.error("Nan value encountered. Skipping...")
+                    break
         return (total_loss / total_size).tolist()

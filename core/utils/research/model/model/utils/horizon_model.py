@@ -34,6 +34,9 @@ class HorizonModel(SpinozaModule):
 
 		self.bounds = self.__prepare_bounds(bounds)
 
+	def set_h(self, h: float):
+		self.h = h
+
 	def __prepare_bounds(self, bounds: typing.Union[typing.List[float], torch.Tensor]) -> torch.Tensor:
 		if isinstance(bounds, typing.List):
 			bounds = torch.tensor(bounds)

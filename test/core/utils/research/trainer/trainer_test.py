@@ -23,6 +23,7 @@ from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
 from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.training.callbacks.horizon_scheduler_callback import HorizonSchedulerCallback
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -416,8 +417,17 @@ class TrainerTest(unittest.TestCase):
 		return dataloader, test_dataloader
 
 	def __init_trainer(self, model):
-		trainer = Trainer(model)
-		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=False)
+
+		callbacks = [
+			HorizonSchedulerCallback(
+				epochs=10,
+				start=0,
+				end=0.5,
+				step=2
+			)
+		]
+		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
+		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=True)
 		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
