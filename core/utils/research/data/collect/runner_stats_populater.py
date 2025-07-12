@@ -14,11 +14,12 @@ from core.utils.research.data.collect.runner_stats_repository import RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
 	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore
-from core.utils.research.model.model.utils import TemperatureScalingModel
+from core.utils.research.model.model.utils import TemperatureScalingModel, HorizonModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.fileio import load_json
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
 
@@ -35,7 +36,11 @@ class RunnerStatsPopulater:
 			shuffle_order: bool = True,
 			raise_exception: bool = False,
 			exception_exceptions: typing.List[typing.Type] = None,
-			temperatures: typing.Tuple[float, ...] = (1.0,)
+			temperatures: typing.Tuple[float, ...] = (1.0,),
+			horizon_mode: bool = False,
+			horizon_bounds: typing.List[float] = None,
+			horizon_h: float = None,
+			checkpointed: bool = False
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -47,12 +52,19 @@ class RunnerStatsPopulater:
 		self.__raise_exception = raise_exception
 		self.__temperatures = temperatures
 		self.__junk = set([])
+		self.__checkpointed = checkpointed
 
 		if exception_exceptions is None:
 			exception_exceptions = []
 		self.__exception_exceptions = exception_exceptions
 		self.__loss_functions = self.get_evaluation_loss_functions()
 		self.__blacklist_repo: RSBlacklistRepository = ResearchProvider.provide_rs_blacklist_repository(rs_repo=repository)
+
+		self.__horizon_mode = horizon_mode
+		self.__horizon_bounds = horizon_bounds
+		self.__horizon_h = horizon_h
+		if self.__horizon_mode:
+			assert self.__horizon_bounds is not None and self.__horizon_h is not None
 
 	def __generate_tmp_path(self, ex=MODEL_SAVE_EXTENSION):
 		return os.path.join(self.__tmp_path, f"{datetime.now().timestamp()}.{ex}")
@@ -125,13 +137,20 @@ class RunnerStatsPopulater:
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
-		return tuple([
-			self.__evaluate_model_loss(
-				model,
-				loss
-			) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
-			for i, loss in enumerate(self.__loss_functions)
-		])
+		if not self.__checkpointed:
+			return tuple([
+				self.__evaluate_model_loss(
+					model,
+					loss
+				) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
+				for i, loss in enumerate(self.__loss_functions)
+			])
+
+		current_losses = [0 for _ in self.__loss_functions] if current_losses is None else current_losses
+		losses = current_losses.copy()
+		i = current_losses.index(0.0)
+		losses[i] = self.__evaluate_model_loss(model, self.__loss_functions[i])
+		return tuple(losses)
 
 	@staticmethod
 	def __prepare_model(model: nn.Module) -> nn.Module:
@@ -166,10 +185,20 @@ class RunnerStatsPopulater:
 		current_losses = stat.model_losses if stat is not None else None
 
 		local_path = self.__download_model(path)
+		model = ModelHandler.load(local_path)
+		if self.__horizon_mode and isinstance(model, HorizonModel):
+			Logger.warning(f"Stripping HorizonModel...")
+			model = model.model
 		model = TemperatureScalingModel(
-			ModelHandler.load(local_path),
+			model,
 			temperature=temperature
 		)
+		if self.__horizon_mode:
+			model = HorizonModel(
+				model=model,
+				h=self.__horizon_h,
+				bounds=self.__horizon_bounds
+			)
 
 		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
 			current_losses = None
