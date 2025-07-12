@@ -19,6 +19,7 @@ from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.fileio import load_json
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
 
@@ -184,8 +185,12 @@ class RunnerStatsPopulater:
 		current_losses = stat.model_losses if stat is not None else None
 
 		local_path = self.__download_model(path)
+		model = ModelHandler.load(local_path)
+		if self.__horizon_mode and isinstance(model, HorizonModel):
+			Logger.warning(f"Stripping HorizonModel...")
+			model = model.model
 		model = TemperatureScalingModel(
-			ModelHandler.load(local_path),
+			model,
 			temperature=temperature
 		)
 		if self.__horizon_mode:
