@@ -426,8 +426,8 @@ class TrainerTest(unittest.TestCase):
 				step=2
 			)
 		]
-		trainer = Trainer(model, callbacks=callbacks)
-		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=False)
+		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
+		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=True)
 		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
