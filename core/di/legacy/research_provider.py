@@ -51,6 +51,16 @@ class ResearchProvider:
 		)
 
 	@staticmethod
+	def provide_rt_rs_setup_manager() -> 'RealTimeRSSetupManager':
+		from core.utils.research.data.collect.sim_setup.rt_rs_setup_manager import RealTimeRSSetupManager
+		return RealTimeRSSetupManager(
+			fs=ServiceProvider.provide_file_storage(Config.OANDA_SIM_MODEL_IN_PATH),
+			rs_repo=ResearchProvider.provide_runner_stats_repository(),
+			model_evaluator=ResearchProvider.provide_model_evaluator(),
+			accounts_repo=ServiceProvider.provide_resman(Config.ResourceCategories.OANDA_ACCOUNTS)
+		)
+
+	@staticmethod
 	def provide_ims_repository(model_name: str, label: str) -> 'IMSRepository':
 		from core.utils.research.training.data.repositories.ims_repository import IMSRepository
 		from core.di import ServiceProvider
