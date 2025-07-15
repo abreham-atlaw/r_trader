@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss
+from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
 	LayerStack
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
@@ -427,7 +427,7 @@ class TrainerTest(unittest.TestCase):
 			)
 		]
 		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
-		trainer.cls_loss_function = CrossEntropyLoss(weighted_sample=True)
+		trainer.cls_loss_function = ReverseMAWeightLoss(window_size=10, weighted_sample=False)
 		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
