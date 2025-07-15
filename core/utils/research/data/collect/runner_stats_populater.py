@@ -19,6 +19,7 @@ from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.fileio import load_json
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
 
@@ -38,7 +39,8 @@ class RunnerStatsPopulater:
 			temperatures: typing.Tuple[float, ...] = (1.0,),
 			horizon_mode: bool = False,
 			horizon_bounds: typing.List[float] = None,
-			horizon_h: float = None
+			horizon_h: float = None,
+			checkpointed: bool = False
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -50,6 +52,7 @@ class RunnerStatsPopulater:
 		self.__raise_exception = raise_exception
 		self.__temperatures = temperatures
 		self.__junk = set([])
+		self.__checkpointed = checkpointed
 
 		if exception_exceptions is None:
 			exception_exceptions = []
@@ -134,13 +137,20 @@ class RunnerStatsPopulater:
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
-		return tuple([
-			self.__evaluate_model_loss(
-				model,
-				loss
-			) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
-			for i, loss in enumerate(self.__loss_functions)
-		])
+		if not self.__checkpointed:
+			return tuple([
+				self.__evaluate_model_loss(
+					model,
+					loss
+				) if current_losses is None or current_losses[i] == 0.0 else current_losses[i]
+				for i, loss in enumerate(self.__loss_functions)
+			])
+
+		current_losses = [0 for _ in self.__loss_functions] if current_losses is None else current_losses
+		losses = current_losses.copy()
+		i = current_losses.index(0.0)
+		losses[i] = self.__evaluate_model_loss(model, self.__loss_functions[i])
+		return tuple(losses)
 
 	@staticmethod
 	def __prepare_model(model: nn.Module) -> nn.Module:
@@ -175,8 +185,12 @@ class RunnerStatsPopulater:
 		current_losses = stat.model_losses if stat is not None else None
 
 		local_path = self.__download_model(path)
+		model = ModelHandler.load(local_path)
+		if self.__horizon_mode and isinstance(model, HorizonModel):
+			Logger.warning(f"Stripping HorizonModel...")
+			model = model.model
 		model = TemperatureScalingModel(
-			ModelHandler.load(local_path),
+			model,
 			temperature=temperature
 		)
 		if self.__horizon_mode:
