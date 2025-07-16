@@ -152,7 +152,7 @@ class RunnerStatsPopulater:
 			])
 
 		current_losses = [0 for _ in self.__loss_functions] if current_losses is None else current_losses
-		losses = current_losses.copy()
+		losses = list(current_losses).copy()
 		i = current_losses.index(0.0)
 		losses[i] = self.__evaluate_model_loss(model, self.__loss_functions[i])
 		return tuple(losses)
