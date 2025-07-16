@@ -25,6 +25,7 @@ class HorizonModel(SpinozaModule):
 			"y_extra_len": y_extra_len
 		}
 		super().__init__(input_size=model.input_size, output_size=model.output_size, auto_build=False)
+		Logger.info(f"Initializing HorizonModel(h={h})...")
 		self.h = h
 		self.model = model
 		self.X_extra_len = X_extra_len
@@ -32,6 +33,9 @@ class HorizonModel(SpinozaModule):
 		self.softmax = nn.Softmax(dim=-1)
 
 		self.bounds = self.__prepare_bounds(bounds)
+
+	def set_h(self, h: float):
+		self.h = h
 
 	def __prepare_bounds(self, bounds: typing.Union[typing.List[float], torch.Tensor]) -> torch.Tensor:
 		if isinstance(bounds, typing.List):
