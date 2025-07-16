@@ -24,7 +24,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		self.n = n
 		self.p = p
 		self.activation = nn.Softmax(dim=1) if softmax else nn.Identity()
-		self.mask = self.__generate_mask(n, p).to(device)
+		self.mask = self.__generate_mask().to(device)
 		self.epsilon = epsilon
 		self.device = device
 
@@ -37,15 +37,13 @@ class ProximalMaskedLoss(SpinozaLoss):
 
 		self.w = weights.to(device)
 
-	@staticmethod
-	def __f(t, n, p):
-		return (1 / (torch.abs(torch.arange(n) - t) + 1)) ** p
+	def _f(self, i: int) -> torch.Tensor:
+		return (1 / (torch.abs(torch.arange(self.n) - i) + 1)) ** self.p
 
-	@staticmethod
-	def __generate_mask(n, p) -> torch.Tensor:
+	def __generate_mask(self) -> torch.Tensor:
 
 		return torch.stack([
-			ProximalMaskedLoss.__f(t, n, p) for t in range(n)
+			self._f(t) for t in range(self.n)
 		])
 
 	def collapse(self, loss: torch.Tensor) -> torch.Tensor:
