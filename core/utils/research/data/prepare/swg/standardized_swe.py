@@ -44,7 +44,7 @@ class StandardizedSampleWeightExporter(SampleWeightExporter):
 		Logger.info(f"Current mean: {mean}, std: {std}")
 		generator = StandardizeSampleWeightManipulator(
 			target_std=self.__target_std,
-			target_mean=self.__target_std,
+			target_mean=self.__target_mean,
 			current_std=std,
 			current_mean=mean
 		)
