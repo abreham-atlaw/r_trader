@@ -35,7 +35,8 @@ class RunnerStatsPopulaterTest(unittest.TestCase):
 			raise_exception=False,
 			horizon_mode=True,
 			horizon_h=0.3,
-			horizon_bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			horizon_bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			checkpointed=True
 		)
 
 		populater.start()
