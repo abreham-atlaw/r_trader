@@ -2,6 +2,7 @@ import numpy as np
 
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
 from core.utils.research.data.prepare.time_series_data_preparer import TimeSeriesDataPreparer
+from lib.utils.logger import Logger
 
 
 class LassPreparer(TimeSeriesDataPreparer):
@@ -21,6 +22,7 @@ class LassPreparer(TimeSeriesDataPreparer):
 		)
 		self.__shift = shift
 		self.__sa = sa
+		Logger.info(f"Using Smoothing Algorithm: {self.__sa}")
 
 	def _prepare_x(self, sequences: np.ndarray) -> np.ndarray:
 		return sequences[:, :-self.__shift]
