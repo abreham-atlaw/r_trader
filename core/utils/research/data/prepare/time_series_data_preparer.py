@@ -39,7 +39,7 @@ class TimeSeriesDataPreparer(ABC):
 		self.__X_dir, self.__y_dir = X_dir, y_dir
 		self.__train_dir, self.__test_dir = train_dir, test_dir
 		self.__splitter = splitter
-		Logger.info(f"using splitter: {self.__splitter}")
+		Logger.info(f"Using splitter: {self.__splitter}")
 
 	@staticmethod
 	def __generate_filename() -> np.ndarray:
