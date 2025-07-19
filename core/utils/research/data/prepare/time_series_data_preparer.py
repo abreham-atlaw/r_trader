@@ -7,6 +7,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
+from core.utils.research.data.prepare.splitting import TrainTestSplitter
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.logger import Logger
 
@@ -20,7 +21,13 @@ class TimeSeriesDataPreparer(ABC):
 			granularity: int,
 			batch_size: int,
 			output_path: str,
-			order_gran: bool = True
+			order_gran: bool = True,
+
+			X_dir: str = "X",
+			y_dir: str = "y",
+			train_dir: str = "train",
+			test_dir: str = "test",
+			splitter: TrainTestSplitter = None
 	):
 		self.__df = DataPrepUtils.clean_df(df)
 		self.__block_size = block_size
@@ -28,6 +35,10 @@ class TimeSeriesDataPreparer(ABC):
 		self.__batch_size = batch_size
 		self.__output_path = output_path
 		self.__order_gran = order_gran
+
+		self.__X_dir, self.__y_dir = X_dir, y_dir
+		self.__train_dir, self.__test_dir = train_dir, test_dir
+		self.__splitter = splitter
 
 	@staticmethod
 	def __generate_filename() -> np.ndarray:
@@ -105,23 +116,38 @@ class TimeSeriesDataPreparer(ABC):
 
 		return X_batches, y_batches
 
-	def __save(self, X: np.ndarray, y: np.ndarray):
+	def __save(self, X: np.ndarray, y: np.ndarray, purpose_dir: str):
 		filename = self.__generate_filename()
 
-		for arr, path in zip((X, y), ("X", "y")):
-			save_path = os.path.join(self.__output_path, path, filename)
+		for arr, path in zip((X, y), (self.__X_dir, self.__y_dir)):
+			save_path = os.path.join(self.__output_path, purpose_dir, path, filename)
 			if not os.path.exists(os.path.dirname(save_path)):
 				os.makedirs(os.path.dirname(save_path))
 			np.save(save_path, arr)
 
-	def __save_batches(self, X_batches, y_batches):
-		Logger.info(f"Saving Batches to {self.__output_path}...")
+	def __save_batches(self, X_batches, y_batches, purpose_dir: str):
+		Logger.info(f"Saving {purpose_dir} Batches to {self.__output_path}...")
 		for i, (X, y) in enumerate(zip(X_batches, y_batches)):
-			self.__save(X, y)
+			self.__save(X, y, purpose_dir)
 			Logger.info(f"{(i+1) * 100 / len(X_batches) :.2f}", end="\r")
+
+	def __batch_and_save(self, X: np.ndarray, y: np.ndarray, purpose_dir: str):
+		Logger.info(f"Processing {purpose_dir}...")
+		X_batches, y_batches = self.__batch_array(X, y)
+		self.__save_batches(X_batches, y_batches, purpose_dir)
+
+	def __split(self, X: np.ndarray, y:np.ndarray) -> typing.Tuple[typing.Tuple[np.ndarray, np.ndarray], typing.Tuple[np.ndarray, np.ndarray]]:
+		if self.__splitter is None:
+			Logger.warning(f"Splitting disabled only processing train data.")
+			return (X, y), (None, None)
+		Logger.info(f"Splitting data...")
+		return self.__splitter.split(X, y)
 
 	def start(self, start_date: datetime = None, end_date: datetime = None):
 		df = self.__filter_df(start_date, end_date)
 		X, y = self.__prepare_data(df)
-		X_batches, y_batches = self.__batch_array(X, y)
-		self.__save_batches(X_batches, y_batches)
+		(train_X, train_y), (test_X, test_y) = self.__split(X, y)
+		for X, y, purpose_dir in [(train_X, train_y, self.__train_dir), (test_X, test_y, self.__test_dir)]:
+			if X is None:
+				continue
+			self.__batch_and_save(X, y, purpose_dir)

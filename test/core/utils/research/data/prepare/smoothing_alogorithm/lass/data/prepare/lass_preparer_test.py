@@ -6,6 +6,7 @@ import pandas as pd
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass_preparer import LassPreparer
+from core.utils.research.data.prepare.splitting import SequentialSplitter
 
 
 class LassPreparerTest(unittest.TestCase):
@@ -19,7 +20,8 @@ class LassPreparerTest(unittest.TestCase):
 			batch_size=64,
 			output_path=os.path.join(Config.BASE_DIR, "temp/Data/lass/0"),
 			order_gran=True,
-			df=pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
+			df=pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv")),
+			splitter=SequentialSplitter(test_size=0.2)
 		)
 
 	def test_functionality(self):
