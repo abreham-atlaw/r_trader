@@ -360,6 +360,7 @@ class RunnerStatsLossesBranches:
 	it_40 = "it_40"
 	it_41 = "it_41"
 	it_41_h_0 = "it_41_h_0"
+	it_41_h_1 = "it_41_h_1"
 	it_42 = "it_42"
 
 	all = [
@@ -393,6 +394,7 @@ class RunnerStatsLossesBranches:
 		it_40,
 		it_41,
 		it_41_h_0,
+		it_41_h_1,
 		it_42,
 	]
 
