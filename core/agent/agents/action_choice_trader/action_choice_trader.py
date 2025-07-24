@@ -13,18 +13,30 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			self,
 			*args,
 			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
+			trade_size_use_percentage=Config.AGENT_TRADE_SIZE_USE_PERCENTAGE,
+			trade_min_size=Config.AGENT_TRADE_MIN_SIZE,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self.__trade_size_gap = trade_size_gap
+		self.__trade_size_use_percentage = trade_size_use_percentage
+		self.__trade_min_size = trade_min_size
 
 	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[TraderAction]]:
 		pairs = state.get_market_state().get_tradable_pairs()
 
-		amounts = [
-			(i + 1) * self.__trade_size_gap
-			for i in range(int(state.get_agent_state().get_margin_available() // self.__trade_size_gap))
-		]
+		gap = self.__trade_size_gap * state.get_agent_state().get_margin_available() if self.__trade_size_use_percentage \
+			else self.__trade_size_gap
+		min_size = self.__trade_min_size * state.get_agent_state().get_balance() if self.__trade_size_use_percentage \
+			else self.__trade_min_size
+
+		amounts = list(filter(
+			lambda size: size >= min_size,
+			[
+				(i + 1) * gap
+				for i in range(int(state.get_agent_state().get_margin_available() // gap))
+			]
+		))
 
 		actions: typing.List[typing.Optional[TraderAction]] = [
 			TraderAction(

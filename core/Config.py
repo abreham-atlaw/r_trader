@@ -127,6 +127,8 @@ DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
+AGENT_TRADE_MIN_SIZE = 50
+AGENT_TRADE_SIZE_USE_PERCENTAGE = False
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -223,7 +225,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-74-cum-0-it-27-sw11-tot_1.zip",
+	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-1-it-42-tot.zip",
 	download=False
 )
 
@@ -317,6 +319,7 @@ class RunnerStatsBranches:
 	it_41_2 = "it_41_2"
 	it_42_2 = "it_42_2"
 	it_42_4 = "it_42_4"
+	it_42_5 = "it_42_5"
 
 	all = [
 		main,
@@ -347,7 +350,8 @@ class RunnerStatsBranches:
 		it_40_2,
 		it_41_2,
 		it_42_2,
-		it_42_4
+		it_42_4,
+		it_42_5
 	]
 
 	default = it_42_4
@@ -385,6 +389,8 @@ class RunnerStatsLossesBranches:
 	it_39 = "it_39"
 	it_40 = "it_40"
 	it_41 = "it_41"
+	it_41_h_0 = "it_41_h_0"
+	it_41_h_1 = "it_41_h_1"
 	it_42 = "it_42"
 
 	all = [
@@ -417,7 +423,9 @@ class RunnerStatsLossesBranches:
 		it_39,
 		it_40,
 		it_41,
-		it_42
+		it_41_h_0,
+		it_41_h_1,
+		it_42,
 	]
 
 	default = it_42

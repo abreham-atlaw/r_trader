@@ -8,9 +8,6 @@ import os
 
 from core import Config
 from core.utils.research.eval.live_prediction.live_predictor import LivePredictor
-from core.utils.research.losses import WeightedMSELoss
-from core.utils.research.model.model.cnn.model import CNN
-from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.utils import WrappedModel, TransitionOnlyModel, TemperatureScalingModel
 from lib.rl.agent.dta import TorchModel, Model
 from lib.utils.math import softmax, moving_average
@@ -25,7 +22,7 @@ class LinearTest(unittest.TestCase):
 	def setUp(self):
 		NP_DTYPE = np.float32
 		self.model = TemperatureScalingModel(
-			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-rtrader-training-exp-0-cnn-6-cum-0-it-29-tot.zip"),
+			ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-6-it-42-tot.zip"),
 			temperature=1.0
 		)
 		self.model.eval()
