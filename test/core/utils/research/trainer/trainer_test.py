@@ -9,7 +9,8 @@ from torch.utils.data import DataLoader, Dataset
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2
+from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
+	ProximalMaskedPenaltyLoss2
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
 	LayerStack
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
