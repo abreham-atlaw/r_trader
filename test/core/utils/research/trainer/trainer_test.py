@@ -428,7 +428,7 @@ class TrainerTest(unittest.TestCase):
 			)
 		]
 		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
-		trainer.cls_loss_function = ProximalMaskedLoss2(w=1.0, n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1, weighted_sample=False)
+		trainer.cls_loss_function = ProximalMaskedLoss2(e=2.0, w=1.0, n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1, weighted_sample=False)
 		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
