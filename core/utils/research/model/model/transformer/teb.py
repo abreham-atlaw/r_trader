@@ -17,12 +17,14 @@ class TransformerEmbeddingBlock(SpinozaModule):
 			cnn_block: CNNBlock = None,
 			channel_last: bool = True,
 			positional_encoding: bool = False,
+			pe_norm: nn.Module = None
 	):
 		self.args = {
 			'embedding_block': embedding_block,
 			'cnn_block': cnn_block,
 			'channel_last': channel_last,
-			"positional_encoding": positional_encoding
+			"positional_encoding": positional_encoding,
+			"pe_norm": pe_norm
 		}
 		super().__init__()
 
@@ -30,10 +32,12 @@ class TransformerEmbeddingBlock(SpinozaModule):
 		self.cnn = cnn_block if cnn_block is not None else nn.Identity()
 		self.channel_last = channel_last
 		self.pos = PositionalEncoding() if positional_encoding else nn.Identity()
+		self.pe_norm = pe_norm if pe_norm is not None else nn.Identity()
 
 	def call(self, *args, **kwargs) -> torch.Tensor:
 		embedded = self.embedding(*args, **kwargs)
 		out = self.cnn(embedded)
+		out = self.pe_norm(out)
 		out = self.pos(out)
 		if self.channel_last:
 			out = out.transpose(1, 2)
