@@ -172,7 +172,7 @@ class ModelHandlerTest(unittest.TestCase):
 		LOCAL_PATH = os.path.abspath("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/model/test.zip")
 		X = torch.from_numpy(np.load("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/6/train/X/1740913843.59131.npy").astype(np.float32))
 
-		model = TrainerTest.create_cnn()
+		model = TrainerTest._create_cnn()
 		model.eval()
 
 		y = model(X)
