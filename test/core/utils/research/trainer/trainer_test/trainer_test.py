@@ -9,7 +9,8 @@ from torch.utils.data import DataLoader, Dataset
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
-from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2
+from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
+	ProximalMaskedPenaltyLoss2
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
 	LayerStack
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
@@ -52,35 +53,50 @@ class SineWaveDataset(Dataset):
 
 class TrainerTest(unittest.TestCase):
 
-	def __generate_dataset(self, sample_path: str, target_path: str, size: int):
-		print(f"Generating {target_path}...")
+	def _get_root_dirs(self):
+		return [
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
+		], [
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
+		]
 
-		files = [os.path.join(sample_path, filename) for filename in os.listdir(sample_path)]
+	def __init_dataloader(self):
 
-		if os.path.isdir(files[0]):
-			for directory in files:
-				self.__generate_dataset(directory, os.path.join(target_path, os.path.basename(directory)), size)
-			return
+		train_dirs, test_dirs = self._get_root_dirs()
 
-		os.makedirs(target_path)
-		target_shape = np.load(files[0]).shape
+		dataset = BaseDataset(
+			train_dirs,
+			check_file_sizes=True,
+			load_weights=False,
+		)
+		dataloader = DataLoader(dataset, batch_size=64)
 
-		for i in range(size):
-			array = np.random.random(target_shape)
-			np.save(os.path.join(target_path, f"{i}.npy"), array)
-			print(f"Generated: {(i+1)*100/size:.2f}%")
+		test_dataset = BaseDataset(
+			test_dirs,
+			check_file_sizes=True,
+			load_weights=False,
+		)
+		test_dataloader = DataLoader(test_dataset, batch_size=64)
 
-		print(f"Generated: {target_path}")
+		return dataloader, test_dataloader
 
-	def __create_model(self):
-		return self.__create_horizon_model()
+	def _get_vocab_size(self):
+		return len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
 
-	@staticmethod
-	def create_cnn():
+	def _get_sequence_length(self):
+		return 1024
+
+	def _get_extra_len(self):
+		return 124
+
+	def _create_model(self):
+		return self._create_horizon_model()
+
+	def _create_cnn(self):
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = 431
+		VOCAB_SIZE = self._get_vocab_size()
 		POOL_SIZES = [(0, 0.5, 3) for _ in CHANNELS]
 		DROPOUT_RATE = 0
 		ACTIVATION = [nn.LeakyReLU(), nn.Identity(), nn.Identity(), nn.LeakyReLU()]
@@ -171,19 +187,18 @@ class TrainerTest(unittest.TestCase):
 		)
 		return model
 
-	@staticmethod
-	def create_cnn2():
+	def _create_cnn2(self):
 
 		EMBEDDING_SIZE = 128
 
 		CHANNELS = [EMBEDDING_SIZE for _ in range(4)]
-		EXTRA_LEN = 124
+		EXTRA_LEN = self._get_extra_len()
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
+		VOCAB_SIZE = self._get_vocab_size()
 		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
 		DROPOUT_RATE = [0 for _ in CHANNELS]
 		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
-		BLOCK_SIZE = 1024 + EXTRA_LEN
+		BLOCK_SIZE = self._get_sequence_length() + EXTRA_LEN
 		PADDING = 0
 		NORM = [DynamicLayerNorm()] + [nn.Identity() for _ in CHANNELS[1:]]
 
@@ -243,43 +258,45 @@ class TrainerTest(unittest.TestCase):
 				padding=PADDING
 			),
 
-			# bridge_block=BridgeBlock(
-			# 	# ff_block=LayerStack(
-			# 	# 	layers=[
-			# 	# 		LinearModel(
-			# 	# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-			# 	# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-			# 	# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-			# 	# 			norm=BRIDGE_FF_LINEAR_NORM
-			# 	# 		)
-			# 	# 		for _ in range(CHANNELS[-1])
-			# 	# 	]
-			# 	# ),
-			#
-			# 	# transformer_block=TransformerBlock(
-			# 	# 	transformer_embedding_block=TransformerEmbeddingBlock(),
-			# 	#
-			# 	# 	decoder_block=DecoderBlock(
-			# 	# 		num_heads=TRANSFORMER_DECODER_HEADS,
-			# 	# 		norm_1=TRANSFORMER_DECODER_NORM_1,
-			# 	# 		norm_2=TRANSFORMER_DECODER_NORM_2,
-			# 	# 		ff_block=LinearModel(
-			# 	# 			layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
-			# 	# 		)
-			# 	# 	),
-			# 	#
-			# 	# 	encoder_block=DecoderBlock(
-			# 	# 		num_heads=TRANSFORMER_ENCODER_HEADS,
-			# 	# 		norm_1=TRANSFORMER_ENCODER_NORM_1,
-			# 	# 		norm_2=TRANSFORMER_ENCODER_NORM_2,
-			# 	# 		ff_block=LinearModel(
-			# 	# 			layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
-			# 	# 		)
-			# 	# 	)
-			# 	# ),
-			#
-			#
-			# ),
+			bridge_block=BridgeBlock(
+				ff_block=LayerStack(
+					layers=[
+						LinearModel(
+							dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+							layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+							hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+							norm=BRIDGE_FF_LINEAR_NORM
+						)
+						for _ in range(CHANNELS[-1])
+					]
+				),
+
+				transformer_block=TransformerBlock(
+					transformer_embedding_block=TransformerEmbeddingBlock(
+						pe_norm=DynamicLayerNorm()
+					),
+
+					decoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_DECODER_HEADS,
+						norm_1=TRANSFORMER_DECODER_NORM_1,
+						norm_2=TRANSFORMER_DECODER_NORM_2,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
+						)
+					),
+
+					encoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_ENCODER_HEADS,
+						norm_1=TRANSFORMER_ENCODER_NORM_1,
+						norm_2=TRANSFORMER_ENCODER_NORM_2,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
+						)
+					)
+				),
+
+
+			),
 
 			collapse_block=CollapseBlock(
 				dropout=DROPOUT_BRIDGE,
@@ -296,7 +313,7 @@ class TrainerTest(unittest.TestCase):
 
 		)
 
-	def __create_transformer(self):
+	def _create_transformer(self):
 
 		EXTRA_LEN = 124
 		INPUT_SIZE = 1024 + EXTRA_LEN
@@ -388,33 +405,18 @@ class TrainerTest(unittest.TestCase):
 			)
 		)
 
-	def __create_horizon_model(self):
+	def _create_horizon_model(self):
 		return HorizonModel(
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			model=self.create_cnn2(),
+			model=self._create_cnn2(),
 			h=0.2
 		)
 
-	def __init_dataloader(self):
-		dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
-			],
-			check_file_sizes=True,
-			load_weights=False,
+	def _create_losses(self):
+		return (
+			ProximalMaskedLoss2(e=2.0, w=1.0, n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1, weighted_sample=False),
+			MeanSquaredErrorLoss(weighted_sample=False)
 		)
-		dataloader = DataLoader(dataset, batch_size=64)
-
-		test_dataset = BaseDataset(
-			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
-			],
-			check_file_sizes=True,
-			load_weights=False,
-		)
-		test_dataloader = DataLoader(test_dataset, batch_size=64)
-
-		return dataloader, test_dataloader
 
 	def __init_trainer(self, model):
 
@@ -427,13 +429,15 @@ class TrainerTest(unittest.TestCase):
 			)
 		]
 		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
-		trainer.cls_loss_function = ProximalMaskedLoss2(w=1.0, n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1, weighted_sample=False)
-		trainer.reg_loss_function = MeanSquaredErrorLoss(weighted_sample=False)
+		trainer.cls_loss_function, trainer.reg_loss_function = self._create_losses()
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
 
+	def _get_reg_loss_only(self) -> bool:
+		return False
+
 	def setUp(self):
-		self.model = self.__create_model()
+		self.model = self._create_model()
 		self.dataloader, self.test_dataloader = self.__init_dataloader()
 		self.trainer = self.__init_trainer(self.model)
 
@@ -444,8 +448,9 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=10,
+			epochs=1,
 			progress=True,
+			reg_loss_only=self._get_reg_loss_only()
 		)
 
 		model = self.trainer.model
