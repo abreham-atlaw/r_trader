@@ -27,7 +27,7 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 			view_size: int,
 			samples: int = 1,
 			tp_threshold: int = 5,
-			action_lag_size: int = 10,
+			action_lag_size: typing.Union[int, typing.Tuple[int, int]] = 10,
 			action_lag_count: int = int(1e3),
 			units: float = 70.0,
 			margin_rate: float = 0.01,
@@ -35,14 +35,14 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 			plot: bool = True,
 			plot_show: bool = True,
 			plot_cols: int = 2,
-			sample_logging: bool = True
+			sample_logging: bool = True,
+			granularity: int = 1
 	):
 		self.__df_path = df_path
 		self.__view_size = view_size
 		self.__tp_threshold = tp_threshold
-		self.__action_lag_size = action_lag_size
-		self.__action_lag_count = action_lag_count
 		self.__units = units
+		self.__action_lag_count = action_lag_count
 		self.__margin_rate = margin_rate
 		self.__plot_size = plot_size
 		self.__plot = plot
@@ -50,9 +50,14 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		self.__plot_cols = plot_cols
 		self.__samples = samples
 		self.__sample_logging = sample_logging
+		self.__granularity = granularity
+
+		if isinstance(action_lag_size, int):
+			action_lag_size = (1, action_lag_size)
+		self.__action_lag_size = action_lag_size
 
 	def __load_data(self):
-		x = pd.read_csv(self.__df_path)["c"].to_numpy()
+		x = pd.read_csv(self.__df_path)["c"].to_numpy()[::self.__granularity]
 		return x
 
 	@staticmethod
@@ -94,7 +99,7 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 
 	def __lag_actions(self, x, actions):
 		def generate_lag(i, mx):
-			return min(i + random.randint(1, self.__action_lag_size), mx)
+			return min(i + random.randint(*self.__action_lag_size), mx)
 
 		def lag_action(x, action):
 			return Action(

@@ -8,8 +8,8 @@ from core.utils.research.losses.spinoza_loss import SpinozaLoss
 
 class ReverseWeightLoss(SpinozaLoss, ABC):
 
-	def __init__(self, softmax=True, device=None):
-		super(ReverseWeightLoss, self).__init__()
+	def __init__(self, *args, softmax=True, device=None, **kwargs):
+		super(ReverseWeightLoss, self).__init__(*args, **kwargs)
 		self.softmax = softmax
 		if device is None:
 			device = torch.device("cpu")
