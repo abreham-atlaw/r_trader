@@ -78,7 +78,7 @@ class KaggleDataRepository:
 			return download_path
 
 		self.__clean(download_path)
-		os.mkdir(download_path)
+		os.makedirs(download_path, exist_ok=True)
 		if kernel:
 			self.__download_kernel(slug, download_path)
 		else:
