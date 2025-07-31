@@ -13,7 +13,7 @@ class SmoothingAlgorithmProfitabilityAnalyzerTest(unittest.TestCase):
 			df_path="/home/abrehamatlaw/Downloads/1750256680.835372.csv",
 			view_size=120,
 			tp_threshold=5,
-			action_lag_size=20,
+			action_lag_size=(18, 20),
 			plot_show=False,
 			samples=4,
 			plot=False
