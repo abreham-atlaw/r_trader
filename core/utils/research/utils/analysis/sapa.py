@@ -35,7 +35,8 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 			plot: bool = True,
 			plot_show: bool = True,
 			plot_cols: int = 2,
-			sample_logging: bool = True
+			sample_logging: bool = True,
+			granularity: int = 1
 	):
 		self.__df_path = df_path
 		self.__view_size = view_size
@@ -49,13 +50,14 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		self.__plot_cols = plot_cols
 		self.__samples = samples
 		self.__sample_logging = sample_logging
+		self.__granularity = granularity
 
 		if isinstance(action_lag_size, int):
 			action_lag_size = (1, action_lag_size)
 		self.__action_lag_size = action_lag_size
 
 	def __load_data(self):
-		x = pd.read_csv(self.__df_path)["c"].to_numpy()
+		x = pd.read_csv(self.__df_path)["c"].to_numpy()[::self.__granularity]
 		return x
 
 	@staticmethod
