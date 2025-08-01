@@ -37,7 +37,9 @@ class CNN2(SpinozaModule):
 		self.init()
 
 	def call(self, x):
-		seq = x[:, :-self.extra_len]
+		seq = x
+		if self.extra_len > 0:
+			seq = x[:, :-self.extra_len]
 
 		embedded = self.embedding_block(seq)
 
