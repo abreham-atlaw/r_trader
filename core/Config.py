@@ -368,6 +368,7 @@ class RunnerStatsLossesBranches:
 	it_41_h_0 = "it_41_h_0"
 	it_41_h_1 = "it_41_h_1"
 	it_41_0 = "it_41_0"
+	it_41_1 = "it_41_1"
 	it_42 = "it_42"
 	it_43_1 = "it_43_1"
 	it_44_1 = "it_44_1"
@@ -405,6 +406,7 @@ class RunnerStatsLossesBranches:
 		it_41_h_0,
 		it_41_h_1,
 		it_41_0,
+		it_41_1,
 		it_42,
 		it_43_1,
 		it_44_1
