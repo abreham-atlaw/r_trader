@@ -1,5 +1,6 @@
 import typing
 
+import torch
 import torch.nn as nn
 
 from core.utils.research.model.layers import Delta, KalmanStaticFilter, MultipleMovingAverages, MovingAverage, \
@@ -17,7 +18,8 @@ class Indicators(SpinozaModule):
             msd: typing.Optional[typing.List[int]] = None,
             rsi: typing.Optional[typing.List[int]] = None,
             so: typing.Optional[typing.List[int]] = None,
-            identities: int = 0
+            identities: int = 0,
+            input_channels: int = 1
     ):
         super().__init__()
         self.__args = {
@@ -28,7 +30,8 @@ class Indicators(SpinozaModule):
             "msd": msd,
             "rsi": rsi,
             "so": so,
-            "identities": identities
+            "identities": identities,
+            "input_channels": input_channels
         }
         self.delta = self.__prepare_arg_delta(delta)
         self.ksf = [KalmanStaticFilter(alpha, beta) for alpha, beta in ksf] if ksf else None
@@ -39,6 +42,7 @@ class Indicators(SpinozaModule):
         self.so = [StochasticOscillator(size) for size in so] if so else None
         self.identities = [nn.Identity() for _ in range(identities)]
         self.combiner = OverlaysCombiner()
+        self.input_channels = input_channels
 
     @staticmethod
     def __prepare_arg_delta(delta: typing.Union[typing.List[int], typing.Union[bool, int]]):
@@ -50,7 +54,7 @@ class Indicators(SpinozaModule):
 
     @property
     def indicators_len(self):
-        count = 1
+        count = self.input_channels
         if self.delta:
             count += len(self.delta)
         if self.ksf:
@@ -68,31 +72,24 @@ class Indicators(SpinozaModule):
         count += len(self.identities)
         return count
 
-    def call(self, inputs):
-        outputs = [inputs]
-        if self.delta:
-            for delta in self.delta:
-                outputs.append(delta(inputs))
-        if self.ksf:
-            for filter in self.ksf:
-                outputs.append(filter(inputs))
-        if self.mma:
-            outputs.append(self.mma(inputs))
-        if self.msa:
-            for ma in self.msa:
-                outputs.append(ma(inputs))
-        if self.msd:
-            for msd in self.msd:
-                outputs.append(msd(inputs))
-        if self.rsi:
-            for rsi in self.rsi:
-                outputs.append(rsi(inputs))
-        if self.so:
-            for so in self.so:
-                outputs.append(so(inputs))
+    def call(self, inputs: torch.Tensor):
+
+        if inputs.dim() == 2:
+            inputs = inputs.unsqueeze(1)
+
+        outputs = [inputs[:, i, :] for i in range(inputs.shape[1])]
+
+        for indicator_set in [self.delta, self.ksf, self.mma, self.msa, self.msd, self.rsi, self.so]:
+            if indicator_set is None:
+                continue
+
+            for indicator in indicator_set:
+                for i in range(inputs.shape[1]):
+                    outputs.append(indicator(inputs[:, i, :]))
 
         outputs.extend([
-            identity(inputs)
+            identity(inputs[:, i, :])
+            for i in range(inputs.shape[1])
             for identity in self.identities
         ])
 
