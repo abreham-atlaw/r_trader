@@ -15,18 +15,21 @@ class LassPreparer(TimeSeriesDataPreparer):
 			*args,
 			**kwargs
 	):
+		self._shift = shift
+		self._sa = sa
 		super().__init__(
 			*args,
-			block_size=block_size+shift,
+			block_size=self._get_input_block_size(block_size),
 			**kwargs
 		)
-		self.__shift = shift
-		self.__sa = sa
-		Logger.info(f"Using Smoothing Algorithm: {self.__sa}")
+		Logger.info(f"Using Smoothing Algorithm: {self._sa}")
+
+	def _get_input_block_size(self, block_size: int) -> int:
+		return block_size + self._shift
 
 	def _prepare_x(self, sequences: np.ndarray) -> np.ndarray:
-		return sequences[:, :-self.__shift]
+		return sequences[:, :-self._shift]
 
 	def _prepare_y(self, sequences: np.ndarray) -> np.ndarray:
-		smoothed_sequence = self.__sa.apply_on_batch(sequences)
+		smoothed_sequence = self._sa.apply_on_batch(sequences)
 		return smoothed_sequence[:, -1:]
