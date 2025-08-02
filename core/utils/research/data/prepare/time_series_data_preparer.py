@@ -79,7 +79,7 @@ class TimeSeriesDataPreparer(ABC):
 
 		if not self.__order_gran:
 			return np.concatenate(arrays, axis=0)
-		new_arr = np.zeros((sum(arr.shape[0] for arr in arrays), arrays[0].shape[1]))
+		new_arr = np.zeros((sum(arr.shape[0] for arr in arrays), *arrays[0].shape[1:]))
 		for i in range(len(arrays)):
 			new_arr[p(i, np.arange(arrays[i].shape[0]), len(arrays))] = arrays[i]
 		return new_arr

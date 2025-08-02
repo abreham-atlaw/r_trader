@@ -258,43 +258,45 @@ class TrainerTest(unittest.TestCase):
 				padding=PADDING
 			),
 
-			# bridge_block=BridgeBlock(
-			# 	# ff_block=LayerStack(
-			# 	# 	layers=[
-			# 	# 		LinearModel(
-			# 	# 			dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-			# 	# 			layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-			# 	# 			hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-			# 	# 			norm=BRIDGE_FF_LINEAR_NORM
-			# 	# 		)
-			# 	# 		for _ in range(CHANNELS[-1])
-			# 	# 	]
-			# 	# ),
-			#
-			# 	# transformer_block=TransformerBlock(
-			# 	# 	transformer_embedding_block=TransformerEmbeddingBlock(),
-			# 	#
-			# 	# 	decoder_block=DecoderBlock(
-			# 	# 		num_heads=TRANSFORMER_DECODER_HEADS,
-			# 	# 		norm_1=TRANSFORMER_DECODER_NORM_1,
-			# 	# 		norm_2=TRANSFORMER_DECODER_NORM_2,
-			# 	# 		ff_block=LinearModel(
-			# 	# 			layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
-			# 	# 		)
-			# 	# 	),
-			# 	#
-			# 	# 	encoder_block=DecoderBlock(
-			# 	# 		num_heads=TRANSFORMER_ENCODER_HEADS,
-			# 	# 		norm_1=TRANSFORMER_ENCODER_NORM_1,
-			# 	# 		norm_2=TRANSFORMER_ENCODER_NORM_2,
-			# 	# 		ff_block=LinearModel(
-			# 	# 			layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
-			# 	# 		)
-			# 	# 	)
-			# 	# ),
-			#
-			#
-			# ),
+			bridge_block=BridgeBlock(
+				ff_block=LayerStack(
+					layers=[
+						LinearModel(
+							dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
+							layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
+							hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
+							norm=BRIDGE_FF_LINEAR_NORM
+						)
+						for _ in range(CHANNELS[-1])
+					]
+				),
+
+				transformer_block=TransformerBlock(
+					transformer_embedding_block=TransformerEmbeddingBlock(
+						pe_norm=DynamicLayerNorm()
+					),
+
+					decoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_DECODER_HEADS,
+						norm_1=TRANSFORMER_DECODER_NORM_1,
+						norm_2=TRANSFORMER_DECODER_NORM_2,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
+						)
+					),
+
+					encoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_ENCODER_HEADS,
+						norm_1=TRANSFORMER_ENCODER_NORM_1,
+						norm_2=TRANSFORMER_ENCODER_NORM_2,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
+						)
+					)
+				),
+
+
+			),
 
 			collapse_block=CollapseBlock(
 				dropout=DROPOUT_BRIDGE,
@@ -446,7 +448,7 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=10,
+			epochs=1,
 			progress=True,
 			reg_loss_only=self._get_reg_loss_only()
 		)

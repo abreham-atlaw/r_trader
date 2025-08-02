@@ -13,6 +13,19 @@ class DataPrepUtils:
 		return np.sum(value >= np.array(bounds))
 
 	@staticmethod
+	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None) -> typing.List[float]:
+		if eps is None:
+			eps = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
+		Logger.info(f"Using epsilon: {eps}")
+		bounds = np.concatenate([
+			np.array([bounds[0] - eps]),
+			bounds,
+			np.array([bounds[-1] + eps])
+		])
+		bounds = (bounds[1:] + bounds[:-1]) / 2
+		return bounds
+
+	@staticmethod
 	def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 		Logger.info(f"Cleaning DataFrame")
 		df["time"] = pd.to_datetime(df["time"])
