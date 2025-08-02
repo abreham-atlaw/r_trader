@@ -40,7 +40,7 @@ class EmbeddingBlock(SpinozaModule):
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
 		out = self.input_norm(x)
-		out = self.indicators(x)
+		out = self.indicators(out)
 		out = self.pos(out)
 		return out
 
