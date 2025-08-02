@@ -169,9 +169,9 @@ AGENT_RECOMMENDATION_PERCENT = 0.5
 AGENT_DEVICE = "cpu"
 AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
-AGENT_KALMAN_ALPHA = 0.05
-AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 32
+AGENT_KALMAN_ALPHA = 1e-3
+AGENT_KALMAN_BETA = 9e-5
+AGENT_MA_WINDOW_SIZE = 16
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -190,7 +190,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/07.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -250,7 +250,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-41/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-45/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
@@ -317,14 +317,19 @@ class RunnerStatsBranches:
 	it_39_1 = "it_39_1"
 	it_39_2 = "it_39_2"
 	it_40_2 = "it_40_2"
+
 	it_41_2 = "it_41_2"
 	it_41_6 = "it_41_6"
 	it_42_2 = "it_42_2"
 	it_42_4 = "it_42_4"
 	it_42_5 = "it_42_5"
 	it_42_6 = "it_42_6"
+
 	it_43_2 = "it_43_2"
 	it_44_2 = "it_44_2"
+
+	it_45_6 = "it_45_6"
+	it_46_6 = "it_46_6"
 
 	all = [
 		main,
@@ -358,10 +363,12 @@ class RunnerStatsBranches:
 		it_42_4,
 		it_42_5,
 		it_43_2,
-		it_44_2
+		it_44_2,
+		it_45_6,
+		it_46_6
 	]
 
-	default = it_41_6
+	default = it_45_6
 
 
 class RunnerStatsLossesBranches:
@@ -399,9 +406,11 @@ class RunnerStatsLossesBranches:
 	it_41_h_0 = "it_41_h_0"
 	it_41_h_1 = "it_41_h_1"
 	it_41_0 = "it_41_0"
+	it_41_1 = "it_41_1"
 	it_42 = "it_42"
 	it_43_1 = "it_43_1"
 	it_44_1 = "it_44_1"
+	it_45_0 = "it_45_0"
 
 	all = [
 		main,
@@ -436,9 +445,11 @@ class RunnerStatsLossesBranches:
 		it_41_h_0,
 		it_41_h_1,
 		it_41_0,
+		it_41_1,
 		it_42,
 		it_43_1,
-		it_44_1
+		it_44_1,
+		it_45_0
 	]
 
-	default = it_41
+	default = it_45_0
