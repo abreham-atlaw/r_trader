@@ -55,20 +55,12 @@ class Indicators(SpinozaModule):
     @property
     def indicators_len(self):
         count = self.input_channels
-        if self.delta:
-            count += len(self.delta)
-        if self.ksf:
-            count += len(self.ksf)
-        if self.mma:
-            count += 1
-        if self.msa:
-            count += len(self.msa)
-        if self.msd:
-            count += len(self.msd)
-        if self.rsi:
-            count += len(self.rsi)
-        if self.so:
-            count += len(self.so)
+
+        for indicator_set in [self.delta, self.ksf, self.mma, self.msa, self.msd, self.rsi, self.so]:
+            if indicator_set is None:
+                continue
+            count += len(indicator_set)*self.input_channels
+
         count += len(self.identities)
         return count
 

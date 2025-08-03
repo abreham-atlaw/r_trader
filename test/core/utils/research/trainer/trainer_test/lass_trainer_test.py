@@ -44,7 +44,7 @@ class LassTrainerTest(TrainerTest):
 		PADDING = 0
 		NORM = [DynamicLayerNorm()] + [nn.Identity() for _ in CHANNELS[1:]]
 
-		INDICATORS_DELTA = []
+		INDICATORS_DELTA = [1]
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 		INPUT_NORM = DynamicLayerNorm()
