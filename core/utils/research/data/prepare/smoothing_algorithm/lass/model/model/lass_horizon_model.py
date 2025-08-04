@@ -27,6 +27,9 @@ class LassHorizonModel(SpinozaModule):
 		self.model = model
 		self.max_depth = max_depth
 
+	def set_h(self, h: float):
+		self.h = h
+
 	def check_max_depth(self, x: torch.Tensor) -> bool:
 		return torch.any(x[:, :, :self.max_depth] != 0)
 
