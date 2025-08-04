@@ -4,6 +4,7 @@ from torch import nn
 
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -29,7 +30,7 @@ class LassTrainerTest(TrainerTest):
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 
-	def _create_model(self):
+	def __create_cnn2(self):
 		INPUT_CHANNELS = 2
 
 		EMBEDDING_SIZE = 32
@@ -104,6 +105,12 @@ class LassTrainerTest(TrainerTest):
 				)
 			)
 
+		)
+
+	def _create_model(self):
+		return LassHorizonModel(
+			h=0.5,
+			model=self.__create_cnn2()
 		)
 
 	def _get_sequence_length(self):
