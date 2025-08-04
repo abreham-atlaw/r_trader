@@ -8,12 +8,20 @@ import matplotlib.pyplot as plt
 
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
+from core.utils.research.data.prepare.smoothing_algorithm.lass.models import Lass2DModel
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class LassTest(unittest.TestCase):
 
 	def setUp(self):
-		self.lass = Lass("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-0-tot.zip")
+		self.lass = Lass(
+			Lass2DModel(
+				model=ModelHandler.load(
+					"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-3-tot.zip"
+				)
+			)
+		)
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
 		self.sequence = self.df["c"].to_numpy()[-int(1e5):]
 		self.gran = 1
