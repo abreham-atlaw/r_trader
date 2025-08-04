@@ -3,6 +3,7 @@ import os
 from torch import nn
 
 from core import Config
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -48,6 +49,7 @@ class LassTrainerTest(TrainerTest):
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 		INPUT_NORM = DynamicLayerNorm()
+		SMOOTHING_DROPOUT = SmoothedChannelDropout(batch_dropout=0.5, depth_dropout=0.5)
 
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
@@ -73,7 +75,8 @@ class LassTrainerTest(TrainerTest):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
-				input_norm=INPUT_NORM
+				input_norm=INPUT_NORM,
+				input_dropout=SMOOTHING_DROPOUT
 			),
 
 			cnn_block=CNNBlock(
