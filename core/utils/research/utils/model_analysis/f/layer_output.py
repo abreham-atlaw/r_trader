@@ -12,7 +12,15 @@ def get_layer_output(model: nn.Module, X: torch.Tensor, layer: nn.Module) -> tor
 
 	def forward_hook(_, __, out):
 		nonlocal output
-		output = out.detach()
+
+		if isinstance(out, tuple):
+			output = tuple([
+				o.detach()
+				for o in out
+			])
+		else:
+			output = out.detach()
+
 		return output
 
 	hook = target_layer.register_forward_hook(forward_hook)
@@ -21,6 +29,9 @@ def get_layer_output(model: nn.Module, X: torch.Tensor, layer: nn.Module) -> tor
 	y_hat = model(X)
 
 	clean_layer(model, layer, target_layer, [hook])
+
+	if isinstance(output, tuple):
+		output = output[0]
 
 	if output is None:
 		raise ValueError("layer not called in forward pass")

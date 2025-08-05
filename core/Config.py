@@ -289,10 +289,19 @@ class RunnerStatsBranches:
 	it_39_1 = "it_39_1"
 	it_39_2 = "it_39_2"
 	it_40_2 = "it_40_2"
+
 	it_41_2 = "it_41_2"
+	it_41_6 = "it_41_6"
 	it_42_2 = "it_42_2"
 	it_42_4 = "it_42_4"
 	it_42_5 = "it_42_5"
+	it_42_6 = "it_42_6"
+
+	it_43_2 = "it_43_2"
+	it_44_2 = "it_44_2"
+
+	it_45_6 = "it_45_6"
+	it_46_6 = "it_46_6"
 
 	all = [
 		main,
@@ -324,7 +333,11 @@ class RunnerStatsBranches:
 		it_41_2,
 		it_42_2,
 		it_42_4,
-		it_42_5
+		it_42_5,
+		it_43_2,
+		it_44_2,
+		it_45_6,
+		it_46_6
 	]
 
 	default = it_42_2
@@ -363,7 +376,13 @@ class RunnerStatsLossesBranches:
 	it_40 = "it_40"
 	it_41 = "it_41"
 	it_41_h_0 = "it_41_h_0"
+	it_41_h_1 = "it_41_h_1"
+	it_41_0 = "it_41_0"
+	it_41_1 = "it_41_1"
 	it_42 = "it_42"
+	it_43_1 = "it_43_1"
+	it_44_1 = "it_44_1"
+	it_45_0 = "it_45_0"
 
 	all = [
 		main,
@@ -396,7 +415,13 @@ class RunnerStatsLossesBranches:
 		it_40,
 		it_41,
 		it_41_h_0,
+		it_41_h_1,
+		it_41_0,
+		it_41_1,
 		it_42,
+		it_43_1,
+		it_44_1,
+		it_45_0
 	]
 
 	default = it_42
