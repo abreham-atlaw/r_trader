@@ -39,12 +39,12 @@ class AbstractSampleWeightGeneratorTest(unittest.TestCase, ABC):
 
 	def setUp(self):
 		self.generator = self._init_generator()
-		self.data_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
+		self.data_path = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
 		self.export_path = os.path.join(self.data_path, "w")
 		self.exporter = self._init_exporter(self.data_path, self.export_path, self.generator)
 
 	def test_functionality(self):
-		self.__print_sample()
+		# self.__print_sample()
 		self.exporter.start()
 		self.__print_sample()
 

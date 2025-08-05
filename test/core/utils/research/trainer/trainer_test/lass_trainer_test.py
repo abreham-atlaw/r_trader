@@ -3,6 +3,8 @@ import os
 from torch import nn
 
 from core import Config
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -17,9 +19,9 @@ class LassTrainerTest(TrainerTest):
 
 	def _get_root_dirs(self):
 		return [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/0/train")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/1/train")
 		], [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/0/test")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/1/test")
 		]
 
 	def _create_losses(self):
@@ -28,7 +30,9 @@ class LassTrainerTest(TrainerTest):
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 
-	def _create_model(self):
+	def __create_cnn2(self):
+		INPUT_CHANNELS = 2
+
 		EMBEDDING_SIZE = 32
 
 		CHANNELS = [EMBEDDING_SIZE for _ in range(4)]
@@ -42,14 +46,16 @@ class LassTrainerTest(TrainerTest):
 		PADDING = 0
 		NORM = [DynamicLayerNorm()] + [nn.Identity() for _ in CHANNELS[1:]]
 
-		INDICATORS_DELTA = []
+		INDICATORS_DELTA = [1]
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
 		INPUT_NORM = DynamicLayerNorm()
+		SMOOTHING_DROPOUT = SmoothedChannelDropout(batch_dropout=0.5, depth_dropout=0.5)
 
 		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
 		DROPOUT_BRIDGE = 0.2
 		COLLAPSE_GLOBAL_AVG_POOL = True
+		COLLAPSE_EXTRA_MODE = False
 
 		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
@@ -60,16 +66,18 @@ class LassTrainerTest(TrainerTest):
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
+			rsi=INDICATORS_RSI,
+			input_channels=INPUT_CHANNELS
 		)
 
 		return CNN2(
 			extra_len=EXTRA_LEN,
-			input_size=BLOCK_SIZE,
+			input_size=(None, INPUT_CHANNELS, BLOCK_SIZE) if INPUT_CHANNELS > 1 else BLOCK_SIZE,
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
-				input_norm=INPUT_NORM
+				input_norm=INPUT_NORM,
+				input_dropout=SMOOTHING_DROPOUT
 			),
 
 			cnn_block=CNNBlock(
@@ -84,6 +92,7 @@ class LassTrainerTest(TrainerTest):
 			),
 
 			collapse_block=CollapseBlock(
+				extra_mode=COLLAPSE_EXTRA_MODE,
 				dropout=DROPOUT_BRIDGE,
 				input_norm=COLLAPSE_INPUT_NORM,
 				global_avg_pool=COLLAPSE_GLOBAL_AVG_POOL,
@@ -96,6 +105,12 @@ class LassTrainerTest(TrainerTest):
 				)
 			)
 
+		)
+
+	def _create_model(self):
+		return LassHorizonModel(
+			h=0.5,
+			model=self.__create_cnn2()
 		)
 
 	def _get_sequence_length(self):
