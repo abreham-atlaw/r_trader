@@ -44,7 +44,7 @@ class CollapseBlock(SpinozaModule):
 
 		concat = flattened
 		if self.extra_mode:
-			concat = torch.cat((concat, extra), dim=1)
+			concat = torch.cat((concat, extra), dim=-1)
 
 		out = self.ff_block(concat)
 		return out
