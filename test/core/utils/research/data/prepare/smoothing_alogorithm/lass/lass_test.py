@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
-from core.utils.research.data.prepare.smoothing_algorithm.lass.models import Lass2DModel
+from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -16,20 +16,29 @@ class LassTest(unittest.TestCase):
 
 	def setUp(self):
 		self.lass = Lass(
-			Lass2DModel(
-				model=ModelHandler.load(
-					"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-3-tot.zip"
-				)
-			)
+			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-1-it-3-tot.zip"),
+			executor=Lass2Executor()
 		)
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
-		self.sequence = self.df["c"].to_numpy()[-int(1e5):]
-		self.gran = 1
+		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
+		self.gran = 30
 
-	def test_functionality(self):
-		y = self.lass.apply(self.sequence[::self.gran])
+	def test_mock(self):
+		x = np.arange(1024) * np.random.rand(1024)
+		y = self.lass.apply(x)
 		self.assertIsInstance(y, np.ndarray)
 		print(y)
+		plt.plot(x)
+		plt.plot(y)
+		plt.show()
+
+	def test_functionality(self):
+		x = self.sequence[::self.gran]
+		y = self.lass.apply(x)
+		self.assertIsInstance(y, np.ndarray)
+		plt.plot(np.arange(len(x)), x)
+		plt.plot(y)
+		plt.show()
 
 	def test_plot_output(self):
 		ma = MovingAverage(32)
