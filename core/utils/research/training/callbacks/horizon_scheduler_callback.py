@@ -22,5 +22,5 @@ class HorizonSchedulerCallback(Callback):
 		if epoch % self.__epoch_step != 0:
 			return
 		h = min(self.__end, self.__start + self.__step * epoch)
-		Logger.info(f"HorizonSchedulerCallback: Setting horizon to {h}")
+		Logger.info(f"HorizonSchedulerCallback: Setting horizon from {model.h} to {h}")
 		model.set_h(h)

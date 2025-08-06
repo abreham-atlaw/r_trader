@@ -22,6 +22,7 @@ class TimeSeriesDataPreparer(ABC):
 			batch_size: int,
 			output_path: str,
 			order_gran: bool = True,
+			trim_extra_gran: bool = False,
 
 			X_dir: str = "X",
 			y_dir: str = "y",
@@ -35,6 +36,7 @@ class TimeSeriesDataPreparer(ABC):
 		self.__batch_size = batch_size
 		self.__output_path = output_path
 		self.__order_gran = order_gran
+		self.__trim_extra_gran = trim_extra_gran
 
 		self.__X_dir, self.__y_dir = X_dir, y_dir
 		self.__train_dir, self.__test_dir = train_dir, test_dir
@@ -72,6 +74,10 @@ class TimeSeriesDataPreparer(ABC):
 
 		return X, y
 
+	def __trim_grans(self, arrays: typing.List[np.ndarray]) -> np.ndarray:
+		length = min(arr.shape[0] for arr in arrays)
+		return [arr[:length] for arr in arrays]
+
 	def __concatenate_grans(self, arrays: typing.List[np.ndarray]) -> np.ndarray:
 
 		def p(g, i, G):
@@ -79,6 +85,10 @@ class TimeSeriesDataPreparer(ABC):
 
 		if not self.__order_gran:
 			return np.concatenate(arrays, axis=0)
+
+		if self.__trim_extra_gran:
+			arrays = self.__trim_grans(arrays)
+
 		new_arr = np.zeros((sum(arr.shape[0] for arr in arrays), *arrays[0].shape[1:]))
 		for i in range(len(arrays)):
 			new_arr[p(i, np.arange(arrays[i].shape[0]), len(arrays))] = arrays[i]
