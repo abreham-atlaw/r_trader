@@ -1,0 +1,1 @@
+from .lass import Lass
