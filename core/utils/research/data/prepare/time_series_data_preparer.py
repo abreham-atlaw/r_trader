@@ -178,6 +178,6 @@ class TimeSeriesDataPreparer(ABC):
 		dfs = self.__batch_df(df)
 		for i, df in enumerate(dfs):
 			self.__process_df_batch(df)
-			Logger.info(f"Processed {i}/{len(dfs)} batches ...", end="\r")
+			Logger.info(f"Processed {i}/{len(dfs)} batches ...")
 
 		Logger.success(f"Preparation Done!")
