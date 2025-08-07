@@ -126,8 +126,11 @@ class Trainer:
         cls_y, reg_y = self.__split_y(y)
         cls_y_hat, reg_y_hat = self.__split_y(y_hat)
 
-        cls_loss = self.cls_loss_function(cls_y_hat, cls_y, w)
-        reg_loss = self.reg_loss_function(reg_y_hat, reg_y, w)
+        cls_loss, reg_loss = torch.tensor(0.0).to(self.device), torch.tensor(0.0).to(self.device)
+        if self.cls_loss_function is not None:
+            cls_loss = self.cls_loss_function(cls_y_hat, cls_y, w)
+        if self.reg_loss_function is not None:
+            reg_loss = self.reg_loss_function(reg_y_hat, reg_y, w)
 
         loss = cls_loss + reg_loss
         return cls_loss, reg_loss, loss
@@ -165,8 +168,8 @@ class Trainer:
             reg_loss_only=False,
             state: typing.Optional[TrainingState] = None
     ):
-        if self.optimizer is None or self.cls_loss_function is None:
-            raise ValueError("Model not setup(optimizer or loss function missing")
+        if self.optimizer is None or (self.cls_loss_function is None and not reg_loss_only):
+            raise ValueError("Model not setup(optimizer or loss function missing)")
 
         dataset: BaseDataset = dataloader.dataset
 

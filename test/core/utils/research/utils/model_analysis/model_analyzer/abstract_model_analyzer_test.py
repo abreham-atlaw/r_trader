@@ -10,7 +10,7 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 class AbstractModelAnalyzerTest(unittest.TestCase, ABC):
 
-	_MODEL_PATH = "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-4-it-42-tot.zip"
+	_MODEL_PATH = "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-33-it-42-tot.zip"
 	_DATA_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
 
 	@abstractmethod
