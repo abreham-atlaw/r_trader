@@ -5,6 +5,7 @@ from torch import nn
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
 	Lass3DecoderBlock, CrossAttentionBlock
 from core.utils.research.losses import MeanSquaredErrorLoss
@@ -245,7 +246,11 @@ class LassTrainerTest(TrainerTest):
 		# 	h=0.5,
 		# 	model=self.__create_cnn2()
 		# )
-		return self.__create_lass3_transformer()
+		return Lass3HorizonModel(
+			h=0.5,
+			model=self.__create_lass3_transformer(),
+			max_depth=5
+		)
 
 	def _get_sequence_length(self):
 		return 32
