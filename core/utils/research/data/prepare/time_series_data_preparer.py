@@ -23,6 +23,7 @@ class TimeSeriesDataPreparer(ABC):
 			output_path: str,
 			order_gran: bool = True,
 			trim_extra_gran: bool = False,
+			process_batch_size: int = None,
 
 			X_dir: str = "X",
 			y_dir: str = "y",
@@ -37,6 +38,7 @@ class TimeSeriesDataPreparer(ABC):
 		self.__output_path = output_path
 		self.__order_gran = order_gran
 		self.__trim_extra_gran = trim_extra_gran
+		self.__process_batch_size = process_batch_size
 
 		self.__X_dir, self.__y_dir = X_dir, y_dir
 		self.__train_dir, self.__test_dir = train_dir, test_dir
@@ -154,12 +156,28 @@ class TimeSeriesDataPreparer(ABC):
 		Logger.info(f"Splitting data...")
 		return self.__splitter.split(X, y)
 
-	def start(self, start_date: datetime = None, end_date: datetime = None):
-		df = self.__filter_df(start_date, end_date)
+	def __process_df_batch(self, df: pd.DataFrame):
 		X, y = self.__prepare_data(df)
 		(train_X, train_y), (test_X, test_y) = self.__split(X, y)
 		for X, y, purpose_dir in [(train_X, train_y, self.__train_dir), (test_X, test_y, self.__test_dir)]:
 			if X is None:
 				continue
 			self.__batch_and_save(X, y, purpose_dir)
+
+	def __batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
+		if self.__process_batch_size is None:
+			return [df]
+		return [
+			df.iloc[i*self.__process_batch_size: (i+1)*self.__process_batch_size]
+			for i in range(0, df.shape[0]//self.__process_batch_size)
+		]
+
+	def start(self, start_date: datetime = None, end_date: datetime = None):
+		df = self.__filter_df(start_date, end_date)
+
+		dfs = self.__batch_df(df)
+		for i, df in enumerate(dfs):
+			self.__process_df_batch(df)
+			Logger.info(f"Processed {i}/{len(dfs)} batches ...")
+
 		Logger.success(f"Preparation Done!")
