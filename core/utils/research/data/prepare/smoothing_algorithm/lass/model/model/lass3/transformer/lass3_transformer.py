@@ -33,6 +33,7 @@ class Lass3Transformer(SpinozaModule):
 		self.encoder_block = encoder_block
 		self.decoder_block = decoder_block
 		self.collapse_block = collapse_block
+		self.init()
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
 		x_encoder, x_decoder = x[:, 0, :], x[:, 1, :]
