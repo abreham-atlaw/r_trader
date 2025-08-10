@@ -44,7 +44,7 @@ class Lass3Transformer(SpinozaModule):
 		x_decoder_embedded = self.decoder_embedding_block(x_decoder)
 		y_decoder = self.decoder_block(y_encoder, x_decoder_embedded)
 
-		y = self.collapse_block(y_encoder, y_decoder)
+		y = self.collapse_block(y_decoder)
 		return y
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
