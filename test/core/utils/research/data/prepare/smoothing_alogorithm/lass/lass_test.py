@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
-from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor
+from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -16,8 +16,8 @@ class LassTest(unittest.TestCase):
 
 	def setUp(self):
 		self.lass = Lass(
-			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-1-it-3-tot.zip"),
-			executor=Lass2Executor()
+			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-5-tot.zip"),
+			executor=Lass3Executor(padding=16)
 		)
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
 		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
