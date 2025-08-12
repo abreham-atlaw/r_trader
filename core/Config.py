@@ -256,7 +256,7 @@ HORIZON_MODE = True
 HORIZON_H = 0.9
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-45/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-46/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -349,7 +349,7 @@ class RunnerStatsBranches:
 		it_46_6
 	]
 
-	default = it_45_6
+	default = it_46_6
 
 
 class RunnerStatsLossesBranches:
