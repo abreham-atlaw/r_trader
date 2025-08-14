@@ -15,14 +15,16 @@ class HorizonModel(SpinozaModule):
 			bounds: typing.Union[typing.List[float], torch.Tensor],
 			model: SpinozaModule,
 			X_extra_len: int = 124,
-			y_extra_len: int = 1
+			y_extra_len: int = 1,
+			max_depth: int = None
 	):
 		self.args = {
 			"h": h,
 			"bounds": bounds,
 			"model": model,
 			"X_extra_len": X_extra_len,
-			"y_extra_len": y_extra_len
+			"y_extra_len": y_extra_len,
+			"max_depth": max_depth
 		}
 		super().__init__(input_size=model.input_size, output_size=model.output_size, auto_build=False)
 		Logger.info(f"Initializing HorizonModel(h={h})...")
@@ -33,6 +35,7 @@ class HorizonModel(SpinozaModule):
 		self.softmax = nn.Softmax(dim=-1)
 
 		self.bounds = self.__prepare_bounds(bounds)
+		self.__max_depth = max_depth
 
 	def set_h(self, h: float):
 		self.h = h
@@ -52,25 +55,30 @@ class HorizonModel(SpinozaModule):
 		self.register_buffer("bounds", bounds)
 		return bounds
 
-	def shift_and_predict(self, x: torch.Tensor) -> torch.Tensor:
+	def __check_depth(self, depth: int) -> bool:
+		if depth is None or self.__max_depth is None:
+			return True
+		return depth < self.__max_depth
+
+	def shift_and_predict(self, x: torch.Tensor, depth: int) -> torch.Tensor:
 		x[:, 1:-self.X_extra_len] = x[:, 0:-(self.X_extra_len + 1)].clone()
-		y = self.softmax(self(x)[:, :-self.y_extra_len])
+		y = self.softmax(self(x, depth+1)[:, :-self.y_extra_len])
 		y = torch.sum(
 			y*self.bounds,
 			dim=1
 		) * x[:, -(self.X_extra_len + 1)]
 		return y
 
-	def process_sample(self, x: torch.Tensor) -> torch.Tensor:
-		x[:, -(self.X_extra_len + 1)] = self.shift_and_predict(x.clone())
+	def process_sample(self, x: torch.Tensor, depth: int) -> torch.Tensor:
+		x[:, -(self.X_extra_len + 1)] = self.shift_and_predict(x.clone(), depth)
 		return x
 
-	def call(self, x: torch.Tensor) -> torch.Tensor:
+	def call(self, x: torch.Tensor, depth: int = 0) -> torch.Tensor:
 		x = x.clone()
 		sample_mask = torch.rand(x.size(0)) <= self.h
 
-		if torch.any(sample_mask):
-			x[sample_mask] = self.process_sample(x[sample_mask])
+		if self.__check_depth(depth) and torch.any(sample_mask):
+			x[sample_mask] = self.process_sample(x[sample_mask], depth)
 
 		return self.model(x)
 
