@@ -25,7 +25,7 @@ class Lass3Executor(LassExecutor):
 	def __get_source_block(self, x: np.ndarray, target: typing.Tuple[int, int]) -> typing.Tuple[int, int]:
 		if target[0] == 0:
 			return 0, self._window_size
-		if target[1] == x.shape[0]:
+		if target[1] + self.__padding >= x.shape[0]:
 			return x.shape[0] - self._window_size, x.shape[0]
 
 		return target[0]-self.__padding, target[1]+self.__padding
