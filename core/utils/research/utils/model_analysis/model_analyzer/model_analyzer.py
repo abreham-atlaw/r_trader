@@ -35,7 +35,7 @@ class ModelAnalyzer(ABC):
 			Xb, yb, wb = self.__dataset[idx]
 			if X is None:
 				X, y = [
-					torch.zeros((len(idxs), arr.shape[0]))
+					torch.zeros((len(idxs), *arr.shape))
 					for arr in [Xb, yb]
 				]
 			X[i], y[i], w[i] = Xb, yb, wb
