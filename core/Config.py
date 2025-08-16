@@ -303,6 +303,9 @@ class RunnerStatsBranches:
 	it_45_6 = "it_45_6"
 	it_46_6 = "it_46_6"
 
+	it_47_6 = "it_47_6"
+	it_48_6 = "it_48_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -339,7 +342,9 @@ class RunnerStatsBranches:
 		it_43_2,
 		it_44_2,
 		it_45_6,
-		it_46_6
+		it_46_6,
+		it_47_6,
+		it_48_6
 	]
 
 	default = it_41_2
@@ -385,6 +390,7 @@ class RunnerStatsLossesBranches:
 	it_43_1 = "it_43_1"
 	it_44_1 = "it_44_1"
 	it_45_0 = "it_45_0"
+	it_47_0 = "it_47_0"
 
 	all = [
 		main,
@@ -423,7 +429,8 @@ class RunnerStatsLossesBranches:
 		it_42,
 		it_43_1,
 		it_44_1,
-		it_45_0
+		it_45_0,
+		it_47_0
 	]
 
 	default = it_41
