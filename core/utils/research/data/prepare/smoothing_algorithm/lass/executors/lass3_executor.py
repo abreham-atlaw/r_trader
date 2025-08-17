@@ -12,11 +12,13 @@ class Lass3Executor(LassExecutor):
 			self,
 			*args,
 			padding: int = 0,
+			left_align: bool = False,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self.__padding = padding
 		self.__target_size = None
+		self.__left_align = left_align
 
 	def set_model(self, model: SpinozaModule):
 		super().set_model(model)
@@ -43,7 +45,10 @@ class Lass3Executor(LassExecutor):
 	def __construct_input(self, x: np.ndarray, y: np.ndarray, i: int) -> np.ndarray:
 		inputs = np.zeros((1, 2, self._window_size))
 		inputs[0, 0] = x
-		inputs[0, 1, inputs.shape[-1]-i:] = y[:i]
+		if not self.__left_align:
+			inputs[0, 1, inputs.shape[-1]-i:] = y[:i]
+		else:
+			inputs[0, 1, :i] = y[:i]
 		return inputs
 
 	def __execute_block(self, x: np.ndarray) -> np.ndarray:
