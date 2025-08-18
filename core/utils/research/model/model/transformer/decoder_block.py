@@ -44,13 +44,16 @@ class DecoderBlock(SpinozaModule):
 		out, weights = self.self_attention_layer(x, x, x)
 		return out
 
-	def call(self, x) -> torch.Tensor:
+	def _apply_attention(self, x: torch.Tensor, x_decoder: torch.Tensor = None):
+		return self.self_attention(x)
 
-		attention = self.self_attention(x)
+	def call(self, x: torch.Tensor, x_decoder: torch.Tensor = None) -> torch.Tensor:
+
+		attention = self._apply_attention(x, x_decoder)
 		attention = self.norm_1(x, attention)
 
 		out = self.ff_block(attention)
-		out = self.norm_2(attention, out)
+		out = self.norm_2(attention, out) if isinstance(self.norm_2, AddAndNorm) else self.norm_2(out)
 
 		if self.embedding_last:
 			out = torch.transpose(out, 1, 2)
