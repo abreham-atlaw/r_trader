@@ -51,9 +51,9 @@ class Lass3Executor(LassExecutor):
 			inputs[0, 1, :i] = y[:i]
 		return inputs
 
-	def __execute_block(self, x: np.ndarray) -> np.ndarray:
-		y = np.zeros(x.shape[0])
-		for i in range(y.shape[0]):
+	def __execute_block(self, x: np.ndarray, y: np.ndarray, start: int) -> np.ndarray:
+		y = y.copy()
+		for i in range(start, y.shape[0]):
 			prediction = self._model.predict(self.__construct_input(x, y, i))
 			y[i] = prediction.flatten()[0]
 		return y
@@ -66,7 +66,11 @@ class Lass3Executor(LassExecutor):
 		while target is None or target[-1] != X.shape[0]:
 			target = self.__get_next_target(X, target)
 			source = self.__get_source_block(X, target)
-			y_block = self.__execute_block(X[source[0]:source[1]])
+			y_block = self.__execute_block(
+				X[source[0]:source[1]],
+				y[source[0]:source[1]],
+				target[0]-source[0]
+			)
 			y[target[0]:target[1]] = self.__extract_target(y_block, target, source)
 
 		return y
