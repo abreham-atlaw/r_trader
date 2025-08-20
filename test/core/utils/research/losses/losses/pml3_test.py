@@ -7,7 +7,7 @@ import torch
 
 from core import Config
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
-from core.utils.research.losses import ProximalMaskedLoss3
+from core.utils.research.losses import ProximalMaskedLoss3, ProximalMaskedLoss
 from lib.utils.fileio import load_json
 
 
@@ -16,6 +16,10 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 	def setUp(self):
 		self.loss = ProximalMaskedLoss3(
 			bounds=DataPrepUtils.apply_bound_epsilon(load_json(os.path.join(Config.BASE_DIR, "res/bounds/05.json"))),
+			softmax=True,
+		)
+		self.pml = ProximalMaskedLoss(
+			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 			softmax=True
 		)
 		self.y = torch.from_numpy(np.load(os.path.join(Config.BASE_DIR, "temp/Data/prepared/7/train/y/1751195327.143124.npy")).astype(np.float32))[:, :-1]
@@ -52,10 +56,13 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 	def test_plot_mask(self):
 		SAMPLES = 5
 		idxs = torch.randint(self.loss.mask.shape[0], (SAMPLES,))
+		idxs = np.array([31, 34, 45, 21, 8, 54])
 
 		for i in idxs:
 			plt.figure()
 			plt.grid(True)
-			plt.plot(self.loss.mask[i].numpy())
+			plt.plot(np.arange(self.loss.mask.shape[1]), self.loss.mask[i].numpy(), label="PML3")
+			plt.plot(np.arange(self.pml.mask.shape[1]), self.pml.mask[i].numpy(), label="PML")
+			plt.legend()
 			plt.title(f"i={i}")
 		plt.show()

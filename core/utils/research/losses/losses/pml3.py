@@ -16,12 +16,11 @@ class ProximalMaskedLoss3(ProximalMaskedLoss2):
 			h: float = -5.0,
 			b: float = 3e-2,
 			c: float = 5.0,
-			m: float = 2.0,
+			m: float = 2.6,
 			r: int = 3,
 			d: float = 5.0,
 			**kwargs
 	):
-
 
 		if isinstance(bounds, np.ndarray):
 			bounds = torch.from_numpy(bounds)
