@@ -3,11 +3,14 @@ import os
 from torch import nn
 
 from core import Config
-from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout, \
+	EncoderNoiseInjectionLayer
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
 	Lass3DecoderBlock, CrossAttentionBlock
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
+	Lass3TransformerInputBlock
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -117,6 +120,10 @@ class LassTrainerTest(TrainerTest):
 		EMBEDDING_SIZE = 32
 		VOCAB_SIZE = 1
 
+		# INPUT_BLOCK
+		INPUT_ENCODER_NOISE_INJECTION_NOISE = 5e-3
+		INPUT_ENCODER_NOISE_INJECTION_FREQUENCY = 1.0
+
 		# ENCODER EMBEDDING BLOCK
 		ENCODER_EMBEDDING_INDICATORS_DELTA = [1]
 		ENCODER_EMBEDDING_CB_CHANNELS = [8]*2 + [EMBEDDING_SIZE]
@@ -172,6 +179,13 @@ class LassTrainerTest(TrainerTest):
 
 		return Lass3Transformer(
 			block_size=BLOCK_SIZE,
+
+			input_block=Lass3TransformerInputBlock(
+				encoder_noise_injection=EncoderNoiseInjectionLayer(
+					noise=INPUT_ENCODER_NOISE_INJECTION_NOISE,
+					frequency=INPUT_ENCODER_NOISE_INJECTION_FREQUENCY
+				)
+			),
 
 			encoder_embedding_block=TransformerEmbeddingBlock(
 				positional_encoding=True,

@@ -1,1 +1,2 @@
 from .smoothed_channel_dropout import SmoothedChannelDropout
+from .eni_layer import EncoderNoiseInjectionLayer

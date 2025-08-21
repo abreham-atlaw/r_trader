@@ -18,11 +18,12 @@ class Lass3PreparerTest(unittest.TestCase):
 			block_size=32,
 			granularity=30,
 			batch_size=64,
-			output_path=os.path.join(Config.BASE_DIR, "temp/Data/lass/2"),
+			output_path=os.path.join(Config.BASE_DIR, "temp/Data/lass/4"),
 			order_gran=True,
 			df=pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-10k.csv")),
 			splitter=SequentialSplitter(test_size=0.2),
-			process_batch_size=4096
+			process_batch_size=4096,
+			left_align=True
 		)
 
 	def test_functionality(self):
