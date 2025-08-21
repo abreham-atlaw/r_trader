@@ -1,3 +1,4 @@
 from .cross_attention_block import CrossAttentionBlock
 from .lass3_decoder_block import Lass3DecoderBlock
+from .lass3_transformer_input_block import Lass3TransformerInputBlock
 from .lass3_transformer import Lass3Transformer
