@@ -5,18 +5,29 @@ from .lass_preparer_2 import LassPreparer2
 
 class Lass3Preparer(LassPreparer2):
 
-	def __init__(self, *args, **kwargs):
+	def __init__(
+			self,
+			*args,
+			left_align: bool = False,
+			**kwargs
+	):
 		super().__init__(
 			*args,
 			**kwargs,
 			trim_extra_gran=True
 		)
+		self.__left_align = left_align
 
-	@staticmethod
-	def __apply_mask(x: np.ndarray):
+	def __apply_mask(self, x: np.ndarray):
 		out = np.repeat(x, x.shape[-1], axis=0)
 
-		encoded_mask = np.arange(x.shape[-1]).reshape(1, -1) >= (x.shape[-1] - np.tile(np.arange(x.shape[-1]), x.shape[0]).reshape(-1, 1))
+		encoded_mask = np.arange(
+			x.shape[-1]
+		).reshape(1, -1) >= (x.shape[-1] - np.tile(np.arange(x.shape[-1]), x.shape[0]).reshape(-1, 1))
+
+		if self.__left_align:
+			encoded_mask = np.arange(x.shape[-1]).reshape(1, -1) < (np.tile(np.arange(x.shape[-1]), x.shape[0]).reshape(-1, 1))
+
 		value_mask = np.arange(x.shape[-1]).reshape(1, -1) < np.tile(np.arange(x.shape[-1]), x.shape[0]).reshape(-1, 1)
 
 		out[:, 1][encoded_mask] = out[:, 1][value_mask]
