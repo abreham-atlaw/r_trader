@@ -13,7 +13,8 @@ from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
-	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore, ProximalMaskedLoss2
+	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore, ProximalMaskedLoss2, \
+	ProximalMaskedLoss3
 from core.utils.research.model.model.utils import TemperatureScalingModel, HorizonModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
@@ -22,6 +23,8 @@ from lib.utils.fileio import load_json
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
+from ..prepare.utils.data_prep_utils import DataPrepUtils
+
 
 class RunnerStatsPopulater:
 
@@ -167,6 +170,49 @@ class RunnerStatsPopulater:
 							softmax=True,
 							collapsed=False,
 							weights=load_json(os.path.join(BASE_DIR, "res/weights/06.json"))
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss3(
+							bounds=DataPrepUtils.apply_bound_epsilon(
+								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+							),
+							softmax=True,
+							h=5,
+							c=0,
+							w=1,
+							d=10,
+							m=2.6
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss3(
+							bounds=DataPrepUtils.apply_bound_epsilon(
+								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+							),
+							softmax=True,
 						),
 						ScoreLoss(
 							SoftConfidenceScore(
