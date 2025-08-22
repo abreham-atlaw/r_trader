@@ -189,6 +189,7 @@ class RunnerStatsPopulater:
 								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 							),
 							softmax=True,
+							collapsed=False,
 							h=5,
 							c=0,
 							w=1,
@@ -213,6 +214,7 @@ class RunnerStatsPopulater:
 								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 							),
 							softmax=True,
+							collapsed=False,
 						),
 						ScoreLoss(
 							SoftConfidenceScore(
