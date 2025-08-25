@@ -5,6 +5,8 @@ from torch import nn
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout, \
 	EncoderNoiseInjectionLayer
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers.lass3.transformer import \
+	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
@@ -123,6 +125,9 @@ class LassTrainerTest(TrainerTest):
 		# INPUT_BLOCK
 		INPUT_ENCODER_NOISE_INJECTION_NOISE = 5e-3
 		INPUT_ENCODER_NOISE_INJECTION_FREQUENCY = 1.0
+		INPUT_ENCODER_DECODED_DROPOUT = 0.5
+		INPUT_ENCODER_CHANNEL_DROPOUT = 0.5
+		INPUT_ENCODER_DROPOUT = 0.5
 
 		# ENCODER EMBEDDING BLOCK
 		ENCODER_EMBEDDING_INDICATORS_DELTA = [1]
@@ -181,10 +186,7 @@ class LassTrainerTest(TrainerTest):
 			block_size=BLOCK_SIZE,
 
 			input_block=Lass3TransformerInputBlock(
-				encoder_noise_injection=EncoderNoiseInjectionLayer(
-					noise=INPUT_ENCODER_NOISE_INJECTION_NOISE,
-					frequency=INPUT_ENCODER_NOISE_INJECTION_FREQUENCY
-				)
+				encoder_prep=EncoderDropout(INPUT_ENCODER_DROPOUT)
 			),
 
 			encoder_embedding_block=TransformerEmbeddingBlock(
