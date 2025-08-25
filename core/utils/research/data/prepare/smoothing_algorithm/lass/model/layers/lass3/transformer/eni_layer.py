@@ -34,6 +34,8 @@ class EncoderNoiseInjectionLayer(SpinozaModule):
 		return x_encoder + noise
 
 	def call(self, x_encoder: torch.Tensor, x_decoder: torch.Tensor) -> torch.Tensor:
+		if not self.training:
+			return x_encoder
 		x_encoder = x_encoder.clone()
 		sample_mask = torch.rand(x_encoder.size(0), device=x_encoder.device) <= self.frequency
 		x_encoder[sample_mask] = self.apply_noise(x_encoder[sample_mask], x_decoder[sample_mask])
