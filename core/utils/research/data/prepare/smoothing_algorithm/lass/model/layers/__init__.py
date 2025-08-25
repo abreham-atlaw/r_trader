@@ -1,2 +1,2 @@
 from .smoothed_channel_dropout import SmoothedChannelDropout
-from .eni_layer import EncoderNoiseInjectionLayer
+from .lass3.transformer.eni_layer import EncoderNoiseInjectionLayer
