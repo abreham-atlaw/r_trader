@@ -11,7 +11,7 @@ class Lass3TransformerInputBlock(SpinozaModule):
 
 	def __init__(
 			self,
-			encoder_prep: nn.Module,
+			encoder_prep: nn.Module = None,
 			decoder_prep: nn.Module = None,
 			*args,
 			**kwargs
