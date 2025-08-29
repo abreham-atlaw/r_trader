@@ -13,6 +13,7 @@ from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3
 	Lass3DecoderBlock, CrossAttentionBlock
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
 	Lass3TransformerInputBlock
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass4 import Lass4HorizonModel
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -263,8 +264,8 @@ class LassTrainerTest(TrainerTest):
 		# 	h=0.5,
 		# 	model=self.__create_cnn2()
 		# )
-		return Lass3HorizonModel(
-			h=0.5,
+		return Lass4HorizonModel(
+			h=1.0,
 			model=self.__create_lass3_transformer(),
 			max_depth=5
 		)
