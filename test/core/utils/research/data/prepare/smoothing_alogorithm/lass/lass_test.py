@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
-from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor
+from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor, \
+	Lass4Executor
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -16,15 +17,15 @@ class LassTest(unittest.TestCase):
 
 	def setUp(self):
 		self.lass = Lass(
-			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot_1.zip"),
-			executor=Lass3Executor(padding=32, left_align=True)
+			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-7-tot.zip"),
+			executor=Lass4Executor(padding=16, left_align=False)
 		)
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
 		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
 		self.gran = 30
 
 	def test_mock(self):
-		x = np.arange(1024) * np.random.rand(1024)
+		x = (np.arange(1024) + 5) * ((np.random.rand(1024) * 0) + 1)
 		y = self.lass.apply(x)
 		self.assertIsInstance(y, np.ndarray)
 		print(y)
