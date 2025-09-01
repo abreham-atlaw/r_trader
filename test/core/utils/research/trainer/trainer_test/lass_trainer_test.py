@@ -10,7 +10,7 @@ from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers.lass
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
-	Lass3DecoderBlock, CrossAttentionBlock
+	Lass3DecoderBlock, CrossAttentionBlock, Lass3DeltaModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
 	Lass3TransformerInputBlock
 from core.utils.research.losses import MeanSquaredErrorLoss
@@ -122,6 +122,8 @@ class LassTrainerTest(TrainerTest):
 		EMBEDDING_SIZE = 32
 		VOCAB_SIZE = 1
 
+		DELTA_MODE = True
+
 		# INPUT_BLOCK
 		INPUT_ENCODER_NOISE_INJECTION_NOISE = 5e-3
 		INPUT_ENCODER_NOISE_INJECTION_FREQUENCY = 1.0
@@ -182,7 +184,7 @@ class LassTrainerTest(TrainerTest):
 			delta=DECODER_EMBEDDING_INDICATORS_DELTA
 		)
 
-		return Lass3Transformer(
+		model = Lass3Transformer(
 			block_size=BLOCK_SIZE,
 
 			input_block=Lass3TransformerInputBlock(
@@ -257,6 +259,11 @@ class LassTrainerTest(TrainerTest):
 				)
 			)
 		)
+		if DELTA_MODE:
+			model = Lass3DeltaModel(
+				model=model
+			)
+		return model
 
 	def _create_model(self):
 		# return LassHorizonModel(
