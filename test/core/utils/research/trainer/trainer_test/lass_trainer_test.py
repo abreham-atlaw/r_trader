@@ -6,7 +6,7 @@ from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout, \
 	EncoderNoiseInjectionLayer
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers.lass3.transformer import \
-	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout, DecoderPadEmbedding
+	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout, DecoderPadEmbedding, EncoderVerticalShift
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
@@ -188,7 +188,7 @@ class LassTrainerTest(TrainerTest):
 			block_size=BLOCK_SIZE,
 
 			input_block=Lass3TransformerInputBlock(
-				encoder_prep=EncoderDropout(INPUT_ENCODER_DROPOUT),
+				encoder_prep=EncoderVerticalShift(),
 				decoder_prep=DecoderPadEmbedding()
 			),
 
