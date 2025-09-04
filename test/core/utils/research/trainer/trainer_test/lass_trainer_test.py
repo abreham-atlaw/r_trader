@@ -5,10 +5,12 @@ from torch import nn
 from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout, \
 	EncoderNoiseInjectionLayer
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers.lass3.transformer import \
+	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout, DecoderPadEmbedding, EncoderVerticalShift
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
-	Lass3DecoderBlock, CrossAttentionBlock
+	Lass3DecoderBlock, CrossAttentionBlock, Lass3DeltaModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
 	Lass3TransformerInputBlock
 from core.utils.research.losses import MeanSquaredErrorLoss
@@ -120,9 +122,14 @@ class LassTrainerTest(TrainerTest):
 		EMBEDDING_SIZE = 32
 		VOCAB_SIZE = 1
 
+		DELTA_MODE = True
+
 		# INPUT_BLOCK
 		INPUT_ENCODER_NOISE_INJECTION_NOISE = 5e-3
 		INPUT_ENCODER_NOISE_INJECTION_FREQUENCY = 1.0
+		INPUT_ENCODER_DECODED_DROPOUT = 0.5
+		INPUT_ENCODER_CHANNEL_DROPOUT = 0.5
+		INPUT_ENCODER_DROPOUT = 0.5
 
 		# ENCODER EMBEDDING BLOCK
 		ENCODER_EMBEDDING_INDICATORS_DELTA = [1]
@@ -177,14 +184,12 @@ class LassTrainerTest(TrainerTest):
 			delta=DECODER_EMBEDDING_INDICATORS_DELTA
 		)
 
-		return Lass3Transformer(
+		model = Lass3Transformer(
 			block_size=BLOCK_SIZE,
 
 			input_block=Lass3TransformerInputBlock(
-				encoder_noise_injection=EncoderNoiseInjectionLayer(
-					noise=INPUT_ENCODER_NOISE_INJECTION_NOISE,
-					frequency=INPUT_ENCODER_NOISE_INJECTION_FREQUENCY
-				)
+				encoder_prep=EncoderVerticalShift(),
+				decoder_prep=DecoderPadEmbedding()
 			),
 
 			encoder_embedding_block=TransformerEmbeddingBlock(
@@ -254,6 +259,11 @@ class LassTrainerTest(TrainerTest):
 				)
 			)
 		)
+		if DELTA_MODE:
+			model = Lass3DeltaModel(
+				model=model
+			)
+		return model
 
 	def _create_model(self):
 		# return LassHorizonModel(

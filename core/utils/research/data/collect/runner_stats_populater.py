@@ -43,7 +43,9 @@ class RunnerStatsPopulater:
 			horizon_mode: bool = False,
 			horizon_bounds: typing.List[float] = None,
 			horizon_h: float = None,
+			horizon_max_depth: int = None,
 			checkpointed: bool = False
+
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -66,6 +68,7 @@ class RunnerStatsPopulater:
 		self.__horizon_mode = horizon_mode
 		self.__horizon_bounds = horizon_bounds
 		self.__horizon_h = horizon_h
+		self.__horizon_max_depth = horizon_max_depth
 		if self.__horizon_mode:
 			assert self.__horizon_bounds is not None and self.__horizon_h is not None
 
@@ -226,6 +229,32 @@ class RunnerStatsPopulater:
 					weights=[1, 1],
 					weighted_sample=False
 				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss3(
+							bounds=DataPrepUtils.apply_bound_epsilon(
+								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+							),
+							softmax=True,
+							collapsed=False,
+							h=5,
+							c=0,
+							w=1,
+							d=10,
+							m=2.6,
+							e=2
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
@@ -289,7 +318,8 @@ class RunnerStatsPopulater:
 			model = HorizonModel(
 				model=model,
 				h=self.__horizon_h,
-				bounds=self.__horizon_bounds
+				bounds=self.__horizon_bounds,
+				max_depth=self.__horizon_max_depth
 			)
 
 		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
