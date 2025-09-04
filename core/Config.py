@@ -255,7 +255,7 @@ try:
 	from torch_xla.distributed import parallel_loader
 	TIMEOUT = 8*60*60
 except ImportError:
-	TIMEOUT = 11*60*60
+	TIMEOUT = 6*60*60
 
 
 class ResourceCategories:
