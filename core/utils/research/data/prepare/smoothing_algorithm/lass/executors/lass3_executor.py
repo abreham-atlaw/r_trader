@@ -13,14 +13,12 @@ class Lass3Executor(LassExecutor):
 			*args,
 			padding: int = 0,
 			left_align: bool = False,
-			is_delta_model: bool = False,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self._padding = padding
 		self.__target_size = None
 		self._left_align = left_align
-		self.__is_delta_model = is_delta_model
 
 	def set_model(self, model: SpinozaModule):
 		super().set_model(model)
@@ -65,10 +63,7 @@ class Lass3Executor(LassExecutor):
 		return y
 
 	def _init_y(self, X: np.ndarray) -> np.ndarray:
-		y = np.zeros(X.shape[0])
-		if self.__is_delta_model:
-			y[0] = X[0]
-		return y
+		return np.zeros(X.shape[0])
 
 	def _execute(self, X: np.ndarray) -> np.ndarray:
 
