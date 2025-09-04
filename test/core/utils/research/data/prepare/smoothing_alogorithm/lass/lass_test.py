@@ -18,7 +18,7 @@ class LassTest(unittest.TestCase):
 	def setUp(self):
 		self.lass = Lass(
 			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-24-it-5-tot.zip"),
-			executor=Lass3Executor(padding=32, left_align=False, is_delta_model=True)
+			executor=Lass3Executor(padding=32, left_align=False)
 		)
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
 		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
