@@ -243,6 +243,7 @@ class RunnerStatsPopulater:
 							w=1,
 							d=10,
 							m=2.6,
+							b=1e-4,
 							e=2
 						),
 						ScoreLoss(
