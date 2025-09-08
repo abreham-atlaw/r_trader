@@ -13,6 +13,7 @@ from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3
 	Lass3DecoderBlock, CrossAttentionBlock, Lass3DeltaModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
 	Lass3TransformerInputBlock
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass5 import Lass3To5Model
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -28,9 +29,9 @@ class LassTrainerTest(TrainerTest):
 
 	def _get_root_dirs(self):
 		return [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/2/train")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/9/train")
 		], [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/2/test")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/9/test")
 		]
 
 	def _create_losses(self):
@@ -119,10 +120,10 @@ class LassTrainerTest(TrainerTest):
 	@staticmethod
 	def __create_lass3_transformer():
 		BLOCK_SIZE = 32
-		EMBEDDING_SIZE = 32
+		EMBEDDING_SIZE = 4
 		VOCAB_SIZE = 1
 
-		DELTA_MODE = True
+		DELTA_MODE = False
 
 		# INPUT_BLOCK
 		INPUT_ENCODER_NOISE_INJECTION_NOISE = 5e-3
@@ -142,7 +143,7 @@ class LassTrainerTest(TrainerTest):
 		ENCODER_EMBEDDING_POSITIONAL_ENCODING = True
 
 		# ENCODER BLOCK
-		ENCODER_NUM_HEADS = 4
+		ENCODER_NUM_HEADS = 2
 		ENCODER_NORM_1 = DynamicLayerNorm()
 		ENCODER_NORM_2 = DynamicLayerNorm()
 		ENCODER_FF_LAYERS = [64, EMBEDDING_SIZE]
@@ -158,11 +159,11 @@ class LassTrainerTest(TrainerTest):
 		DECODER_EMBEDDING_POSITIONAL_ENCODING = True
 
 		# DECODER SELF ATTENTION BLOCK
-		DECODER_SELF_ATTENTION_NUM_HEADS = 4
+		DECODER_SELF_ATTENTION_NUM_HEADS = 2
 		DECODER_SELF_ATTENTION_NORM_1 = DynamicLayerNorm()
 
 		# DECODER CROSS ATTENTION BLOCK
-		DECODER_CROSS_ATTENTION_NUM_HEADS = 4
+		DECODER_CROSS_ATTENTION_NUM_HEADS = 2
 		DECODER_CROSS_ATTENTION_NORM_1 = DynamicLayerNorm()
 		DECODER_CROSS_ATTENTION_NORM_2 = DynamicLayerNorm()
 		DECODER_CROSS_ATTENTION_FF_LAYERS = [64, EMBEDDING_SIZE]
@@ -265,16 +266,21 @@ class LassTrainerTest(TrainerTest):
 			)
 		return model
 
+	def __create_lass5_model(self):
+		model = self.__create_lass3_transformer()
+		return Lass3To5Model(model=model)
+
 	def _create_model(self):
 		# return LassHorizonModel(
 		# 	h=0.5,
 		# 	model=self.__create_cnn2()
 		# )
-		return Lass3HorizonModel(
-			h=0.5,
-			model=self.__create_lass3_transformer(),
-			max_depth=5
-		)
+		# return Lass3HorizonModel(
+		# 	h=0.5,
+		# 	model=self.__create_lass3_transformer(),
+		# 	max_depth=5
+		# )
+		return self.__create_lass5_model()
 
 	def _get_sequence_length(self):
 		return 32

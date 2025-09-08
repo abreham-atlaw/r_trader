@@ -18,7 +18,7 @@ class Lass5PreparerTest(unittest.TestCase):
 			block_size=32,
 			granularity=30,
 			batch_size=64,
-			output_path=os.path.join(Config.BASE_DIR, "temp/Data/lass/8"),
+			output_path=os.path.join(Config.BASE_DIR, "temp/Data/lass/9"),
 			order_gran=True,
 			df=pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-10k.csv")),
 			splitter=SequentialSplitter(test_size=0.2),
