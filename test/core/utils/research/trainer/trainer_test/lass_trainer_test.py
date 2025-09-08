@@ -13,7 +13,8 @@ from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3
 	Lass3DecoderBlock, CrossAttentionBlock, Lass3DeltaModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
 	Lass3TransformerInputBlock
-from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass5 import Lass3To5Model
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass5 import Lass3To5Model, \
+	Lass3ExecutorLass5Model
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -119,7 +120,7 @@ class LassTrainerTest(TrainerTest):
 
 	@staticmethod
 	def __create_lass3_transformer():
-		BLOCK_SIZE = 32
+		BLOCK_SIZE = 16
 		EMBEDDING_SIZE = 4
 		VOCAB_SIZE = 1
 
@@ -268,7 +269,7 @@ class LassTrainerTest(TrainerTest):
 
 	def __create_lass5_model(self):
 		model = self.__create_lass3_transformer()
-		return Lass3To5Model(model=model)
+		return Lass3ExecutorLass5Model(padding=2, block_size=32, model=model)
 
 	def _create_model(self):
 		# return LassHorizonModel(
