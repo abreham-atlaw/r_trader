@@ -51,3 +51,6 @@ class ProximalMaskedLoss3(ProximalMaskedLoss2):
 	def _abscissa(self, x: torch.Tensor) -> torch.Tensor:
 		v = self.__v(x) - 1
 		return (10**self.m)*(self.__root(v, self.r)) + self.d*torch.sign(v)
+
+	def __str__(self):
+		return f"ProximalMaskedLoss3(h={self.h}, b={self.b}, c={self.c}, m={self.m}, r={self.r}, d={self.d}, e={self.e})"
