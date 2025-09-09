@@ -256,6 +256,21 @@ class RunnerStatsPopulater:
 					weights=[1, 1],
 					weighted_sample=False
 				),
+
+				ProximalMaskedLoss3(
+					bounds=DataPrepUtils.apply_bound_epsilon(
+						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+					),
+					softmax=True,
+					collapsed=False,
+					h=5,
+					c=0,
+					w=1,
+					d=10,
+					m=2.3,
+					b=1e-2,
+					e=3
+				)
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
