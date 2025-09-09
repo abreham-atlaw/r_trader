@@ -76,18 +76,22 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		return sequence
 
-	def __apply_transformations(self, X: np.ndarray) -> np.ndarray:
-		Logger.info(f"Applying {len(self.__transformations)} tranformations")
-		y = np.concatenate([X] + [
-			transformation(X)
+	def __apply_transformations(self, x: np.ndarray) -> np.ndarray:
+		y = np.concatenate([x] + [
+			transformation(x)
 			for transformation in self.__transformations
 		])
 		return y
+
+	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
+		return x
 
 	def __process_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = DataPrepUtils.stack(sequence, self.__block_size)
 
 		stacked_sequence = self.__apply_transformations(stacked_sequence)
+
+		stacked_sequence = self._prepare_sequence_stack(stacked_sequence)
 
 		X = self._prepare_x(stacked_sequence)
 		y = self._prepare_y(stacked_sequence)
