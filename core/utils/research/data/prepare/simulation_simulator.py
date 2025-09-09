@@ -22,9 +22,12 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		smoothing_algorithm: typing.Optional[SmoothingAlgorithm] = None,
 		**kwargs
 	):
+		if smoothing_algorithm is None and ma_window not in [None, 0, 1]:
+			smoothing_algorithm = MovingAverage(ma_window)
+
 		super().__init__(
 			df=df,
-			block_size=seq_len + 1,
+			block_size=seq_len + (smoothing_algorithm.reduction * 0 if smoothing_algorithm is not None else 0) + 1,
 			granularity=granularity,
 			batch_size=batch_size,
 			output_path=output_path,
@@ -36,15 +39,13 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		self.__bounds = bounds
 		self.__extra_len = extra_len
 
-		if smoothing_algorithm is None and ma_window not in [None, 0, 1]:
-			smoothing_algorithm = MovingAverage(ma_window)
 		self.__smoothing_algorithm = smoothing_algorithm
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
 
-	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
+	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
 		if self.__smoothing_algorithm is not None:
-			sequence = self.__smoothing_algorithm(sequence)
-		return super()._prepare_sequence(sequence)
+			x = self.__smoothing_algorithm.apply_on_batch(x)
+		return x
 
 	def _prepare_x(self, sequences: np.ndarray) -> np.ndarray:
 		return np.concatenate(
