@@ -49,9 +49,10 @@ class SimulationSimulatorTest(unittest.TestCase):
 			seq_len=1033,
 			extra_len=124,
 			batch_size=10,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/kf",
+			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02",
 			granularity=5,
-			smoothing_algorithm=KalmanFilter(alpha=0.05, beta=0.01)
+			smoothing_algorithm=KalmanFilter(alpha=0.05, beta=0.01),
+			order_gran=True
 		)
 
 		simulator.start()
