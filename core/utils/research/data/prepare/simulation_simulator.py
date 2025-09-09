@@ -27,7 +27,7 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 
 		super().__init__(
 			df=df,
-			block_size=seq_len + (smoothing_algorithm.reduction * 0 if smoothing_algorithm is not None else 0) + 1,
+			block_size=seq_len + (smoothing_algorithm.reduction if smoothing_algorithm is not None else 0) + 1,
 			granularity=granularity,
 			batch_size=batch_size,
 			output_path=output_path,
