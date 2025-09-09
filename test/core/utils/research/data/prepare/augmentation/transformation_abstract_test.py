@@ -17,7 +17,7 @@ class TransformationAbstractTest(unittest.TestCase, ABC):
 
 	def setUp(self):
 		self.transformation = self._init_transformation()
-		self.x = np.load(os.path.join(BASE_DIR, "temp/Data/prepared/7/train/X/1751195327.143124.npy"))[:, :-124]
+		self.x = np.load(os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/00/train/X/1757394490.471219.npy"))[:, :-124]
 
 	def test_transform(self):
 		y = self.transformation.transform(self.x)

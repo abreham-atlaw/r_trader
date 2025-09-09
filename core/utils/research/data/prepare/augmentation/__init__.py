@@ -1,2 +1,3 @@
 from .transformation import Transformation
 from .vertical_shift_transformation import VerticalShiftTransformation
+from .gaussian_noise_transformation import GaussianNoiseTransformation
