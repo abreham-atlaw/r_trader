@@ -148,6 +148,8 @@ class CNNBlock(SpinozaModule):
 			padding: typing.Union[str, int, nn.Module, typing.List[nn.Module]],
 			kernel_sizes: typing.List[int]
 	):
+		if padding is None:
+			padding = nn.Identity()
 		if isinstance(padding, str):
 			if padding.lower() == 'same':
 				padding = [nn.ZeroPad1d(ks//2) for ks in kernel_sizes]
