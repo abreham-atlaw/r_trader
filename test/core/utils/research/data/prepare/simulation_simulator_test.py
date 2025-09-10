@@ -7,6 +7,7 @@ import numpy as np
 from core import Config
 from core.utils.research.data.prepare import SimulationSimulator
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage, KalmanFilter
+from core.utils.research.data.prepare.splitting import SequentialSplitter
 
 
 class SimulationSimulatorTest(unittest.TestCase):
@@ -49,9 +50,17 @@ class SimulationSimulatorTest(unittest.TestCase):
 			seq_len=1033,
 			extra_len=124,
 			batch_size=10,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/kf",
+			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/01",
 			granularity=5,
-			smoothing_algorithm=KalmanFilter(alpha=0.05, beta=0.01)
+			smoothing_algorithm=MovingAverage(64),
+			order_gran=True,
+			trim_extra_gran=True,
+			# splitter=SequentialSplitter(
+			# 	test_size=0.2
+			# ),
+			transformations=[
+				# ShiftTransformation(shift=0.1)
+			]
 		)
 
 		simulator.start()
