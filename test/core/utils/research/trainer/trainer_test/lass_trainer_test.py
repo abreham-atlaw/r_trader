@@ -3,11 +3,18 @@ import os
 from torch import nn
 
 from core import Config
-from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout, \
+	EncoderNoiseInjectionLayer
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers.lass3.transformer import \
+	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout, DecoderPadEmbedding, EncoderVerticalShift
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
-	Lass3DecoderBlock, CrossAttentionBlock
+	Lass3DecoderBlock, CrossAttentionBlock, Lass3DeltaModel
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer.lass3_transformer_input_block import \
+	Lass3TransformerInputBlock
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass5 import Lass3To5Model, \
+	Lass3ExecutorLass5Model
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -23,9 +30,9 @@ class LassTrainerTest(TrainerTest):
 
 	def _get_root_dirs(self):
 		return [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/2/train")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/7/train")
 		], [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/2/test")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/7/test")
 		]
 
 	def _create_losses(self):
@@ -114,53 +121,65 @@ class LassTrainerTest(TrainerTest):
 	@staticmethod
 	def __create_lass3_transformer():
 		BLOCK_SIZE = 32
-		EMBEDDING_SIZE = 32
+		EMBEDDING_SIZE = 4
 		VOCAB_SIZE = 1
 
+		# HORIZON
+		HORIZON_MODE = False
+		HORIZON_RANGE = (0.0, 0.9)
+		HORIZON_EPOCHS = 70
+		HORIZON_STEP = 5
+		HORIZON_MAX_DEPTH = None
+
+		# INPUT_BLOCK
+		DECODER_PAD_EMBEDDING = DecoderPadEmbedding()
+		ENCODER_VERTICAL_SHIFT = 1.0
+
 		# ENCODER EMBEDDING BLOCK
-		ENCODER_EMBEDDING_INDICATORS_DELTA = [1]
-		ENCODER_EMBEDDING_CB_CHANNELS = [8]*2 + [EMBEDDING_SIZE]
-		ENCODER_EMBEDDING_CB_KERNELS = [3]*len(ENCODER_EMBEDDING_CB_CHANNELS)
+		ENCODER_EMBEDDING_INDICATORS_DELTA = []
+		ENCODER_EMBEDDING_CB_CHANNELS = [EMBEDDING_SIZE] * 4
+		ENCODER_EMBEDDING_CB_KERNELS = [3] * len(ENCODER_EMBEDDING_CB_CHANNELS)
 		ENCODER_EMBEDDING_CB_POOL_SIZES = [0] * len(ENCODER_EMBEDDING_CB_CHANNELS)
 		ENCODER_EMBEDDING_CB_DROPOUTS = [0] * len(ENCODER_EMBEDDING_CB_CHANNELS)
-		ENCODER_EMBEDDING_CB_NORM = [DynamicLayerNorm() for _ in range(len(ENCODER_EMBEDDING_CB_CHANNELS))]
-		ENCODER_EMBEDDING_CB_HIDDEN_ACTIVATION = [nn.Identity() for _ in range(len(ENCODER_EMBEDDING_CB_CHANNELS))]
+		ENCODER_EMBEDDING_CB_NORM = [nn.Identity() for _ in range(len(ENCODER_EMBEDDING_CB_CHANNELS))]
+		ENCODER_EMBEDDING_CB_HIDDEN_ACTIVATION = [nn.Identity() for _ in ENCODER_EMBEDDING_CB_CHANNELS]
+		ENCODER_EMBEDDING_CB_PADDING = [nn.ReflectionPad1d(padding=(e//2)) for e in ENCODER_EMBEDDING_CB_KERNELS]
 		ENCODER_EMBEDDING_POSITIONAL_ENCODING = True
 
 		# ENCODER BLOCK
-		ENCODER_NUM_HEADS = 4
-		ENCODER_NORM_1 = DynamicLayerNorm()
-		ENCODER_NORM_2 = DynamicLayerNorm()
-		ENCODER_FF_LAYERS = [64, EMBEDDING_SIZE]
+		ENCODER_NUM_HEADS = 2
+		ENCODER_NORM_1 = nn.Identity()
+		ENCODER_NORM_2 = nn.Identity()
+		ENCODER_FF_LAYERS = [EMBEDDING_SIZE * 2, EMBEDDING_SIZE]
 
 		# DECODER EMBEDDING BLOCK
-		DECODER_EMBEDDING_INDICATORS_DELTA = [1]
-		DECODER_EMBEDDING_CB_CHANNELS = [8]*2 + [EMBEDDING_SIZE]
-		DECODER_EMBEDDING_CB_KERNELS = [3]*len(DECODER_EMBEDDING_CB_CHANNELS)
+		DECODER_EMBEDDING_INDICATORS_DELTA = []
+		DECODER_EMBEDDING_CB_CHANNELS = [EMBEDDING_SIZE] * 1
+		DECODER_EMBEDDING_CB_KERNELS = [1] * len(DECODER_EMBEDDING_CB_CHANNELS)
 		DECODER_EMBEDDING_CB_POOL_SIZES = [0] * len(DECODER_EMBEDDING_CB_CHANNELS)
 		DECODER_EMBEDDING_CB_DROPOUTS = [0] * len(DECODER_EMBEDDING_CB_CHANNELS)
-		DECODER_EMBEDDING_CB_NORM = [DynamicLayerNorm() for _ in range(len(DECODER_EMBEDDING_CB_CHANNELS))]
-		DECODER_EMBEDDING_CB_HIDDEN_ACTIVATION = [nn.Identity() for _ in range(len(DECODER_EMBEDDING_CB_CHANNELS))]
+		DECODER_EMBEDDING_CB_NORM = [nn.Identity() for _ in range(len(DECODER_EMBEDDING_CB_CHANNELS))]
+		DECODER_EMBEDDING_CB_HIDDEN_ACTIVATION = [nn.Identity() for _ in DECODER_EMBEDDING_CB_CHANNELS]
 		DECODER_EMBEDDING_POSITIONAL_ENCODING = True
 
 		# DECODER SELF ATTENTION BLOCK
-		DECODER_SELF_ATTENTION_NUM_HEADS = 4
-		DECODER_SELF_ATTENTION_NORM_1 = DynamicLayerNorm()
+		DECODER_SELF_ATTENTION_NUM_HEADS = 2
+		DECODER_SELF_ATTENTION_NORM_1 = nn.Identity()
 
 		# DECODER CROSS ATTENTION BLOCK
-		DECODER_CROSS_ATTENTION_NUM_HEADS = 4
-		DECODER_CROSS_ATTENTION_NORM_1 = DynamicLayerNorm()
-		DECODER_CROSS_ATTENTION_NORM_2 = DynamicLayerNorm()
-		DECODER_CROSS_ATTENTION_FF_LAYERS = [64, EMBEDDING_SIZE]
+		DECODER_CROSS_ATTENTION_NUM_HEADS = 2
+		DECODER_CROSS_ATTENTION_NORM_1 = nn.Identity()
+		DECODER_CROSS_ATTENTION_NORM_2 = nn.Identity()
+		DECODER_CROSS_ATTENTION_FF_LAYERS = [EMBEDDING_SIZE * 2, EMBEDDING_SIZE]
 
 		# COLLAPSE BLOCK
-		COLLAPSE_BRIDGE_DROPOUT = 0.3
+		COLLAPSE_BRIDGE_DROPOUT = 0
 		COLLAPSE_INPUT_NORM = nn.Identity()
 		COLLAPSE_GLOBAL_AVG_POOL = False
-		COLLAPSE_FF_LINEAR_LAYERS = [64, VOCAB_SIZE]
+		COLLAPSE_FF_LINEAR_LAYERS = [EMBEDDING_SIZE * 8, EMBEDDING_SIZE * 4, VOCAB_SIZE]
 		COLLAPSE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
 		COLLAPSE_FF_LINEAR_NORM = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
-		COLLAPSE_FF_LINEAR_DROPOUT = [0]*(len(COLLAPSE_FF_LINEAR_LAYERS) - 1)
+		COLLAPSE_FF_LINEAR_DROPOUT = [0] * (len(COLLAPSE_FF_LINEAR_LAYERS) - 1)
 
 		encoder_indicators = Indicators(
 			delta=ENCODER_EMBEDDING_INDICATORS_DELTA
@@ -170,8 +189,13 @@ class LassTrainerTest(TrainerTest):
 			delta=DECODER_EMBEDDING_INDICATORS_DELTA
 		)
 
-		return Lass3Transformer(
+		model = Lass3Transformer(
 			block_size=BLOCK_SIZE,
+
+			input_block=Lass3TransformerInputBlock(
+				decoder_prep=DecoderPadEmbedding(),
+				encoder_prep=EncoderVerticalShift(ENCODER_VERTICAL_SHIFT)
+			),
 
 			encoder_embedding_block=TransformerEmbeddingBlock(
 				positional_encoding=True,
@@ -186,6 +210,7 @@ class LassTrainerTest(TrainerTest):
 					dropout_rate=ENCODER_EMBEDDING_CB_DROPOUTS,
 					norm=ENCODER_EMBEDDING_CB_NORM,
 					hidden_activation=ENCODER_EMBEDDING_CB_HIDDEN_ACTIVATION,
+					padding=ENCODER_EMBEDDING_CB_PADDING
 				)
 			),
 
@@ -224,7 +249,8 @@ class LassTrainerTest(TrainerTest):
 					norm_1=DECODER_CROSS_ATTENTION_NORM_1,
 					norm_2=DECODER_CROSS_ATTENTION_NORM_2,
 					ff_block=LinearModel(DECODER_CROSS_ATTENTION_FF_LAYERS)
-				)
+				),
+				transpose_output=True
 			),
 
 			collapse_block=CollapseBlock(
@@ -241,16 +267,30 @@ class LassTrainerTest(TrainerTest):
 			)
 		)
 
+		if HORIZON_MODE:
+			model = Lass3HorizonModel(
+				h=HORIZON_RANGE[0],
+				model=model,
+				max_depth=HORIZON_MAX_DEPTH
+			)
+		return model
+
+	def __create_lass5_model(self):
+		model = self.__create_lass3_transformer()
+		return Lass3ExecutorLass5Model(padding=2, block_size=32, model=model)
+
 	def _create_model(self):
 		# return LassHorizonModel(
 		# 	h=0.5,
 		# 	model=self.__create_cnn2()
 		# )
-		return Lass3HorizonModel(
-			h=0.5,
-			model=self.__create_lass3_transformer(),
-			max_depth=5
-		)
+		# return Lass3HorizonModel(
+		# 	h=0.5,
+		# 	model=self.__create_lass3_transformer(),
+		# 	max_depth=5
+		# )
+		return self.__create_lass3_transformer()
+		# return self.__create_lass5_model()
 
 	def _get_sequence_length(self):
 		return 32
