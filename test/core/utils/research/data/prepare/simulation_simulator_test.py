@@ -6,6 +6,8 @@ import numpy as np
 
 from core import Config
 from core.utils.research.data.prepare import SimulationSimulator
+from core.utils.research.data.prepare.augmentation import VerticalShiftTransformation, GaussianNoiseTransformation, \
+	TimeStretchTransformation, VerticalStretchTransformation
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage, KalmanFilter
 from core.utils.research.data.prepare.splitting import SequentialSplitter
 
@@ -55,11 +57,15 @@ class SimulationSimulatorTest(unittest.TestCase):
 			smoothing_algorithm=MovingAverage(64),
 			order_gran=True,
 			trim_extra_gran=True,
-			# splitter=SequentialSplitter(
-			# 	test_size=0.2
-			# ),
+			splitter=SequentialSplitter(
+				test_size=0.2
+			),
 			transformations=[
-				# ShiftTransformation(shift=0.1)
+				VerticalShiftTransformation(),
+				GaussianNoiseTransformation(),
+				TimeStretchTransformation(),
+				VerticalStretchTransformation(alpha=1.1),
+				VerticalStretchTransformation(alpha=0.99)
 			]
 		)
 
