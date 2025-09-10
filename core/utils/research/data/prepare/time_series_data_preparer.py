@@ -7,6 +7,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
+from core.utils.research.data.prepare.augmentation import Transformation
 from core.utils.research.data.prepare.splitting import TrainTestSplitter
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.logger import Logger
@@ -29,7 +30,9 @@ class TimeSeriesDataPreparer(ABC):
 			y_dir: str = "y",
 			train_dir: str = "train",
 			test_dir: str = "test",
-			splitter: TrainTestSplitter = None
+			splitter: TrainTestSplitter = None,
+
+			transformations: typing.List[Transformation] = None
 	):
 		self.__df = DataPrepUtils.clean_df(df)
 		self.__block_size = block_size
@@ -44,6 +47,11 @@ class TimeSeriesDataPreparer(ABC):
 		self.__train_dir, self.__test_dir = train_dir, test_dir
 		self.__splitter = splitter
 		Logger.info(f"Using splitter: {self.__splitter}")
+
+		if transformations is None:
+			transformations = []
+		self.__transformations = transformations
+		Logger.info(f"Using transformations({len(self.__transformations)}): {', '.join(map(lambda t: str(t), self.__transformations))}")
 
 	@staticmethod
 	def __generate_filename() -> np.ndarray:
@@ -68,8 +76,22 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		return sequence
 
+	def __apply_transformations(self, x: np.ndarray) -> np.ndarray:
+		y = np.concatenate([x] + [
+			transformation(x)
+			for transformation in self.__transformations
+		])
+		return y
+
+	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
+		return x
+
 	def __process_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = DataPrepUtils.stack(sequence, self.__block_size)
+
+		stacked_sequence = self.__apply_transformations(stacked_sequence)
+
+		stacked_sequence = self._prepare_sequence_stack(stacked_sequence)
 
 		X = self._prepare_x(stacked_sequence)
 		y = self._prepare_y(stacked_sequence)
