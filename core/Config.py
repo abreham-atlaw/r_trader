@@ -301,6 +301,7 @@ class RunnerStatsBranches:
 	it_46_6 = "it_46_6"
 
 	it_47_6 = "it_47_6"
+
 	it_48_6 = "it_48_6"
 
 	all = [
