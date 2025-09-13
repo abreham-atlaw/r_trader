@@ -29,7 +29,7 @@ class BaseDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			w_dir: str = "w",
-			out_dtypes: typing.Type = np.float32,
+			out_dtypes: typing.Type = np.float64,
 			num_files: typing.Optional[int] = None,
 			device=torch.device("cpu"),
 			check_last_file: bool = False,
