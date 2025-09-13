@@ -1,5 +1,7 @@
 import json
 
+import numpy as np
+import torch
 from pytz import timezone
 import os
 import random
@@ -250,6 +252,8 @@ PREDICTION_MODELS = [
 ]
 
 
+DEFAULT_NP_DTYPE = np.float64
+DEFAULT_TORCH_DTYPE = torch.float64
 try:
 	import torch_xla
 	from torch_xla.distributed import parallel_loader
