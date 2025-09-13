@@ -262,13 +262,28 @@ class RunnerStatsPopulater:
 						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 					),
 					softmax=True,
-					collapsed=False,
+					collapsed=True,
 					h=5,
 					c=0,
 					w=1,
 					d=10,
 					m=2.3,
 					b=1e-2,
+					e=3
+				),
+
+				ProximalMaskedLoss3(
+					bounds=DataPrepUtils.apply_bound_epsilon(
+						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+					),
+					softmax=True,
+					collapsed=True,
+					h=5,
+					c=0,
+					w=1,
+					d=10,
+					m=2.3,
+					b=1e-4,
 					e=3
 				)
 		]

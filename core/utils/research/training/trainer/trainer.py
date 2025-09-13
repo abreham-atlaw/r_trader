@@ -41,7 +41,7 @@ class Trainer:
             clip_value: typing.Optional[float] = None,
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
-            dtype: torch.dtype = torch.float32,
+            dtype: torch.dtype = torch.float64,
             skip_nan: bool = True
     ):
         self.device = self.get_device()
@@ -116,7 +116,7 @@ class Trainer:
         model = model.to(torch.device("cpu"))
         model.eval()
         model(init_data)
-        return model.to(self.device).float()
+        return model.to(self.device).to(self.__dtype)
 
     @staticmethod
     def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
