@@ -204,7 +204,7 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
-            self.model = self.model.to(self.device).float()
+            self.model = self.model.to(self.device).to(self.__dtype)
             running_loss, running_size = torch.zeros((3,)), 0
             pbar = tqdm(dataloader) if progress else dataloader
             for i, data in enumerate(pbar):
