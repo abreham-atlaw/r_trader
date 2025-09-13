@@ -51,6 +51,7 @@ class Trainer:
             model = torch.nn.DataParallel(model)
         if callbacks is None:
             callbacks = []
+        self.__dtype = dtype
         self.model = self.__initialize_model(model)
         self.cls_loss_function = cls_loss_function
         self.reg_loss_function = reg_loss_function
@@ -60,7 +61,6 @@ class Trainer:
         self.__max_norm = max_norm
         self.__clip_value = clip_value
         self.__log_gradient_stats = log_gradient_stats
-        self.__dtype = dtype
         self.__skip_nan = skip_nan
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
