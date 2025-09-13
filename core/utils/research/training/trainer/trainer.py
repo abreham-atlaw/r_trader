@@ -41,7 +41,7 @@ class Trainer:
             clip_value: typing.Optional[float] = None,
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
-            dtype: torch.dtype = torch.float32,
+            dtype: torch.dtype = torch.float64,
             skip_nan: bool = True
     ):
         self.device = self.get_device()
