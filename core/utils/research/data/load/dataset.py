@@ -137,8 +137,6 @@ class BaseDataset(Dataset):
 		# torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype])
 		return torch.from_numpy(
 			out[indexes]
-		).type(
-			self.__NUMPY_TORCH_TYPE_MAP[out.dtype]
 		).to(self.__device).type(
 			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
 		)
