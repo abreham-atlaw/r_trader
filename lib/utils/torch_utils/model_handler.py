@@ -191,7 +191,7 @@ class ModelHandler:
 		os.rmdir(cwd)
 
 	@staticmethod
-	def load(path, dtype=torch.float64, load_state=True):
+	def load(path, dtype=torch.float32, load_state=True):
 		dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
 		try:
