@@ -116,7 +116,7 @@ class Trainer:
         model = model.to(torch.device("cpu"))
         model.eval()
         model(init_data)
-        return model.to(self.device).float()
+        return model.to(self.device).to(self.__dtype)
 
     @staticmethod
     def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
