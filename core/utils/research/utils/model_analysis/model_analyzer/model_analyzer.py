@@ -30,7 +30,7 @@ class ModelAnalyzer(ABC):
 
 	def __extract_samples(self, idxs: typing.List[int]) -> typing.Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 		Logger.info(f"Extracting {len(idxs)} Samples...")
-		X, y, w = None, None, torch.zeros((len(idxs),),dtype=torch.float32)
+		X, y, w = None, None, torch.zeros((len(idxs),),dtype=torch.float64)
 		for i, idx in enumerate(idxs):
 			Xb, yb, wb = self.__dataset[idx]
 			if X is None:

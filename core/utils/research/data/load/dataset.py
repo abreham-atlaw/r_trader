@@ -5,24 +5,21 @@ from torch.utils.data import Dataset
 
 import random
 from collections import OrderedDict
-import threading
 import os
 
-from lib.utils.decorators.thread_decorator import thread_method
 from lib.utils.logger import Logger
 
 
 class BaseDataset(Dataset):
 
 	__NUMPY_TORCH_TYPE_MAP = {
-		np.dtype('int8'): torch.int8,
-		np.dtype('int32'): torch.int32,
-		np.dtype('int64'): torch.int64,
-		np.dtype('uint8'): torch.uint8,
-		np.dtype('float16'): torch.float16,
-		np.dtype('float32'): torch.float32,
+		np.int8: torch.int8,
+		np.int32: torch.int32,
+		np.int64: torch.int64,
+		np.uint8: torch.uint8,
+		np.float16: torch.float16,
 		np.float32: torch.float32,
-		np.dtype('float64'): torch.float64,
+		np.float64: torch.float64,
 	}
 
 	def __init__(
@@ -32,7 +29,7 @@ class BaseDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			w_dir: str = "w",
-			out_dtypes: typing.Type = np.float32,
+			out_dtypes: typing.Type = np.float64,
 			num_files: typing.Optional[int] = None,
 			device=torch.device("cpu"),
 			check_last_file: bool = False,
@@ -140,8 +137,6 @@ class BaseDataset(Dataset):
 		# torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype])
 		return torch.from_numpy(
 			out[indexes]
-		).type(
-			self.__NUMPY_TORCH_TYPE_MAP[out.dtype]
 		).to(self.__device).type(
 			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
 		)
