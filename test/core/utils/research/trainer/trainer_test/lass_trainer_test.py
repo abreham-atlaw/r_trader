@@ -138,7 +138,8 @@ class LassTrainerTest(TrainerTest):
 		ENCODER_VERTICAL_SHIFT = 1.0
 
 		# ENCODER EMBEDDING BLOCK
-		ENCODER_EMBEDDING_INDICATORS_DELTA = []
+		ENCODER_EMBEDDING_INDICATORS_DELTA = [1]
+		ENCODER_EMBEDDING_PADDING = nn.ReflectionPad1d((1, 0))
 		ENCODER_EMBEDDING_CB_CHANNELS = [EMBEDDING_SIZE] * 8
 		ENCODER_EMBEDDING_CB_KERNELS = [3] * len(ENCODER_EMBEDDING_CB_CHANNELS)
 		ENCODER_EMBEDDING_CB_POOL_SIZES = [0] * len(ENCODER_EMBEDDING_CB_CHANNELS)
@@ -202,7 +203,8 @@ class LassTrainerTest(TrainerTest):
 			encoder_embedding_block=TransformerEmbeddingBlock(
 				positional_encoding=True,
 				embedding_block=EmbeddingBlock(
-					indicators=encoder_indicators
+					indicators=encoder_indicators,
+					padding=ENCODER_EMBEDDING_PADDING
 				),
 				cnn_block=CNNBlock(
 					input_channels=encoder_indicators.indicators_len,
