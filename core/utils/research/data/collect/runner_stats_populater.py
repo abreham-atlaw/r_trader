@@ -13,7 +13,8 @@ from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
 	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
-	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore, ProximalMaskedLoss2
+	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore, ProximalMaskedLoss2, \
+	ProximalMaskedLoss3
 from core.utils.research.model.model.utils import TemperatureScalingModel, HorizonModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
@@ -22,6 +23,8 @@ from lib.utils.fileio import load_json
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
+from ..prepare.utils.data_prep_utils import DataPrepUtils
+
 
 class RunnerStatsPopulater:
 
@@ -40,7 +43,9 @@ class RunnerStatsPopulater:
 			horizon_mode: bool = False,
 			horizon_bounds: typing.List[float] = None,
 			horizon_h: float = None,
+			horizon_max_depth: int = None,
 			checkpointed: bool = False
+
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -63,6 +68,7 @@ class RunnerStatsPopulater:
 		self.__horizon_mode = horizon_mode
 		self.__horizon_bounds = horizon_bounds
 		self.__horizon_h = horizon_h
+		self.__horizon_max_depth = horizon_max_depth
 		if self.__horizon_mode:
 			assert self.__horizon_bounds is not None and self.__horizon_h is not None
 
@@ -138,6 +144,147 @@ class RunnerStatsPopulater:
 					w=1.0,
 					h=5.0,
 					softmax=True
+				),
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss(
+							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+							p=1,
+							softmax=True,
+							collapsed=False,
+							weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss(
+							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+							p=1,
+							softmax=True,
+							collapsed=False,
+							weights=load_json(os.path.join(BASE_DIR, "res/weights/06.json"))
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss3(
+							bounds=DataPrepUtils.apply_bound_epsilon(
+								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+							),
+							softmax=True,
+							collapsed=False,
+							h=5,
+							c=0,
+							w=1,
+							d=10,
+							m=2.6
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss3(
+							bounds=DataPrepUtils.apply_bound_epsilon(
+								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+							),
+							softmax=True,
+							collapsed=False,
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				MultiLoss(
+					losses=[
+						ProximalMaskedLoss3(
+							bounds=DataPrepUtils.apply_bound_epsilon(
+								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+							),
+							softmax=True,
+							collapsed=False,
+							h=5,
+							c=0,
+							w=1,
+							d=10,
+							m=2.6,
+							b=1e-4,
+							e=2
+						),
+						ScoreLoss(
+							SoftConfidenceScore(
+								softmax=True,
+								collapsed=False
+							)
+						)
+					],
+					weights=[1, 1],
+					weighted_sample=False
+				),
+
+				ProximalMaskedLoss3(
+					bounds=DataPrepUtils.apply_bound_epsilon(
+						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+					),
+					softmax=True,
+					collapsed=True,
+					h=5,
+					c=0,
+					w=1,
+					d=10,
+					m=2.3,
+					b=1e-2,
+					e=3
+				),
+
+				ProximalMaskedLoss3(
+					bounds=DataPrepUtils.apply_bound_epsilon(
+						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+					),
+					softmax=True,
+					collapsed=True,
+					h=5,
+					c=0,
+					w=1,
+					d=10,
+					m=2.3,
+					b=1e-4,
+					e=3
 				)
 		]
 
@@ -202,7 +349,8 @@ class RunnerStatsPopulater:
 			model = HorizonModel(
 				model=model,
 				h=self.__horizon_h,
-				bounds=self.__horizon_bounds
+				bounds=self.__horizon_bounds,
+				max_depth=self.__horizon_max_depth
 			)
 
 		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
