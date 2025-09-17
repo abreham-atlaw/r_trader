@@ -68,6 +68,7 @@ class TrainerTest(unittest.TestCase):
 			train_dirs,
 			check_file_sizes=True,
 			load_weights=False,
+			out_dtypes=self.np_dtype
 		)
 		dataloader = DataLoader(dataset, batch_size=64)
 
@@ -75,6 +76,7 @@ class TrainerTest(unittest.TestCase):
 			test_dirs,
 			check_file_sizes=True,
 			load_weights=False,
+			out_dtypes=self.np_dtype
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=64)
 
@@ -428,7 +430,7 @@ class TrainerTest(unittest.TestCase):
 				step=2
 			)
 		]
-		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
+		trainer = Trainer(model, callbacks=callbacks, skip_nan=True, dtype=self.dtype)
 		trainer.cls_loss_function, trainer.reg_loss_function = self._create_losses()
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
@@ -437,6 +439,8 @@ class TrainerTest(unittest.TestCase):
 		return False
 
 	def setUp(self):
+		self.dtype = torch.float32
+		self.np_dtype = np.float32
 		self.model = self._create_model()
 		self.dataloader, self.test_dataloader = self.__init_dataloader()
 		self.trainer = self.__init_trainer(self.model)
@@ -462,7 +466,7 @@ class TrainerTest(unittest.TestCase):
 		for X, y, w in self.test_dataloader:
 			break
 
-		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model = ModelHandler.load(SAVE_PATH).to(self.dtype)
 		loaded_model.eval()
 
 		original_y = model(X)
