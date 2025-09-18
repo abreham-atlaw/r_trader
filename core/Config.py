@@ -192,7 +192,7 @@ AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/07.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
-with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
@@ -303,6 +303,10 @@ class RunnerStatsBranches:
 	it_45_6 = "it_45_6"
 	it_46_6 = "it_46_6"
 
+	it_47_6 = "it_47_6"
+
+	it_48_6 = "it_48_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -331,13 +335,17 @@ class RunnerStatsBranches:
 		it_39_2,
 		it_40_2,
 		it_41_2,
+		it_41_6,
 		it_42_2,
 		it_42_4,
 		it_42_5,
+		it_42_6,
 		it_43_2,
 		it_44_2,
 		it_45_6,
-		it_46_6
+		it_46_6,
+		it_47_6,
+		it_48_6
 	]
 
 	default = it_46_6
@@ -383,6 +391,7 @@ class RunnerStatsLossesBranches:
 	it_43_1 = "it_43_1"
 	it_44_1 = "it_44_1"
 	it_45_0 = "it_45_0"
+	it_47_0 = "it_47_0"
 
 	all = [
 		main,
@@ -421,7 +430,8 @@ class RunnerStatsLossesBranches:
 		it_42,
 		it_43_1,
 		it_44_1,
-		it_45_0
+		it_45_0,
+		it_47_0
 	]
 
 	default = it_45_0
