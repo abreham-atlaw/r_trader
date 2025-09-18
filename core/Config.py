@@ -119,7 +119,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 1024
+MARKET_STATE_MEMORY = 256
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
@@ -250,7 +250,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-41/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-51/"
 
 
 class ResourceCategories:
@@ -353,7 +353,7 @@ class RunnerStatsBranches:
 		it_52_6
 	]
 
-	default = it_41_2
+	default = it_51_6
 
 
 class RunnerStatsLossesBranches:
@@ -441,4 +441,4 @@ class RunnerStatsLossesBranches:
 		it_51_0
 	]
 
-	default = it_41
+	default = it_51_0
