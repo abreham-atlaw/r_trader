@@ -1,9 +1,11 @@
+import os
 import unittest
 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
+from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 
 
@@ -12,7 +14,7 @@ class BaseDatasetTest(unittest.TestCase):
 	def setUp(self):
 		self.dataset = BaseDataset(
 			[
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/train"
 			],
 			num_files=3,
 			load_weights=True,
@@ -62,5 +64,15 @@ class BaseDatasetTest(unittest.TestCase):
 		for X, y, w in dataloader:
 			self.assertIsNotNone(X)
 
+	def test_lass_load(self):
+		dataset = BaseDataset(
+			root_dirs=[
+				os.path.join(Config.BASE_DIR, "temp/Data/lass/0/train")
+			],
+			load_weights=False
+		)
 
+		X, y, w = dataset[0]
 
+		self.assertEqual(X.shape[0], 32)
+		self.assertEqual(y.shape[0], 1)

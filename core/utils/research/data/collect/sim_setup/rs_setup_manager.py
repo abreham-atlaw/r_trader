@@ -40,18 +40,7 @@ class RSSetupManager:
 			key=lambda t: stat.simulated_timestamps.count(self.__serialize_time(t))
 		)
 
-	@retry(exception_cls=(FileNotFoundException,), patience=10)
-	def setup(self):
-		Logger.info(f"Allocating Runner Stat...")
-		stat = self.__rs_repo.allocate_for_runlive()
-		Logger.info(f"Allocated Runner Stat: {stat}")
-
-		Logger.info(f"Downloading {stat.model_name}...")
-		self.__fs.download(stat.model_name, os.path.abspath(stat.model_name))
-
-		Config.CORE_MODEL_CONFIG.path = os.path.abspath(stat.model_name)
-		Config.AGENT_MODEL_TEMPERATURE = stat.temperature
-
+	def _allocate_extra(self, stat: RunnerStats):
 		Logger.info(f"Allocating Time...")
 		start_time = self._allocate_time(stat)
 		Logger.info(f"Allocated Start Time: {start_time}")
@@ -59,6 +48,21 @@ class RSSetupManager:
 
 		Logger.info(f"Setting up Simulation Trading...")
 		self.__setup_manager.setup(start_time)
+
+	@retry(exception_cls=(FileNotFoundException,), patience=10)
+	def setup(self):
+		Logger.info(f"Allocating Runner Stat...")
+		stat = self.__rs_repo.allocate_for_runlive()
+		Logger.success(f"Allocated Runner Stat: {stat}")
+
+		Logger.info(f"Downloading {stat.model_name}...")
+		self.__fs.download(stat.model_name, os.path.abspath(stat.model_name))
+
+		Config.CORE_MODEL_CONFIG.path = os.path.abspath(stat.model_name)
+		Config.AGENT_MODEL_TEMPERATURE = stat.temperature
+		Logger.success(f"Downloaded {stat.model_name} to {Config.CORE_MODEL_CONFIG.path}")
+
+		self._allocate_extra(stat)
 
 		Logger.success(f"Setup Complete!")
 
@@ -84,6 +88,9 @@ class RSSetupManager:
 		losses = self.__model_evaluator.evaluate(model)
 		return losses[0]
 
+	def _finish_extra(self, stat: RunnerStats):
+		pass
+
 	def finish(
 			self,
 			stat: RunnerStats,
@@ -108,5 +115,7 @@ class RSSetupManager:
 
 		Logger.info(f"Storing Session...")
 		self.__rs_repo.store(stat)
+
+		self._finish_extra(stat)
 
 		Logger.success(f"Finished Session!")

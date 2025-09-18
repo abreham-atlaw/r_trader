@@ -10,12 +10,20 @@ from lib.utils.logger import Logger
 
 class RunnerStatsBranchManager:
 
-	def __init__(self, all_branches: typing.List[str] = None, sync_model_losses: bool = False):
+	def __init__(
+			self,
+			all_branches: typing.List[str] = None,
+			sync_model_losses: bool = False,
+			stat_filter: typing.Callable = None
+	):
 		if all_branches is None:
 			all_branches = RunnerStatsBranches.all
+		if stat_filter is None:
+			stat_filter = lambda stat: True
 		self.__all_branches = all_branches
 		self.__repositories = {}
 		self.__is_sync_model_losses = sync_model_losses
+		self.__stat_filter = stat_filter
 
 	def __get_repository(self, branch: str) -> RunnerStatsRepository:
 		cached = self.__repositories.get(branch)
@@ -40,6 +48,13 @@ class RunnerStatsBranchManager:
 		target_stat.model_losses = source_stat.model_losses
 		repo.store(target_stat)
 
+	def __filter_stats(self, stats: typing.List[RunnerStats]) -> typing.List[RunnerStats]:
+		Logger.info(f"Filtering {len(stats)} stats...")
+		return list(filter(
+			self.__stat_filter,
+			stats
+		))
+
 	def __sync_branch(
 			self,
 			branch: str,
@@ -50,6 +65,8 @@ class RunnerStatsBranchManager:
 		synced_ids = [stat.id for stat in synced_stats]
 
 		stats = self.__get_repository(branch=branch).retrieve_all()
+		stats = self.__filter_stats(stats)
+		Logger.info(f"Syncing {len(stats)} stats...")
 
 		for target_branch in branches:
 			if target_branch == branch:
@@ -78,13 +95,15 @@ class RunnerStatsBranchManager:
 					new_stat.real_profits,
 					new_stat.duration,
 					new_stat.branch,
-					new_stat.simulated_timestamps
+					new_stat.simulated_timestamps,
+					new_stat.session_model_losses
 				) = (
 					[],
 					[],
 					[],
 					0,
 					target_branch,
+					[],
 					[]
 				)
 				self.__get_repository(target_branch).store(new_stat)
