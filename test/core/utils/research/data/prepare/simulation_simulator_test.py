@@ -57,15 +57,11 @@ class SimulationSimulatorTest(unittest.TestCase):
 			smoothing_algorithm=MovingAverage(64),
 			order_gran=True,
 			trim_extra_gran=True,
+			trim_incomplete_batch=True,
 			splitter=SequentialSplitter(
 				test_size=0.2
 			),
 			transformations=[
-				VerticalShiftTransformation(),
-				GaussianNoiseTransformation(),
-				TimeStretchTransformation(),
-				VerticalStretchTransformation(alpha=1.1),
-				VerticalStretchTransformation(alpha=0.99)
 			]
 		)
 
