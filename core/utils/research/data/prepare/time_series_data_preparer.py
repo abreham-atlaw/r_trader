@@ -25,6 +25,7 @@ class TimeSeriesDataPreparer(ABC):
 			order_gran: bool = True,
 			trim_extra_gran: bool = False,
 			process_batch_size: int = None,
+			trim_incomplete_batch: bool = False,
 
 			X_dir: str = "X",
 			y_dir: str = "y",
@@ -42,6 +43,7 @@ class TimeSeriesDataPreparer(ABC):
 		self.__order_gran = order_gran
 		self.__trim_extra_gran = trim_extra_gran
 		self.__process_batch_size = process_batch_size
+		self.__trim_incomplete_batch = trim_incomplete_batch
 
 		self.__X_dir, self.__y_dir = X_dir, y_dir
 		self.__train_dir, self.__test_dir = train_dir, test_dir
@@ -148,6 +150,15 @@ class TimeSeriesDataPreparer(ABC):
 		for i in range(0, size, self.__batch_size):
 			X_batches.append(X[i: i + self.__batch_size])
 			y_batches.append(y[i: i + self.__batch_size])
+
+		if self.__trim_incomplete_batch:
+			X_batches, y_batches = [
+				list(filter(
+					lambda batch: batch.shape[0] == self.__batch_size,
+					batches
+				))
+				for batches in (X_batches, y_batches)
+			]
 
 		return X_batches, y_batches
 
