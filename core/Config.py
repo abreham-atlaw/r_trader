@@ -143,7 +143,7 @@ AGENT_USE_CUSTOM_RESOURCE_MANAGER = False
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
-	("AUD", "USD"),
+	("USD", "ZAR"),
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -250,7 +250,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-51/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-49/"
 
 
 class ResourceCategories:
@@ -356,7 +356,7 @@ class RunnerStatsBranches:
 		it_52_6
 	]
 
-	default = it_51_6
+	default = it_49_6
 
 
 class RunnerStatsLossesBranches:
@@ -446,4 +446,4 @@ class RunnerStatsLossesBranches:
 		it_51_0
 	]
 
-	default = it_51_0
+	default = it_49_0
