@@ -108,7 +108,7 @@ OANDA_SIM_DELTA_MULTIPLIER = 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50.json")
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50-it-3.json")
 OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
 
 DEFAULT_TIME_IN_FORCE = "FOK"
@@ -119,7 +119,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 1024
+MARKET_STATE_MEMORY = 256
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
@@ -143,7 +143,7 @@ AGENT_USE_CUSTOM_RESOURCE_MANAGER = True
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
-	("AUD", "USD"),
+	("USD", "ZAR"),
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -190,9 +190,9 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/08.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
-with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
@@ -250,7 +250,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-41/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-49/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
@@ -317,14 +317,28 @@ class RunnerStatsBranches:
 	it_39_1 = "it_39_1"
 	it_39_2 = "it_39_2"
 	it_40_2 = "it_40_2"
+
 	it_41_2 = "it_41_2"
 	it_41_6 = "it_41_6"
 	it_42_2 = "it_42_2"
 	it_42_4 = "it_42_4"
 	it_42_5 = "it_42_5"
 	it_42_6 = "it_42_6"
+
 	it_43_2 = "it_43_2"
 	it_44_2 = "it_44_2"
+
+	it_45_6 = "it_45_6"
+	it_46_6 = "it_46_6"
+
+	it_47_6 = "it_47_6"
+
+	it_48_6 = "it_48_6"
+
+	it_49_6 = "it_49_6"
+
+	it_51_6 = "it_51_6"
+	it_52_6 = "it_52_6"
 
 	all = [
 		main,
@@ -354,14 +368,23 @@ class RunnerStatsBranches:
 		it_39_2,
 		it_40_2,
 		it_41_2,
+		it_41_6,
 		it_42_2,
 		it_42_4,
 		it_42_5,
+		it_42_6,
 		it_43_2,
-		it_44_2
+		it_44_2,
+		it_45_6,
+		it_46_6,
+		it_47_6,
+		it_48_6,
+		it_49_6,
+		it_51_6,
+		it_52_6
 	]
 
-	default = it_41_6
+	default = it_49_6
 
 
 class RunnerStatsLossesBranches:
@@ -399,9 +422,14 @@ class RunnerStatsLossesBranches:
 	it_41_h_0 = "it_41_h_0"
 	it_41_h_1 = "it_41_h_1"
 	it_41_0 = "it_41_0"
+	it_41_1 = "it_41_1"
 	it_42 = "it_42"
 	it_43_1 = "it_43_1"
 	it_44_1 = "it_44_1"
+	it_45_0 = "it_45_0"
+	it_47_0 = "it_47_0"
+	it_49_0 = "it_49_0"
+	it_51_0 = "it_51_0"
 
 	all = [
 		main,
@@ -436,9 +464,14 @@ class RunnerStatsLossesBranches:
 		it_41_h_0,
 		it_41_h_1,
 		it_41_0,
+		it_41_1,
 		it_42,
 		it_43_1,
-		it_44_1
+		it_44_1,
+		it_45_0,
+		it_47_0,
+		it_49_0,
+		it_51_0
 	]
 
-	default = it_41
+	default = it_49_0
