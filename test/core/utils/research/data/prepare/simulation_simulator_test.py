@@ -49,10 +49,10 @@ class SimulationSimulatorTest(unittest.TestCase):
 		simulator = SimulationSimulator(
 			df=df,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			seq_len=1033,
+			seq_len=256,
 			extra_len=124,
-			batch_size=10,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/01",
+			batch_size=16,
+			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02",
 			granularity=5,
 			smoothing_algorithm=MovingAverage(64),
 			order_gran=True,
