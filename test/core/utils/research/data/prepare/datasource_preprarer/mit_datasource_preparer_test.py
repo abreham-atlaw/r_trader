@@ -12,7 +12,7 @@ class MITDatasourcePreparerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.preparer = MITDatasourcePreparer(
-			export_path=os.path.join(BASE_DIR, "temp/Data/"),
+			export_path=os.path.join(BASE_DIR, "temp/Data/All-All.1-month.csv"),
 		)
 
 	def test_prepare_multiple(self):
@@ -26,6 +26,6 @@ class MITDatasourcePreparerTest(unittest.TestCase):
 			],
 			time_range=(
 				pd.to_datetime("2022-01-01 00:00:00+00:00"),
-				pd.to_datetime("2023-01-01 00:00:00+00:00")
+				pd.to_datetime("2022-02-01 00:00:00+00:00")
 			)
 		)
