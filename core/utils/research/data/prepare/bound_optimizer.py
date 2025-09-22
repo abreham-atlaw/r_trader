@@ -76,8 +76,8 @@ class BoundGenerator:
 		data_preparer.start()
 
 		y = np.concatenate([
-			np.load(os.path.join(path, "y", f))
-			for f in sorted(os.listdir(os.path.join(path, "y")))
+			np.load(os.path.join(path, "train/y", f))
+			for f in sorted(os.listdir(os.path.join(path, "train/y")))
 		])[:, :-1]
 
 		y_classes = np.argmax(y, axis=1)
