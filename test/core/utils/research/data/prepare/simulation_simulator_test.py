@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import timedelta, datetime
 
@@ -5,6 +6,7 @@ import pandas as pd
 import numpy as np
 
 from core import Config
+from core.Config import BASE_DIR
 from core.utils.research.data.prepare import SimulationSimulator
 from core.utils.research.data.prepare.augmentation import VerticalShiftTransformation, GaussianNoiseTransformation, \
 	TimeStretchTransformation, VerticalStretchTransformation
@@ -44,15 +46,15 @@ class SimulationSimulatorTest(unittest.TestCase):
 
 	def test_functionality(self):
 
-		df = pd.read_csv("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-10k.csv")
+		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/All-All.1-month.csv"))
 
 		simulator = SimulationSimulator(
 			df=df,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			seq_len=256,
+			seq_len=1033,
 			extra_len=124,
-			batch_size=16,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02",
+			batch_size=10,
+			output_path=os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/03"),
 			granularity=5,
 			smoothing_algorithm=MovingAverage(64),
 			order_gran=True,
