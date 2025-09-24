@@ -11,15 +11,15 @@ class AbstractHorizonModel(SpinozaModule, ABC):
 
 	def __init__(
 			self,
-			h: float,
 			model: SpinozaModule,
-			max_depth: int = None
+			max_depth: int = None,
+			*args, **kwargs
 	):
 		self.args = {
-			"h": h,
 			"model": model,
 			"max_depth": max_depth
 		}
+		h = 0.0
 		super().__init__(input_size=model.input_size, output_size=model.output_size, auto_build=False)
 		Logger.info(f"Initializing HorizonModel(h={h}, max_depth={max_depth})...")
 		self.h = h
