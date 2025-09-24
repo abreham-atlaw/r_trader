@@ -1,9 +1,13 @@
 from pymongo import MongoClient
 
 from core import Config
+from core.utils.research.data.prepare.smoothing_algorithm import Lass
+from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass3Executor
+from core.utils.research.model.model.utils import AbstractHorizonModel
 from core.utils.resman import ResourceRepository, MongoResourceRepository
 from lib.network.oanda import OandaNetworkClient
 from lib.utils.file_storage import FileStorage, PCloudCombinedFileStorage
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class ServiceProvider:
@@ -31,4 +35,15 @@ class ServiceProvider:
 			url=Config.OANDA_TRADING_URL,
 			token=Config.OANDA_TOKEN,
 			account_id=Config.OANDA_TRADING_ACCOUNT_ID
+		)
+
+	@staticmethod
+	def provide_lass() -> Lass:
+		from core.utils.research.utils.model_utils import ModelUtils
+		model = ModelUtils.load_from_fs(Config.AGENT_LASS_MODEL_FS_PATH)
+		if isinstance(model, AbstractHorizonModel):
+			model.set_h(0.0)
+		return Lass(
+			model=model,
+			executor=Lass3Executor()
 		)
