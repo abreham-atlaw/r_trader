@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from core.utils.research.data.prepare import DataPreparer, SimulationSimulator
+from core.utils.research.data.prepare import DataPreparer, SimulationSimulator, SimulationSimulator2
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from lib.utils.decorators import retry
 from lib.utils.logger import Logger
@@ -61,7 +61,7 @@ class BoundGenerator:
 	def get_frequencies(self, bounds):
 		path = self.__prepare_tmp_path()
 
-		data_preparer = SimulationSimulator(
+		data_preparer = SimulationSimulator2(
 			df=self.__df,
 			bounds=bounds,
 			seq_len=10,
