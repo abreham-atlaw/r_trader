@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import timedelta, datetime
 
@@ -5,6 +6,7 @@ import pandas as pd
 import numpy as np
 
 from core import Config
+from core.Config import BASE_DIR
 from core.utils.research.data.prepare import SimulationSimulator
 from core.utils.research.data.prepare.augmentation import VerticalShiftTransformation, GaussianNoiseTransformation, \
 	TimeStretchTransformation, VerticalStretchTransformation
@@ -44,7 +46,7 @@ class SimulationSimulatorTest(unittest.TestCase):
 
 	def test_functionality(self):
 
-		df = pd.read_csv("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-10k.csv")
+		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/All-All.1-month.csv"))
 
 		simulator = SimulationSimulator(
 			df=df,
@@ -52,20 +54,16 @@ class SimulationSimulatorTest(unittest.TestCase):
 			seq_len=1033,
 			extra_len=124,
 			batch_size=10,
-			output_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/01",
+			output_path=os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/03"),
 			granularity=5,
 			smoothing_algorithm=MovingAverage(64),
 			order_gran=True,
 			trim_extra_gran=True,
+			trim_incomplete_batch=True,
 			splitter=SequentialSplitter(
 				test_size=0.2
 			),
 			transformations=[
-				VerticalShiftTransformation(),
-				GaussianNoiseTransformation(),
-				TimeStretchTransformation(),
-				VerticalStretchTransformation(alpha=1.1),
-				VerticalStretchTransformation(alpha=0.99)
 			]
 		)
 
