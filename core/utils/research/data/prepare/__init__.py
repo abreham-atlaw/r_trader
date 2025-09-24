@@ -4,7 +4,7 @@ from .duplicate_cleaner import DuplicateCleaner
 from .duplicate_data_cleaner import DuplicateDataCleaner
 from .file_size_cleaner import FileSizeCleaner
 from .file_syncer import FileSyncer
-from .simulation_simulator import SimulationSimulator
+from .simulation_simulator import SimulationSimulator, SimulationSimulator2
 from .files_merger import FilesMerger
 from .batch_size_modifier import BatchSizeModifier
 from .moe import ModelOutputExporter, MergedModelOutputExporter
@@ -17,6 +17,7 @@ __all__ = [
 	"FileSizeCleaner",
 	"FileSyncer",
 	"SimulationSimulator",
+	"SimulationSimulator2",
 	"FilesMerger",
 	"BatchSizeModifier",
 	"ModelOutputExporter",
