@@ -1,10 +1,11 @@
 from pymongo import MongoClient
 
 from core import Config
-from core.utils.research.data.prepare.smoothing_algorithm import Lass
+from core.utils.research.data.prepare.smoothing_algorithm import Lass, SmoothingAlgorithm, MovingAverage
 from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass3Executor
 from core.utils.research.model.model.utils import AbstractHorizonModel
 from core.utils.resman import ResourceRepository, MongoResourceRepository
+from lib.dnn.layers import KalmanFilter
 from lib.network.oanda import OandaNetworkClient
 from lib.utils.file_storage import FileStorage, PCloudCombinedFileStorage
 from lib.utils.torch_utils.model_handler import ModelHandler
@@ -46,4 +47,19 @@ class ServiceProvider:
 		return Lass(
 			model=model,
 			executor=Lass3Executor()
+		)
+
+	@staticmethod
+	def provide_smoothing_algorithm() -> SmoothingAlgorithm:
+		if Config.AGENT_USE_LASS:
+			return ServiceProvider.provide_lass()
+
+		if Config.AGENT_USE_KALMAN_FILTER:
+			return KalmanFilter(
+				alpha=Config.AGENT_KALMAN_ALPHA,
+				beta=Config.AGENT_KALMAN_BETA
+			)
+
+		return MovingAverage(
+			window_size=Config.AGENT_MA_WINDOW_SIZE
 		)
