@@ -63,7 +63,7 @@ class BoundGenerator:
 	def get_frequencies(self, bounds):
 		path = self.__prepare_tmp_path()
 
-		data_preparer = SimulationSimulator2(
+		data_preparer = SimulationSimulator(
 			df=self.__df,
 			bounds=bounds,
 			seq_len=self.__prep_block_size,
