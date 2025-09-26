@@ -27,4 +27,4 @@ class AdoptedInputSizeModel(SpinozaModule):
 		return self.model(x)
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
-		pass
+		return self.args
