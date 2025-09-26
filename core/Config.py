@@ -119,7 +119,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 256
+MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
@@ -143,7 +143,7 @@ AGENT_USE_CUSTOM_RESOURCE_MANAGER = False
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
-	("USD", "ZAR"),
+	("AUD", "USD"),
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -171,7 +171,9 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 32
+AGENT_MA_WINDOW_SIZE = 64
+AGENT_USE_LASS = True
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -190,12 +192,13 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/08.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
+
 
 MC_WORKER_STEP_TIME = 1 * 60
 MC_WORKERS = 8
@@ -255,8 +258,7 @@ TEMPERATURES = [0.1, 0.25, 1.0]
 HORIZON_MODE = True
 HORIZON_H = 0.9
 
-
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-49/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-56/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -321,6 +323,12 @@ class RunnerStatsBranches:
 	it_51_6 = "it_51_6"
 	it_52_6 = "it_52_6"
 
+	it_53_6 = "it_53_6"
+
+	it_54_6 = "it-54_6"
+
+	it_56_6 = "it_56_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -362,10 +370,13 @@ class RunnerStatsBranches:
 		it_48_6,
 		it_49_6,
 		it_51_6,
-		it_52_6
+		it_52_6,
+		it_53_6,
+		it_54_6,
+		it_56_6
 	]
 
-	default = it_49_6
+	default = it_56_6
 
 
 class RunnerStatsLossesBranches:
@@ -410,7 +421,9 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0"
+	it_51_0 = "it_51_0",
+	it_54_0 = "it_54_0"
+	it_56_0 = "it_56_0"
 
 	all = [
 		main,
@@ -452,7 +465,9 @@ class RunnerStatsLossesBranches:
 		it_45_0,
 		it_47_0,
 		it_49_0,
-		it_51_0
+		it_51_0,
+		it_54_0,
+		it_56_0
 	]
 
-	default = it_49_0
+	default = it_56_0
