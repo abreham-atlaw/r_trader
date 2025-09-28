@@ -252,7 +252,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-56/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
 
 
 class ResourceCategories:
