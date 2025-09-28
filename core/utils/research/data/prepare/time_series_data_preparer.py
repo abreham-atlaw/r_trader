@@ -197,7 +197,7 @@ class TimeSeriesDataPreparer(ABC):
 				continue
 			self.__batch_and_save(X, y, purpose_dir)
 
-	def __batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
+	def _batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
 		if self.__process_batch_size is None:
 			return [df]
 		return [
@@ -208,7 +208,7 @@ class TimeSeriesDataPreparer(ABC):
 	def start(self, start_date: datetime = None, end_date: datetime = None):
 		df = self.__filter_df(start_date, end_date)
 
-		dfs = self.__batch_df(df)
+		dfs = self._batch_df(df)
 		for i, df in enumerate(dfs):
 			self.__process_df_batch(df)
 			Logger.info(f"Processed {i}/{len(dfs)} batches ...")
