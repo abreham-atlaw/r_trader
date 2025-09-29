@@ -42,8 +42,10 @@ class SpinozaModule(nn.Module, ABC):
 		out = self(init_data)
 		self.output_size = (None,) + out.size()[1:]
 
-	def set_caching(self, caching: bool):
+	def set_caching(self, caching: bool, size=None):
 		self.__caching = caching
+		if size is not None:
+			self.__module_cache = ModuleCache(cache_size=size)
 
 	def _build(self, input_size: torch.Size):
 		Logger.info(f"[{self.__class__.__name__}] Building...")
