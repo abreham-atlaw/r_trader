@@ -144,6 +144,7 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
+	("USD", "ZAR")
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -171,8 +172,8 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
-AGENT_USE_LASS = True
+AGENT_MA_WINDOW_SIZE = 32
+AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
@@ -192,7 +193,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/10.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -258,7 +259,7 @@ TEMPERATURES = [0.1, 0.25, 1.0]
 HORIZON_MODE = True
 HORIZON_H = 0.9
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-56/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-58/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -328,6 +329,9 @@ class RunnerStatsBranches:
 	it_54_6 = "it-54_6"
 
 	it_56_6 = "it_56_6"
+	it_57_6 = "it_57_6"
+
+	it_58_6 = "it_58_6"
 
 	all = [
 		main,
@@ -373,10 +377,12 @@ class RunnerStatsBranches:
 		it_52_6,
 		it_53_6,
 		it_54_6,
-		it_56_6
+		it_56_6,
+		it_57_6,
+		it_58_6
 	]
 
-	default = it_56_6
+	default = it_58_6
 
 
 class RunnerStatsLossesBranches:
@@ -424,6 +430,7 @@ class RunnerStatsLossesBranches:
 	it_51_0 = "it_51_0",
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
+	it_58_0 = "it_58_0"
 
 	all = [
 		main,
@@ -467,7 +474,8 @@ class RunnerStatsLossesBranches:
 		it_49_0,
 		it_51_0,
 		it_54_0,
-		it_56_0
+		it_56_0,
+		it_58_0,
 	]
 
-	default = it_56_0
+	default = it_58_0
