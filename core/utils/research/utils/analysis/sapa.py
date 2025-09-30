@@ -61,17 +61,20 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 		x = pd.read_csv(self.__df_path)["c"].to_numpy()[::self.__granularity]
 		return x
 
-	def __select_samples(self, sequence: np.ndarray, view_size: int) -> np.ndarray:
+	def __select_samples(self, sequence: np.ndarray, view_size: int, stride: int) -> np.ndarray:
 		Logger.info(f"Selecting {self.__samples} Samples")
 		return np.stack([
-			sequence[-view_size * (i + 1): None if i == 0 else -view_size * i]
+			sequence[
+				-(view_size + stride*i):
+				None if i == 0 else -(stride*i)
+			]
 			for i in range(self.__samples)
 		])
 
 	def __extract_samples(self, sequence: np.ndarray, sa: SmoothingAlgorithm) -> typing.Tuple[np.ndarray, np.ndarray]:
 		Logger.info(f"Selecting samples of view_size: {self.__view_size}")
 
-		x = self.__select_samples(sequence, view_size=self.__view_size + sa.reduction)
+		x = self.__select_samples(sequence, view_size=self.__view_size + sa.reduction, stride=self.__view_size)
 		x_sa = sa.apply_on_batch(x)
 		if x.shape[1] != x_sa.shape[1]:
 			x = x[:, -x_sa.shape[1]:]
