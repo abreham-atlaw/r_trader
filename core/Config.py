@@ -258,7 +258,7 @@ TEMPERATURES = [0.1, 0.25, 1.0]
 HORIZON_MODE = True
 HORIZON_H = 0.9
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-56/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -328,6 +328,7 @@ class RunnerStatsBranches:
 	it_54_6 = "it-54_6"
 
 	it_56_6 = "it_56_6"
+	it_57_6 = "it_57_6"
 
 	all = [
 		main,
@@ -373,10 +374,11 @@ class RunnerStatsBranches:
 		it_52_6,
 		it_53_6,
 		it_54_6,
-		it_56_6
+		it_56_6,
+		it_57_6
 	]
 
-	default = it_56_6
+	default = it_57_6
 
 
 class RunnerStatsLossesBranches:
