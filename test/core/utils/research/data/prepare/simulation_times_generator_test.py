@@ -15,7 +15,7 @@ class SimulationTimesGeneratorTest(unittest.TestCase):
 
 	def test_generate(self):
 		self.generator.generate(
-			start_time=datetime(year=2024, month=10, day=1),
+			start_time=datetime(year=2025, month=1, day=28),
 			end_time=datetime(year=2025, month=8, day=1),
 			count=50,
 			export_path=os.path.join(BASE_DIR, "res/times/times-50-it-4.json")
