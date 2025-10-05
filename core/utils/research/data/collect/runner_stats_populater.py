@@ -312,6 +312,7 @@ class RunnerStatsPopulater:
 		print(f"[+]Cleaning Junk...")
 		for path in self.__junk:
 			os.system(f"rm {os.path.abspath(path)}")
+		self.__junk = set([])
 
 	@staticmethod
 	def __generate_id(file_path: str, temperature: float) -> str:
