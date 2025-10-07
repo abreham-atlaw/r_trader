@@ -10,7 +10,6 @@ import unittest
 from core import Config
 from core.utils.research.data.prepare.augmentation import VerticalShiftTransformation, VerticalStretchTransformation, \
 	TimeStretchTransformation, GaussianNoiseTransformation
-from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass6_preparer import Lass6Preparer
 from core.utils.research.data.prepare.splitting import SequentialSplitter
 from lib.utils.logger import Logger

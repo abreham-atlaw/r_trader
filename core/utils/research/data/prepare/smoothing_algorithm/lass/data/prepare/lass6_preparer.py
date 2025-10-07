@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from core.utils.research.data.prepare.smoothing_algorithm.identity_sa import IdentitySA
+from core.utils.research.data.prepare.smoothing_algorithm import IdentitySA
 from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass3_preparer import Lass3Preparer
 
 
