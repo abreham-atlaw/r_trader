@@ -11,7 +11,8 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer = SessionAnalyzer(
 			session_path="/home/abrehamatlaw/Downloads/Compressed/results_2",
 			instruments=[
-				("AUD", "USD")
+				("AUD", "USD"),
+				("USD", "ZAR")
 			],
 			smoothing_algorithms=[
 				MovingAverage(64),
@@ -22,6 +23,8 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def test_plot_sequence(self):
 		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("AUD", "USD"))
+		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
 
 	def test_plot_timestep_sequence(self):
 		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("AUD", "USD"))
+		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("USD", "ZAR"))

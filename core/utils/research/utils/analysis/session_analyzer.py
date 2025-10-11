@@ -125,7 +125,7 @@ class SessionAnalyzer:
 		]
 
 		plt.figure(figsize=self.__fig_size)
-		plt.title(f"i={i}")
+		plt.title(f"{instrument[0]} / {instrument[1]}  -  i={i}")
 		plt.grid()
 
 		plt.plot(x, label="Clean")
