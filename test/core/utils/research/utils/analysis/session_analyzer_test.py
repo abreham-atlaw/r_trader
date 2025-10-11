@@ -1,7 +1,10 @@
 import unittest
 
+from core import Config
 from core.di import ServiceProvider
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
+from core.utils.research.losses import ProximalMaskedLoss
 from core.utils.research.utils.analysis.session_analyzer import SessionAnalyzer
 
 
@@ -28,3 +31,9 @@ class SessionAnalyzerTest(unittest.TestCase):
 	def test_plot_timestep_sequence(self):
 		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("AUD", "USD"))
 		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("USD", "ZAR"))
+
+	def test_evaluate_model(self):
+		loss = self.session_analyzer.evaluate_loss(ProximalMaskedLoss(
+			n=len(DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND))
+		))
+		print("Loss:", loss)

@@ -4,11 +4,17 @@ import typing
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from torch.utils.data import DataLoader
 
+from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
+from core.utils.research.losses import SpinozaLoss
+from core.utils.research.model.model.savable import SpinozaModule
+from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache import Cache
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class SessionAnalyzer:
@@ -20,6 +26,9 @@ class SessionAnalyzer:
 			instruments: typing.List[typing.Tuple[str, str]],
 			fig_size: typing.Tuple[int, int] = (20, 10),
 			plt_y_grid_count: int = 100,
+			model: typing.Optional[SpinozaModule] = None,
+			dtype: typing.Type = np.float32,
+			model_key: str = "spinoza-training"
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -27,6 +36,19 @@ class SessionAnalyzer:
 		self.__plt_y_grid_count = plt_y_grid_count
 		self.__cache = Cache()
 		self.__instruments = instruments
+		self.__model = model or self.__load_session_model(model_key)
+		self.__dtype = dtype
+
+	def __load_session_model(self, model_key: str) -> SpinozaModule:
+		model_path = os.path.join(
+			self.__sessions_path,
+			next(filter(
+				lambda filename: filename.endswith(".zip") and model_key in filename,
+				os.listdir(self.__sessions_path)
+			))
+		)
+		Logger.info(f"Using session model: {os.path.basename(model_path)}")
+		return ModelHandler.load(model_path)
 
 	@property
 	def __candlesticks_path(self) -> str:
@@ -35,6 +57,10 @@ class SessionAnalyzer:
 	@property
 	def __graphs_path(self) -> str:
 		return os.path.join(self.__sessions_path, "graph_dumps")
+
+	@property
+	def __data_path(self) -> str:
+		return os.path.join(self.__sessions_path, "outs")
 
 	def __get_df_files(self, instrument: typing.Tuple[str, str]) -> typing.List[str]:
 
@@ -134,3 +160,10 @@ class SessionAnalyzer:
 
 		plt.legend()
 		plt.show()
+
+	def evaluate_loss(self, loss: SpinozaLoss) -> float:
+		evaluator = ModelEvaluator(
+			data_path=self.__data_path,
+			cls_loss_fn=loss,
+		)
+		return evaluator(self.__model)[0]
