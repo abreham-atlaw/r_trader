@@ -7,6 +7,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
+from core.utils.research.data.prepare.augmentation import Transformation
 from core.utils.research.data.prepare.splitting import TrainTestSplitter
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.logger import Logger
@@ -24,14 +25,21 @@ class TimeSeriesDataPreparer(ABC):
 			order_gran: bool = True,
 			trim_extra_gran: bool = False,
 			process_batch_size: int = None,
+			trim_incomplete_batch: bool = False,
+			clean_df: bool = True,
 
 			X_dir: str = "X",
 			y_dir: str = "y",
 			train_dir: str = "train",
 			test_dir: str = "test",
-			splitter: TrainTestSplitter = None
+			splitter: TrainTestSplitter = None,
+
+			transformations: typing.List[Transformation] = None
 	):
-		self.__df = DataPrepUtils.clean_df(df)
+		if clean_df:
+			df = DataPrepUtils.clean_df(df)
+
+		self.__df = df
 		self.__block_size = block_size
 		self.__granularity = granularity
 		self.__batch_size = batch_size
@@ -39,11 +47,17 @@ class TimeSeriesDataPreparer(ABC):
 		self.__order_gran = order_gran
 		self.__trim_extra_gran = trim_extra_gran
 		self.__process_batch_size = process_batch_size
+		self.__trim_incomplete_batch = trim_incomplete_batch
 
 		self.__X_dir, self.__y_dir = X_dir, y_dir
 		self.__train_dir, self.__test_dir = train_dir, test_dir
 		self.__splitter = splitter
 		Logger.info(f"Using splitter: {self.__splitter}")
+
+		if transformations is None:
+			transformations = []
+		self.__transformations = transformations
+		Logger.info(f"Using transformations({len(self.__transformations)}): {', '.join(map(lambda t: str(t), self.__transformations))}")
 
 	@staticmethod
 	def __generate_filename() -> np.ndarray:
@@ -68,8 +82,22 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		return sequence
 
+	def __apply_transformations(self, x: np.ndarray) -> np.ndarray:
+		y = np.concatenate([x] + [
+			transformation(x)
+			for transformation in self.__transformations
+		])
+		return y
+
+	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
+		return x
+
 	def __process_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = DataPrepUtils.stack(sequence, self.__block_size)
+
+		stacked_sequence = self.__apply_transformations(stacked_sequence)
+
+		stacked_sequence = self._prepare_sequence_stack(stacked_sequence)
 
 		X = self._prepare_x(stacked_sequence)
 		y = self._prepare_y(stacked_sequence)
@@ -127,6 +155,15 @@ class TimeSeriesDataPreparer(ABC):
 			X_batches.append(X[i: i + self.__batch_size])
 			y_batches.append(y[i: i + self.__batch_size])
 
+		if self.__trim_incomplete_batch:
+			X_batches, y_batches = [
+				list(filter(
+					lambda batch: batch.shape[0] == self.__batch_size,
+					batches
+				))
+				for batches in (X_batches, y_batches)
+			]
+
 		return X_batches, y_batches
 
 	def __save(self, X: np.ndarray, y: np.ndarray, purpose_dir: str):
@@ -164,7 +201,7 @@ class TimeSeriesDataPreparer(ABC):
 				continue
 			self.__batch_and_save(X, y, purpose_dir)
 
-	def __batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
+	def _batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
 		if self.__process_batch_size is None:
 			return [df]
 		return [
@@ -175,7 +212,7 @@ class TimeSeriesDataPreparer(ABC):
 	def start(self, start_date: datetime = None, end_date: datetime = None):
 		df = self.__filter_df(start_date, end_date)
 
-		dfs = self.__batch_df(df)
+		dfs = self._batch_df(df)
 		for i, df in enumerate(dfs):
 			self.__process_df_batch(df)
 			Logger.info(f"Processed {i}/{len(dfs)} batches ...")

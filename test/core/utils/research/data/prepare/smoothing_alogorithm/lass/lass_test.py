@@ -7,24 +7,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from core import Config
+from core.di import ServiceProvider
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
-from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor
+from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor, \
+	Lass4Executor, Lass5PlainExecutor
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class LassTest(unittest.TestCase):
 
 	def setUp(self):
-		self.lass = Lass(
-			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-3-it-5-tot.zip"),
-			executor=Lass3Executor(padding=60)
-		)
+		self.lass = ServiceProvider.provide_lass()
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
 		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
 		self.gran = 30
 
 	def test_mock(self):
-		x = np.arange(1024) * np.random.rand(1024)
+		x = (np.arange(1024) + 5) * ((np.random.rand(1024) * 0) + 1)
 		y = self.lass.apply(x)
 		self.assertIsInstance(y, np.ndarray)
 		print(y)
@@ -54,7 +53,7 @@ class LassTest(unittest.TestCase):
 			for arr in [x, y_ma]
 		]
 
-		view_window = 512
+		view_window = 128
 		samples = 6
 		cols = 3
 		rows = int(np.ceil(samples/cols))
