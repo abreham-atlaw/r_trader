@@ -173,7 +173,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-0-it-10-tot.3.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -252,7 +252,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-56/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-60/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
@@ -334,6 +334,7 @@ class RunnerStatsBranches:
 	it_48_6 = "it_48_6"
 
 	it_49_6 = "it_49_6"
+	it_50_6 = "it_50_6"
 
 	it_51_6 = "it_51_6"
 	it_52_6 = "it_52_6"
@@ -343,6 +344,13 @@ class RunnerStatsBranches:
 	it_54_6 = "it-54_6"
 
 	it_56_6 = "it_56_6"
+	it_56_7 = "it_56_7"
+	it_57_6 = "it_57_6"
+	it_57_8 = "it_57_8"
+
+	it_58_6 = "it_58_6"
+
+	it_60_6 = "it_60_6"
 
 	all = [
 		main,
@@ -384,14 +392,20 @@ class RunnerStatsBranches:
 		it_47_6,
 		it_48_6,
 		it_49_6,
+		it_50_6,
 		it_51_6,
 		it_52_6,
 		it_53_6,
 		it_54_6,
-		it_56_6
+		it_56_6,
+		it_56_7,
+		it_57_6,
+		it_57_8,
+		it_58_6,
+		it_60_6
 	]
 
-	default = it_56_6
+	default = it_60_6
 
 
 class RunnerStatsLossesBranches:
@@ -439,6 +453,8 @@ class RunnerStatsLossesBranches:
 	it_51_0 = "it_51_0",
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
+	it_58_0 = "it_58_0"
+	it_60_0 = "it_60_0"
 
 	all = [
 		main,
@@ -482,7 +498,9 @@ class RunnerStatsLossesBranches:
 		it_49_0,
 		it_51_0,
 		it_54_0,
-		it_56_0
+		it_56_0,
+		it_58_0,
+		it_60_0
 	]
 
-	default = it_56_0
+	default = it_60_0
