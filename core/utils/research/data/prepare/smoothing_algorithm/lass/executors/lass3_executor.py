@@ -14,7 +14,7 @@ class Lass3Executor(LassExecutor):
 			*args,
 			padding: int = 0,
 			left_align: bool = False,
-			verbose_threshold = int(1e4),
+			verbose_threshold: int = int(1e4),
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -69,7 +69,7 @@ class Lass3Executor(LassExecutor):
 			y[:, i] = self._process_prediction(inputs, prediction)
 
 			if self.__verbose_threshold is not None and x.shape[0] >= self.__verbose_threshold:
-				Logger.info(f"Executed Block({start}-{y.shape[1]}) {(i+1)*100/x.shape[1] :.2f}%...")
+				Logger.info(f"Executed Block({x.shape[0]}, {start}-{y.shape[1]}) {(i+1)*100/x.shape[1] :.2f}%...", end="\r")
 
 		return y
 
