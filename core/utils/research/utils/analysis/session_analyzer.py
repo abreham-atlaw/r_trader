@@ -187,5 +187,6 @@ class SessionAnalyzer:
 		if path is not None:
 			node = self.__get_node(node, path)
 		print(f"Max Depth: {stats.get_max_depth(node)}")
+		plt.figure(figsize=self.__fig_size)
 		stats.draw_graph_live(node, visited=True, state_repository=repo, depth=depth)
 		plt.show()
