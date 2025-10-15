@@ -171,11 +171,11 @@ class SessionAnalyzer:
 		)
 		return evaluator(self.__model)[0]
 
-	def __load_node(self, idx) -> typing.Tuple[Node, StateRepository]:
+	def load_node(self, idx) -> typing.Tuple[Node, StateRepository]:
 		return stats.load_node_repo(os.path.join(self.__graphs_path, sorted(os.listdir(self.__graphs_path))[idx]))
 
 	@staticmethod
-	def __get_node(root: Node, path: typing.List[int]):
+	def get_node(root: Node, path: typing.List[int]):
 		path = path.copy()
 		node = root
 		while len(path) > 0:
@@ -183,9 +183,9 @@ class SessionAnalyzer:
 		return node
 
 	def plot_node(self, idx: int, path: typing.List[int] = None, depth: int = None):
-		node, repo = self.__load_node(idx)
+		node, repo = self.load_node(idx)
 		if path is not None:
-			node = self.__get_node(node, path)
+			node = self.get_node(node, path)
 		print(f"Max Depth: {stats.get_max_depth(node)}")
 		plt.figure(figsize=self.__fig_size)
 		stats.draw_graph_live(node, visited=True, state_repository=repo, depth=depth)
