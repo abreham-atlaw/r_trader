@@ -3,11 +3,15 @@ import typing
 
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
+from torch import nn
 from torch.utils.data import DataLoader
 
+from core import Config
 from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.utils.model_evaluator import ModelEvaluator
@@ -31,7 +35,8 @@ class SessionAnalyzer:
 			plt_y_grid_count: int = 100,
 			model: typing.Optional[SpinozaModule] = None,
 			dtype: typing.Type = np.float32,
-			model_key: str = "spinoza-training"
+			model_key: str = "spinoza-training",
+			bounds: typing.Iterable[float] = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -41,6 +46,12 @@ class SessionAnalyzer:
 		self.__instruments = instruments
 		self.__model = model or self.__load_session_model(model_key)
 		self.__dtype = dtype
+
+		if bounds is None:
+			bounds = DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
+		self.__bounds = bounds
+
+		self.__softmax = nn.Softmax(dim=-1)
 
 	def __load_session_model(self, model_key: str) -> SpinozaModule:
 		model_path = os.path.join(
@@ -189,4 +200,48 @@ class SessionAnalyzer:
 		print(f"Max Depth: {stats.get_max_depth(node)}")
 		plt.figure(figsize=self.__fig_size)
 		stats.draw_graph_live(node, visited=True, state_repository=repo, depth=depth)
+		plt.show()
+
+	@CacheDecorators.cached_method()
+	def __load_output_data(self) -> typing.Tuple[np.ndarray, np.ndarray]:
+		X, y = [
+			np.concatenate([
+				np.load(os.path.join(self.__data_path, axis, filename)).astype(self.__dtype)
+				for filename in sorted(os.listdir(os.path.join(self.__data_path, axis)))
+			]).astype(self.__dtype)
+			for axis in ["X", "y"]
+		]
+		return X, y[:, :-1]
+
+	@CacheDecorators.cached_method()
+	def __get_y_hat(self, X: np.ndarray) -> np.ndarray:
+		y_hat = self.__softmax(self.__model(torch.from_numpy(X))[:, :-1]).detach().numpy()
+		return y_hat
+
+	def __get_yv(self, y: np.ndarray) -> np.ndarray:
+		bounds = (self.__bounds[1:] + self.__bounds[:-1])/2
+		return np.sum(y[:, :-1] * bounds, axis=1)
+
+	def plot_timestep_output(
+			self,
+			i: int,
+	):
+		X, y = self.__load_output_data()
+		y_hat = self.__get_y_hat(X)
+
+		y_v, y_hat_v = [self.__get_yv(_y) for _y in [y, y_hat]]
+
+		plt.figure(figsize=self.__fig_size)
+
+		plt.subplot(1, 2, 1)
+		plt.title(f"Timestep Output - i={i}")
+		plt.plot(X[i, :-124])
+
+		plt.subplot(1, 2, 2)
+		plt.title(f"""y: {y_v[i]}
+y_hat: {y_hat_v[i]}
+""")
+		plt.plot(y[i, :-1], label="Y")
+		plt.plot(y_hat[i, :-1], label="Y-hat")
+		plt.legend()
 		plt.show()
