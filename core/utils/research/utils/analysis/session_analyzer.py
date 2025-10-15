@@ -11,10 +11,13 @@ from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgori
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.utils.model_evaluator import ModelEvaluator
+from lib.rl.agent import Node
 from lib.utils.cache import Cache
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
+from lib.utils.staterepository import StateRepository
 from lib.utils.torch_utils.model_handler import ModelHandler
+from temp import stats
 
 
 class SessionAnalyzer:
@@ -167,3 +170,23 @@ class SessionAnalyzer:
 			cls_loss_fn=loss,
 		)
 		return evaluator(self.__model)[0]
+
+	def load_node(self, idx) -> typing.Tuple[Node, StateRepository]:
+		return stats.load_node_repo(os.path.join(self.__graphs_path, sorted(os.listdir(self.__graphs_path))[idx]))
+
+	@staticmethod
+	def get_node(root: Node, path: typing.List[int]):
+		path = path.copy()
+		node = root
+		while len(path) > 0:
+			node = node.get_children()[path.pop(0)]
+		return node
+
+	def plot_node(self, idx: int, path: typing.List[int] = None, depth: int = None):
+		node, repo = self.load_node(idx)
+		if path is not None:
+			node = self.get_node(node, path)
+		print(f"Max Depth: {stats.get_max_depth(node)}")
+		plt.figure(figsize=self.__fig_size)
+		stats.draw_graph_live(node, visited=True, state_repository=repo, depth=depth)
+		plt.show()
