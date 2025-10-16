@@ -37,3 +37,10 @@ class SessionAnalyzerTest(unittest.TestCase):
 			n=len(DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND))
 		))
 		print("Loss:", loss)
+
+	def test_plot_node(self):
+		self.session_analyzer.plot_node(idx=0, depth=5, path=[0, 0])
+
+	def test_plot_timestep_output(self):
+		for i in range(10):
+			self.session_analyzer.plot_timestep_output(i)
