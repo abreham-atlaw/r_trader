@@ -108,7 +108,7 @@ OANDA_SIM_DELTA_MULTIPLIER = 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50-it-3.json")
 OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
 
 DEFAULT_TIME_IN_FORCE = "FOK"
@@ -119,7 +119,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 256
+MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
@@ -172,6 +172,8 @@ AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
+AGENT_USE_LASS = False
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -256,7 +258,7 @@ HORIZON_MODE = True
 HORIZON_H = 0.9
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-49/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-50/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -317,9 +319,21 @@ class RunnerStatsBranches:
 	it_48_6 = "it_48_6"
 
 	it_49_6 = "it_49_6"
+	it_50_6 = "it_50_6"
 
 	it_51_6 = "it_51_6"
 	it_52_6 = "it_52_6"
+
+	it_53_6 = "it_53_6"
+
+	it_54_6 = "it-54_6"
+
+	it_56_6 = "it_56_6"
+	it_56_7 = "it_56_7"
+	it_57_6 = "it_57_6"
+	it_57_8 = "it_57_8"
+
+	it_58_6 = "it_58_6"
 
 	all = [
 		main,
@@ -361,11 +375,19 @@ class RunnerStatsBranches:
 		it_47_6,
 		it_48_6,
 		it_49_6,
+		it_50_6,
 		it_51_6,
-		it_52_6
+		it_52_6,
+		it_53_6,
+		it_54_6,
+		it_56_6,
+		it_56_7,
+		it_57_6,
+		it_57_8,
+		it_58_6
 	]
 
-	default = it_49_6
+	default = it_50_6
 
 
 class RunnerStatsLossesBranches:
@@ -410,7 +432,10 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0"
+	it_51_0 = "it_51_0",
+	it_54_0 = "it_54_0"
+	it_56_0 = "it_56_0"
+	it_58_0 = "it_58_0"
 
 	all = [
 		main,
@@ -452,7 +477,10 @@ class RunnerStatsLossesBranches:
 		it_45_0,
 		it_47_0,
 		it_49_0,
-		it_51_0
+		it_51_0,
+		it_54_0,
+		it_56_0,
+		it_58_0,
 	]
 
 	default = it_49_0

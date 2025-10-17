@@ -1,0 +1,27 @@
+import unittest
+
+from core.di import ServiceProvider
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
+from core.utils.research.utils.analysis.session_analyzer import SessionAnalyzer
+
+
+class SessionAnalyzerTest(unittest.TestCase):
+
+	def setUp(self):
+		self.session_analyzer = SessionAnalyzer(
+			session_path="/home/abrehamatlaw/Downloads/Compressed/results_2",
+			instruments=[
+				("AUD", "USD")
+			],
+			smoothing_algorithms=[
+				MovingAverage(64),
+				ServiceProvider.provide_lass(),
+			],
+			plt_y_grid_count=10
+		)
+
+	def test_plot_sequence(self):
+		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("AUD", "USD"))
+
+	def test_plot_timestep_sequence(self):
+		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("AUD", "USD"))
